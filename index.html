@@ -1149,19 +1149,35 @@
         function allInBid(team) {
             document.getElementById('team'+team+'BidInput').value = team===1 ? team1Points : team2Points;
         }
-        function placeBid(team) {
-            const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
-            const pts = team===1 ? team1Points : team2Points;
-            if(isNaN(amt)||amt<0) return alert('올바른 입찰가를 입력하세요!');
-            if(amt > pts) return alert('포인트가 부족합니다!');
-            if(amt <= currentBid.amount) return alert(currentBid.amount+'P 보다 높아야 합니다!');
-            if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ 퍼펙트 입찰!');
-            if(auctionTimeLeft<=2) showSpecialEffect('🔥 막판 입찰!');
-            currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
-            updateCurrentBidDisplay(); updateLeadingTeam(); updateBidHistory(); resetAuctionTimer();
-            const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
-            document.getElementById(opp).focus();
-        }
+    function placeBid(team) {
+    const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
+    const pts = team===1 ? team1Points : team2Points;
+    
+    if(isNaN(amt)||amt<0) return alert('올바른 입찰가를 입력하세요!');
+    if(amt > pts) return alert('포인트가 부족합니다!');
+    if(amt <= currentBid.amount) return alert(currentBid.amount+'P 보다 높아야 합니다!');
+    
+    // 특수 효과
+    if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ 퍼펙트 입찰!');
+    if(auctionTimeLeft<=2) showSpecialEffect('🔥 막판 입찰!');
+    
+    currentBid = {team, amount:amt}; 
+    bidHistory.push({team, amount:amt});
+    
+    updateCurrentBidDisplay(); 
+    updateLeadingTeam(); 
+    updateBidHistory(); 
+    resetAuctionTimer();
+    
+    // --- [수정된 부분 시작] ---
+    // 상대 팀 입력창으로 포커스 이동 시, 전체 선택(.select) 처리
+    const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
+    const targetInput = document.getElementById(opp);
+    
+    targetInput.focus();  // 포커스 이동
+    targetInput.select(); // 텍스트 전체 선택 (블록 잡기)
+    // --- [수정된 부분 끝] ---
+}
         function passAuction() {
             if(currentBid.team!==null) return alert('입찰이 있어서 유찰할 수 없습니다!');
             const passed = auctionPlayers.splice(currentAuctionIndex, 1)[0];
