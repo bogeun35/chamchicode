@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>참스코드 팀 경매</title>
+    <title>팀 편성 프로그램 (Final Ver)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -57,6 +57,7 @@
         .btn-secondary { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
         .btn-reset-spectator { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        
         .teams-container {
             background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.1);
             padding: 30px; border-radius: 8px; margin-bottom: 25px;
@@ -79,7 +80,12 @@
         }
         .team-score { background: rgba(255,255,255,0.1); }
         .team-points { background: linear-gradient(135deg, #d53f8c, #9d4edd); }
-        .team-slots { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* 팀 슬롯 높이 고정 (6개 기준) */
+        .team-slots { 
+            display: flex; flex-direction: column; gap: 10px; 
+            min-height: 460px; /* 높이 고정으로 덜컹거림 방지 */
+        }
         .team-slot {
             background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1);
             padding: 12px; border-radius: 6px; min-height: 65px;
@@ -91,6 +97,7 @@
             content: '빈 슬롯'; font-family: 'Orbitron', sans-serif;
             color: rgba(255,255,255,0.15); font-size: 0.85em;
         }
+        
         .player-card {
             width: 100%; background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
             border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
@@ -124,6 +131,7 @@
             font-size: 0.75em; padding: 3px 8px; border-radius: 3px;
             background: rgba(255,255,255,0.1); font-weight: 600;
         }
+        
         .vs-divider { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .vs-text {
             font-family: 'Orbitron', sans-serif; font-size: 3em; font-weight: 900;
@@ -135,6 +143,7 @@
             background: var(--ow-gray); padding: 12px 20px; border-radius: 6px;
         }
         .score-diff.balanced { background: rgba(72,187,120,0.2); border: 1px solid #48bb78; color: #48bb78; }
+        
         .spectators {
             background: var(--ow-dark); border: 2px solid rgba(157,78,221,0.5);
             border-radius: 8px; padding: 20px;
@@ -145,16 +154,22 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .spectator-count { font-size: 0.6em; background: rgba(157,78,221,0.2); padding: 6px 12px; border-radius: 4px; }
+        
+        /* 관전자 그리드 높이 고정 (3줄 정도) */
         .spectators-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px; min-height: 70px; padding: 10px; border-radius: 6px;
+            gap: 10px; 
+            min-height: 250px; /* 높이 고정 */
+            align-content: start; /* 위에서부터 채움 */
+            padding: 10px; border-radius: 6px;
         }
         .spectators-grid.drag-over { background: rgba(157,78,221,0.1); border: 2px dashed rgba(157,78,221,0.5); }
         .spectators-grid.empty::after {
             content: '관전자 없음'; font-family: 'Orbitron', sans-serif;
             color: rgba(255,255,255,0.15); display: flex; align-items: center;
-            justify-content: center; height: 50px; grid-column: 1 / -1;
+            justify-content: center; height: 100%; grid-column: 1 / -1;
         }
+        
         .spectator-card {
             background: linear-gradient(135deg, #7b2cbf, #5a189a);
             border-radius: 6px; padding: 12px; cursor: grab; transition: all 0.3s; position: relative;
@@ -174,6 +189,7 @@
         }
         .spectator-role { cursor: pointer; }
         .spectator-role:hover { background: rgba(255,255,255,0.4); }
+        
         .player-list-container {
             background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.1);
             padding: 25px; border-radius: 8px; margin-bottom: 25px;
@@ -222,6 +238,7 @@
             background: rgba(0,211,255,0.1); border: 1px solid rgba(0,211,255,0.2);
             padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em; color: rgba(255,255,255,0.6);
         }
+        
         .template-section {
             background: rgba(255,255,255,0.02); padding: 15px;
             border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);
@@ -240,6 +257,7 @@
         }
         .template-action-btn.save { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
         .template-action-btn.rename { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
+        
         /* 모달 공통 */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -276,7 +294,8 @@
         }
         .role-option:hover { background: rgba(0,211,255,0.1); border-color: var(--ow-blue); }
         .role-option.selected { background: var(--ow-blue); border-color: var(--ow-blue); color: var(--ow-dark); }
-        /* 경매 모달 - 컴팩트 버전 */
+        
+        /* 경매 모달 */
         .auction-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;
@@ -401,6 +420,7 @@
         .auction-pass-btn { background: linear-gradient(135deg, #9d4edd, #7b2cbf); color: white; }
         .auction-next-btn { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
         .auction-close-btn { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
+        
         .special-effect {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-family: 'Orbitron', sans-serif; font-size: 2em; font-weight: 900;
@@ -428,8 +448,8 @@
     <div class="hex-pattern"></div>
     <div class="container">
         <div class="header">
-            <h1>⚽ 참스코드 팀배분</h1>
-            <div class="header-subtitle">팀 경매 시스템</div>
+            <h1>⚽ 팀 편성 프로그램</h1>
+            <div class="header-subtitle">팀 배정 시스템</div>
         </div>
         <div class="controls">
             <div class="action-buttons">
@@ -501,7 +521,7 @@
             </div>
         </div>
     </div>
-    <!-- 티어 모달 -->
+    
     <div class="modal" id="tierModal">
         <div class="modal-content">
             <div class="modal-title">티어 수정</div>
@@ -512,7 +532,6 @@
             </div>
         </div>
     </div>
-    <!-- 역할 모달 -->
     <div class="modal" id="roleModal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-title" id="roleModalTitle">역할 선택</div>
@@ -528,7 +547,6 @@
             </div>
         </div>
     </div>
-    <!-- 템플릿 이름 모달 -->
     <div class="modal" id="templateNameModal">
         <div class="modal-content">
             <div class="modal-title" id="templateNameModalTitle">템플릿 이름</div>
@@ -539,7 +557,6 @@
             </div>
         </div>
     </div>
-    <!-- 경매 모달 -->
     <div class="auction-modal" id="auctionModal">
         <div class="auction-content">
             <div class="auction-header">
@@ -618,6 +635,7 @@
             </div>
         </div>
     </div>
+    
     <script>
         // 전역 변수
         let savedPlayers = [], draggedElement = null, sourceContainer = null, nextPlayerId = 1;
@@ -630,7 +648,7 @@
         const ROLE_ICONS = {'탱커':'🛡️','딜러':'⚔️','힐러':'❤️','랜덤':'🎲'};
         const ROLE_NAMES = {'탱커':'탱커','딜러':'딜러','힐러':'힐러','랜덤':'랜덤'};
         const STORAGE_KEY = 'teamBuilder_kr';
-        let roleEditSource = null; // 'spectator' or 'team'
+        let roleEditSource = null; 
 
         function init() {
             loadTemplates(); updateTemplateButtons(); loadCurrentTemplate();
@@ -705,10 +723,8 @@
             return p;
         }
         function calculateTeamSize() {
-            let t1=0, t2=0;
-            document.querySelectorAll('#team1 .player-card').forEach(() => t1++);
-            document.querySelectorAll('#team2 .player-card').forEach(() => t2++);
-            return Math.max(1, Math.ceil((getSpectatorPlayers().length + t1 + t2) / 2));
+            // [수정: 항상 6칸 반환하되, 로직상으로는 사용하지 않음]
+            return 6;
         }
         function getRoleCounts(p) {
             const c = {'탱커':0,'딜러':0,'힐러':0,'랜덤':0};
@@ -864,6 +880,18 @@
             document.getElementById('templateNameCancel').onclick = () => { document.getElementById('templateNameModal').classList.remove('active'); };
             document.getElementById('templateNameSave').onclick = saveTemplateName;
             document.getElementById('templateNameInput').onkeypress = e => { if(e.key==='Enter') saveTemplateName(); };
+
+            // [탭 키 제어] 경매 입력창끼리만 이동
+            const handleAuctionTab = (e, targetId) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault(); 
+                    const target = document.getElementById(targetId);
+                    target.focus();
+                    target.select(); 
+                }
+            };
+            document.getElementById('team1BidInput').addEventListener('keydown', (e) => handleAuctionTab(e, 'team2BidInput'));
+            document.getElementById('team2BidInput').addEventListener('keydown', (e) => handleAuctionTab(e, 'team1BidInput'));
         }
 
         // 플레이어 관리
@@ -935,9 +963,10 @@
             });
         }
 
-        // 팀 슬롯
+        // 팀 슬롯 (6칸 고정)
         function updateTeamSlots() {
-            const size = calculateTeamSize(), t1 = document.getElementById('team1'), t2 = document.getElementById('team2');
+            const size = 6; // 항상 6칸 유지
+            const t1 = document.getElementById('team1'), t2 = document.getElementById('team2');
             const p1=[], p2=[];
             t1.querySelectorAll('.player-card').forEach(c => p1.push(JSON.parse(c.dataset.player)));
             t2.querySelectorAll('.player-card').forEach(c => p2.push(JSON.parse(c.dataset.player)));
@@ -965,7 +994,6 @@
             c.innerHTML = `<div class="player-card-content"><div class="player-role-icon">${ROLE_ICONS[p.role]}</div><div class="player-info"><div class="player-name">${p.name}${isLeader ? ' <span class="leader-badge">팀장</span>' : ''}</div><div class="player-meta"><span class="tier-badge ${getTierClass(p.tier)}">${p.tier}점</span><span class="role-badge">${ROLE_NAMES[p.role]}</span></div></div></div>`;
             c.draggable = true; c.dataset.player = JSON.stringify(p);
             c.addEventListener('dragstart', handleDragStart); c.addEventListener('dragend', handleDragEnd);
-            // 역할 아이콘 클릭시 역할 변경
             c.querySelector('.player-role-icon').onclick = e => { e.stopPropagation(); openRoleModal(p, 'team'); };
             return c;
         }
@@ -1149,35 +1177,23 @@
         function allInBid(team) {
             document.getElementById('team'+team+'BidInput').value = team===1 ? team1Points : team2Points;
         }
-    function placeBid(team) {
-    const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
-    const pts = team===1 ? team1Points : team2Points;
-    
-    if(isNaN(amt)||amt<0) return alert('올바른 입찰가를 입력하세요!');
-    if(amt > pts) return alert('포인트가 부족합니다!');
-    if(amt <= currentBid.amount) return alert(currentBid.amount+'P 보다 높아야 합니다!');
-    
-    // 특수 효과
-    if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ 퍼펙트 입찰!');
-    if(auctionTimeLeft<=2) showSpecialEffect('🔥 막판 입찰!');
-    
-    currentBid = {team, amount:amt}; 
-    bidHistory.push({team, amount:amt});
-    
-    updateCurrentBidDisplay(); 
-    updateLeadingTeam(); 
-    updateBidHistory(); 
-    resetAuctionTimer();
-    
-    // --- [수정된 부분 시작] ---
-    // 상대 팀 입력창으로 포커스 이동 시, 전체 선택(.select) 처리
-    const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
-    const targetInput = document.getElementById(opp);
-    
-    targetInput.focus();  // 포커스 이동
-    targetInput.select(); // 텍스트 전체 선택 (블록 잡기)
-    // --- [수정된 부분 끝] ---
-}
+        function placeBid(team) {
+            const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
+            const pts = team===1 ? team1Points : team2Points;
+            if(isNaN(amt)||amt<0) return alert('올바른 입찰가를 입력하세요!');
+            if(amt > pts) return alert('포인트가 부족합니다!');
+            if(amt <= currentBid.amount) return alert(currentBid.amount+'P 보다 높아야 합니다!');
+            if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ 퍼펙트 입찰!');
+            if(auctionTimeLeft<=2) showSpecialEffect('🔥 막판 입찰!');
+            currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
+            updateCurrentBidDisplay(); updateLeadingTeam(); updateBidHistory(); resetAuctionTimer();
+            
+            // [포커스 이동 및 전체 선택]
+            const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
+            const targetInput = document.getElementById(opp);
+            targetInput.focus();
+            targetInput.select();
+        }
         function passAuction() {
             if(currentBid.team!==null) return alert('입찰이 있어서 유찰할 수 없습니다!');
             const passed = auctionPlayers.splice(currentAuctionIndex, 1)[0];
