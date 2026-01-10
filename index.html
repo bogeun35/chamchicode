@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEAM BUILDER - 오버워치 스타일</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ow-orange: #FF9C00;
+            --ow-blue: #00D3FF;
+            --ow-dark: #0d1117;
+            --ow-darker: #010409;
+            --ow-gray: #1c2128;
+            --ow-white: #f0f6fc;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--ow-darker);
+            min-height: 100vh;
+            color: var(--ow-white);
+        }
+        .hex-background {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: linear-gradient(135deg, rgba(0,211,255,0.03) 0%, transparent 50%),
+                        linear-gradient(225deg, rgba(255,156,0,0.03) 0%, transparent 50%), var(--ow-darker);
+        }
+        .hex-pattern {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%2300d3ff' fill-opacity='0.4'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 {
+            font-family: 'Orbitron', sans-serif; font-size: 3em; font-weight: 900; letter-spacing: 0.1em;
+            background: linear-gradient(135deg, var(--ow-blue), var(--ow-white), var(--ow-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .header-subtitle { font-size: 1em; color: rgba(255,255,255,0.5); letter-spacing: 0.2em; }
+        .controls {
+            background: rgba(28,33,40,0.9); border: 1px solid rgba(0,211,255,0.2);
+            padding: 20px; border-radius: 4px; margin-bottom: 25px; position: relative;
+        }
+        .controls::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--ow-blue), var(--ow-orange), transparent);
+        }
+        .action-buttons { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            font-family: 'Orbitron', sans-serif; padding: 15px 30px; border: none; border-radius: 4px;
+            font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+        }
+        .btn-balanced { background: linear-gradient(135deg, var(--ow-blue), #0099cc); color: white; }
+        .btn-spectator { background: linear-gradient(135deg, #9d4edd, #7b2cbf); color: white; }
+        .btn-auction { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .teams-container {
+            background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px; border-radius: 8px; margin-bottom: 25px;
+        }
+        .teams-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 30px; align-items: start; margin-bottom: 30px; }
+        .team { background: var(--ow-dark); border-radius: 8px; padding: 25px; }
+        .team-1 { border: 2px solid var(--ow-blue); box-shadow: 0 0 30px rgba(0,211,255,0.2); }
+        .team-2 { border: 2px solid var(--ow-orange); box-shadow: 0 0 30px rgba(255,156,0,0.2); }
+        .team-header {
+            font-family: 'Orbitron', sans-serif; font-size: 1.5em; font-weight: 700;
+            margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .team-1 .team-header { color: var(--ow-blue); }
+        .team-2 .team-header { color: var(--ow-orange); }
+        .team-stats { display: flex; gap: 10px; }
+        .team-score, .team-points {
+            font-family: 'Orbitron', sans-serif; font-size: 0.5em;
+            padding: 8px 12px; border-radius: 4px;
+        }
+        .team-score { background: rgba(255,255,255,0.1); }
+        .team-points { background: linear-gradient(135deg, #d53f8c, #9d4edd); }
+        .team-slots { display: flex; flex-direction: column; gap: 10px; }
+        .team-slot {
+            background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1);
+            padding: 12px; border-radius: 6px; min-height: 65px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+        }
+        .team-slot.drag-over { background: rgba(255,255,255,0.1); border-style: solid; }
+        .team-slot.empty::after {
+            content: 'EMPTY'; font-family: 'Orbitron', sans-serif;
+            color: rgba(255,255,255,0.15); font-size: 0.85em;
+        }
+        .player-card {
+            width: 100%; background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+            padding: 12px 15px; cursor: grab; transition: all 0.3s;
+        }
+        .player-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .player-card.dragging { opacity: 0.3; }
+        .player-card-content { display: flex; align-items: center; gap: 12px; }
+        .player-role-icon {
+            font-size: 1.8em; width: 45px; height: 45px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); border-radius: 50%;
+        }
+        .player-info { flex: 1; }
+        .player-name { font-family: 'Orbitron', sans-serif; font-size: 1.1em; font-weight: 700; }
+        .player-meta { display: flex; gap: 8px; margin-top: 4px; }
+        .tier-badge {
+            font-family: 'Orbitron', sans-serif; font-size: 0.7em;
+            padding: 3px 8px; border-radius: 3px; font-weight: 700;
+        }
+        .tier-bronze { background: linear-gradient(135deg, #cd7f32, #8b4513); color: white; }
+        .tier-silver { background: linear-gradient(135deg, #c0c0c0, #808080); color: #333; }
+        .tier-gold { background: linear-gradient(135deg, #ffd700, #daa520); color: #333; }
+        .tier-platinum { background: linear-gradient(135deg, #00d4aa, #00a085); color: white; }
+        .tier-diamond { background: linear-gradient(135deg, #b9f2ff, #87ceeb); color: #333; }
+        .role-badge {
+            font-size: 0.75em; padding: 3px 8px; border-radius: 3px;
+            background: rgba(255,255,255,0.1); font-weight: 600;
+        }
+        .vs-divider { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .vs-text {
+            font-family: 'Orbitron', sans-serif; font-size: 3em; font-weight: 900;
+            background: linear-gradient(180deg, var(--ow-blue), var(--ow-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .score-diff {
+            font-family: 'Orbitron', sans-serif; font-size: 0.9em;
+            background: var(--ow-gray); padding: 12px 20px; border-radius: 6px;
+        }
+        .score-diff.balanced { background: rgba(72,187,120,0.2); border: 1px solid #48bb78; color: #48bb78; }
+        .spectators {
+            background: var(--ow-dark); border: 2px solid rgba(157,78,221,0.5);
+            border-radius: 8px; padding: 20px;
+        }
+        .spectators-header {
+            font-family: 'Orbitron', sans-serif; font-size: 1.3em; font-weight: 700;
+            color: #9d4edd; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .spectator-count { font-size: 0.6em; background: rgba(157,78,221,0.2); padding: 6px 12px; border-radius: 4px; }
+        .spectators-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px; min-height: 70px; padding: 10px; border-radius: 6px;
+        }
+        .spectators-grid.drag-over { background: rgba(157,78,221,0.1); border: 2px dashed rgba(157,78,221,0.5); }
+        .spectators-grid.empty::after {
+            content: 'NO SPECTATORS'; font-family: 'Orbitron', sans-serif;
+            color: rgba(255,255,255,0.15); display: flex; align-items: center;
+            justify-content: center; height: 50px; grid-column: 1 / -1;
+        }
+        .spectator-card {
+            background: linear-gradient(135deg, #7b2cbf, #5a189a);
+            border-radius: 6px; padding: 12px; cursor: grab; transition: all 0.3s; position: relative;
+        }
+        .spectator-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(157,78,221,0.4); }
+        .spectator-card .remove-spectator-btn {
+            position: absolute; top: 6px; right: 6px;
+            background: rgba(239,68,68,0.8); border: none; color: white;
+            width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 11px;
+        }
+        .spectator-card .remove-spectator-btn:hover { background: #dc2626; }
+        .spectator-name { font-family: 'Orbitron', sans-serif; font-size: 1em; font-weight: 700; margin-bottom: 6px; }
+        .spectator-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+        .spectator-tier, .spectator-role {
+            font-size: 0.7em; padding: 3px 6px; border-radius: 3px;
+            background: rgba(255,255,255,0.2); font-weight: 600;
+        }
+        .spectator-role { cursor: pointer; }
+        .spectator-role:hover { background: rgba(255,255,255,0.4); }
+        .player-list-container {
+            background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.1);
+            padding: 25px; border-radius: 8px; margin-bottom: 25px;
+        }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.1em; font-weight: 700; margin-bottom: 15px; }
+        .saved-players {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+            min-height: 45px; padding: 12px; background: rgba(255,255,255,0.02);
+            border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);
+        }
+        .saved-player-tag {
+            background: linear-gradient(135deg, var(--ow-blue), #0099cc); color: white;
+            padding: 8px 12px; border-radius: 6px; font-size: 0.9em; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.3s;
+        }
+        .saved-player-tag.selectable:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,211,255,0.4); }
+        .saved-player-tag.in-spectator { background: linear-gradient(135deg, #7b2cbf, #5a189a); cursor: default; }
+        .saved-player-tag.in-team { background: linear-gradient(135deg, #4a5568, #2d3748); opacity: 0.6; cursor: default; }
+        .saved-player-tag .tier-badge-small {
+            background: rgba(255,255,255,0.3); padding: 2px 6px; border-radius: 3px;
+            font-size: 0.8em; font-weight: 700; cursor: pointer;
+        }
+        .saved-player-tag .tier-badge-small:hover { background: rgba(255,255,255,0.5); }
+        .saved-player-tag .remove-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 10px;
+        }
+        .saved-player-tag .remove-btn:hover { background: #dc2626; }
+        .add-player-section { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .player-name-input, .tier-input {
+            background: var(--ow-dark); border: 2px solid rgba(255,255,255,0.1);
+            color: var(--ow-white); padding: 10px 12px; border-radius: 6px; font-size: 0.95em;
+        }
+        .player-name-input:focus, .tier-input:focus { outline: none; border-color: var(--ow-blue); }
+        .player-name-input { flex: 1; min-width: 180px; }
+        .tier-input { width: 70px; text-align: center; }
+        .tier-input-label { color: rgba(255,255,255,0.5); font-weight: 600; }
+        .add-player-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #48bb78, #38a169); color: white;
+            border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.85em;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        .add-player-btn:hover { transform: translateY(-2px); }
+        .info-message {
+            background: rgba(0,211,255,0.1); border: 1px solid rgba(0,211,255,0.2);
+            padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em; color: rgba(255,255,255,0.6);
+        }
+        .template-section {
+            background: rgba(255,255,255,0.02); padding: 15px;
+            border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .template-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .template-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .template-btn {
+            padding: 8px 16px; border: 2px solid var(--ow-blue); background: transparent;
+            color: var(--ow-blue); border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: 700;
+        }
+        .template-btn:hover, .template-btn.active { background: var(--ow-blue); color: var(--ow-dark); }
+        .template-actions { display: flex; gap: 8px; }
+        .template-action-btn {
+            padding: 8px 16px; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 0.85em; font-weight: 700;
+        }
+        .template-action-btn.save { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .template-action-btn.rename { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
+            border: 2px solid rgba(0,211,255,0.3); padding: 25px; border-radius: 8px;
+            max-width: 380px; width: 90%;
+        }
+        .modal-title {
+            font-family: 'Orbitron', sans-serif; font-size: 1.2em; font-weight: 700;
+            margin-bottom: 20px; text-align: center;
+        }
+        .modal-input {
+            width: 100%; background: var(--ow-dark); border: 2px solid rgba(255,255,255,0.1);
+            color: var(--ow-white); padding: 12px; border-radius: 6px;
+            font-size: 1.1em; text-align: center; margin-bottom: 20px;
+        }
+        .modal-input:focus { outline: none; border-color: var(--ow-blue); }
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-btn {
+            flex: 1; font-family: 'Orbitron', sans-serif; padding: 12px;
+            border: none; border-radius: 6px; font-size: 0.9em; font-weight: 700; cursor: pointer;
+        }
+        .modal-btn.save { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .modal-btn.cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+        .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .role-option {
+            padding: 20px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px; cursor: pointer; text-align: center; font-size: 1.2em; font-weight: 700;
+            color: rgba(255,255,255,0.7); transition: all 0.3s;
+        }
+        .role-option:hover { background: rgba(0,211,255,0.1); border-color: var(--ow-blue); }
+        .role-option.selected { background: var(--ow-blue); border-color: var(--ow-blue); color: var(--ow-dark); }
+        /* 경매 모달 */
+        .auction-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000; overflow-y: auto;
+        }
+        .auction-modal.active { display: block; }
+        .auction-layout { display: grid; grid-template-columns: 260px 1fr 260px; min-height: 100vh; }
+        .auction-team-panel {
+            background: linear-gradient(180deg, rgba(13,17,23,0.98), rgba(28,33,40,0.98));
+            padding: 20px; display: flex; flex-direction: column; position: relative;
+        }
+        .auction-team-panel.team-1 { border-left: 4px solid var(--ow-blue); }
+        .auction-team-panel.team-2 { border-right: 4px solid var(--ow-orange); }
+        .auction-team-panel.leading.team-1 { background: linear-gradient(180deg, rgba(0,211,255,0.15), rgba(13,17,23,0.98)); }
+        .auction-team-panel.leading.team-2 { background: linear-gradient(180deg, rgba(255,156,0,0.15), rgba(13,17,23,0.98)); }
+        .leading-crown {
+            position: absolute; top: 12px; right: 12px; font-size: 1.8em;
+            animation: crownBounce 1s ease-in-out infinite;
+        }
+        @keyframes crownBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .auction-team-title {
+            font-family: 'Orbitron', sans-serif; font-size: 1.5em; font-weight: 900;
+            text-align: center; margin-bottom: 15px;
+        }
+        .team-1 .auction-team-title { color: var(--ow-blue); }
+        .team-2 .auction-team-title { color: var(--ow-orange); }
+        .auction-team-points-display {
+            font-family: 'Orbitron', sans-serif; font-size: 2.5em; font-weight: 900; text-align: center;
+        }
+        .team-1 .auction-team-points-display { color: var(--ow-blue); }
+        .team-2 .auction-team-points-display { color: var(--ow-orange); }
+        .points-label { text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85em; margin-bottom: 20px; }
+        .auction-bid-input {
+            width: 100%; font-family: 'Orbitron', sans-serif;
+            background: var(--ow-dark); border: 2px solid rgba(255,255,255,0.1);
+            color: var(--ow-white); padding: 15px; border-radius: 8px;
+            font-size: 1.3em; text-align: center; margin-bottom: 12px;
+        }
+        .quick-bid-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .quick-bid-btn {
+            font-family: 'Orbitron', sans-serif; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+            padding: 10px; border-radius: 6px; font-size: 0.8em; font-weight: 700; cursor: pointer;
+        }
+        .quick-bid-btn:hover { background: rgba(255,255,255,0.1); }
+        .quick-bid-btn.all-in { grid-column: span 2; }
+        .auction-bid-btn {
+            width: 100%; font-family: 'Orbitron', sans-serif; padding: 15px;
+            border: none; border-radius: 8px; font-size: 1em; font-weight: 700; cursor: pointer;
+        }
+        .team-1 .auction-bid-btn { background: linear-gradient(135deg, var(--ow-blue), #0099cc); color: white; }
+        .team-2 .auction-bid-btn { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
+        .auction-bid-btn:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: not-allowed; }
+        .points-edit-section { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .points-edit-label { font-size: 0.8em; color: rgba(255,255,255,0.3); margin-bottom: 5px; }
+        .points-edit-input {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--ow-white); padding: 8px; border-radius: 4px; text-align: center;
+        }
+        .auction-main {
+            background: linear-gradient(180deg, rgba(13,17,23,0.95), rgba(28,33,40,0.95));
+            padding: 25px; display: flex; flex-direction: column; position: relative;
+        }
+        .spotlight {
+            position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
+            width: 500px; height: 500px; pointer-events: none;
+            background: radial-gradient(circle, rgba(255,156,0,0.1) 0%, transparent 70%);
+        }
+        .auction-leader {
+            text-align: center; padding: 12px;
+            background: linear-gradient(135deg, rgba(157,78,221,0.2), rgba(157,78,221,0.05));
+            border: 1px solid rgba(157,78,221,0.3); border-radius: 8px;
+            margin-bottom: 15px; position: relative; z-index: 1;
+        }
+        .auction-leader-label { font-size: 0.85em; color: rgba(255,255,255,0.4); margin-bottom: 3px; }
+        .auction-leader-name { font-family: 'Orbitron', sans-serif; font-size: 1.2em; font-weight: 700; color: #9d4edd; }
+        .auction-timer-section { display: flex; justify-content: center; margin-bottom: 20px; position: relative; z-index: 1; }
+        .timer-container { position: relative; width: 150px; height: 150px; }
+        .timer-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .timer-ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+        .timer-ring-progress {
+            fill: none; stroke: var(--ow-orange); stroke-width: 8; stroke-linecap: round;
+            stroke-dasharray: 408; stroke-dashoffset: 0; transition: stroke-dashoffset 0.1s linear;
+        }
+        .timer-ring-progress.warning { stroke: #ef4444; }
+        .timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .timer-seconds { font-family: 'Orbitron', sans-serif; font-size: 3.5em; font-weight: 900; line-height: 1; }
+        .timer-seconds.warning { color: #ef4444; animation: timerPulse 0.5s ease-in-out infinite; }
+        @keyframes timerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .timer-label { font-size: 0.8em; color: rgba(255,255,255,0.4); }
+        .auction-current-player {
+            background: linear-gradient(135deg, var(--ow-orange), #cc7a00);
+            border-radius: 12px; padding: 25px; text-align: center;
+            margin-bottom: 20px; position: relative; z-index: 1;
+            box-shadow: 0 15px 40px rgba(255,156,0,0.3);
+        }
+        .auction-player-role-icon { font-size: 3em; margin-bottom: 10px; }
+        .auction-player-name {
+            font-family: 'Orbitron', sans-serif; font-size: 2em; font-weight: 900;
+            color: white; margin-bottom: 10px;
+        }
+        .auction-player-stats { display: flex; justify-content: center; gap: 15px; }
+        .auction-player-tier, .auction-player-role {
+            font-family: 'Orbitron', sans-serif; font-size: 1em;
+            padding: 8px 20px; border-radius: 6px; font-weight: 700;
+        }
+        .auction-player-tier { background: rgba(255,255,255,0.25); color: white; }
+        .auction-player-role { background: rgba(255,255,255,0.35); color: white; }
+        .current-bid-display {
+            background: var(--ow-dark); border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 15px; text-align: center;
+            margin-bottom: 20px; position: relative; z-index: 1;
+        }
+        .current-bid-label { font-size: 0.9em; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .current-bid-value { font-family: 'Orbitron', sans-serif; font-size: 1.8em; font-weight: 900; }
+        .current-bid-value.team-1 { color: var(--ow-blue); }
+        .current-bid-value.team-2 { color: var(--ow-orange); }
+        .current-bid-value.none { color: rgba(255,255,255,0.2); }
+        .bid-history {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px; padding: 12px; margin-bottom: 20px;
+            max-height: 100px; overflow-y: auto; position: relative; z-index: 1;
+        }
+        .bid-history-title { font-family: 'Orbitron', sans-serif; font-size: 0.8em; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+        .bid-history-list { display: flex; flex-direction: column; gap: 4px; }
+        .bid-history-item { font-size: 0.85em; padding: 6px 10px; border-radius: 4px; }
+        .bid-history-item.team-1 { background: rgba(0,211,255,0.1); border-left: 3px solid var(--ow-blue); color: var(--ow-blue); }
+        .bid-history-item.team-2 { background: rgba(255,156,0,0.1); border-left: 3px solid var(--ow-orange); color: var(--ow-orange); }
+        .remaining-players {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px; padding: 12px; flex: 1; position: relative; z-index: 1; overflow-y: auto;
+        }
+        .remaining-title {
+            font-family: 'Orbitron', sans-serif; font-size: 0.8em; color: rgba(255,255,255,0.3);
+            margin-bottom: 8px; display: flex; justify-content: space-between;
+        }
+        .remaining-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+        .remaining-player {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; padding: 10px; text-align: center;
+        }
+        .remaining-player.current {
+            background: linear-gradient(135deg, rgba(255,156,0,0.3), rgba(255,156,0,0.1));
+            border-color: var(--ow-orange);
+        }
+        .remaining-player-name { font-size: 0.9em; font-weight: 700; margin-bottom: 3px; }
+        .remaining-player-info { font-size: 0.75em; color: rgba(255,255,255,0.4); }
+        .auction-controls {
+            display: flex; gap: 12px; padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 1;
+        }
+        .auction-control-btn {
+            flex: 1; font-family: 'Orbitron', sans-serif; padding: 15px;
+            border: none; border-radius: 8px; font-size: 0.95em; font-weight: 700; cursor: pointer;
+        }
+        .auction-pass-btn { background: linear-gradient(135deg, #9d4edd, #7b2cbf); color: white; }
+        .auction-next-btn { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .auction-close-btn { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
+        .special-effect {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif; font-size: 2.5em; font-weight: 900;
+            color: var(--ow-orange); text-shadow: 0 0 30px rgba(255,156,0,0.8);
+            z-index: 3000; pointer-events: none; animation: specialPop 1.5s ease-out forwards;
+        }
+        @keyframes specialPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) translateY(-50px); }
+        }
+        @media (max-width: 1200px) {
+            .auction-layout { grid-template-columns: 1fr; }
+            .auction-team-panel { border: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
+            .auction-team-panel.team-1 { order: 2; border-top: 4px solid var(--ow-blue) !important; }
+            .auction-team-panel.team-2 { order: 3; border-top: 4px solid var(--ow-orange) !important; }
+            .auction-main { order: 1; }
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .teams-grid { grid-template-columns: 1fr; gap: 20px; }
+            .vs-divider { flex-direction: row; }
+            .vs-text { font-size: 2em; }
+            .action-buttons { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hex-background"></div>
+    <div class="hex-pattern"></div>
+    <div class="container">
+        <div class="header">
+            <h1>TEAM BUILDER</h1>
+            <div class="header-subtitle">COMPETITIVE TEAM ASSIGNMENT</div>
+        </div>
+        <div class="controls">
+            <div class="action-buttons">
+                <button class="btn btn-balanced" id="balancedBtn">⚖️ BALANCE</button>
+                <button class="btn btn-spectator" id="spectatorRandomBtn">👥 RANDOM</button>
+                <button class="btn btn-auction" id="auctionBtn">🔨 AUCTION</button>
+                <button class="btn btn-secondary" id="clearTeamsBtn">🔄 RESET</button>
+            </div>
+        </div>
+        <div class="teams-container">
+            <div class="teams-grid">
+                <div class="team team-1">
+                    <div class="team-header">
+                        <span>TEAM 1</span>
+                        <div class="team-stats">
+                            <span class="team-score" id="team1Score">0 PTS</span>
+                            <span class="team-points" id="team1Points">100P</span>
+                        </div>
+                    </div>
+                    <div class="team-slots" id="team1"></div>
+                </div>
+                <div class="vs-divider">
+                    <div class="vs-text">VS</div>
+                    <div class="score-diff" id="scoreDiff">DIFF: 0</div>
+                </div>
+                <div class="team team-2">
+                    <div class="team-header">
+                        <span>TEAM 2</span>
+                        <div class="team-stats">
+                            <span class="team-score" id="team2Score">0 PTS</span>
+                            <span class="team-points" id="team2Points">100P</span>
+                        </div>
+                    </div>
+                    <div class="team-slots" id="team2"></div>
+                </div>
+            </div>
+            <div class="spectators">
+                <div class="spectators-header">
+                    <span>👥 SPECTATORS</span>
+                    <span class="spectator-count" id="spectatorCount">0</span>
+                </div>
+                <div class="spectators-grid empty" id="spectatorsGrid"></div>
+            </div>
+        </div>
+        <div class="player-list-container">
+            <div class="player-input-section">
+                <div class="section-title">PLAYER ROSTER</div>
+                <div class="saved-players" id="savedPlayers">
+                    <span style="color: rgba(255,255,255,0.2);">No players</span>
+                </div>
+                <div class="add-player-section">
+                    <input type="text" class="player-name-input" id="newPlayerInput" placeholder="Player name...">
+                    <span class="tier-input-label">TIER:</span>
+                    <input type="number" class="tier-input" id="newTierInput" value="3" min="1">
+                    <button class="add-player-btn" id="addPlayerBtn">➕ ADD</button>
+                </div>
+                <div class="info-message">💡 Click player to add as spectator. Click role to change.</div>
+            </div>
+            <div class="template-section">
+                <div class="template-header">
+                    <div class="section-title">TEMPLATES</div>
+                    <div class="template-actions">
+                        <button class="template-action-btn save" id="saveTemplateBtn">💾 SAVE</button>
+                        <button class="template-action-btn rename" id="renameTemplateBtn">✏️ RENAME</button>
+                    </div>
+                </div>
+                <div class="template-buttons" id="templateButtons"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 티어 모달 -->
+    <div class="modal" id="tierModal">
+        <div class="modal-content">
+            <div class="modal-title">MODIFY TIER</div>
+            <input type="number" class="modal-input" id="tierModalInput" min="1">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="tierModalCancel">CANCEL</button>
+                <button class="modal-btn save" id="tierModalSave">SAVE</button>
+            </div>
+        </div>
+    </div>
+    <!-- 역할 모달 -->
+    <div class="modal" id="roleModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-title" id="roleModalTitle">SELECT ROLE</div>
+            <div class="role-selector">
+                <div class="role-option" data-role="탱커">🛡️<br>TANK</div>
+                <div class="role-option" data-role="딜러">⚔️<br>DPS</div>
+                <div class="role-option" data-role="힐러">❤️<br>HEALER</div>
+                <div class="role-option" data-role="랜덤">🎲<br>RANDOM</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="roleModalCancel">CANCEL</button>
+                <button class="modal-btn save" id="roleModalSave">OK</button>
+            </div>
+        </div>
+    </div>
+    <!-- 템플릿 이름 모달 -->
+    <div class="modal" id="templateNameModal">
+        <div class="modal-content">
+            <div class="modal-title" id="templateNameModalTitle">TEMPLATE NAME</div>
+            <input type="text" class="modal-input" id="templateNameInput" placeholder="Name...">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="templateNameCancel">CANCEL</button>
+                <button class="modal-btn save" id="templateNameSave">SAVE</button>
+            </div>
+        </div>
+    </div>
+    <!-- 경매 모달 -->
+    <div class="auction-modal" id="auctionModal">
+        <div class="auction-layout">
+            <div class="auction-team-panel team-1" id="auctionTeam1Panel">
+                <div class="leading-crown" style="display:none;">👑</div>
+                <div class="auction-team-title">TEAM 1</div>
+                <div class="auction-team-points-display" id="auctionTeam1Points">100</div>
+                <div class="points-label">POINTS</div>
+                <div class="auction-bid-section">
+                    <input type="number" class="auction-bid-input" id="team1BidInput" min="0" placeholder="0">
+                    <div class="quick-bid-buttons">
+                        <button class="quick-bid-btn" onclick="quickBid(1,1)">+1</button>
+                        <button class="quick-bid-btn" onclick="quickBid(1,5)">+5</button>
+                        <button class="quick-bid-btn" onclick="quickBid(1,10)">+10</button>
+                        <button class="quick-bid-btn" onclick="quickBid(1,20)">+20</button>
+                        <button class="quick-bid-btn all-in" onclick="allInBid(1)">⚡ ALL IN</button>
+                    </div>
+                    <button class="auction-bid-btn" id="team1BidBtn">BID</button>
+                </div>
+                <div class="points-edit-section">
+                    <div class="points-edit-label">Edit Points</div>
+                    <input type="number" class="points-edit-input" id="auctionTeam1PointsInput" min="0">
+                </div>
+            </div>
+            <div class="auction-main">
+                <div class="spotlight"></div>
+                <div class="auction-leader">
+                    <div class="auction-leader-label">AUCTION LEADER</div>
+                    <div class="auction-leader-name" id="auctionLeaderName">-</div>
+                </div>
+                <div class="auction-timer-section">
+                    <div class="timer-container">
+                        <div class="timer-ring">
+                            <svg viewBox="0 0 150 150">
+                                <circle class="timer-ring-bg" cx="75" cy="75" r="65"></circle>
+                                <circle class="timer-ring-progress" id="timerProgress" cx="75" cy="75" r="65"></circle>
+                            </svg>
+                        </div>
+                        <div class="timer-display">
+                            <div class="timer-seconds" id="timerSeconds">6</div>
+                            <div class="timer-label">SEC</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="auction-current-player">
+                    <div class="auction-player-role-icon" id="auctionPlayerIcon">🎲</div>
+                    <div class="auction-player-name" id="auctionPlayerName">PLAYER</div>
+                    <div class="auction-player-stats">
+                        <div class="auction-player-tier" id="auctionPlayerTier">3 PTS</div>
+                        <div class="auction-player-role" id="auctionPlayerRole">RANDOM</div>
+                    </div>
+                </div>
+                <div class="current-bid-display">
+                    <div class="current-bid-label">CURRENT BID</div>
+                    <div class="current-bid-value none" id="currentBidValue">NO BID</div>
+                </div>
+                <div class="bid-history">
+                    <div class="bid-history-title">BID HISTORY</div>
+                    <div class="bid-history-list" id="bidHistoryList"></div>
+                </div>
+                <div class="remaining-players">
+                    <div class="remaining-title">
+                        <span>REMAINING</span>
+                        <span id="remainingCount">0</span>
+                    </div>
+                    <div class="remaining-grid" id="remainingGrid"></div>
+                </div>
+                <div class="auction-controls">
+                    <button class="auction-control-btn auction-pass-btn" id="auctionPassBtn">⏭️ PASS</button>
+                    <button class="auction-control-btn auction-next-btn" id="auctionNextBtn">✓ CONFIRM</button>
+                    <button class="auction-control-btn auction-close-btn" id="auctionCloseBtn">✕ CLOSE</button>
+                </div>
+            </div>
+            <div class="auction-team-panel team-2" id="auctionTeam2Panel">
+                <div class="leading-crown" style="display:none;">👑</div>
+                <div class="auction-team-title">TEAM 2</div>
+                <div class="auction-team-points-display" id="auctionTeam2Points">100</div>
+                <div class="points-label">POINTS</div>
+                <div class="auction-bid-section">
+                    <input type="number" class="auction-bid-input" id="team2BidInput" min="0" placeholder="0">
+                    <div class="quick-bid-buttons">
+                        <button class="quick-bid-btn" onclick="quickBid(2,1)">+1</button>
+                        <button class="quick-bid-btn" onclick="quickBid(2,5)">+5</button>
+                        <button class="quick-bid-btn" onclick="quickBid(2,10)">+10</button>
+                        <button class="quick-bid-btn" onclick="quickBid(2,20)">+20</button>
+                        <button class="quick-bid-btn all-in" onclick="allInBid(2)">⚡ ALL IN</button>
+                    </div>
+                    <button class="auction-bid-btn" id="team2BidBtn">BID</button>
+                </div>
+                <div class="points-edit-section">
+                    <div class="points-edit-label">Edit Points</div>
+                    <input type="number" class="points-edit-input" id="auctionTeam2PointsInput" min="0">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 전역 변수
+        let savedPlayers = [], draggedElement = null, sourceContainer = null, nextPlayerId = 1;
+        let editingPlayerId = null, editingSpectatorId = null, selectedRole = null;
+        let team1Points = 100, team2Points = 100, auctionPlayers = [], currentAuctionIndex = 0;
+        let currentBid = { team: null, amount: 0 }, bidHistory = [];
+        let auctionTimer = null, auctionTimeLeft = 6;
+        const AUCTION_TIME = 6, MAX_TEMPLATES = 5;
+        let templates = [], currentTemplateIndex = 0;
+        const ROLE_ICONS = {'탱커':'🛡️','딜러':'⚔️','힐러':'❤️','랜덤':'🎲'};
+        const ROLE_NAMES = {'탱커':'TANK','딜러':'DPS','힐러':'HEALER','랜덤':'RANDOM'};
+        const STORAGE_KEY = 'teamBuilder_ow';
+
+        function init() {
+            loadTemplates(); updateTemplateButtons(); loadCurrentTemplate();
+            updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners();
+            setupSpectatorsDragDrop(); updateTeamPoints();
+        }
+
+        function loadTemplates() {
+            try { templates = JSON.parse(localStorage.getItem(STORAGE_KEY+'_templates')) || []; } catch(e) { templates = []; }
+            while(templates.length < MAX_TEMPLATES) templates.push({name:`TEMPLATE ${templates.length+1}`,players:[],nextId:1});
+            currentTemplateIndex = parseInt(localStorage.getItem(STORAGE_KEY+'_current')) || 0;
+        }
+        function saveTemplates() {
+            localStorage.setItem(STORAGE_KEY+'_templates', JSON.stringify(templates));
+            localStorage.setItem(STORAGE_KEY+'_current', currentTemplateIndex.toString());
+        }
+        function loadCurrentTemplate() {
+            const t = templates[currentTemplateIndex];
+            savedPlayers = t.players || []; nextPlayerId = t.nextId || 1;
+        }
+        function saveCurrentTemplate() {
+            templates[currentTemplateIndex].players = savedPlayers;
+            templates[currentTemplateIndex].nextId = nextPlayerId;
+            saveTemplates();
+        }
+        function switchTemplate(i) {
+            saveCurrentTemplate(); currentTemplateIndex = i; loadCurrentTemplate();
+            updateTemplateButtons(); updateSavedPlayersUI(); clearAll(); saveTemplates();
+        }
+        function updateTemplateButtons() {
+            const c = document.getElementById('templateButtons'); c.innerHTML = '';
+            templates.forEach((t,i) => {
+                const b = document.createElement('button');
+                b.className = 'template-btn' + (i===currentTemplateIndex?' active':'');
+                b.textContent = t.name;
+                b.onclick = () => switchTemplate(i);
+                c.appendChild(b);
+            });
+        }
+        function openTemplateNameModal() {
+            document.getElementById('templateNameInput').value = templates[currentTemplateIndex].name;
+            document.getElementById('templateNameModal').classList.add('active');
+            document.getElementById('templateNameInput').focus();
+        }
+        function saveTemplateName() {
+            const n = document.getElementById('templateNameInput').value.trim();
+            if(!n) return alert('Enter name!');
+            templates[currentTemplateIndex].name = n; saveTemplates(); updateTemplateButtons();
+            document.getElementById('templateNameModal').classList.remove('active');
+        }
+        function updateTeamPoints() {
+            document.getElementById('team1Points').textContent = team1Points+'P';
+            document.getElementById('team2Points').textContent = team2Points+'P';
+        }
+        function getTierClass(t) {
+            if(t<=1) return 'tier-bronze'; if(t<=2) return 'tier-silver';
+            if(t<=3) return 'tier-gold'; if(t<=4) return 'tier-platinum'; return 'tier-diamond';
+        }
+        function getTeamPlayerNames() {
+            const s = new Set();
+            document.querySelectorAll('.team-slot .player-card').forEach(c => s.add(JSON.parse(c.dataset.player).name));
+            return s;
+        }
+        function getSpectatorPlayerNames() {
+            const s = new Set();
+            document.querySelectorAll('#spectatorsGrid .spectator-card').forEach(c => s.add(JSON.parse(c.dataset.player).name));
+            return s;
+        }
+        function getSpectatorPlayers() {
+            const p = [];
+            document.querySelectorAll('#spectatorsGrid .spectator-card').forEach(c => p.push(JSON.parse(c.dataset.player)));
+            return p;
+        }
+        function calculateTeamSize() {
+            let t1=0, t2=0;
+            document.querySelectorAll('#team1 .player-card').forEach(() => t1++);
+            document.querySelectorAll('#team2 .player-card').forEach(() => t2++);
+            return Math.ceil((getSpectatorPlayers().length + t1 + t2) / 2);
+        }
+        function getRoleCounts(p) {
+            const c = {'탱커':0,'딜러':0,'힐러':0,'랜덤':0};
+            p.forEach(x => c[x.role]++); return c;
+        }
+
+        // 타이머
+        function startAuctionTimer() {
+            stopAuctionTimer(); auctionTimeLeft = AUCTION_TIME; updateTimerDisplay();
+            auctionTimer = setInterval(() => { auctionTimeLeft--; updateTimerDisplay(); if(auctionTimeLeft<=0) stopAuctionTimer(); }, 1000);
+        }
+        function stopAuctionTimer() { if(auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; } }
+        function resetAuctionTimer() { startAuctionTimer(); }
+        function updateTimerDisplay() {
+            const ts = document.getElementById('timerSeconds'), tp = document.getElementById('timerProgress');
+            ts.textContent = auctionTimeLeft;
+            const circ = 2 * Math.PI * 65, off = circ * (1 - auctionTimeLeft / AUCTION_TIME);
+            tp.style.strokeDashoffset = off;
+            if(auctionTimeLeft <= 3) { ts.classList.add('warning'); tp.classList.add('warning'); }
+            else { ts.classList.remove('warning'); tp.classList.remove('warning'); }
+        }
+
+        function showSpecialEffect(t) {
+            const e = document.createElement('div'); e.className = 'special-effect'; e.textContent = t;
+            document.body.appendChild(e); setTimeout(() => e.remove(), 1500);
+        }
+
+        // 드래그앤드롭
+        function setupSpectatorsDragDrop() {
+            const g = document.getElementById('spectatorsGrid');
+            g.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+            g.addEventListener('dragenter', e => e.currentTarget.classList.add('drag-over'));
+            g.addEventListener('dragleave', e => { if(e.target === e.currentTarget) e.currentTarget.classList.remove('drag-over'); });
+            g.addEventListener('drop', e => {
+                e.stopPropagation(); e.preventDefault(); g.classList.remove('drag-over');
+                if(!draggedElement || !sourceContainer) return;
+                const p = JSON.parse(draggedElement.dataset.player);
+                if(sourceContainer.classList.contains('team-slot')) {
+                    sourceContainer.innerHTML = ''; sourceContainer.classList.add('empty');
+                    addToSpectators(p); updateTeamScores(); updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+                }
+            });
+        }
+
+        function addToSpectators(p) {
+            const g = document.getElementById('spectatorsGrid');
+            if(getSpectatorPlayerNames().has(p.name)) return;
+            g.classList.remove('empty'); g.appendChild(createSpectatorCard(p));
+        }
+        function createSpectatorCard(p) {
+            const c = document.createElement('div'); c.className = 'spectator-card';
+            c.innerHTML = `<button class="remove-spectator-btn">✕</button><div class="spectator-name">${p.name}</div><div class="spectator-meta"><span class="spectator-tier">${p.tier}pts</span><span class="spectator-role">${ROLE_ICONS[p.role]} ${ROLE_NAMES[p.role]}</span></div>`;
+            c.draggable = true; c.dataset.player = JSON.stringify(p);
+            c.addEventListener('dragstart', handleDragStart); c.addEventListener('dragend', handleDragEnd);
+            c.querySelector('.remove-spectator-btn').onclick = e => { e.stopPropagation(); removeFromSpectators(p); };
+            c.querySelector('.spectator-role').onclick = e => { e.stopPropagation(); openRoleModal(p); };
+            return c;
+        }
+        function openRoleModal(p) {
+            editingSpectatorId = p.id; selectedRole = p.role;
+            document.getElementById('roleModalTitle').textContent = p.name + ' - ROLE';
+            document.querySelectorAll('.role-option').forEach(o => { o.classList.toggle('selected', o.dataset.role === p.role); });
+            document.getElementById('roleModal').classList.add('active');
+        }
+        function saveRoleChange() {
+            if(!selectedRole) return alert('Select role!');
+            document.querySelectorAll('#spectatorsGrid .spectator-card').forEach(c => {
+                const p = JSON.parse(c.dataset.player);
+                if(p.id === editingSpectatorId) {
+                    p.role = selectedRole; c.dataset.player = JSON.stringify(p);
+                    c.querySelector('.spectator-role').innerHTML = ROLE_ICONS[p.role]+' '+ROLE_NAMES[p.role];
+                }
+            });
+            document.getElementById('roleModal').classList.remove('active');
+            editingSpectatorId = null; selectedRole = null;
+        }
+        function removeFromSpectators(p) {
+            document.querySelectorAll('#spectatorsGrid .spectator-card').forEach(c => {
+                if(JSON.parse(c.dataset.player).id === p.id) c.remove();
+            });
+            updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+        }
+        function updateSpectatorCount() {
+            const g = document.getElementById('spectatorsGrid');
+            const n = g.querySelectorAll('.spectator-card').length;
+            document.getElementById('spectatorCount').textContent = n;
+            g.classList.toggle('empty', n === 0);
+        }
+
+        // 이벤트 리스너
+        function setupEventListeners() {
+            document.getElementById('addPlayerBtn').onclick = addPlayer;
+            document.getElementById('newPlayerInput').onkeypress = e => { if(e.key==='Enter') addPlayer(); };
+            document.getElementById('newTierInput').onkeypress = e => { if(e.key==='Enter') addPlayer(); };
+            document.getElementById('balancedBtn').onclick = balancedRandomAssign;
+            document.getElementById('spectatorRandomBtn').onclick = spectatorRandomAssign;
+            document.getElementById('auctionBtn').onclick = startAuction;
+            document.getElementById('clearTeamsBtn').onclick = clearAll;
+            document.getElementById('team1BidBtn').onclick = () => placeBid(1);
+            document.getElementById('team2BidBtn').onclick = () => placeBid(2);
+            document.getElementById('auctionPassBtn').onclick = passAuction;
+            document.getElementById('auctionNextBtn').onclick = nextAuctionPlayer;
+            document.getElementById('auctionCloseBtn').onclick = closeAuction;
+            document.getElementById('team1BidInput').onkeypress = e => { if(e.key==='Enter') placeBid(1); };
+            document.getElementById('team2BidInput').onkeypress = e => { if(e.key==='Enter') placeBid(2); };
+            document.getElementById('auctionTeam1PointsInput').oninput = function() {
+                team1Points = parseInt(this.value)||0; updateTeamPoints();
+                document.getElementById('auctionTeam1Points').textContent = team1Points;
+            };
+            document.getElementById('auctionTeam2PointsInput').oninput = function() {
+                team2Points = parseInt(this.value)||0; updateTeamPoints();
+                document.getElementById('auctionTeam2Points').textContent = team2Points;
+            };
+            document.getElementById('tierModalCancel').onclick = () => { document.getElementById('tierModal').classList.remove('active'); };
+            document.getElementById('tierModalSave').onclick = saveTierChange;
+            document.getElementById('tierModalInput').onkeypress = e => { if(e.key==='Enter') saveTierChange(); };
+            document.querySelectorAll('.role-option').forEach(o => {
+                o.onclick = function() {
+                    document.querySelectorAll('.role-option').forEach(x => x.classList.remove('selected'));
+                    this.classList.add('selected'); selectedRole = this.dataset.role;
+                };
+            });
+            document.getElementById('roleModalCancel').onclick = () => { document.getElementById('roleModal').classList.remove('active'); };
+            document.getElementById('roleModalSave').onclick = saveRoleChange;
+            document.getElementById('saveTemplateBtn').onclick = () => { saveCurrentTemplate(); alert('Saved!'); };
+            document.getElementById('renameTemplateBtn').onclick = openTemplateNameModal;
+            document.getElementById('templateNameCancel').onclick = () => { document.getElementById('templateNameModal').classList.remove('active'); };
+            document.getElementById('templateNameSave').onclick = saveTemplateName;
+            document.getElementById('templateNameInput').onkeypress = e => { if(e.key==='Enter') saveTemplateName(); };
+        }
+
+        // 플레이어 관리
+        function addPlayer() {
+            const name = document.getElementById('newPlayerInput').value.trim();
+            const tier = parseInt(document.getElementById('newTierInput').value)||3;
+            if(!name) return alert('Enter name!');
+            savedPlayers.push({id:nextPlayerId++, name, tier, role:'랜덤'});
+            saveCurrentTemplate();
+            document.getElementById('newPlayerInput').value = '';
+            document.getElementById('newTierInput').value = '3';
+            updateSavedPlayersUI();
+        }
+        function removePlayer(id) {
+            const p = savedPlayers.find(x => x.id===id);
+            if(!p || !confirm('Remove "'+p.name+'"?')) return;
+            savedPlayers = savedPlayers.filter(x => x.id!==id);
+            document.querySelectorAll('.spectator-card').forEach(c => { if(JSON.parse(c.dataset.player).id===id) c.remove(); });
+            document.querySelectorAll('.team-slot').forEach(s => {
+                const c = s.querySelector('.player-card');
+                if(c && JSON.parse(c.dataset.player).id===id) { s.innerHTML=''; s.classList.add('empty'); }
+            });
+            saveCurrentTemplate(); updateSavedPlayersUI(); updateSpectatorCount(); updateTeamScores(); updateTeamSlots();
+        }
+        function openTierModal(p) {
+            editingPlayerId = p.id;
+            document.getElementById('tierModalInput').value = p.tier;
+            document.getElementById('tierModal').classList.add('active');
+            document.getElementById('tierModalInput').focus();
+        }
+        function saveTierChange() {
+            const t = parseInt(document.getElementById('tierModalInput').value);
+            if(isNaN(t)||t<1) return alert('Tier must be >= 1');
+            const p = savedPlayers.find(x => x.id===editingPlayerId);
+            if(p) { p.tier = t; saveCurrentTemplate(); updatePlayerCardsEverywhere(p); updateSavedPlayersUI(); updateTeamScores(); }
+            document.getElementById('tierModal').classList.remove('active');
+        }
+        function updatePlayerCardsEverywhere(p) {
+            document.querySelectorAll('.spectator-card').forEach(c => {
+                const cp = JSON.parse(c.dataset.player);
+                if(cp.id===p.id) { cp.tier=p.tier; c.dataset.player=JSON.stringify(cp); c.querySelector('.spectator-tier').textContent=p.tier+'pts'; }
+            });
+            document.querySelectorAll('.player-card').forEach(c => {
+                const cp = JSON.parse(c.dataset.player);
+                if(cp.id===p.id) {
+                    cp.tier=p.tier; c.dataset.player=JSON.stringify(cp);
+                    const tb = c.querySelector('.tier-badge'); tb.textContent=p.tier+' PTS'; tb.className='tier-badge '+getTierClass(p.tier);
+                }
+            });
+        }
+        function selectPlayer(p) {
+            if(getTeamPlayerNames().has(p.name)) return alert(p.name+' is on a team!');
+            if(getSpectatorPlayerNames().has(p.name)) return alert(p.name+' is a spectator!');
+            addToSpectators(p); updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+        }
+        function updateSavedPlayersUI() {
+            const c = document.getElementById('savedPlayers'); c.innerHTML = '';
+            if(savedPlayers.length===0) { c.innerHTML='<span style="color:rgba(255,255,255,0.2)">No players</span>'; return; }
+            const teamN = getTeamPlayerNames(), specN = getSpectatorPlayerNames();
+            [...savedPlayers].sort((a,b)=>a.name.localeCompare(b.name,'ko')).forEach(p => {
+                const t = document.createElement('div'); t.className = 'saved-player-tag';
+                if(teamN.has(p.name)) t.classList.add('in-team');
+                else if(specN.has(p.name)) t.classList.add('in-spectator');
+                else { t.classList.add('selectable'); t.onclick = () => selectPlayer(p); }
+                t.innerHTML = `<span>${p.name}</span><span class="tier-badge-small">${p.tier}</span><button class="remove-btn">✕</button>`;
+                t.querySelector('.tier-badge-small').onclick = e => { e.stopPropagation(); openTierModal(p); };
+                t.querySelector('.remove-btn').onclick = e => { e.stopPropagation(); removePlayer(p.id); };
+                c.appendChild(t);
+            });
+        }
+
+        // 팀 슬롯
+        function updateTeamSlots() {
+            const size = calculateTeamSize(), t1 = document.getElementById('team1'), t2 = document.getElementById('team2');
+            const p1=[], p2=[];
+            t1.querySelectorAll('.player-card').forEach(c => p1.push(JSON.parse(c.dataset.player)));
+            t2.querySelectorAll('.player-card').forEach(c => p2.push(JSON.parse(c.dataset.player)));
+            t1.innerHTML=''; t2.innerHTML='';
+            for(let i=0; i<size; i++) {
+                const s1 = createSlot('team1',i), s2 = createSlot('team2',i);
+                if(i<p1.length) { s1.innerHTML=''; s1.classList.remove('empty'); s1.appendChild(createPlayerCard(p1[i])); }
+                if(i<p2.length) { s2.innerHTML=''; s2.classList.remove('empty'); s2.appendChild(createPlayerCard(p2[i])); }
+                t1.appendChild(s1); t2.appendChild(s2);
+            }
+            updateTeamScores();
+        }
+        function createSlot(tid, idx) {
+            const s = document.createElement('div'); s.className = 'team-slot empty';
+            s.dataset.team = tid; s.dataset.index = idx;
+            s.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+            s.addEventListener('dragenter', e => e.currentTarget.classList.add('drag-over'));
+            s.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+            s.addEventListener('drop', handleDrop);
+            return s;
+        }
+        function createPlayerCard(p) {
+            const c = document.createElement('div'); c.className = 'player-card';
+            c.innerHTML = `<div class="player-card-content"><div class="player-role-icon">${ROLE_ICONS[p.role]}</div><div class="player-info"><div class="player-name">${p.name}</div><div class="player-meta"><span class="tier-badge ${getTierClass(p.tier)}">${p.tier} PTS</span><span class="role-badge">${ROLE_NAMES[p.role]}</span></div></div></div>`;
+            c.draggable = true; c.dataset.player = JSON.stringify(p);
+            c.addEventListener('dragstart', handleDragStart); c.addEventListener('dragend', handleDragEnd);
+            return c;
+        }
+        function handleDragStart(e) {
+            draggedElement = e.target; sourceContainer = e.target.parentElement;
+            e.target.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move';
+        }
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.team-slot').forEach(s => s.classList.remove('drag-over'));
+            document.getElementById('spectatorsGrid').classList.remove('drag-over');
+            updateTeamScores(); updateSpectatorCount(); updateSavedPlayersUI();
+        }
+        function handleDrop(e) {
+            e.stopPropagation(); e.preventDefault();
+            const ts = e.currentTarget; ts.classList.remove('drag-over');
+            if(!draggedElement || !sourceContainer || sourceContainer===ts) return;
+            const p = JSON.parse(draggedElement.dataset.player), ex = ts.querySelector('.player-card');
+            if(ex) {
+                const ep = JSON.parse(ex.dataset.player);
+                ts.innerHTML=''; ts.classList.remove('empty');
+                if(sourceContainer.classList.contains('team-slot')) {
+                    sourceContainer.innerHTML=''; sourceContainer.classList.remove('empty');
+                    sourceContainer.appendChild(createPlayerCard(ep));
+                } else { draggedElement.remove(); addToSpectators(ep); }
+                ts.appendChild(createPlayerCard(p));
+            } else {
+                if(sourceContainer.classList.contains('team-slot')) { sourceContainer.innerHTML=''; sourceContainer.classList.add('empty'); }
+                else { draggedElement.remove(); }
+                ts.innerHTML=''; ts.classList.remove('empty'); ts.appendChild(createPlayerCard(p));
+            }
+            updateTeamScores(); updateSpectatorCount(); updateSavedPlayersUI();
+        }
+        function updateTeamScores() {
+            let s1=0, s2=0;
+            document.querySelectorAll('#team1 .player-card').forEach(c => s1+=JSON.parse(c.dataset.player).tier);
+            document.querySelectorAll('#team2 .player-card').forEach(c => s2+=JSON.parse(c.dataset.player).tier);
+            document.getElementById('team1Score').textContent = s1+' PTS';
+            document.getElementById('team2Score').textContent = s2+' PTS';
+            const d = Math.abs(s1-s2), de = document.getElementById('scoreDiff');
+            de.textContent = 'DIFF: '+d;
+            de.classList.toggle('balanced', d<=1);
+        }
+
+        // 밸런스 랜덤
+        function balancedRandomAssign() {
+            const sp = getSpectatorPlayers();
+            if(sp.length<2) return alert('Need 2+ spectators!');
+            clearTeams(); updateTeamSlots();
+            const size = calculateTeamSize(), max = size*2;
+            const assign = sp.slice(0,Math.min(sp.length,max)), remain = sp.slice(max);
+            let best=null, bestScore=Infinity;
+            for(let i=0; i<10000; i++) {
+                const sh = [...assign].sort(()=>Math.random()-0.5);
+                const t1=sh.slice(0,size), t2=sh.slice(size,size*2);
+                const d = Math.abs(t1.reduce((s,p)=>s+p.tier,0) - t2.reduce((s,p)=>s+p.tier,0));
+                const r1=getRoleCounts(t1), r2=getRoleCounts(t2);
+                let rd=0; Object.keys(r1).forEach(k => rd+=Math.abs(r1[k]-r2[k]));
+                const score = d + rd*10;
+                if(score < bestScore) { bestScore=score; best=sh; if(score===0) break; }
+            }
+            if(best) {
+                assignPlayersToTeams(best, size);
+                const g = document.getElementById('spectatorsGrid'); g.innerHTML='';
+                remain.forEach(p => addToSpectators(p));
+                updateSpectatorCount(); updateSavedPlayersUI();
+                if(bestScore===0) setTimeout(()=>showSpecialEffect('🎯 PERFECT!'),100);
+            }
+        }
+        function spectatorRandomAssign() {
+            const sp = getSpectatorPlayers();
+            if(sp.length===0) return alert('No spectators!');
+            let empty=0;
+            document.querySelectorAll('.team-slot').forEach(s => { if(!s.querySelector('.player-card')) empty++; });
+            if(empty===0) return alert('No empty slots!');
+            const t1c=[], t2c=[];
+            document.querySelectorAll('#team1 .player-card').forEach(c => t1c.push(JSON.parse(c.dataset.player)));
+            document.querySelectorAll('#team2 .player-card').forEach(c => t2c.push(JSON.parse(c.dataset.player)));
+            const size = calculateTeamSize(), toAssign = Math.min(sp.length, empty);
+            let best=null, bestScore=Infinity;
+            for(let i=0; i<10000; i++) {
+                const sh = [...sp].sort(()=>Math.random()-0.5).slice(0,toAssign);
+                let t1=[...t1c], t2=[...t2c];
+                sh.forEach(p => { if(t1.length<size) t1.push(p); else if(t2.length<size) t2.push(p); });
+                const d = Math.abs(t1.reduce((s,p)=>s+p.tier,0) - t2.reduce((s,p)=>s+p.tier,0));
+                const r1=getRoleCounts(t1), r2=getRoleCounts(t2);
+                let rd=0; Object.keys(r1).forEach(k => rd+=Math.abs(r1[k]-r2[k]));
+                const score = d + rd*10;
+                if(score < bestScore) { bestScore=score; best=sh; if(score===0) break; }
+            }
+            if(best) {
+                let idx=0;
+                document.querySelectorAll('#team1 .team-slot').forEach(s => {
+                    if(!s.querySelector('.player-card') && idx<best.length) {
+                        s.innerHTML=''; s.classList.remove('empty'); s.appendChild(createPlayerCard(best[idx++]));
+                    }
+                });
+                document.querySelectorAll('#team2 .team-slot').forEach(s => {
+                    if(!s.querySelector('.player-card') && idx<best.length) {
+                        s.innerHTML=''; s.classList.remove('empty'); s.appendChild(createPlayerCard(best[idx++]));
+                    }
+                });
+                const g = document.getElementById('spectatorsGrid'); g.innerHTML='';
+                sp.slice(idx).forEach(p => addToSpectators(p));
+                updateSpectatorCount(); updateTeamScores(); updateSavedPlayersUI();
+            }
+        }
+
+        // 경매
+        function startAuction() {
+            const sp = getSpectatorPlayers();
+            if(sp.length<2) return alert('Need 2+ spectators!');
+            updateTeamSlots();
+            auctionPlayers = [...sp].sort(()=>Math.random()-0.5);
+            currentAuctionIndex = 0; currentBid = {team:null, amount:0}; bidHistory = [];
+            team1Points = 100; team2Points = 100; updateTeamPoints();
+            showAuctionModal();
+        }
+        function showAuctionModal() {
+            if(currentAuctionIndex >= auctionPlayers.length) { alert('All auctioned!'); closeAuction(); return; }
+            const p = auctionPlayers[currentAuctionIndex];
+            document.getElementById('auctionLeaderName').textContent = auctionPlayers[0].name;
+            document.getElementById('auctionPlayerIcon').textContent = ROLE_ICONS[p.role];
+            document.getElementById('auctionPlayerName').textContent = p.name;
+            document.getElementById('auctionPlayerTier').textContent = p.tier+' PTS';
+            document.getElementById('auctionPlayerRole').textContent = ROLE_ICONS[p.role]+' '+ROLE_NAMES[p.role];
+            document.getElementById('auctionTeam1PointsInput').value = team1Points;
+            document.getElementById('auctionTeam2PointsInput').value = team2Points;
+            document.getElementById('auctionTeam1Points').textContent = team1Points;
+            document.getElementById('auctionTeam2Points').textContent = team2Points;
+            document.getElementById('team1BidInput').value = '';
+            document.getElementById('team2BidInput').value = '';
+            currentBid = {team:null, amount:0}; bidHistory = [];
+            updateCurrentBidDisplay(); updateBidHistory(); updateLeadingTeam(); updateRemainingPlayers();
+            document.getElementById('team1BidBtn').disabled = team1Points===0;
+            document.getElementById('team2BidBtn').disabled = team2Points===0;
+            document.getElementById('auctionModal').classList.add('active');
+            startAuctionTimer();
+            setTimeout(() => document.getElementById('team1BidInput').focus(), 100);
+        }
+        function updateRemainingPlayers() {
+            const g = document.getElementById('remainingGrid'); g.innerHTML = '';
+            document.getElementById('remainingCount').textContent = auctionPlayers.length - currentAuctionIndex;
+            auctionPlayers.forEach((p,i) => {
+                if(i >= currentAuctionIndex) {
+                    const d = document.createElement('div');
+                    d.className = 'remaining-player' + (i===currentAuctionIndex?' current':'');
+                    d.innerHTML = `<div class="remaining-player-name">${p.name}</div><div class="remaining-player-info">${ROLE_ICONS[p.role]} ${p.tier}pts</div>`;
+                    g.appendChild(d);
+                }
+            });
+        }
+        function updateCurrentBidDisplay() {
+            const v = document.getElementById('currentBidValue');
+            if(currentBid.team===null) { v.textContent='NO BID'; v.className='current-bid-value none'; }
+            else { v.textContent='TEAM '+currentBid.team+' - '+currentBid.amount+'P'; v.className='current-bid-value team-'+currentBid.team; }
+        }
+        function updateLeadingTeam() {
+            const p1 = document.getElementById('auctionTeam1Panel'), p2 = document.getElementById('auctionTeam2Panel');
+            const c1 = p1.querySelector('.leading-crown'), c2 = p2.querySelector('.leading-crown');
+            p1.classList.remove('leading'); p2.classList.remove('leading');
+            c1.style.display = 'none'; c2.style.display = 'none';
+            if(currentBid.team===1) { p1.classList.add('leading'); c1.style.display='block'; }
+            else if(currentBid.team===2) { p2.classList.add('leading'); c2.style.display='block'; }
+        }
+        function updateBidHistory() {
+            const l = document.getElementById('bidHistoryList'); l.innerHTML = '';
+            bidHistory.slice(-5).reverse().forEach(b => {
+                const d = document.createElement('div');
+                d.className = 'bid-history-item team-'+b.team;
+                d.textContent = 'TEAM '+b.team+': '+b.amount+'P';
+                l.appendChild(d);
+            });
+        }
+        function quickBid(team, inc) {
+            const inp = document.getElementById('team'+team+'BidInput');
+            const min = currentBid.amount + 1;
+            inp.value = Math.max(min, (parseInt(inp.value)||min) + inc);
+        }
+        function allInBid(team) {
+            document.getElementById('team'+team+'BidInput').value = team===1 ? team1Points : team2Points;
+        }
+        function placeBid(team) {
+            const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
+            const pts = team===1 ? team1Points : team2Points;
+            if(isNaN(amt)||amt<0) return alert('Enter valid bid!');
+            if(amt > pts) return alert('Not enough points!');
+            if(amt <= currentBid.amount) return alert('Must be higher than '+currentBid.amount+'P!');
+            if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ PERFECT BID!');
+            if(auctionTimeLeft<=2) showSpecialEffect('🔥 LAST SECOND!');
+            currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
+            updateCurrentBidDisplay(); updateLeadingTeam(); updateBidHistory(); resetAuctionTimer();
+            const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
+            document.getElementById(opp).focus();
+        }
+        function passAuction() {
+            if(currentBid.team!==null) return alert('Cannot pass with active bid!');
+            const passed = auctionPlayers.splice(currentAuctionIndex, 1)[0];
+            auctionPlayers.push(passed);
+            resetAuctionTimer();
+            if(currentAuctionIndex < auctionPlayers.length) { currentBid={team:null,amount:0}; bidHistory=[]; showAuctionModal(); }
+            else { alert('All done!'); closeAuction(); }
+        }
+        function nextAuctionPlayer() {
+            if(currentBid.team===null) {
+                if(team1Points===0 && team2Points>0) currentBid={team:2,amount:0};
+                else if(team2Points===0 && team1Points>0) currentBid={team:1,amount:0};
+                else return alert('No bid yet!');
+            }
+            const p = auctionPlayers[currentAuctionIndex];
+            if(currentBid.team===1) team1Points -= currentBid.amount;
+            else team2Points -= currentBid.amount;
+            updateTeamPoints();
+            addPlayerToTeam(p, currentBid.team); removeFromSpectators(p);
+            currentAuctionIndex++;
+            resetAuctionTimer();
+            if(currentAuctionIndex < auctionPlayers.length) {
+                if(team1Points===0 || team2Points===0) { stopAuctionTimer(); autoAssignRemaining(); }
+                else showAuctionModal();
+            } else { stopAuctionTimer(); showSpecialEffect('🎉 COMPLETE!'); setTimeout(closeAuction, 1500); }
+        }
+        function autoAssignRemaining() {
+            const remain = auctionPlayers.slice(currentAuctionIndex);
+            const target = team1Points===0 ? 2 : 1;
+            remain.forEach(p => { addPlayerToTeam(p, target); removeFromSpectators(p); });
+            showSpecialEffect('🎉 REMAINING → TEAM '+target);
+            setTimeout(closeAuction, 1500);
+        }
+        function addPlayerToTeam(p, team) {
+            const slots = document.querySelectorAll('#team'+team+' .team-slot');
+            for(let s of slots) {
+                if(!s.querySelector('.player-card')) {
+                    s.innerHTML=''; s.classList.remove('empty'); s.appendChild(createPlayerCard(p)); break;
+                }
+            }
+            updateTeamScores(); updateSavedPlayersUI();
+        }
+        function closeAuction() {
+            stopAuctionTimer(); document.getElementById('auctionModal').classList.remove('active');
+        }
+        function assignPlayersToTeams(players, size) {
+            const t1 = document.querySelectorAll('#team1 .team-slot');
+            const t2 = document.querySelectorAll('#team2 .team-slot');
+            let idx = 0;
+            for(let i=0; i<size && idx<players.length; i++) {
+                t1[i].innerHTML=''; t1[i].classList.remove('empty'); t1[i].appendChild(createPlayerCard(players[idx++]));
+            }
+            for(let i=0; i<size && idx<players.length; i++) {
+                t2[i].innerHTML=''; t2[i].classList.remove('empty'); t2[i].appendChild(createPlayerCard(players[idx++]));
+            }
+            updateTeamScores();
+        }
+        function clearTeams() {
+            document.querySelectorAll('.team-slot').forEach(s => { s.innerHTML=''; s.classList.add('empty'); });
+            updateTeamScores();
+        }
+        function clearAll() {
+            clearTeams();
+            document.getElementById('spectatorsGrid').innerHTML = '';
+            team1Points = 100; team2Points = 100; updateTeamPoints();
+            updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+        }
+
+        init();
+    </script>
+</body>
+</html>
