@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>팀 편성 프로그램 (Final Ver)</title>
+    <title>팀 편성 프로그램 (Pro Ver)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -38,6 +38,7 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .header-subtitle { font-size: 1em; color: rgba(255,255,255,0.5); letter-spacing: 0.2em; }
+        
         .controls {
             background: rgba(28,33,40,0.9); border: 1px solid rgba(0,211,255,0.2);
             padding: 20px; border-radius: 4px; margin-bottom: 25px; position: relative;
@@ -56,6 +57,7 @@
         .btn-auction { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
         .btn-secondary { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
         .btn-reset-spectator { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+        .btn-add-all { background: linear-gradient(135deg, #48bb78, #2f855a); color: white; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         
         .teams-container {
@@ -81,16 +83,15 @@
         .team-score { background: rgba(255,255,255,0.1); }
         .team-points { background: linear-gradient(135deg, #d53f8c, #9d4edd); }
         
-        /* 팀 슬롯 높이 고정 (6개 기준) */
-        .team-slots { 
-            display: flex; flex-direction: column; gap: 10px; 
-            min-height: 460px; /* 높이 고정으로 덜컹거림 방지 */
-        }
+        /* [요청 4] 팀 슬롯 및 카드 높이 100% 통일 */
+        .team-slots { display: flex; flex-direction: column; gap: 10px; min-height: 400px; }
         .team-slot {
             background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1);
-            padding: 12px; border-radius: 6px; min-height: 65px;
+            padding: 0; /* 패딩 제거하고 내부 카드에 위임 */
+            border-radius: 6px; 
+            height: 72px; /* 높이 고정 */
             display: flex; align-items: center; justify-content: center; transition: all 0.3s;
-            position: relative;
+            position: relative; overflow: hidden;
         }
         .team-slot.drag-over { background: rgba(255,255,255,0.1); border-style: solid; }
         .team-slot.empty::after {
@@ -99,14 +100,17 @@
         }
         
         .player-card {
-            width: 100%; background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
+            width: 100%; height: 100%; /* 부모 높이 꽉 채우기 */
+            background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
             border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
-            padding: 12px 15px; cursor: grab; transition: all 0.3s;
+            padding: 0 15px; /* 높이 고정을 위해 가로 패딩만 */
+            cursor: grab; transition: all 0.3s;
+            display: flex; align-items: center; /* 내부 수직 중앙 정렬 */
         }
         .player-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .player-card.dragging { opacity: 0.3; }
         .player-card.is-leader { border: 2px solid gold; box-shadow: 0 0 15px rgba(255,215,0,0.4); }
-        .player-card-content { display: flex; align-items: center; gap: 12px; }
+        .player-card-content { display: flex; align-items: center; gap: 12px; width: 100%; }
         .player-role-icon {
             font-size: 1.8em; width: 45px; height: 45px;
             display: flex; align-items: center; justify-content: center;
@@ -155,12 +159,9 @@
         }
         .spectator-count { font-size: 0.6em; background: rgba(157,78,221,0.2); padding: 6px 12px; border-radius: 4px; }
         
-        /* 관전자 그리드 높이 고정 (3줄 정도) */
         .spectators-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px; 
-            min-height: 250px; /* 높이 고정 */
-            align-content: start; /* 위에서부터 채움 */
+            gap: 10px; min-height: 250px; align-content: start;
             padding: 10px; border-radius: 6px;
         }
         .spectators-grid.drag-over { background: rgba(157,78,221,0.1); border: 2px dashed rgba(157,78,221,0.5); }
@@ -185,10 +186,9 @@
         .spectator-meta { display: flex; gap: 6px; flex-wrap: wrap; }
         .spectator-tier, .spectator-role {
             font-size: 0.7em; padding: 3px 6px; border-radius: 3px;
-            background: rgba(255,255,255,0.2); font-weight: 600;
+            background: rgba(255,255,255,0.2); font-weight: 600; cursor: pointer;
         }
-        .spectator-role { cursor: pointer; }
-        .spectator-role:hover { background: rgba(255,255,255,0.4); }
+        .spectator-tier:hover, .spectator-role:hover { background: rgba(255,255,255,0.4); }
         
         .player-list-container {
             background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.1);
@@ -449,14 +449,15 @@
     <div class="container">
         <div class="header">
             <h1>⚽ 팀 편성 프로그램</h1>
-            <div class="header-subtitle">팀 배정 시스템</div>
+            <div class="header-subtitle">팀 배정 시스템 Pro</div>
         </div>
         <div class="controls">
             <div class="action-buttons">
                 <button class="btn btn-balanced" id="balancedBtn">⚖️ 밸런스 랜덤</button>
                 <button class="btn btn-spectator" id="spectatorRandomBtn">👥 관전자 랜덤</button>
                 <button class="btn btn-auction" id="auctionBtn">🔨 경매하기</button>
-                <button class="btn btn-reset-spectator" id="resetToSpectatorBtn">⬇️ 관전자로 내리기</button>
+                <button class="btn btn-reset-spectator" id="resetToSpectatorBtn">⬇️ 모두 관전자로 내리기</button>
+                <button class="btn btn-add-all" id="addAllToSpectatorBtn">⬆️ 대기자 전원 관전</button>
                 <button class="btn btn-secondary" id="clearTeamsBtn">🔄 전체 초기화</button>
             </div>
         </div>
@@ -507,7 +508,7 @@
                     <input type="number" class="tier-input" id="newTierInput" value="3" min="1">
                     <button class="add-player-btn" id="addPlayerBtn">➕ 추가</button>
                 </div>
-                <div class="info-message">💡 참가자 클릭 → 관전자 추가. 역할 클릭 → 역할 변경. 첫 번째 팀원이 팀장입니다.</div>
+                <div class="info-message">💡 [F1]: 낙찰 / [F2]: 유찰 / [Tab]: 입력창 전환</div>
             </div>
             <div class="template-section">
                 <div class="template-header">
@@ -628,8 +629,8 @@
                     <div class="remaining-grid" id="remainingGrid"></div>
                 </div>
                 <div class="auction-controls">
-                    <button class="auction-control-btn auction-pass-btn" id="auctionPassBtn">⏭️ 유찰</button>
-                    <button class="auction-control-btn auction-next-btn" id="auctionNextBtn">✓ 낙찰</button>
+                    <button class="auction-control-btn auction-pass-btn" id="auctionPassBtn">⏭️ 유찰 (F2)</button>
+                    <button class="auction-control-btn auction-next-btn" id="auctionNextBtn">✓ 낙찰 (F1)</button>
                     <button class="auction-control-btn auction-close-btn" id="auctionCloseBtn">✕ 닫기</button>
                 </div>
             </div>
@@ -647,7 +648,7 @@
         let templates = [], currentTemplateIndex = 0;
         const ROLE_ICONS = {'탱커':'🛡️','딜러':'⚔️','힐러':'❤️','랜덤':'🎲'};
         const ROLE_NAMES = {'탱커':'탱커','딜러':'딜러','힐러':'힐러','랜덤':'랜덤'};
-        const STORAGE_KEY = 'teamBuilder_kr';
+        const STORAGE_KEY = 'teamBuilder_kr_v2';
         let roleEditSource = null; 
 
         function init() {
@@ -722,16 +723,21 @@
             document.querySelectorAll('#spectatorsGrid .spectator-card').forEach(c => p.push(JSON.parse(c.dataset.player)));
             return p;
         }
+        // [수정: Req 3] 팀 슬롯 개수를 현재 인원에 맞춰 동적 계산 (최소 5칸)
         function calculateTeamSize() {
-            // [수정: 항상 6칸 반환하되, 로직상으로는 사용하지 않음]
-            return 6;
+            const team1Count = document.querySelectorAll('#team1 .player-card').length;
+            const team2Count = document.querySelectorAll('#team2 .player-card').length;
+            const spectatorCount = document.querySelectorAll('#spectatorsGrid .spectator-card').length;
+            const total = team1Count + team2Count + spectatorCount;
+            // 총 인원을 2로 나눈 것과 5 중 큰 값 선택
+            return Math.max(5, Math.ceil(total / 2));
         }
         function getRoleCounts(p) {
             const c = {'탱커':0,'딜러':0,'힐러':0,'랜덤':0};
             p.forEach(x => c[x.role]++); return c;
         }
 
-        // 팀원을 관전자로 모두 내리기
+        // [수정: Req 5] 모든 플레이어를 관전자로 내리기
         function resetAllToSpectators() {
             const teamPlayers = [];
             document.querySelectorAll('.team-slot .player-card').forEach(c => {
@@ -747,6 +753,23 @@
             // 관전자로 추가
             teamPlayers.forEach(p => addToSpectators(p));
             updateSpectatorCount(); updateTeamScores(); updateSavedPlayersUI(); updateTeamSlots();
+        }
+        
+        // [추가: Req 6] 대기자(저장된 플레이어) 전원 관전 등록
+        function addAllWaitlistToSpectator() {
+            let count = 0;
+            const existing = new Set([...getTeamPlayerNames(), ...getSpectatorPlayerNames()]);
+            savedPlayers.forEach(p => {
+                if(!existing.has(p.name)) {
+                    addToSpectators(p);
+                    count++;
+                }
+            });
+            if(count > 0) {
+                updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+            } else {
+                alert('추가할 대기자가 없습니다.');
+            }
         }
 
         // 타이머
@@ -790,8 +813,18 @@
         function addToSpectators(p) {
             const g = document.getElementById('spectatorsGrid');
             if(getSpectatorPlayerNames().has(p.name)) return;
-            g.classList.remove('empty'); g.appendChild(createSpectatorCard(p));
+            g.classList.remove('empty'); 
+            
+            // 이름순 정렬을 위해 배열로 가져와서 다시 그림
+            const currentSpecs = getSpectatorPlayers();
+            currentSpecs.push(p);
+            currentSpecs.sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+            
+            g.innerHTML = '';
+            currentSpecs.forEach(sp => g.appendChild(createSpectatorCard(sp)));
         }
+        
+        // [수정: Req 1] 관전자 카드 생성시 점수 클릭 이벤트 추가
         function createSpectatorCard(p) {
             const c = document.createElement('div'); c.className = 'spectator-card';
             c.innerHTML = `<button class="remove-spectator-btn">✕</button><div class="spectator-name">${p.name}</div><div class="spectator-meta"><span class="spectator-tier">${p.tier}점</span><span class="spectator-role">${ROLE_ICONS[p.role]} ${ROLE_NAMES[p.role]}</span></div>`;
@@ -799,6 +832,9 @@
             c.addEventListener('dragstart', handleDragStart); c.addEventListener('dragend', handleDragEnd);
             c.querySelector('.remove-spectator-btn').onclick = e => { e.stopPropagation(); removeFromSpectators(p); };
             c.querySelector('.spectator-role').onclick = e => { e.stopPropagation(); openRoleModal(p, 'spectator'); };
+            // 점수 클릭 시 수정 모달
+            c.querySelector('.spectator-tier').style.cursor = 'pointer';
+            c.querySelector('.spectator-tier').onclick = e => { e.stopPropagation(); openTierModal(p); };
             return c;
         }
         function openRoleModal(p, source) {
@@ -856,6 +892,7 @@
             document.getElementById('spectatorRandomBtn').onclick = spectatorRandomAssign;
             document.getElementById('auctionBtn').onclick = startAuction;
             document.getElementById('resetToSpectatorBtn').onclick = resetAllToSpectators;
+            document.getElementById('addAllToSpectatorBtn').onclick = addAllWaitlistToSpectator; // [추가]
             document.getElementById('clearTeamsBtn').onclick = clearAll;
             document.getElementById('team1BidBtn').onclick = () => placeBid(1);
             document.getElementById('team2BidBtn').onclick = () => placeBid(2);
@@ -881,7 +918,7 @@
             document.getElementById('templateNameSave').onclick = saveTemplateName;
             document.getElementById('templateNameInput').onkeypress = e => { if(e.key==='Enter') saveTemplateName(); };
 
-            // [탭 키 제어] 경매 입력창끼리만 이동
+            // [탭 키 제어] 경매 입력창
             const handleAuctionTab = (e, targetId) => {
                 if (e.key === 'Tab') {
                     e.preventDefault(); 
@@ -892,6 +929,14 @@
             };
             document.getElementById('team1BidInput').addEventListener('keydown', (e) => handleAuctionTab(e, 'team2BidInput'));
             document.getElementById('team2BidInput').addEventListener('keydown', (e) => handleAuctionTab(e, 'team1BidInput'));
+
+            // [추가: Req 2] 경매 단축키 (F1, F2)
+            document.addEventListener('keydown', (e) => {
+                if(document.getElementById('auctionModal').classList.contains('active')) {
+                    if(e.key === 'F1') { e.preventDefault(); nextAuctionPlayer(); }
+                    if(e.key === 'F2') { e.preventDefault(); passAuction(); }
+                }
+            });
         }
 
         // 플레이어 관리
@@ -951,6 +996,7 @@
             const c = document.getElementById('savedPlayers'); c.innerHTML = '';
             if(savedPlayers.length===0) { c.innerHTML='<span style="color:rgba(255,255,255,0.2)">저장된 참가자 없음</span>'; return; }
             const teamN = getTeamPlayerNames(), specN = getSpectatorPlayerNames();
+            // [수정: Req 7] 이름 오름차순 정렬
             [...savedPlayers].sort((a,b)=>a.name.localeCompare(b.name,'ko')).forEach(p => {
                 const t = document.createElement('div'); t.className = 'saved-player-tag';
                 if(teamN.has(p.name)) t.classList.add('in-team');
@@ -963,9 +1009,9 @@
             });
         }
 
-        // 팀 슬롯 (6칸 고정)
+        // [수정: Req 3] 팀 슬롯 동적 생성
         function updateTeamSlots() {
-            const size = 6; // 항상 6칸 유지
+            const size = calculateTeamSize();
             const t1 = document.getElementById('team1'), t2 = document.getElementById('team2');
             const p1=[], p2=[];
             t1.querySelectorAll('.player-card').forEach(c => p1.push(JSON.parse(c.dataset.player)));
@@ -1188,7 +1234,6 @@
             currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
             updateCurrentBidDisplay(); updateLeadingTeam(); updateBidHistory(); resetAuctionTimer();
             
-            // [포커스 이동 및 전체 선택]
             const opp = team===1 ? 'team2BidInput' : 'team1BidInput';
             const targetInput = document.getElementById(opp);
             targetInput.focus();
