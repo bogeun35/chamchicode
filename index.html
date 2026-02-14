@@ -770,14 +770,15 @@
     
     <script>
         // ============================================================
-        // 🔊 사운드 시스템 (Web Audio API + 한국어 TTS + 긴장감 BGM)
+        // 🔊 사운드 시스템 (웅장한 스포츠 중계 BGM + 파워풀 TTS)
         // ============================================================
         let soundEnabled = true;
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
         let bgmGain = null;
         let bgmPlaying = false;
-        let bgmNodes = []; // 배경음 오실레이터들 추적
+        let bgmNodes = [];
+        let bgmInterval = null;
 
         function getAudioCtx() {
             if (!audioCtx) audioCtx = new AudioCtx();
@@ -790,25 +791,31 @@
             document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
             document.getElementById('soundLabel').textContent = soundEnabled ? 'ON' : 'OFF';
             document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
-            if (!soundEnabled) stopBGM();
+            if (!soundEnabled) { stopBGM(); speechSynthesis.cancel(); }
         }
 
-        // --- 한국어 TTS ---
-        function speak(text, rate = 1.0, pitch = 1.0) {
+        // --- 한국어 TTS (낮고 힘있는 남성 해설자 목소리) ---
+        function speak(text, rate = 1.0, pitch = 0.7) {
             if (!soundEnabled) return;
             try {
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = 'ko-KR';
                 u.rate = rate;
-                u.pitch = pitch;
-                u.volume = 0.9;
-                // 한국어 음성 우선 선택
+                u.pitch = pitch;   // 낮은 피치 = 굵은 남성 목소리
+                u.volume = 1.0;    // 최대 볼륨
+                // 남성 음성 우선
                 const voices = speechSynthesis.getVoices();
-                const koVoice = voices.find(v => v.lang.startsWith('ko'));
+                const maleKo = voices.find(v => v.lang.startsWith('ko') && (v.name.toLowerCase().includes('male') || v.name.includes('남')));
+                const koVoice = maleKo || voices.find(v => v.lang.startsWith('ko'));
                 if (koVoice) u.voice = koVoice;
-                speechSynthesis.cancel(); // 이전 발화 중지
+                speechSynthesis.cancel();
                 speechSynthesis.speak(u);
             } catch(e) {}
+        }
+
+        // 외치는 음성 (더 빠르고 강하게)
+        function shout(text) {
+            speak(text, 1.15, 0.55);
         }
 
         // --- 기본 톤 ---
@@ -829,185 +836,297 @@
             } catch(e) {}
         }
 
-        // --- 긴장감 BGM (드론 + 펄스) ---
+        // 코드 연주 (여러 음을 동시에 - 웅장함)
+        function playChord(freqs, duration, type = 'triangle', volume = 0.08) {
+            freqs.forEach(f => playTone(f, duration, type, volume));
+        }
+
+        // --- 웅장한 BGM (에픽 스포츠 중계 느낌) ---
         function startBGM() {
             if (!soundEnabled || bgmPlaying) return;
             try {
                 const ctx = getAudioCtx();
                 bgmGain = ctx.createGain();
                 bgmGain.gain.setValueAtTime(0, ctx.currentTime);
-                bgmGain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 1);
+                bgmGain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 2);
                 bgmGain.connect(ctx.destination);
 
-                // 저음 드론 (깊은 긴장감)
-                const drone1 = ctx.createOscillator();
-                drone1.type = 'sine';
-                drone1.frequency.setValueAtTime(55, ctx.currentTime); // A1
-                drone1.connect(bgmGain);
-                drone1.start();
-                bgmNodes.push(drone1);
+                // ===== 레이어 1: 웅장한 베이스 패드 (C 파워코드) =====
+                const bass1 = ctx.createOscillator();
+                bass1.type = 'sine';
+                bass1.frequency.setValueAtTime(65.41, ctx.currentTime); // C2
+                const bassGain = ctx.createGain();
+                bassGain.gain.setValueAtTime(1.0, ctx.currentTime);
+                bass1.connect(bassGain);
+                bassGain.connect(bgmGain);
+                bass1.start();
+                bgmNodes.push(bass1);
 
-                // 약간 디튠된 두 번째 드론 (불안감)
-                const drone2 = ctx.createOscillator();
-                drone2.type = 'sine';
-                drone2.frequency.setValueAtTime(56.5, ctx.currentTime);
-                drone2.connect(bgmGain);
-                drone2.start();
-                bgmNodes.push(drone2);
+                // 5도 하모니 (파워코드 느낌)
+                const bass2 = ctx.createOscillator();
+                bass2.type = 'sine';
+                bass2.frequency.setValueAtTime(98, ctx.currentTime); // G2
+                const bass2Gain = ctx.createGain();
+                bass2Gain.gain.setValueAtTime(0.7, ctx.currentTime);
+                bass2.connect(bass2Gain);
+                bass2Gain.connect(bgmGain);
+                bass2.start();
+                bgmNodes.push(bass2);
 
-                // 느린 LFO 펄스 (심장박동 느낌)
-                const pulseGain = ctx.createGain();
-                pulseGain.connect(bgmGain);
-                const lfo = ctx.createOscillator();
-                lfo.type = 'sine';
-                lfo.frequency.setValueAtTime(1.2, ctx.currentTime); // 1.2Hz = 72bpm 심장박동
-                const lfoGain = ctx.createGain();
-                lfoGain.gain.setValueAtTime(0.04, ctx.currentTime);
-                lfo.connect(lfoGain);
-                lfoGain.connect(pulseGain.gain);
-                lfo.start();
-                bgmNodes.push(lfo);
+                // ===== 레이어 2: 리듬 펄스 (두근두근 심장 + 행진) =====
+                // 130 BPM 느낌의 사이드체인 펄스
+                const kickGain = ctx.createGain();
+                kickGain.connect(bgmGain);
+                const kickOsc = ctx.createOscillator();
+                kickOsc.type = 'sine';
+                kickOsc.frequency.setValueAtTime(130.81, ctx.currentTime); // C3
+                kickOsc.connect(kickGain);
+                kickOsc.start();
+                bgmNodes.push(kickOsc);
 
-                const pulse = ctx.createOscillator();
-                pulse.type = 'triangle';
-                pulse.frequency.setValueAtTime(110, ctx.currentTime);
-                pulse.connect(pulseGain);
-                pulse.start();
-                bgmNodes.push(pulse);
+                // LFO로 펌핑 효과 (쿵-쿵-쿵-쿵)
+                const pumpLfo = ctx.createOscillator();
+                pumpLfo.type = 'square';
+                pumpLfo.frequency.setValueAtTime(2.17, ctx.currentTime); // ~130bpm
+                const pumpLfoGain = ctx.createGain();
+                pumpLfoGain.gain.setValueAtTime(0.5, ctx.currentTime);
+                pumpLfo.connect(pumpLfoGain);
+                pumpLfoGain.connect(kickGain.gain);
+                pumpLfo.start();
+                bgmNodes.push(pumpLfo);
 
-                // 고음 텐션 레이어 (미세하게)
-                const tension = ctx.createOscillator();
-                tension.type = 'sawtooth';
-                tension.frequency.setValueAtTime(880, ctx.currentTime);
-                const tensionGain = ctx.createGain();
-                tensionGain.gain.setValueAtTime(0.008, ctx.currentTime);
-                tension.connect(tensionGain);
-                tensionGain.connect(bgmGain);
-                tension.start();
-                bgmNodes.push(tension);
+                // ===== 레이어 3: 스트링 패드 (웅장함) =====
+                // Cm 코드: C-Eb-G
+                [130.81, 155.56, 196.00].forEach(freq => {
+                    const str = ctx.createOscillator();
+                    str.type = 'sawtooth';
+                    const strGain = ctx.createGain();
+                    strGain.gain.setValueAtTime(0.03, ctx.currentTime);
+                    str.frequency.setValueAtTime(freq, ctx.currentTime);
+                    str.connect(strGain);
+                    strGain.connect(bgmGain);
+                    str.start();
+                    bgmNodes.push(str);
+                });
+
+                // ===== 레이어 4: 하이햇 틱 (긴장감 리듬) =====
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.015, ctx.currentTime);
+                noiseGain.connect(bgmGain);
+
+                const hihatOsc = ctx.createOscillator();
+                hihatOsc.type = 'square';
+                hihatOsc.frequency.setValueAtTime(6000, ctx.currentTime);
+                const hihatLfo = ctx.createOscillator();
+                hihatLfo.type = 'square';
+                hihatLfo.frequency.setValueAtTime(4.34, ctx.currentTime); // 16분음표
+                const hihatLfoGain = ctx.createGain();
+                hihatLfoGain.gain.setValueAtTime(1, ctx.currentTime);
+                hihatLfo.connect(hihatLfoGain);
+                hihatLfoGain.connect(noiseGain.gain);
+                hihatOsc.connect(noiseGain);
+                hihatOsc.start();
+                hihatLfo.start();
+                bgmNodes.push(hihatOsc, hihatLfo);
+
+                // ===== 레이어 5: 코드 진행 (4마디 루프) =====
+                // Cm → Ab → Eb → Bb (에픽 진행)
+                const chordProgressions = [
+                    [130.81, 155.56, 196.00],  // Cm
+                    [104.00, 130.81, 155.56],  // Ab
+                    [155.56, 196.00, 233.08],  // Eb
+                    [116.54, 146.83, 174.61],  // Bb
+                ];
+                let chordIdx = 0;
+                bgmInterval = setInterval(() => {
+                    if (!bgmPlaying) return;
+                    chordIdx = (chordIdx + 1) % chordProgressions.length;
+                    const chord = chordProgressions[chordIdx];
+                    bgmNodes.forEach(n => {
+                        if (n._isChordOsc) {
+                            try {
+                                const ctx2 = getAudioCtx();
+                                n.frequency.linearRampToValueAtTime(chord[n._chordIndex] || chord[0], ctx2.currentTime + 0.5);
+                            } catch(e) {}
+                        }
+                    });
+                }, 2300); // ~2.3초마다 코드 체인지
+
+                // 코드 오실레이터에 마킹
+                let chordOscIdx = 0;
+                bgmNodes.forEach(n => {
+                    if (n.frequency && n.type === 'sawtooth') {
+                        n._isChordOsc = true;
+                        n._chordIndex = chordOscIdx++;
+                    }
+                });
 
                 bgmPlaying = true;
-            } catch(e) {}
+            } catch(e) { console.error('BGM Error:', e); }
         }
 
         function stopBGM() {
             if (!bgmPlaying) return;
             try {
+                if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
                 const ctx = getAudioCtx();
                 if (bgmGain) {
-                    bgmGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+                    bgmGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
                 }
                 setTimeout(() => {
                     bgmNodes.forEach(n => { try { n.stop(); } catch(e) {} });
                     bgmNodes = [];
                     bgmPlaying = false;
-                }, 600);
+                }, 1200);
             } catch(e) {
                 bgmNodes = [];
                 bgmPlaying = false;
             }
         }
 
-        // BGM 긴장감 증가 (타이머 남은 시간에 따라)
         function setBGMTension(level) {
-            // level: 0~1 (0=여유, 1=최대 긴장)
+            // level: 0~1
             if (!bgmPlaying || !bgmGain) return;
             try {
                 const ctx = getAudioCtx();
-                const vol = 0.04 + level * 0.08; // 0.04 ~ 0.12
+                const vol = 0.05 + level * 0.10; // 점점 웅장해짐
                 bgmGain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.3);
             } catch(e) {}
         }
 
         // --- 효과음들 ---
         function playBidSound() {
-            // 입찰: 강렬한 "딩" 
-            playTone(880, 0.08, 'square', 0.1);
-            setTimeout(() => playTone(1100, 0.12, 'square', 0.1), 60);
-            setTimeout(() => playTone(1320, 0.08, 'sine', 0.08), 120);
+            // 입찰: 파워풀한 스탬프 
+            playTone(60, 0.12, 'sine', 0.2);     // 저음 쿵
+            playTone(880, 0.06, 'square', 0.1);   
+            setTimeout(() => {
+                playTone(1100, 0.1, 'square', 0.1);
+                playTone(1320, 0.06, 'sine', 0.08);
+            }, 60);
         }
 
         function playSuccessSound() {
-            // 낙찰: 웅장한 팡파레
-            const notes = [523, 659, 784, 1047, 1319];
-            notes.forEach((n, i) => {
+            // 낙찰: 웅장한 오케스트라 팡파레
+            // 베이스 드럼
+            playTone(40, 0.4, 'sine', 0.25);
+            playTone(42, 0.4, 'sine', 0.25);
+            // 브라스 팡파레
+            const brass = [
+                [0, [262, 330, 392]],
+                [150, [330, 392, 523]],
+                [300, [392, 523, 659]],
+                [450, [523, 659, 784]],
+                [600, [659, 784, 1047]],
+            ];
+            brass.forEach(([delay, notes]) => {
                 setTimeout(() => {
-                    playTone(n, 0.25, 'triangle', 0.15);
-                    playTone(n * 0.5, 0.3, 'sine', 0.08); // 옥타브 아래 베이스
-                }, i * 120);
+                    notes.forEach(n => {
+                        playTone(n, 0.3, 'triangle', 0.1);
+                        playTone(n, 0.3, 'sawtooth', 0.02);
+                    });
+                }, delay);
             });
-            // 드럼 히트 느낌
-            setTimeout(() => playTone(80, 0.15, 'square', 0.2), 0);
-            setTimeout(() => playTone(60, 0.2, 'square', 0.15), 500);
+            // 심벌 크래시
+            setTimeout(() => playTone(8000, 0.5, 'square', 0.03), 600);
+            // 마지막 파워 코드
+            setTimeout(() => {
+                playChord([131, 196, 262, 523], 0.8, 'triangle', 0.1);
+                playTone(65, 0.8, 'sine', 0.2);
+            }, 750);
         }
 
         function playPassSound() {
-            // 유찰: 하강하는 실망 톤
-            playTone(500, 0.15, 'sawtooth', 0.08);
-            setTimeout(() => playTone(380, 0.15, 'sawtooth', 0.07), 100);
-            setTimeout(() => playTone(280, 0.25, 'sawtooth', 0.06), 200);
+            // 유찰: 하강 브라스
+            playTone(60, 0.15, 'sine', 0.15);
+            playChord([440, 554, 659], 0.15, 'triangle', 0.06);
+            setTimeout(() => playChord([349, 440, 523], 0.15, 'triangle', 0.05), 150);
+            setTimeout(() => playChord([262, 330, 392], 0.25, 'triangle', 0.04), 300);
+            setTimeout(() => playTone(131, 0.4, 'sine', 0.08), 400);
         }
 
         function playTimerWarningSound() {
-            // 카운트다운: 강한 틱 사운드
-            playTone(800, 0.06, 'square', 0.12);
-            playTone(100, 0.08, 'square', 0.1); // 저음 임팩트
+            // 강렬한 틱: 스타디움 클락
+            playTone(60, 0.06, 'sine', 0.2);     // 킥
+            playTone(1000, 0.04, 'square', 0.12); // 틱
+            setTimeout(() => playTone(800, 0.03, 'square', 0.06), 50);
         }
 
         function playTimerEndSound() {
-            // 시간 종료: 부저
-            playTone(200, 0.5, 'sawtooth', 0.15);
-            playTone(198, 0.5, 'sawtooth', 0.15); // 비트
+            // 부저: 경기장 부저 사운드
+            playChord([196, 198], 0.8, 'sawtooth', 0.12);
+            playTone(50, 0.6, 'sine', 0.2);
             setTimeout(() => {
-                playTone(150, 0.4, 'sawtooth', 0.1);
-                playTone(152, 0.4, 'sawtooth', 0.1);
-            }, 300);
+                playChord([147, 149], 0.6, 'sawtooth', 0.08);
+                playTone(40, 0.5, 'sine', 0.15);
+            }, 400);
         }
 
         function playAuctionStartSound() {
-            // 경매 시작: 드라마틱한 오프닝
-            // 저음 임팩트
-            playTone(60, 0.5, 'sine', 0.2);
-            playTone(62, 0.5, 'sine', 0.2);
-            // 상승하는 멜로디
-            setTimeout(() => playTone(330, 0.15, 'triangle', 0.12), 200);
-            setTimeout(() => playTone(440, 0.15, 'triangle', 0.12), 350);
-            setTimeout(() => playTone(554, 0.15, 'triangle', 0.12), 500);
-            setTimeout(() => playTone(659, 0.15, 'triangle', 0.14), 650);
+            // 경매 시작: 스타디움 인트로 팡파레
+            // 드럼 인트로
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    playTone(50 + Math.random()*20, 0.08, 'sine', 0.2);
+                    playTone(5000 + Math.random()*2000, 0.03, 'square', 0.04);
+                }, i * 120);
+            }
+            // 브라스 팡파레 상승
+            setTimeout(() => playChord([262, 330, 392], 0.2, 'triangle', 0.1), 500);
+            setTimeout(() => playChord([330, 392, 523], 0.2, 'triangle', 0.1), 700);
+            setTimeout(() => playChord([392, 523, 659], 0.2, 'triangle', 0.12), 900);
             setTimeout(() => {
-                playTone(880, 0.4, 'triangle', 0.18);
-                playTone(440, 0.4, 'sine', 0.1);
-            }, 800);
+                playChord([523, 659, 784, 1047], 0.5, 'triangle', 0.14);
+                playTone(65, 0.6, 'sine', 0.25); // 깊은 베이스
+                playTone(131, 0.5, 'sine', 0.15);
+            }, 1100);
         }
 
         function playAllInSound() {
-            // 올인: 극적인 상승 + 임팩트
-            playTone(80, 0.15, 'square', 0.15); // 임팩트
-            for (let i = 0; i < 6; i++) {
-                setTimeout(() => playTone(400 + i * 180, 0.08, 'square', 0.1), i * 40);
+            // 올인: 극적 임팩트 + 관중 함성 느낌
+            playTone(30, 0.3, 'sine', 0.3);  // 깊은 서브베이스 쿵
+            playTone(60, 0.25, 'sine', 0.25);
+            // 급상승
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    playTone(200 + i * 200, 0.06, 'square', 0.08);
+                    playTone(300 + i * 200, 0.06, 'triangle', 0.06);
+                }, i * 30);
             }
+            // 폭발 코드
             setTimeout(() => {
-                playTone(1400, 0.3, 'triangle', 0.15);
-                playTone(700, 0.3, 'sine', 0.1);
-            }, 250);
+                playChord([523, 659, 784, 1047, 1319], 0.5, 'triangle', 0.1);
+                playTone(65, 0.5, 'sine', 0.2);
+                // 심벌
+                playTone(8000, 0.4, 'square', 0.03);
+            }, 260);
         }
 
         function playCompleteSound() {
-            // 경매 완료: 축제 팡파레
-            const melody = [523, 659, 784, 1047, 784, 1047, 1319, 1568];
-            melody.forEach((n, i) => {
+            // 경매 완료: 승리의 팡파레 (우승 축하 느낌)
+            // 드럼롤
+            for (let i = 0; i < 12; i++) {
                 setTimeout(() => {
-                    playTone(n, 0.2, 'triangle', 0.12);
-                    if (i % 2 === 0) playTone(n * 0.5, 0.25, 'sine', 0.06);
-                }, i * 100);
+                    playTone(80 + Math.random()*40, 0.04, 'square', 0.05 + i*0.008);
+                }, i * 40);
+            }
+            // 승리 멜로디
+            const victory = [
+                [500, 523, 0.15], [650, 659, 0.15], [800, 784, 0.15],
+                [1000, 1047, 0.3], [1250, 784, 0.15], [1400, 1047, 0.15],
+                [1550, 1319, 0.4], [1800, 1568, 0.6],
+            ];
+            victory.forEach(([delay, freq, dur]) => {
+                setTimeout(() => {
+                    playTone(freq, dur, 'triangle', 0.14);
+                    playTone(freq * 0.5, dur, 'sine', 0.06);
+                }, delay);
             });
-            // 마지막 코드
+            // 마지막 대코드
             setTimeout(() => {
-                playTone(523, 0.6, 'triangle', 0.1);
-                playTone(659, 0.6, 'triangle', 0.1);
-                playTone(784, 0.6, 'triangle', 0.1);
-                playTone(1047, 0.6, 'triangle', 0.12);
-            }, 900);
+                playChord([262, 330, 392, 523, 659, 784, 1047], 1.2, 'triangle', 0.06);
+                playTone(65, 1.0, 'sine', 0.2);
+                playTone(131, 1.0, 'sine', 0.12);
+            }, 2000);
         }
 
         function playClickSound() {
@@ -1015,21 +1134,21 @@
         }
 
         function playNewPlayerSound() {
-            // 새 선수 등장: 두구두구 드럼롤 + 공개
-            const ctx = getAudioCtx();
-            if (!soundEnabled || !ctx) return;
-            // 빠른 드럼롤
-            for (let i = 0; i < 8; i++) {
+            // 선수 등장: 드럼롤 → 임팩트 공개
+            if (!soundEnabled) return;
+            // 스네어 드럼롤
+            for (let i = 0; i < 12; i++) {
                 setTimeout(() => {
-                    playTone(100 + Math.random() * 30, 0.05, 'square', 0.06 + i * 0.01);
-                    playTone(200 + Math.random() * 50, 0.04, 'triangle', 0.04 + i * 0.005);
-                }, i * 50);
+                    playTone(150 + Math.random() * 60, 0.03, 'square', 0.04 + i * 0.006);
+                    playTone(4000 + Math.random() * 2000, 0.02, 'square', 0.01 + i * 0.002);
+                }, i * 35);
             }
-            // 공개 사운드
+            // 공개 임팩트
             setTimeout(() => {
-                playTone(660, 0.12, 'triangle', 0.12);
-                playTone(880, 0.2, 'triangle', 0.15);
-            }, 420);
+                playTone(50, 0.15, 'sine', 0.2); // 킥
+                playChord([523, 659, 784], 0.2, 'triangle', 0.12);
+                playTone(8000, 0.15, 'square', 0.02); // 심벌
+            }, 440);
         }
 
         // ============================================================
@@ -1171,9 +1290,7 @@
                 setBGMTension(tension);
                 if (auctionTimeLeft <= 3 && auctionTimeLeft > 0) {
                     playTimerWarningSound();
-                    if (auctionTimeLeft === 3) speak(`${auctionTimeLeft}`, 1.5, 1.3);
-                    else if (auctionTimeLeft === 2) speak(`${auctionTimeLeft}`, 1.5, 1.3);
-                    else if (auctionTimeLeft === 1) speak(`${auctionTimeLeft}`, 1.5, 1.4);
+                    if (auctionTimeLeft <= 3) speak(`${auctionTimeLeft}!`, 1.5, 0.4);
                 }
                 if (auctionTimeLeft <= 0) { stopAuctionTimer(); playTimerEndSound(); }
             }, 1000);
@@ -1564,8 +1681,8 @@
             currentAuctionIndex = 0; currentBid = {team:null, amount:0}; bidHistory = [];
             team1Points = 100; team2Points = 100; updateTeamPoints();
             playAuctionStartSound();
-            speak('경매를 시작합니다!', 0.9, 1.1);
-            setTimeout(() => startBGM(), 1000);
+            setTimeout(() => shout('경매를 시작합니다!'), 1200);
+            setTimeout(() => startBGM(), 1800);
             showAuctionModal();
         }
         function showAuctionModal() {
@@ -1599,7 +1716,7 @@
             const remaining = auctionPlayers.length - currentAuctionIndex;
             const order = currentAuctionIndex + 1;
             setTimeout(() => {
-                speak(`${order}번째 선수, ${p.name}! ${p.tier}점, 입찰 시작!`, 1.0, 1.05);
+                shout(`${order}번째 선수! ${p.name}! ${p.tier}점! 입찰 시작!`);
             }, 500);
             
             startAuctionTimer();
@@ -1661,15 +1778,15 @@
             if(isAllIn) {
                 playAllInSound();
                 showSpecialEffect('💥 올인!');
-                setTimeout(() => speak(`${team}팀, 올인! ${amt}포인트!`, 1.1, 1.2), 200);
+                setTimeout(() => shout(`${team}팀! 올인! ${amt}포인트!`), 200);
             } else if(currentBid.amount>0 && amt===currentBid.amount+1) {
                 showSpecialEffect('⚡ 퍼펙트 입찰!');
-                speak(`${team}팀, ${amt}!`, 1.2, 1.0);
+                shout(`${team}팀! ${amt}!`);
             } else if(auctionTimeLeft<=2) {
                 showSpecialEffect('🔥 막판 입찰!');
-                speak(`막판 뒤집기! ${team}팀 ${amt}!`, 1.2, 1.15);
+                shout(`막판 뒤집기! ${team}팀! ${amt}!`);
             } else {
-                speak(`${team}팀, ${amt}`, 1.3, 1.0);
+                speak(`${team}팀, ${amt}!`, 1.3, 0.6);
             }
             
             currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
@@ -1684,7 +1801,7 @@
             if(currentBid.team!==null) return alert('입찰이 있어서 유찰할 수 없습니다!');
             playPassSound();
             const passed = auctionPlayers[currentAuctionIndex];
-            speak(`${passed.name}, 유찰!`, 1.0, 0.9);
+            speak(`${passed.name}, 유찰!`, 1.0, 0.5);
             auctionPlayers.splice(currentAuctionIndex, 1);
             auctionPlayers.push(passed);
             resetAuctionTimer();
@@ -1702,9 +1819,9 @@
             
             // 🎙️ 낙찰 음성
             if(currentBid.amount > 0) {
-                speak(`낙찰! ${p.name}, ${currentBid.team}팀! ${currentBid.amount}포인트!`, 0.95, 1.1);
+                shout(`낙찰! ${p.name}! ${currentBid.team}팀! ${currentBid.amount}포인트!`);
             } else {
-                speak(`${p.name}, ${currentBid.team}팀 배정!`, 1.0, 1.05);
+                shout(`${p.name}! ${currentBid.team}팀 배정!`);
             }
             
             if(currentBid.team===1) team1Points -= currentBid.amount;
@@ -1716,7 +1833,7 @@
             if(currentAuctionIndex < auctionPlayers.length) {
                 if(team1Points===0 || team2Points===0) { stopAuctionTimer(); autoAssignRemaining(); }
                 else setTimeout(() => showAuctionModal(), 1500); // 낙찰 후 잠시 여유
-            } else { stopAuctionTimer(); stopBGM(); playCompleteSound(); showSpecialEffect('🎉 경매 완료!'); speak('경매가 모두 끝났습니다! 좋은 경기 되세요!', 0.9, 1.1); setTimeout(closeAuction, 2500); }
+            } else { stopAuctionTimer(); stopBGM(); playCompleteSound(); showSpecialEffect('🎉 경매 완료!'); setTimeout(() => shout('경매가 모두 끝났습니다! 좋은 경기 되세요!'), 500); setTimeout(closeAuction, 3000); }
         }
         function autoAssignRemaining() {
             const remain = auctionPlayers.slice(currentAuctionIndex);
@@ -1725,7 +1842,7 @@
             playCompleteSound();
             stopBGM();
             showSpecialEffect('🎉 남은 선수 → '+target+'팀');
-            speak(`남은 선수 전원, ${target}팀 배정! 경매 종료!`, 0.95, 1.1);
+            shout(`남은 선수 전원! ${target}팀 배정! 경매 종료!`);
             setTimeout(closeAuction, 2000);
         }
         function addPlayerToTeam(p, team) {
