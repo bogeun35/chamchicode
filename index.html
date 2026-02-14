@@ -770,15 +770,14 @@
     
     <script>
         // ============================================================
-        // 🔊 사운드 시스템 (웅장한 스포츠 중계 BGM + 파워풀 TTS)
+        // 🔊 사운드 시스템 (둠바둠바 킥/베이스 BGM + 깨끗한 효과음)
         // ============================================================
         let soundEnabled = true;
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
-        let bgmGain = null;
         let bgmPlaying = false;
-        let bgmNodes = [];
-        let bgmInterval = null;
+        let bgmTimeout = null;
+        let bgmStopped = false;
 
         function getAudioCtx() {
             if (!audioCtx) audioCtx = new AudioCtx();
@@ -794,16 +793,15 @@
             if (!soundEnabled) { stopBGM(); speechSynthesis.cancel(); }
         }
 
-        // --- 한국어 TTS (낮고 힘있는 남성 해설자 목소리) ---
+        // --- 한국어 TTS (낮고 힘있는 남성 목소리) ---
         function speak(text, rate = 1.0, pitch = 0.7) {
             if (!soundEnabled) return;
             try {
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = 'ko-KR';
                 u.rate = rate;
-                u.pitch = pitch;   // 낮은 피치 = 굵은 남성 목소리
-                u.volume = 1.0;    // 최대 볼륨
-                // 남성 음성 우선
+                u.pitch = pitch;
+                u.volume = 1.0;
                 const voices = speechSynthesis.getVoices();
                 const maleKo = voices.find(v => v.lang.startsWith('ko') && (v.name.toLowerCase().includes('male') || v.name.includes('남')));
                 const koVoice = maleKo || voices.find(v => v.lang.startsWith('ko'));
@@ -813,342 +811,203 @@
             } catch(e) {}
         }
 
-        // 외치는 음성 (더 빠르고 강하게)
         function shout(text) {
-            speak(text, 1.15, 0.55);
+            speak(text, 1.1, 0.55);
         }
 
-        // --- 기본 톤 ---
-        function playTone(freq, duration, type = 'sine', volume = 0.15) {
+        // --- 킥 드럼 (부드러운 "둠") ---
+        function playKick(volume = 0.3) {
             if (!soundEnabled) return;
             try {
                 const ctx = getAudioCtx();
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.type = type;
+                osc.type = 'sine';
+                // 킥: 높은 주파수에서 빠르게 하강 → "둠" 소리
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.35);
+            } catch(e) {}
+        }
+
+        // --- 서브 베이스 (깊은 "바") ---
+        function playSubBass(freq = 55, duration = 0.25, volume = 0.2) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, ctx.currentTime);
                 gain.gain.setValueAtTime(volume, ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + duration);
+                osc.stop(ctx.currentTime + duration + 0.05);
             } catch(e) {}
         }
 
-        // 코드 연주 (여러 음을 동시에 - 웅장함)
-        function playChord(freqs, duration, type = 'triangle', volume = 0.08) {
-            freqs.forEach(f => playTone(f, duration, type, volume));
-        }
-
-        // --- 웅장한 BGM (에픽 스포츠 중계 느낌) ---
-        function startBGM() {
-            if (!soundEnabled || bgmPlaying) return;
+        // --- 부드러운 톤 (사인파만, 귀 안 아픔) ---
+        function playTone(freq, duration, volume = 0.1) {
+            if (!soundEnabled) return;
             try {
                 const ctx = getAudioCtx();
-                bgmGain = ctx.createGain();
-                bgmGain.gain.setValueAtTime(0, ctx.currentTime);
-                bgmGain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 2);
-                bgmGain.connect(ctx.destination);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + duration + 0.05);
+            } catch(e) {}
+        }
 
-                // ===== 레이어 1: 웅장한 베이스 패드 (C 파워코드) =====
-                const bass1 = ctx.createOscillator();
-                bass1.type = 'sine';
-                bass1.frequency.setValueAtTime(65.41, ctx.currentTime); // C2
-                const bassGain = ctx.createGain();
-                bassGain.gain.setValueAtTime(1.0, ctx.currentTime);
-                bass1.connect(bassGain);
-                bassGain.connect(bgmGain);
-                bass1.start();
-                bgmNodes.push(bass1);
+        // --- 부드러운 코드 ---
+        function playChord(freqs, duration, volume = 0.06) {
+            freqs.forEach(f => playTone(f, duration, volume));
+        }
 
-                // 5도 하모니 (파워코드 느낌)
-                const bass2 = ctx.createOscillator();
-                bass2.type = 'sine';
-                bass2.frequency.setValueAtTime(98, ctx.currentTime); // G2
-                const bass2Gain = ctx.createGain();
-                bass2Gain.gain.setValueAtTime(0.7, ctx.currentTime);
-                bass2.connect(bass2Gain);
-                bass2Gain.connect(bgmGain);
-                bass2.start();
-                bgmNodes.push(bass2);
+        // ===== BGM: 둠바둠바 킥 루프 =====
+        // 패턴: 둠-바-둠둠-바 (4/4 리듬)
+        let bgmVolume = 0.2;
+        let bgmBeat = 0;
 
-                // ===== 레이어 2: 리듬 펄스 (두근두근 심장 + 행진) =====
-                // 130 BPM 느낌의 사이드체인 펄스
-                const kickGain = ctx.createGain();
-                kickGain.connect(bgmGain);
-                const kickOsc = ctx.createOscillator();
-                kickOsc.type = 'sine';
-                kickOsc.frequency.setValueAtTime(130.81, ctx.currentTime); // C3
-                kickOsc.connect(kickGain);
-                kickOsc.start();
-                bgmNodes.push(kickOsc);
+        function startBGM() {
+            if (!soundEnabled || bgmPlaying) return;
+            bgmPlaying = true;
+            bgmStopped = false;
+            bgmVolume = 0.15;
+            bgmBeat = 0;
+            bgmLoop();
+        }
 
-                // LFO로 펌핑 효과 (쿵-쿵-쿵-쿵)
-                const pumpLfo = ctx.createOscillator();
-                pumpLfo.type = 'square';
-                pumpLfo.frequency.setValueAtTime(2.17, ctx.currentTime); // ~130bpm
-                const pumpLfoGain = ctx.createGain();
-                pumpLfoGain.gain.setValueAtTime(0.5, ctx.currentTime);
-                pumpLfo.connect(pumpLfoGain);
-                pumpLfoGain.connect(kickGain.gain);
-                pumpLfo.start();
-                bgmNodes.push(pumpLfo);
+        function bgmLoop() {
+            if (bgmStopped || !bgmPlaying) return;
 
-                // ===== 레이어 3: 스트링 패드 (웅장함) =====
-                // Cm 코드: C-Eb-G
-                [130.81, 155.56, 196.00].forEach(freq => {
-                    const str = ctx.createOscillator();
-                    str.type = 'sawtooth';
-                    const strGain = ctx.createGain();
-                    strGain.gain.setValueAtTime(0.03, ctx.currentTime);
-                    str.frequency.setValueAtTime(freq, ctx.currentTime);
-                    str.connect(strGain);
-                    strGain.connect(bgmGain);
-                    str.start();
-                    bgmNodes.push(str);
-                });
+            // 둠바둠둠바 패턴 (8비트 기준)
+            // 0: 킥(둠) | 1: - | 2: 베이스(바) | 3: - | 4: 킥(둠) | 5: 킥(둠) | 6: 베이스(바) | 7: -
+            const pattern = bgmBeat % 8;
+            const v = bgmVolume;
 
-                // ===== 레이어 4: 하이햇 틱 (긴장감 리듬) =====
-                const noiseGain = ctx.createGain();
-                noiseGain.gain.setValueAtTime(0.015, ctx.currentTime);
-                noiseGain.connect(bgmGain);
+            if (pattern === 0) {
+                playKick(v);
+            } else if (pattern === 2) {
+                playSubBass(65, 0.2, v * 0.7);
+            } else if (pattern === 4) {
+                playKick(v * 0.85);
+            } else if (pattern === 5) {
+                playKick(v * 0.6);
+            } else if (pattern === 6) {
+                playSubBass(55, 0.2, v * 0.7);
+            }
 
-                const hihatOsc = ctx.createOscillator();
-                hihatOsc.type = 'square';
-                hihatOsc.frequency.setValueAtTime(6000, ctx.currentTime);
-                const hihatLfo = ctx.createOscillator();
-                hihatLfo.type = 'square';
-                hihatLfo.frequency.setValueAtTime(4.34, ctx.currentTime); // 16분음표
-                const hihatLfoGain = ctx.createGain();
-                hihatLfoGain.gain.setValueAtTime(1, ctx.currentTime);
-                hihatLfo.connect(hihatLfoGain);
-                hihatLfoGain.connect(noiseGain.gain);
-                hihatOsc.connect(noiseGain);
-                hihatOsc.start();
-                hihatLfo.start();
-                bgmNodes.push(hihatOsc, hihatLfo);
-
-                // ===== 레이어 5: 코드 진행 (4마디 루프) =====
-                // Cm → Ab → Eb → Bb (에픽 진행)
-                const chordProgressions = [
-                    [130.81, 155.56, 196.00],  // Cm
-                    [104.00, 130.81, 155.56],  // Ab
-                    [155.56, 196.00, 233.08],  // Eb
-                    [116.54, 146.83, 174.61],  // Bb
-                ];
-                let chordIdx = 0;
-                bgmInterval = setInterval(() => {
-                    if (!bgmPlaying) return;
-                    chordIdx = (chordIdx + 1) % chordProgressions.length;
-                    const chord = chordProgressions[chordIdx];
-                    bgmNodes.forEach(n => {
-                        if (n._isChordOsc) {
-                            try {
-                                const ctx2 = getAudioCtx();
-                                n.frequency.linearRampToValueAtTime(chord[n._chordIndex] || chord[0], ctx2.currentTime + 0.5);
-                            } catch(e) {}
-                        }
-                    });
-                }, 2300); // ~2.3초마다 코드 체인지
-
-                // 코드 오실레이터에 마킹
-                let chordOscIdx = 0;
-                bgmNodes.forEach(n => {
-                    if (n.frequency && n.type === 'sawtooth') {
-                        n._isChordOsc = true;
-                        n._chordIndex = chordOscIdx++;
-                    }
-                });
-
-                bgmPlaying = true;
-            } catch(e) { console.error('BGM Error:', e); }
+            bgmBeat++;
+            // ~138 BPM (8분음표 간격 = 약 217ms)
+            bgmTimeout = setTimeout(() => bgmLoop(), 217);
         }
 
         function stopBGM() {
-            if (!bgmPlaying) return;
-            try {
-                if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
-                const ctx = getAudioCtx();
-                if (bgmGain) {
-                    bgmGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
-                }
-                setTimeout(() => {
-                    bgmNodes.forEach(n => { try { n.stop(); } catch(e) {} });
-                    bgmNodes = [];
-                    bgmPlaying = false;
-                }, 1200);
-            } catch(e) {
-                bgmNodes = [];
-                bgmPlaying = false;
-            }
+            bgmStopped = true;
+            bgmPlaying = false;
+            if (bgmTimeout) { clearTimeout(bgmTimeout); bgmTimeout = null; }
         }
 
         function setBGMTension(level) {
-            // level: 0~1
-            if (!bgmPlaying || !bgmGain) return;
-            try {
-                const ctx = getAudioCtx();
-                const vol = 0.05 + level * 0.10; // 점점 웅장해짐
-                bgmGain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.3);
-            } catch(e) {}
+            // level 0~1, BGM 볼륨만 살짝 키움
+            bgmVolume = 0.12 + level * 0.15;
         }
 
-        // --- 효과음들 ---
+        // ===== 효과음 (킥 + 서브베이스만, 고음 없음) =====
+
         function playBidSound() {
-            // 입찰: 파워풀한 스탬프 
-            playTone(60, 0.12, 'sine', 0.2);     // 저음 쿵
-            playTone(880, 0.06, 'square', 0.1);   
-            setTimeout(() => {
-                playTone(1100, 0.1, 'square', 0.1);
-                playTone(1320, 0.06, 'sine', 0.08);
-            }, 60);
+            playKick(0.25);
+            setTimeout(() => playSubBass(80, 0.15, 0.15), 60);
         }
 
         function playSuccessSound() {
-            // 낙찰: 웅장한 오케스트라 팡파레
-            // 베이스 드럼
-            playTone(40, 0.4, 'sine', 0.25);
-            playTone(42, 0.4, 'sine', 0.25);
-            // 브라스 팡파레
-            const brass = [
-                [0, [262, 330, 392]],
-                [150, [330, 392, 523]],
-                [300, [392, 523, 659]],
-                [450, [523, 659, 784]],
-                [600, [659, 784, 1047]],
-            ];
-            brass.forEach(([delay, notes]) => {
-                setTimeout(() => {
-                    notes.forEach(n => {
-                        playTone(n, 0.3, 'triangle', 0.1);
-                        playTone(n, 0.3, 'sawtooth', 0.02);
-                    });
-                }, delay);
-            });
-            // 심벌 크래시
-            setTimeout(() => playTone(8000, 0.5, 'square', 0.03), 600);
-            // 마지막 파워 코드
+            // 낙찰: 킥 + 깊은 베이스 상승
+            playKick(0.35);
+            setTimeout(() => playSubBass(55, 0.3, 0.2), 100);
+            setTimeout(() => playKick(0.3), 300);
+            setTimeout(() => playSubBass(65, 0.3, 0.2), 400);
             setTimeout(() => {
-                playChord([131, 196, 262, 523], 0.8, 'triangle', 0.1);
-                playTone(65, 0.8, 'sine', 0.2);
-            }, 750);
+                playKick(0.35);
+                playSubBass(82, 0.5, 0.25);
+            }, 600);
         }
 
         function playPassSound() {
-            // 유찰: 하강 브라스
-            playTone(60, 0.15, 'sine', 0.15);
-            playChord([440, 554, 659], 0.15, 'triangle', 0.06);
-            setTimeout(() => playChord([349, 440, 523], 0.15, 'triangle', 0.05), 150);
-            setTimeout(() => playChord([262, 330, 392], 0.25, 'triangle', 0.04), 300);
-            setTimeout(() => playTone(131, 0.4, 'sine', 0.08), 400);
+            // 유찰: 하강 베이스
+            playSubBass(80, 0.2, 0.12);
+            setTimeout(() => playSubBass(60, 0.2, 0.1), 150);
+            setTimeout(() => playSubBass(40, 0.3, 0.08), 300);
         }
 
         function playTimerWarningSound() {
-            // 강렬한 틱: 스타디움 클락
-            playTone(60, 0.06, 'sine', 0.2);     // 킥
-            playTone(1000, 0.04, 'square', 0.12); // 틱
-            setTimeout(() => playTone(800, 0.03, 'square', 0.06), 50);
+            playKick(0.25);
         }
 
         function playTimerEndSound() {
-            // 부저: 경기장 부저 사운드
-            playChord([196, 198], 0.8, 'sawtooth', 0.12);
-            playTone(50, 0.6, 'sine', 0.2);
-            setTimeout(() => {
-                playChord([147, 149], 0.6, 'sawtooth', 0.08);
-                playTone(40, 0.5, 'sine', 0.15);
-            }, 400);
+            playSubBass(80, 0.5, 0.2);
+            setTimeout(() => playSubBass(50, 0.5, 0.15), 250);
         }
 
         function playAuctionStartSound() {
-            // 경매 시작: 스타디움 인트로 팡파레
-            // 드럼 인트로
+            // 경매 시작: 킥 4연타 → 베이스
             for (let i = 0; i < 4; i++) {
-                setTimeout(() => {
-                    playTone(50 + Math.random()*20, 0.08, 'sine', 0.2);
-                    playTone(5000 + Math.random()*2000, 0.03, 'square', 0.04);
-                }, i * 120);
+                setTimeout(() => playKick(0.25 + i * 0.03), i * 150);
             }
-            // 브라스 팡파레 상승
-            setTimeout(() => playChord([262, 330, 392], 0.2, 'triangle', 0.1), 500);
-            setTimeout(() => playChord([330, 392, 523], 0.2, 'triangle', 0.1), 700);
-            setTimeout(() => playChord([392, 523, 659], 0.2, 'triangle', 0.12), 900);
+            setTimeout(() => playSubBass(65, 0.4, 0.25), 650);
             setTimeout(() => {
-                playChord([523, 659, 784, 1047], 0.5, 'triangle', 0.14);
-                playTone(65, 0.6, 'sine', 0.25); // 깊은 베이스
-                playTone(131, 0.5, 'sine', 0.15);
-            }, 1100);
+                playKick(0.35);
+                playSubBass(82, 0.5, 0.25);
+            }, 900);
         }
 
         function playAllInSound() {
-            // 올인: 극적 임팩트 + 관중 함성 느낌
-            playTone(30, 0.3, 'sine', 0.3);  // 깊은 서브베이스 쿵
-            playTone(60, 0.25, 'sine', 0.25);
-            // 급상승
-            for (let i = 0; i < 8; i++) {
-                setTimeout(() => {
-                    playTone(200 + i * 200, 0.06, 'square', 0.08);
-                    playTone(300 + i * 200, 0.06, 'triangle', 0.06);
-                }, i * 30);
-            }
-            // 폭발 코드
-            setTimeout(() => {
-                playChord([523, 659, 784, 1047, 1319], 0.5, 'triangle', 0.1);
-                playTone(65, 0.5, 'sine', 0.2);
-                // 심벌
-                playTone(8000, 0.4, 'square', 0.03);
-            }, 260);
+            playKick(0.35);
+            setTimeout(() => playKick(0.35), 80);
+            setTimeout(() => playKick(0.35), 160);
+            setTimeout(() => playSubBass(40, 0.6, 0.3), 280);
         }
 
         function playCompleteSound() {
-            // 경매 완료: 승리의 팡파레 (우승 축하 느낌)
-            // 드럼롤
-            for (let i = 0; i < 12; i++) {
-                setTimeout(() => {
-                    playTone(80 + Math.random()*40, 0.04, 'square', 0.05 + i*0.008);
-                }, i * 40);
+            // 경매 완료: 킥 패턴 + 베이스
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => playKick(0.2 + i * 0.02), i * 120);
             }
-            // 승리 멜로디
-            const victory = [
-                [500, 523, 0.15], [650, 659, 0.15], [800, 784, 0.15],
-                [1000, 1047, 0.3], [1250, 784, 0.15], [1400, 1047, 0.15],
-                [1550, 1319, 0.4], [1800, 1568, 0.6],
-            ];
-            victory.forEach(([delay, freq, dur]) => {
-                setTimeout(() => {
-                    playTone(freq, dur, 'triangle', 0.14);
-                    playTone(freq * 0.5, dur, 'sine', 0.06);
-                }, delay);
-            });
-            // 마지막 대코드
             setTimeout(() => {
-                playChord([262, 330, 392, 523, 659, 784, 1047], 1.2, 'triangle', 0.06);
-                playTone(65, 1.0, 'sine', 0.2);
-                playTone(131, 1.0, 'sine', 0.12);
-            }, 2000);
+                playKick(0.35);
+                playSubBass(55, 0.6, 0.25);
+            }, 750);
+            setTimeout(() => {
+                playKick(0.35);
+                playSubBass(82, 0.8, 0.25);
+            }, 1100);
         }
 
         function playClickSound() {
-            playTone(1200, 0.04, 'sine', 0.04);
+            playKick(0.08);
         }
 
         function playNewPlayerSound() {
-            // 선수 등장: 드럼롤 → 임팩트 공개
-            if (!soundEnabled) return;
-            // 스네어 드럼롤
-            for (let i = 0; i < 12; i++) {
-                setTimeout(() => {
-                    playTone(150 + Math.random() * 60, 0.03, 'square', 0.04 + i * 0.006);
-                    playTone(4000 + Math.random() * 2000, 0.02, 'square', 0.01 + i * 0.002);
-                }, i * 35);
+            // 선수 등장: 킥 드럼롤 → 임팩트
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => playKick(0.1 + i * 0.04), i * 55);
             }
-            // 공개 임팩트
             setTimeout(() => {
-                playTone(50, 0.15, 'sine', 0.2); // 킥
-                playChord([523, 659, 784], 0.2, 'triangle', 0.12);
-                playTone(8000, 0.15, 'square', 0.02); // 심벌
-            }, 440);
+                playKick(0.35);
+                playSubBass(65, 0.3, 0.2);
+            }, 380);
         }
 
         // ============================================================
@@ -1987,13 +1846,44 @@
                 });
 
                 const rawText = result.data.text || '';
-                // 줄 단위로 분리 후 정리
+
+                // 영어 → 한글 발음 변환 맵
+                const engToKor = {
+                    'a':'에이','b':'비','c':'씨','d':'디','e':'이','f':'에프',
+                    'g':'지','h':'에이치','i':'아이','j':'제이','k':'케이','l':'엘',
+                    'm':'엠','n':'엔','o':'오','p':'피','q':'큐','r':'알',
+                    's':'에스','t':'티','u':'유','v':'브이','w':'더블유','x':'엑스',
+                    'y':'와이','z':'제트',
+                    'gay':'게이','lecode':'레코드','somu':'소무',
+                };
+
+                function convertName(name) {
+                    // 1. 특수문자 전부 제거 (한글, 영문, 숫자만 남김)
+                    let cleaned = name.replace(/[^가-힣a-zA-Z0-9\s]/g, '').trim();
+                    if (!cleaned) return '';
+
+                    // 2. 숫자만 있으면 제거
+                    if (/^\d+$/.test(cleaned)) return '';
+
+                    // 3. 영어 단어가 포함되어 있으면 한글로 변환
+                    const lowerCleaned = cleaned.toLowerCase();
+                    // 먼저 전체 단어 매칭 시도
+                    if (engToKor[lowerCleaned]) return engToKor[lowerCleaned];
+                    
+                    // 한글이 하나도 없고 영어만 있으면 → 그대로 유지 (닉네임일 수 있음)
+                    // 한글이 섞여 있으면 영어 부분만 제거
+                    const hasKorean = /[가-힣]/.test(cleaned);
+                    if (hasKorean) {
+                        // 한글만 추출
+                        cleaned = cleaned.replace(/[a-zA-Z0-9]/g, '').trim();
+                    }
+                    // 영어만 있는 경우는 그대로 (게임 닉네임)
+                    return cleaned;
+                }
+
                 const names = rawText.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0)
-                    // 흔한 OCR 노이즈 제거: 숫자만, 특수문자만, 1글자 미만
-                    .filter(line => !/^[\d\s\.\-\_\|\[\](){}]+$/.test(line))
-                    .filter(line => line.length >= 1);
+                    .map(line => convertName(line))
+                    .filter(name => name.length > 0);
 
                 document.getElementById('screenshotLoading').classList.remove('active');
                 document.getElementById('screenshotPreview').classList.add('active');
