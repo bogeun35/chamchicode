@@ -381,10 +381,15 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .auction-title { font-family: 'Orbitron', sans-serif; font-size: 1.1em; font-weight: 900; color: white; }
-        .auction-leader-info { font-size: 0.85em; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-        .auction-leader-info span { font-weight: 700; color: white; }
-        .auction-leader-team1 { color: var(--ow-blue) !important; text-shadow: 0 0 8px rgba(0,211,255,0.5); }
-        .auction-leader-team2 { color: var(--ow-orange) !important; text-shadow: 0 0 8px rgba(255,156,0,0.5); }
+        #auctionLeader1Name { 
+            color: #fff; font-weight: 900; 
+            text-shadow: 0 0 8px rgba(0,211,255,0.5);
+        }
+        #auctionLeader2Name { 
+            color: #fff; font-weight: 900; 
+            text-shadow: 0 0 8px rgba(255,156,0,0.5);
+        }
+        .auction-team-name { white-space: nowrap; }
         
         .auction-body { padding: 15px; }
         
@@ -682,10 +687,6 @@
         <div class="auction-content">
             <div class="auction-header">
                 <div class="auction-title">🔨 경매 진행중</div>
-                <div class="auction-leader-info">
-                    <div>1팀 팀장: <span id="auctionLeader1Name" class="auction-leader-team1">-</span></div>
-                    <div>2팀 팀장: <span id="auctionLeader2Name" class="auction-leader-team2">-</span></div>
-                </div>
             </div>
             <div class="auction-body">
                 <div class="auction-top-section">
@@ -720,7 +721,7 @@
                 <div class="auction-teams-row">
                     <div class="auction-team-box team-1" id="auctionTeamBox1">
                         <div class="auction-team-header-row">
-                            <div class="auction-team-name">1팀 👑</div>
+                            <div class="auction-team-name">1팀 👑<span id="auctionLeader1Wrap"> (<span id="auctionLeader1Name"></span>)</span></div>
                             <div class="auction-team-points" id="auctionTeam1Points">100</div>
                         </div>
                         <input type="number" class="auction-bid-input" id="team1BidInput" min="0" placeholder="입찰가">
@@ -734,7 +735,7 @@
                     </div>
                     <div class="auction-team-box team-2" id="auctionTeamBox2">
                         <div class="auction-team-header-row">
-                            <div class="auction-team-name">2팀 👑</div>
+                            <div class="auction-team-name">2팀 👑<span id="auctionLeader2Wrap"> (<span id="auctionLeader2Name"></span>)</span></div>
                             <div class="auction-team-points" id="auctionTeam2Points">100</div>
                         </div>
                         <input type="number" class="auction-bid-input" id="team2BidInput" min="0" placeholder="입찰가">
@@ -1387,9 +1388,13 @@
             if(currentAuctionIndex >= auctionPlayers.length) { alert('모든 경매가 끝났습니다!'); closeAuction(); return; }
             const p = auctionPlayers[currentAuctionIndex];
             
-            // 팀장 이름 표시 (각 팀의 첫 번째 슬롯에 있는 선수)
-            document.getElementById('auctionLeader1Name').textContent = getTeamLeaderName(1);
-            document.getElementById('auctionLeader2Name').textContent = getTeamLeaderName(2);
+            // 팀장 이름 표시: 1팀(팀장이름) 형태
+            const leader1 = getTeamLeaderName(1);
+            const leader2 = getTeamLeaderName(2);
+            document.getElementById('auctionLeader1Name').textContent = leader1 !== '-' ? leader1 : '';
+            document.getElementById('auctionLeader1Wrap').style.display = leader1 !== '-' ? '' : 'none';
+            document.getElementById('auctionLeader2Name').textContent = leader2 !== '-' ? leader2 : '';
+            document.getElementById('auctionLeader2Wrap').style.display = leader2 !== '-' ? '' : 'none';
             
             document.getElementById('auctionPlayerIcon').textContent = ROLE_ICONS[p.role];
             document.getElementById('auctionPlayerName').textContent = p.name;
@@ -1619,24 +1624,61 @@
             reader.readAsDataURL(file);
         }
 
-        function performOCR(imgData) {
-            // 이미지를 Canvas에 그려서 간단한 분석 시도
-            // 실제 OCR은 외부 라이브러리(Tesseract.js 등)가 필요하지만,
-            // 여기서는 사용자가 이미지를 보고 직접 입력/수정하는 방식으로 제공
-            
-            // 잠시 로딩 후 미리보기 표시
-            setTimeout(() => {
+        async function performOCR(imgData) {
+            try {
+                // Tesseract.js 동적 로드
+                if (!window.Tesseract) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                    document.head.appendChild(script);
+                    await new Promise((resolve, reject) => {
+                        script.onload = resolve;
+                        script.onerror = () => reject(new Error('Tesseract.js 로드 실패'));
+                    });
+                }
+
+                const result = await Tesseract.recognize(imgData, 'kor+eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.round((m.progress || 0) * 100);
+                            const loadingEl = document.querySelector('#screenshotLoading span');
+                            if (loadingEl) loadingEl.textContent = `이미지에서 이름을 추출하는 중... ${pct}%`;
+                        }
+                    }
+                });
+
+                const rawText = result.data.text || '';
+                // 줄 단위로 분리 후 정리
+                const names = rawText.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    // 흔한 OCR 노이즈 제거: 숫자만, 특수문자만, 1글자 미만
+                    .filter(line => !/^[\d\s\.\-\_\|\[\](){}]+$/.test(line))
+                    .filter(line => line.length >= 1);
+
                 document.getElementById('screenshotLoading').classList.remove('active');
                 document.getElementById('screenshotPreview').classList.add('active');
-                
-                // 기본 안내 텍스트
+
+                const textarea = document.getElementById('screenshotNames');
+                if (names.length > 0) {
+                    textarea.value = names.join('\n');
+                } else {
+                    textarea.value = '';
+                    textarea.placeholder = 'OCR 인식 결과가 없습니다. 직접 입력해주세요...';
+                }
+                textarea.focus();
+                playClickSound();
+
+            } catch (err) {
+                console.error('OCR 에러:', err);
+                document.getElementById('screenshotLoading').classList.remove('active');
+                document.getElementById('screenshotPreview').classList.add('active');
+
                 const textarea = document.getElementById('screenshotNames');
                 textarea.value = '';
-                textarea.placeholder = '이미지를 보고 참가자 이름을 한 줄에 하나씩 입력하세요...\n예:\n바미\ngay\nlecode\nsomu';
+                textarea.placeholder = 'OCR 로드 실패. 이름을 직접 입력해주세요...';
                 textarea.focus();
-                
-                playClickSound();
-            }, 500);
+            }
         }
 
         function applyScreenshotNames() {
