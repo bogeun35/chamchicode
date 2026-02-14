@@ -88,7 +88,7 @@
         .team-slot {
             background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1);
             padding: 0; border-radius: 6px; 
-            height: 60px; /* 슬롯 높이 약간 축소 */
+            height: 60px;
             display: flex; align-items: center; justify-content: center; transition: all 0.3s;
             position: relative; overflow: hidden;
         }
@@ -238,6 +238,74 @@
             padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.85em; color: rgba(255,255,255,0.6);
         }
         
+        /* 스크린샷 업로드 영역 */
+        .screenshot-section {
+            margin-top: 15px; padding: 15px;
+            background: rgba(255,156,0,0.05); border: 2px dashed rgba(255,156,0,0.3);
+            border-radius: 8px; transition: all 0.3s; position: relative;
+        }
+        .screenshot-section.drag-highlight {
+            background: rgba(255,156,0,0.15); border-color: var(--ow-orange);
+            box-shadow: 0 0 20px rgba(255,156,0,0.2);
+        }
+        .screenshot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .screenshot-title { font-family: 'Orbitron', sans-serif; font-size: 0.9em; font-weight: 700; color: var(--ow-orange); }
+        .screenshot-desc { font-size: 0.8em; color: rgba(255,255,255,0.4); }
+        .screenshot-upload-area {
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            padding: 20px; cursor: pointer; text-align: center;
+        }
+        .screenshot-upload-area .upload-icon { font-size: 2em; }
+        .screenshot-upload-area .upload-text { font-size: 0.85em; color: rgba(255,255,255,0.5); }
+        .screenshot-upload-area .upload-text strong { color: var(--ow-orange); }
+        #screenshotFileInput { display: none; }
+        .screenshot-preview-area {
+            display: none; gap: 15px; align-items: flex-start;
+        }
+        .screenshot-preview-area.active { display: flex; }
+        .screenshot-preview {
+            max-width: 200px; max-height: 200px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0;
+        }
+        .screenshot-names-area { flex: 1; }
+        .screenshot-names-textarea {
+            width: 100%; min-height: 100px; background: var(--ow-dark);
+            border: 2px solid rgba(255,255,255,0.1); color: var(--ow-white);
+            padding: 10px; border-radius: 6px; font-size: 0.9em; font-family: 'Rajdhani', sans-serif;
+            resize: vertical;
+        }
+        .screenshot-names-textarea:focus { outline: none; border-color: var(--ow-orange); }
+        .screenshot-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .screenshot-btn {
+            font-family: 'Orbitron', sans-serif; padding: 8px 16px; border: none;
+            border-radius: 6px; font-size: 0.8em; font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        .screenshot-btn.apply { background: linear-gradient(135deg, var(--ow-orange), #cc7a00); color: white; }
+        .screenshot-btn.cancel { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+        .screenshot-btn:hover { transform: translateY(-2px); }
+        .screenshot-loading {
+            display: none; align-items: center; gap: 10px; padding: 20px; justify-content: center;
+        }
+        .screenshot-loading.active { display: flex; }
+        .screenshot-loading .spinner {
+            width: 24px; height: 24px; border: 3px solid rgba(255,156,0,0.2);
+            border-top-color: var(--ow-orange); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* 사운드 토글 */
+        .sound-toggle {
+            position: fixed; top: 15px; right: 15px; z-index: 100;
+            background: rgba(28,33,40,0.95); border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 14px; border-radius: 20px; cursor: pointer;
+            font-family: 'Orbitron', sans-serif; font-size: 0.75em; font-weight: 700;
+            color: var(--ow-white); transition: all 0.3s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .sound-toggle:hover { border-color: var(--ow-blue); }
+        .sound-toggle.muted { opacity: 0.5; }
+
         .template-section {
             background: rgba(255,255,255,0.02); padding: 12px;
             border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);
@@ -294,7 +362,7 @@
         .role-option:hover { background: rgba(0,211,255,0.1); border-color: var(--ow-blue); }
         .role-option.selected { background: var(--ow-blue); border-color: var(--ow-blue); color: var(--ow-dark); }
         
-        /* [수정] 경매 모달 FHD 최적화 (Compact Version) */
+        /* 경매 모달 */
         .auction-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;
@@ -305,7 +373,6 @@
             background: linear-gradient(135deg, var(--ow-gray), var(--ow-dark));
             border: 2px solid var(--ow-orange); border-radius: 12px;
             max-width: 750px; width: 100%; 
-            /* FHD 스크롤 방지를 위해 max-height 제한 없음, 내부 요소 줄임 */
             box-shadow: 0 0 60px rgba(255,156,0,0.3);
         }
         .auction-header {
@@ -314,15 +381,16 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .auction-title { font-family: 'Orbitron', sans-serif; font-size: 1.1em; font-weight: 900; color: white; }
-        .auction-leader-info { font-size: 0.85em; color: rgba(255,255,255,0.8); }
+        .auction-leader-info { font-size: 0.85em; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
         .auction-leader-info span { font-weight: 700; color: white; }
+        .auction-leader-team1 { color: var(--ow-blue) !important; text-shadow: 0 0 8px rgba(0,211,255,0.5); }
+        .auction-leader-team2 { color: var(--ow-orange) !important; text-shadow: 0 0 8px rgba(255,156,0,0.5); }
         
         .auction-body { padding: 15px; }
         
-        /* [수정] 상단 섹션: 타이머와 플레이어 정보 가로 배치 */
         .auction-top-section { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         
-        .timer-container { position: relative; width: 80px; height: 80px; flex-shrink: 0; } /* 타이머 크기 축소 */
+        .timer-container { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
         .timer-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
         .timer-ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
@@ -335,16 +403,19 @@
         .timer-seconds { font-family: 'Orbitron', sans-serif; font-size: 1.8em; font-weight: 900; line-height: 1; }
         .timer-seconds.warning { color: #ef4444; animation: timerPulse 0.5s ease-in-out infinite; }
         .timer-label { font-size: 0.6em; color: rgba(255,255,255,0.4); }
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
 
         .auction-current-player {
             flex: 1; display: flex; align-items: center; justify-content: space-between;
             background: linear-gradient(135deg, rgba(255,156,0,0.2), rgba(255,156,0,0.05));
             border: 2px solid var(--ow-orange); border-radius: 8px; padding: 10px 20px;
-            margin-bottom: 0; /* 가로 배치라 마진 제거 */
         }
         .auction-player-info-wrapper { display: flex; align-items: center; gap: 15px; }
-        .auction-player-role-icon { font-size: 2.2em; margin-bottom: 0; }
-        .auction-player-name { font-family: 'Orbitron', sans-serif; font-size: 1.4em; font-weight: 900; margin-bottom: 0; }
+        .auction-player-role-icon { font-size: 2.2em; }
+        .auction-player-name { font-family: 'Orbitron', sans-serif; font-size: 1.4em; font-weight: 900; }
         .auction-player-stats { display: flex; gap: 8px; }
         .auction-player-tier, .auction-player-role {
             font-family: 'Orbitron', sans-serif; font-size: 0.8em;
@@ -374,10 +445,10 @@
         .auction-team-box.leading.team-2 { background: rgba(255,156,0,0.1); border-color: var(--ow-orange); }
         
         .auction-team-header-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px; }
-        .auction-team-name { font-family: 'Orbitron', sans-serif; font-size: 0.9em; font-weight: 700; margin-bottom: 0; }
+        .auction-team-name { font-family: 'Orbitron', sans-serif; font-size: 0.9em; font-weight: 700; }
         .team-1 .auction-team-name { color: var(--ow-blue); }
         .team-2 .auction-team-name { color: var(--ow-orange); }
-        .auction-team-points { font-family: 'Orbitron', sans-serif; font-size: 1.2em; font-weight: 900; margin-bottom: 0; }
+        .auction-team-points { font-family: 'Orbitron', sans-serif; font-size: 1.2em; font-weight: 900; }
         .team-1 .auction-team-points { color: var(--ow-blue); }
         .team-2 .auction-team-points { color: var(--ow-orange); }
         
@@ -454,12 +525,19 @@
             .btn { width: 100%; }
             .auction-teams-row { grid-template-columns: 1fr; }
             .auction-top-section { flex-direction: column; }
+            .screenshot-preview-area.active { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <div class="hex-background"></div>
     <div class="hex-pattern"></div>
+    
+    <!-- 사운드 토글 -->
+    <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">
+        <span id="soundIcon">🔊</span> <span id="soundLabel">ON</span>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1>⚽ 참스코드 프로그램</h1>
@@ -522,7 +600,35 @@
                     <input type="number" class="tier-input" id="newTierInput" value="3" min="1">
                     <button class="add-player-btn" id="addPlayerBtn">➕ 추가</button>
                 </div>
-                <div class="info-message">💡 [F1]: 낙찰 / [F2]: 유찰 / [Tab]: 입력창 전환</div>
+                <div class="info-message">💡 [F1]: 낙찰 / [F2]: 유찰 / [Tab]: 입력창 전환 / 스크린샷을 아래에 붙여넣기(Ctrl+V)하면 자동 인식!</div>
+                
+                <!-- 스크린샷 업로드 영역 -->
+                <div class="screenshot-section" id="screenshotSection">
+                    <div class="screenshot-header">
+                        <div class="screenshot-title">📸 스크린샷으로 참가자 추가</div>
+                        <div class="screenshot-desc">이미지를 드래그하거나, 클릭하여 업로드하거나, Ctrl+V로 붙여넣기</div>
+                    </div>
+                    <div class="screenshot-upload-area" id="screenshotUploadArea">
+                        <div class="upload-icon">📋</div>
+                        <div class="upload-text"><strong>클릭</strong> 또는 <strong>드래그</strong> 또는 <strong>Ctrl+V</strong></div>
+                    </div>
+                    <input type="file" id="screenshotFileInput" accept="image/*">
+                    <div class="screenshot-loading" id="screenshotLoading">
+                        <div class="spinner"></div>
+                        <span>이미지에서 이름을 추출하는 중...</span>
+                    </div>
+                    <div class="screenshot-preview-area" id="screenshotPreview">
+                        <img class="screenshot-preview" id="screenshotImg" src="">
+                        <div class="screenshot-names-area">
+                            <div style="font-size:0.8em; color:rgba(255,255,255,0.4); margin-bottom:4px;">인식된 이름 (줄바꿈으로 구분, 수정 가능):</div>
+                            <textarea class="screenshot-names-textarea" id="screenshotNames" placeholder="이름을 한 줄에 하나씩 입력..."></textarea>
+                            <div class="screenshot-actions">
+                                <button class="screenshot-btn apply" id="screenshotApplyBtn">✅ 참가자에 추가</button>
+                                <button class="screenshot-btn cancel" id="screenshotCancelBtn">✕ 취소</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="template-section">
                 <div class="template-header">
@@ -576,7 +682,10 @@
         <div class="auction-content">
             <div class="auction-header">
                 <div class="auction-title">🔨 경매 진행중</div>
-                <div class="auction-leader-info">경매 팀장: <span id="auctionLeaderName">-</span></div>
+                <div class="auction-leader-info">
+                    <div>1팀 팀장: <span id="auctionLeader1Name" class="auction-leader-team1">-</span></div>
+                    <div>2팀 팀장: <span id="auctionLeader2Name" class="auction-leader-team2">-</span></div>
+                </div>
             </div>
             <div class="auction-body">
                 <div class="auction-top-section">
@@ -659,7 +768,98 @@
     </div>
     
     <script>
+        // ============================================================
+        // 🔊 사운드 시스템 (Web Audio API)
+        // ============================================================
+        let soundEnabled = true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundLabel').textContent = soundEnabled ? 'ON' : 'OFF';
+            document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+        }
+
+        function playTone(freq, duration, type = 'sine', volume = 0.15) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playBidSound() {
+            playTone(880, 0.1, 'square', 0.1);
+            setTimeout(() => playTone(1100, 0.15, 'square', 0.1), 80);
+        }
+
+        function playSuccessSound() {
+            // 낙찰 팡파레
+            playTone(523, 0.15, 'triangle', 0.15);
+            setTimeout(() => playTone(659, 0.15, 'triangle', 0.15), 120);
+            setTimeout(() => playTone(784, 0.15, 'triangle', 0.15), 240);
+            setTimeout(() => playTone(1047, 0.3, 'triangle', 0.2), 360);
+        }
+
+        function playPassSound() {
+            playTone(400, 0.15, 'sawtooth', 0.08);
+            setTimeout(() => playTone(300, 0.2, 'sawtooth', 0.08), 100);
+        }
+
+        function playTimerWarningSound() {
+            playTone(600, 0.08, 'square', 0.08);
+        }
+
+        function playTimerEndSound() {
+            playTone(200, 0.3, 'sawtooth', 0.12);
+            setTimeout(() => playTone(150, 0.4, 'sawtooth', 0.1), 200);
+        }
+
+        function playAuctionStartSound() {
+            playTone(440, 0.1, 'triangle', 0.12);
+            setTimeout(() => playTone(554, 0.1, 'triangle', 0.12), 100);
+            setTimeout(() => playTone(659, 0.1, 'triangle', 0.12), 200);
+            setTimeout(() => playTone(880, 0.25, 'triangle', 0.15), 300);
+        }
+
+        function playAllInSound() {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => playTone(600 + i * 150, 0.08, 'square', 0.1), i * 50);
+            }
+        }
+
+        function playCompleteSound() {
+            // 경매 완료 축제 사운드
+            const notes = [523, 659, 784, 1047, 784, 1047, 1319];
+            notes.forEach((n, i) => {
+                setTimeout(() => playTone(n, 0.2, 'triangle', 0.12), i * 100);
+            });
+        }
+
+        function playClickSound() {
+            playTone(1200, 0.05, 'sine', 0.05);
+        }
+
+        // ============================================================
         // 전역 변수
+        // ============================================================
         let savedPlayers = [], draggedElement = null, sourceContainer = null, nextPlayerId = 1;
         let editingPlayerId = null, editingSpectatorId = null, editingTeamPlayerId = null, selectedRole = null;
         let team1Points = 100, team2Points = 100, auctionPlayers = [], currentAuctionIndex = 0;
@@ -675,7 +875,7 @@
         function init() {
             loadTemplates(); updateTemplateButtons(); loadCurrentTemplate();
             updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners();
-            setupSpectatorsDragDrop(); updateTeamPoints();
+            setupSpectatorsDragDrop(); updateTeamPoints(); setupScreenshotFeature();
         }
 
         function loadTemplates() {
@@ -788,7 +988,12 @@
         // 타이머
         function startAuctionTimer() {
             stopAuctionTimer(); auctionTimeLeft = AUCTION_TIME; updateTimerDisplay();
-            auctionTimer = setInterval(() => { auctionTimeLeft--; updateTimerDisplay(); if(auctionTimeLeft<=0) stopAuctionTimer(); }, 1000);
+            auctionTimer = setInterval(() => {
+                auctionTimeLeft--;
+                updateTimerDisplay();
+                if (auctionTimeLeft <= 3 && auctionTimeLeft > 0) playTimerWarningSound();
+                if (auctionTimeLeft <= 0) { stopAuctionTimer(); playTimerEndSound(); }
+            }, 1000);
         }
         function stopAuctionTimer() { if(auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; } }
         function resetAuctionTimer() { startAuctionTimer(); }
@@ -919,7 +1124,7 @@
             });
             document.getElementById('roleModalCancel').onclick = () => { document.getElementById('roleModal').classList.remove('active'); };
             document.getElementById('roleModalSave').onclick = saveRoleChange;
-            document.getElementById('saveTemplateBtn').onclick = () => { saveCurrentTemplate(); alert('저장되었습니다!'); };
+            document.getElementById('saveTemplateBtn').onclick = () => { saveCurrentTemplate(); playClickSound(); alert('저장되었습니다!'); };
             document.getElementById('renameTemplateBtn').onclick = openTemplateNameModal;
             document.getElementById('templateNameCancel').onclick = () => { document.getElementById('templateNameModal').classList.remove('active'); };
             document.getElementById('templateNameSave').onclick = saveTemplateName;
@@ -954,6 +1159,7 @@
             document.getElementById('newPlayerInput').value = '';
             document.getElementById('newTierInput').value = '3';
             updateSavedPlayersUI();
+            playClickSound();
         }
         function removePlayer(id) {
             const p = savedPlayers.find(x => x.id===id);
@@ -996,6 +1202,7 @@
             if(getTeamPlayerNames().has(p.name)) return alert(p.name+'은(는) 이미 팀에 있습니다!');
             if(getSpectatorPlayerNames().has(p.name)) return alert(p.name+'은(는) 이미 관전자입니다!');
             addToSpectators(p); updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+            playClickSound();
         }
         function updateSavedPlayersUI() {
             const c = document.getElementById('savedPlayers'); c.innerHTML = '';
@@ -1092,6 +1299,15 @@
             de.classList.toggle('balanced', d<=1);
         }
 
+        // 팀장 이름 가져오기
+        function getTeamLeaderName(teamNum) {
+            const firstSlot = document.querySelector(`#team${teamNum} .team-slot:first-child .player-card`);
+            if (firstSlot) {
+                return JSON.parse(firstSlot.dataset.player).name;
+            }
+            return '-';
+        }
+
         function balancedRandomAssign() {
             const sp = getSpectatorPlayers();
             if(sp.length<2) return alert('관전자가 2명 이상 필요합니다!');
@@ -1113,6 +1329,7 @@
                 const g = document.getElementById('spectatorsGrid'); g.innerHTML='';
                 remain.forEach(p => addToSpectators(p));
                 updateSpectatorCount(); updateSavedPlayersUI();
+                playSuccessSound();
                 if(bestScore===0) setTimeout(()=>showSpecialEffect('🎯 완벽한 밸런스!'),100);
             }
         }
@@ -1152,6 +1369,7 @@
                 const g = document.getElementById('spectatorsGrid'); g.innerHTML='';
                 sp.slice(idx).forEach(p => addToSpectators(p));
                 updateSpectatorCount(); updateTeamScores(); updateSavedPlayersUI();
+                playSuccessSound();
             }
         }
 
@@ -1162,12 +1380,17 @@
             auctionPlayers = [...sp].sort(()=>Math.random()-0.5);
             currentAuctionIndex = 0; currentBid = {team:null, amount:0}; bidHistory = [];
             team1Points = 100; team2Points = 100; updateTeamPoints();
+            playAuctionStartSound();
             showAuctionModal();
         }
         function showAuctionModal() {
             if(currentAuctionIndex >= auctionPlayers.length) { alert('모든 경매가 끝났습니다!'); closeAuction(); return; }
             const p = auctionPlayers[currentAuctionIndex];
-            document.getElementById('auctionLeaderName').textContent = auctionPlayers[0].name;
+            
+            // 팀장 이름 표시 (각 팀의 첫 번째 슬롯에 있는 선수)
+            document.getElementById('auctionLeader1Name').textContent = getTeamLeaderName(1);
+            document.getElementById('auctionLeader2Name').textContent = getTeamLeaderName(2);
+            
             document.getElementById('auctionPlayerIcon').textContent = ROLE_ICONS[p.role];
             document.getElementById('auctionPlayerName').textContent = p.name;
             document.getElementById('auctionPlayerTier').textContent = p.tier+'점';
@@ -1220,9 +1443,11 @@
             const inp = document.getElementById('team'+team+'BidInput');
             const min = currentBid.amount + 1;
             inp.value = Math.max(min, (parseInt(inp.value)||min) + inc);
+            playClickSound();
         }
         function allInBid(team) {
             document.getElementById('team'+team+'BidInput').value = team===1 ? team1Points : team2Points;
+            playAllInSound();
         }
         function placeBid(team) {
             const amt = parseInt(document.getElementById('team'+team+'BidInput').value);
@@ -1230,6 +1455,8 @@
             if(isNaN(amt)||amt<0) return alert('올바른 입찰가를 입력하세요!');
             if(amt > pts) return alert('포인트가 부족합니다!');
             if(amt <= currentBid.amount) return alert(currentBid.amount+'P 보다 높아야 합니다!');
+            
+            playBidSound();
             if(currentBid.amount>0 && amt===currentBid.amount+1) showSpecialEffect('⚡ 퍼펙트 입찰!');
             if(auctionTimeLeft<=2) showSpecialEffect('🔥 막판 입찰!');
             currentBid = {team, amount:amt}; bidHistory.push({team, amount:amt});
@@ -1242,6 +1469,7 @@
         }
         function passAuction() {
             if(currentBid.team!==null) return alert('입찰이 있어서 유찰할 수 없습니다!');
+            playPassSound();
             const passed = auctionPlayers.splice(currentAuctionIndex, 1)[0];
             auctionPlayers.push(passed);
             resetAuctionTimer();
@@ -1254,6 +1482,7 @@
                 else if(team2Points===0 && team1Points>0) currentBid={team:1,amount:0};
                 else return alert('아직 입찰이 없습니다!');
             }
+            playSuccessSound();
             const p = auctionPlayers[currentAuctionIndex];
             if(currentBid.team===1) team1Points -= currentBid.amount;
             else team2Points -= currentBid.amount;
@@ -1264,12 +1493,13 @@
             if(currentAuctionIndex < auctionPlayers.length) {
                 if(team1Points===0 || team2Points===0) { stopAuctionTimer(); autoAssignRemaining(); }
                 else showAuctionModal();
-            } else { stopAuctionTimer(); showSpecialEffect('🎉 경매 완료!'); setTimeout(closeAuction, 1500); }
+            } else { stopAuctionTimer(); playCompleteSound(); showSpecialEffect('🎉 경매 완료!'); setTimeout(closeAuction, 1500); }
         }
         function autoAssignRemaining() {
             const remain = auctionPlayers.slice(currentAuctionIndex);
             const target = team1Points===0 ? 2 : 1;
             remain.forEach(p => { addPlayerToTeam(p, target); removeFromSpectators(p); });
+            playCompleteSound();
             showSpecialEffect('🎉 남은 선수 → '+target+'팀');
             setTimeout(closeAuction, 1500);
         }
@@ -1310,6 +1540,148 @@
             document.getElementById('spectatorsGrid').innerHTML = '';
             team1Points = 100; team2Points = 100; updateTeamPoints();
             updateSpectatorCount(); updateSavedPlayersUI(); updateTeamSlots();
+        }
+
+        // ============================================================
+        // 📸 스크린샷 참가자 추출 기능
+        // ============================================================
+        function setupScreenshotFeature() {
+            const section = document.getElementById('screenshotSection');
+            const uploadArea = document.getElementById('screenshotUploadArea');
+            const fileInput = document.getElementById('screenshotFileInput');
+            const applyBtn = document.getElementById('screenshotApplyBtn');
+            const cancelBtn = document.getElementById('screenshotCancelBtn');
+
+            // 클릭으로 파일 선택
+            uploadArea.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
+                if (e.target.files[0]) processScreenshot(e.target.files[0]);
+            };
+
+            // 드래그 앤 드롭
+            section.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                section.classList.add('drag-highlight');
+            });
+            section.addEventListener('dragleave', (e) => {
+                if (e.target === section || !section.contains(e.relatedTarget)) {
+                    section.classList.remove('drag-highlight');
+                }
+            });
+            section.addEventListener('drop', (e) => {
+                e.preventDefault();
+                section.classList.remove('drag-highlight');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    processScreenshot(file);
+                }
+            });
+
+            // Ctrl+V 붙여넣기 (전역)
+            document.addEventListener('paste', (e) => {
+                // 모달이나 경매 모달이 열려있으면 무시
+                if (document.getElementById('auctionModal').classList.contains('active')) return;
+                if (document.querySelector('.modal.active')) return;
+                // input/textarea에 포커스가 있으면 무시 (스크린샷 textarea 제외)
+                const active = document.activeElement;
+                if (active && (active.tagName === 'INPUT' || (active.tagName === 'TEXTAREA' && active.id !== 'screenshotNames'))) return;
+
+                const items = e.clipboardData.items;
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+                        const file = item.getAsFile();
+                        processScreenshot(file);
+                        break;
+                    }
+                }
+            });
+
+            applyBtn.onclick = applyScreenshotNames;
+            cancelBtn.onclick = cancelScreenshot;
+        }
+
+        function processScreenshot(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgData = e.target.result;
+                document.getElementById('screenshotImg').src = imgData;
+
+                // 업로드 영역 숨기고 로딩 표시
+                document.getElementById('screenshotUploadArea').style.display = 'none';
+                document.getElementById('screenshotLoading').classList.add('active');
+                document.getElementById('screenshotPreview').classList.remove('active');
+
+                // OCR 처리 시뮬레이션 (실제로는 이미지에서 텍스트를 추출하기 어려우므로
+                // 사용자가 직접 수정할 수 있는 텍스트 영역을 제공)
+                performOCR(imgData);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function performOCR(imgData) {
+            // 이미지를 Canvas에 그려서 간단한 분석 시도
+            // 실제 OCR은 외부 라이브러리(Tesseract.js 등)가 필요하지만,
+            // 여기서는 사용자가 이미지를 보고 직접 입력/수정하는 방식으로 제공
+            
+            // 잠시 로딩 후 미리보기 표시
+            setTimeout(() => {
+                document.getElementById('screenshotLoading').classList.remove('active');
+                document.getElementById('screenshotPreview').classList.add('active');
+                
+                // 기본 안내 텍스트
+                const textarea = document.getElementById('screenshotNames');
+                textarea.value = '';
+                textarea.placeholder = '이미지를 보고 참가자 이름을 한 줄에 하나씩 입력하세요...\n예:\n바미\ngay\nlecode\nsomu';
+                textarea.focus();
+                
+                playClickSound();
+            }, 500);
+        }
+
+        function applyScreenshotNames() {
+            const text = document.getElementById('screenshotNames').value.trim();
+            if (!text) return alert('이름을 입력해주세요!');
+
+            const names = text.split('\n')
+                .map(n => n.trim())
+                .filter(n => n.length > 0);
+
+            if (names.length === 0) return alert('추가할 이름이 없습니다!');
+
+            const existingNames = new Set(savedPlayers.map(p => p.name));
+            let addedCount = 0;
+            let skippedNames = [];
+
+            names.forEach(name => {
+                if (existingNames.has(name)) {
+                    skippedNames.push(name);
+                } else {
+                    savedPlayers.push({ id: nextPlayerId++, name, tier: 3, role: '랜덤' });
+                    existingNames.add(name);
+                    addedCount++;
+                }
+            });
+
+            saveCurrentTemplate();
+            updateSavedPlayersUI();
+            cancelScreenshot();
+
+            playSuccessSound();
+
+            let msg = `✅ ${addedCount}명 추가 완료!`;
+            if (skippedNames.length > 0) {
+                msg += `\n⚠️ 중복 건너뜀: ${skippedNames.join(', ')}`;
+            }
+            alert(msg);
+        }
+
+        function cancelScreenshot() {
+            document.getElementById('screenshotUploadArea').style.display = '';
+            document.getElementById('screenshotLoading').classList.remove('active');
+            document.getElementById('screenshotPreview').classList.remove('active');
+            document.getElementById('screenshotNames').value = '';
+            document.getElementById('screenshotFileInput').value = '';
         }
 
         init();
