@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 허브</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #EFF6FF;
+  --bg-surface: #FFFFFF;
+  --bg-glass: rgba(255,255,255,0.72);
+  --border-glass: rgba(148,187,233,0.35);
+  --accent-blue: #2563EB;
+  --accent-cyan: #06B6D4;
+  --accent-sky: #0EA5E9;
+  --accent-indigo: #4F46E5;
+  --accent-orange: #F59E0B;
+  --accent-rose: #F43F5E;
+  --accent-green: #10B981;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-dim: #94A3B8;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-md: 0 4px 16px rgba(15,23,42,0.08);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.12);
+  --radius: 14px;
+  --lnb-width: 260px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Ambient background blobs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+}
+body::before {
+  width: 500px; height: 500px;
+  top: -120px; right: -80px;
+  background: radial-gradient(circle, rgba(6,182,212,0.12), transparent 70%);
+}
+body::after {
+  width: 600px; height: 600px;
+  bottom: -150px; left: 20%;
+  background: radial-gradient(circle, rgba(37,99,235,0.08), transparent 70%);
+}
+
+/* LNB Sidebar */
+.lnb {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--lnb-width);
+  height: 100vh;
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border-glass);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  transition: transform .3s ease;
+}
+
+.lnb-header {
+  padding: 28px 22px 20px;
+  border-bottom: 1px solid var(--border-glass);
+}
+.lnb-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lnb-subtitle {
+  font-size: .78rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+  letter-spacing: .1em;
+  font-weight: 500;
+}
+
+.lnb-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-section-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 12px 12px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s ease;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: .92rem;
+  position: relative;
+  border: 1px solid transparent;
+}
+.nav-item:hover {
+  background: rgba(37,99,235,0.06);
+  color: var(--accent-blue);
+}
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(6,182,212,0.08));
+  color: var(--accent-blue);
+  border-color: rgba(37,99,235,0.15);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-cyan));
+}
+.nav-icon {
+  font-size: 1.2rem;
+  width: 28px;
+  text-align: center;
+}
+.nav-badge {
+  margin-left: auto;
+  font-family: 'Orbitron', sans-serif;
+  font-size: .6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  color: white;
+  letter-spacing: .5px;
+}
+
+.lnb-footer {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-glass);
+  font-size: .72rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Mobile hamburger */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 200;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: var(--shadow-md);
+}
+
+/* Overlay for mobile */
+.lnb-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.3);
+  z-index: 99;
+}
+.lnb-overlay.show { display: block; }
+
+/* Main Content */
+.main {
+  margin-left: var(--lnb-width);
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* Landing page */
+.landing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+}
+.landing-content {
+  text-align: center;
+  max-width: 600px;
+  animation: fadeUp .6s ease;
+}
+.landing-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 12px rgba(37,99,235,0.2));
+}
+.landing-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-indigo));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.landing-desc {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+.landing-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.landing-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  cursor: pointer;
+  transition: all .25s ease;
+  text-align: center;
+}
+.landing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(37,99,235,0.3);
+}
+.landing-card-icon { font-size: 2.4rem; margin-bottom: 12px; }
+.landing-card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.landing-card-desc {
+  font-size: .8rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* iframe container */
+.page-frame {
+  display: none;
+  width: 100%;
+  height: 100vh;
+}
+.page-frame.active {
+  display: block;
+}
+.page-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  :root { --lnb-width: 260px; }
+  .mobile-toggle { display: flex; }
+  .lnb { transform: translateX(-100%); }
+  .lnb.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .landing-cards { grid-template-columns: 1fr; }
+  .landing-title { font-size: 1.8rem; }
+  .landing { padding: 24px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile Toggle -->
+<div class="mobile-toggle" id="mobileToggle" onclick="toggleLNB()">☰</div>
+<div class="lnb-overlay" id="lnbOverlay" onclick="toggleLNB()"></div>
+
+<!-- LNB -->
+<nav class="lnb" id="lnb">
+  <div class="lnb-header">
+    <div class="lnb-logo">참스코드</div>
+    <div class="lnb-subtitle">CHARMS CODE HUB</div>
+  </div>
+
+  <div class="lnb-nav">
+    <div class="nav-section-label">메뉴</div>
+
+    <div class="nav-item active" data-page="home" onclick="navigate('home')">
+      <span class="nav-icon">🏠</span>
+      <span>홈</span>
+    </div>
+
+    <div class="nav-item" data-page="auction" onclick="navigate('auction')">
+      <span class="nav-icon">⚽</span>
+      <span>경매 시스템</span>
+      <span class="nav-badge">PRO</span>
+    </div>
+
+    <div class="nav-item" data-page="roulette" onclick="navigate('roulette')">
+      <span class="nav-icon">🎮</span>
+      <span>게임 투표 룰렛</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+  </div>
+
+  <div class="lnb-footer">
+    ⚡ Charms Code Program v2.0
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main" id="main">
+  <!-- Home Landing -->
+  <div class="landing" id="page-home">
+    <div class="landing-content">
+      <div class="landing-icon">⚡</div>
+      <div class="landing-title">참스코드 프로그램</div>
+      <div class="landing-desc">
+        팀 경매 시스템과 게임 투표 룰렛을 한 곳에서.<br>
+        왼쪽 메뉴에서 원하는 기능을 선택하세요.
+      </div>
+      <div class="landing-cards">
+        <div class="landing-card" onclick="navigate('auction')">
+          <div class="landing-card-icon">⚽</div>
+          <div class="landing-card-title">경매 시스템</div>
+          <div class="landing-card-desc">밸런스 랜덤, 드래프트 경매로<br>공정한 팀 구성</div>
+        </div>
+        <div class="landing-card" onclick="navigate('roulette')">
+          <div class="landing-card-icon">🎮</div>
+          <div class="landing-card-title">게임 투표 룰렛</div>
+          <div class="landing-card-desc">투표로 게임을 정하고<br>룰렛으로 결정!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auction iframe -->
+  <div class="page-frame" id="page-auction">
+    <iframe src="auction.html" id="iframe-auction" allow="autoplay"></iframe>
+  </div>
+
+  <!-- Roulette iframe -->
+  <div class="page-frame" id="page-roulette">
+    <iframe src="roulette.html" id="iframe-roulette"></iframe>
+  </div>
+</div>
+
+<script>
+let currentPage = 'home';
+
+function navigate(page) {
+  currentPage = page;
+
+  // Hide all pages
+  document.getElementById('page-home').style.display = 'none';
+  document.querySelectorAll('.page-frame').forEach(f => f.classList.remove('active'));
+
+  // Show target
+  if (page === 'home') {
+    document.getElementById('page-home').style.display = 'flex';
+  } else {
+    document.getElementById(`page-${page}`).classList.add('active');
+  }
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+
+  // Close mobile LNB
+  if (window.innerWidth <= 768) {
+    document.getElementById('lnb').classList.remove('open');
+    document.getElementById('lnbOverlay').classList.remove('show');
+  }
+}
+
+function toggleLNB() {
+  const lnb = document.getElementById('lnb');
+  const overlay = document.getElementById('lnbOverlay');
+  lnb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+</script>
+</body>
+</html>
