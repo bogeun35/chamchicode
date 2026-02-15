@@ -94,10 +94,9 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .game-delete:hover { color:var(--red); background:rgba(220,38,38,0.08); }
 .is-host .game-delete { display:block; }
 
-.host-bar { display:none; gap:8px; margin-top:8px; }
-.is-host .host-bar { display:flex; }
-.host-bar button { flex:1; padding:8px; border:1px solid var(--border-mid); border-radius:8px; background:var(--surface-alt); color:var(--text-sub); font-size:.82rem; font-weight:600; cursor:pointer; font-family:'Rajdhani',sans-serif; transition:all .2s; }
-.host-bar button:hover { border-color:var(--accent); color:var(--accent); }
+.vote-actions { display:flex; gap:8px; margin-top:8px; }
+.vote-actions button { flex:1; padding:8px; border:1px solid var(--border-mid); border-radius:8px; background:var(--surface-alt); color:var(--text-sub); font-size:.82rem; font-weight:600; cursor:pointer; font-family:'Rajdhani',sans-serif; transition:all .2s; }
+.vote-actions button:hover { border-color:var(--accent); color:var(--accent); }
 
 .add-row { display:flex; gap:8px; margin-top:10px; }
 .add-row input { flex:1; padding:11px 14px; border:2px dashed var(--border-mid); border-radius:8px; background:transparent; color:var(--text); font-size:.92rem; font-family:'Rajdhani',sans-serif; outline:none; transition:border .2s; }
@@ -120,6 +119,8 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .history-item.in-room:hover { background:transparent; }
 .history-item .h-status { font-size:.72rem; font-weight:600; color:var(--text-dim); padding:2px 8px; border-radius:4px; background:var(--surface-alt); }
 .history-item.in-room .h-status { color:var(--accent); background:rgba(37,99,235,0.08); }
+.history-item .h-delete { font-size:.7rem; font-weight:600; color:var(--red); background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:4px; margin-left:4px; }
+.history-item .h-delete:hover { background:rgba(220,38,38,0.08); }
 .history-empty { text-align:center; padding:20px; color:var(--text-dim); font-size:.85rem; }
 
 /* Roulette */
@@ -232,7 +233,7 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 
     <div id="game-list" class="game-list"></div>
 
-    <div class="host-bar" id="host-bar">
+    <div class="vote-actions">
       <button onclick="selectAllGames()">전체 선택</button>
       <button onclick="deselectAllGames()">전체 해제</button>
     </div>
@@ -333,9 +334,20 @@ function renderHistory() {
   if (!filtered.length) { list.innerHTML = '<div class="history-empty">일치하는 기록 없음</div>'; return; }
   list.innerHTML = filtered.map(name => {
     const inRoom = currentNames.has(name.toLowerCase());
-    return `<div class="history-item ${inRoom?'in-room':''}" onclick="${inRoom?'':`addFromHistory('${esc(name.replace(/'/g,"\\'"))}')`}">
-      <span>${esc(name)}</span><span class="h-status">${inRoom?'추가됨':'클릭하여 추가'}</span></div>`;
+    const safeName = esc(name.replace(/'/g, "\\'"));
+    return `<div class="history-item ${inRoom?'in-room':''}">
+      <span onclick="${inRoom?'':`addFromHistory('${safeName}')`}" style="flex:1;cursor:${inRoom?'default':'pointer'}">${esc(name)}</span>
+      <span class="h-status">${inRoom?'추가됨':'클릭하여 추가'}</span>
+      <button class="h-delete" onclick="event.stopPropagation();deleteHistoryItem('${safeName}')">삭제</button>
+    </div>`;
   }).join('');
+}
+function deleteHistoryItem(name) {
+  let h = getHistory();
+  h = h.filter(x => x !== name);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+  renderHistory();
+  toast('기록에서 삭제됨');
 }
 function addFromHistory(name) { document.getElementById('new-game').value = name; addGame(); renderHistory(); }
 
@@ -463,15 +475,11 @@ function addGame() {
   if (!name) return;
   const existing = Object.entries(gamesData).find(([,g]) => g.name.toLowerCase() === name.toLowerCase());
   if (existing) {
-    const [existId] = existing;
-    if (myVotes[existId]) { toast('이미 투표한 게임입니다'); input.value=''; input.focus(); return; }
-    db.ref(`games/${currentRoom.code}/${existId}/voters/${sanitizeKey(myNick)}`).set(true);
-    myVotes[existId] = true; saveToHistory(name); toast(`"${name}" 에 투표했습니다`);
-  } else {
-    const id = db.ref(`games/${currentRoom.code}`).push().key;
-    db.ref(`games/${currentRoom.code}/${id}`).set({ name, voters:{ [sanitizeKey(myNick)]:true }, createdAt:Date.now() });
-    myVotes[id] = true; saveToHistory(name);
+    toast('이미 등록된 게임입니다'); input.value=''; input.focus(); return;
   }
+  const id = db.ref(`games/${currentRoom.code}`).push().key;
+  db.ref(`games/${currentRoom.code}/${id}`).set({ name, voters:{}, createdAt:Date.now() });
+  saveToHistory(name);
   input.value=''; input.focus(); renderHistory();
 }
 
