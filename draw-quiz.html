@@ -75,7 +75,35 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .member-chip.host{background:rgba(217,119,6,0.1);border-color:rgba(217,119,6,0.3);color:var(--orange);}
 
 .game-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
-@media(max-width:768px){.game-layout{grid-template-columns:1fr;}}
+
+/* 모바일 탭 바 */
+.mobile-tabs{display:none;margin-bottom:12px;}
+.mobile-tabs-inner{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.mob-tab{flex:1;padding:10px;text-align:center;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--text-dim);border:none;background:none;font-family:inherit;transition:all .15s;}
+.mob-tab.active{background:var(--accent);color:white;}
+.mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
+
+@media(max-width:768px){
+  .screen-game{padding:12px 10px;}
+  .game-layout{grid-template-columns:1fr;gap:0;}
+  .mobile-tabs{display:block;}
+  .game-layout .canvas-panel{display:block;}
+  .game-layout .chat-panel{display:none;height:calc(100vh - 280px);max-height:none;}
+  .game-layout.show-chat .canvas-panel{display:none;}
+  .game-layout.show-chat .chat-panel{display:flex;}
+  .game-header{margin-bottom:8px;}
+  .round-bar{margin-bottom:8px;padding:8px 12px;}
+  .scoreboard{margin-bottom:8px;}
+  .members-bar{margin-bottom:8px;padding:8px 10px;}
+  .host-controls{margin-bottom:8px;gap:6px;}
+  .ctrl-btn{padding:8px 12px;font-size:.8rem;}
+  .canvas-header{padding:8px 12px;}
+  .toolbar{padding:8px 10px;gap:4px;}
+  .tool-btn{width:30px;height:30px;font-size:.8rem;}
+  .color-btn{width:24px;height:24px;}
+  .word-display{padding:10px;}
+  .chat-input-row{padding:10px;}
+}
 
 /* 캔버스 */
 .canvas-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
@@ -99,6 +127,11 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .word-label{font-size:.75rem;color:var(--text-dim);font-weight:600;}
 .word-text{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;color:var(--accent);margin-top:4px;letter-spacing:0.1em;}
 .word-hint{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text-dim);margin-top:4px;letter-spacing:0.2em;}
+
+.mobile-quick-input{display:none;padding:10px 12px;border-top:1px solid var(--border);gap:8px;}
+@media(max-width:768px){
+  .mobile-quick-input{display:flex;}
+}
 
 /* 채팅 */
 .chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:520px;max-height:520px;}
@@ -233,7 +266,15 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
     <button class="ctrl-btn end" id="btn-end" onclick="endGame()" style="display:none;">게임 종료</button>
   </div>
 
-  <div class="game-layout">
+  <!-- 모바일 탭 -->
+  <div class="mobile-tabs" id="mobile-tabs">
+    <div class="mobile-tabs-inner">
+      <button class="mob-tab active" id="tab-canvas" onclick="switchMobileTab('canvas')">그림판</button>
+      <button class="mob-tab" id="tab-chat" onclick="switchMobileTab('chat')">채팅 <span class="tab-badge" id="chat-badge" style="display:none;">0</span></button>
+    </div>
+  </div>
+
+  <div class="game-layout" id="game-layout">
     <div class="canvas-panel">
       <div class="canvas-header">
         <span class="canvas-status" id="canvas-status">대기 중</span>
@@ -268,6 +309,11 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
         <div class="color-btn" style="background:#FFFFFF;border-color:#CBD5E1;" onclick="setColor('#FFFFFF',this)"></div>
       </div>
       <div class="word-display" id="word-display" style="display:none;"></div>
+      <!-- 모바일: 그림판에서 바로 정답 입력 -->
+      <div class="mobile-quick-input" id="mobile-quick-input">
+        <input class="chat-input" id="quick-input" placeholder="정답 입력..." maxlength="30" onkeydown="if(event.key==='Enter')sendQuickChat()">
+        <button class="chat-send" onclick="sendQuickChat()">전송</button>
+      </div>
     </div>
     <div class="chat-panel">
       <div class="chat-title">채팅</div>
@@ -449,7 +495,7 @@ function enterRoom(){
   if(isHost){role.textContent='방장';role.className='role-tag role-host';document.getElementById('host-controls').style.display='flex';}
   else{role.textContent='참여자';role.className='role-tag role-guest';document.getElementById('host-controls').style.display='none';}
   showScreen('game');initCanvas();registerPresence();listenMembers();listenGame();listenScores();listenCanvas();listenChat();listenRoomExists();
-  addSystemChat('방에 입장했습니다');
+  addSystemChat(`${myNick} 님이 입장했습니다`);
 }
 
 function leaveRoom(){
@@ -473,8 +519,21 @@ function registerPresence(){
 
 function listenMembers(){
   const ref=db.ref(`drawmembers/${currentRoom.code}`);
-  const cb=ref.on('value',snap=>{membersData=snap.val()||{};renderMembers();renderScoreboard();});
-  listeners.push(()=>ref.off('value',cb));
+  let initialized=false;
+  const cbVal=ref.on('value',snap=>{
+    membersData=snap.val()||{};renderMembers();renderScoreboard();
+    if(!initialized) initialized=true;
+  });
+  const cbAdd=ref.on('child_added',snap=>{
+    if(!initialized)return; // 초기 로드 시 알림 안 함
+    const d=snap.val();
+    if(d&&d.nick&&d.nick!==myNick) addSystemChat(`${d.nick} 님이 입장했습니다`);
+  });
+  const cbRemove=ref.on('child_removed',snap=>{
+    const d=snap.val();
+    if(d&&d.nick) addSystemChat(`${d.nick} 님이 퇴장했습니다`);
+  });
+  listeners.push(()=>{ref.off('value',cbVal);ref.off('child_added',cbAdd);ref.off('child_removed',cbRemove);});
 }
 function renderMembers(){
   const bar=document.getElementById('g-members');
@@ -587,16 +646,19 @@ function renderGameState(){
 
   if(status==='drawing'){
     waiting.style.display='none';
+    const qi=document.getElementById('quick-input');
     if(isDrawer){
       toolbar.style.display='flex';wordDisplay.style.display='block';
       wordDisplay.innerHTML=`<div class="word-label">제시어</div><div class="word-text">${esc(gameState.word)}</div>`;
       document.getElementById('chat-input').disabled=true;
       document.getElementById('chat-input').placeholder='출제자는 채팅 불가';
+      qi.disabled=true;qi.placeholder='출제자는 입력 불가';
     }else{
       toolbar.style.display='none';wordDisplay.style.display='block';
       wordDisplay.innerHTML=`<div class="word-label">힌트 (${gameState.word?.length||'?'}글자)</div><div class="word-hint">${makeHint(gameState.word||'')}</div>`;
       document.getElementById('chat-input').disabled=false;
       document.getElementById('chat-input').placeholder='정답 입력...';
+      qi.disabled=false;qi.placeholder='정답 입력...';
     }
     canvasStatus.textContent=`${gameState.drawer} 님이 그리는 중`;
     startTimer();renderScoreboard();
@@ -608,6 +670,8 @@ function renderGameState(){
     canvasStatus.textContent='라운드 종료';
     document.getElementById('chat-input').disabled=false;
     document.getElementById('chat-input').placeholder='채팅...';
+    document.getElementById('quick-input').disabled=false;
+    document.getElementById('quick-input').placeholder='채팅...';
     if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
     timerBadge.textContent='--';timerBadge.classList.remove('warning');
 
@@ -1041,6 +1105,20 @@ function sendChat(){
 
 function addSystemChat(msg){if(!currentRoom)return;db.ref(`drawchat/${currentRoom.code}`).push().set({system:true,text:msg,ts:Date.now()});}
 
+function sendQuickChat(){
+  const input=document.getElementById('quick-input'),text=input.value.trim();
+  if(!text||!currentRoom)return;input.value='';
+  if(gameState&&gameState.status==='drawing'&&!gameState.solved&&gameState.drawer!==myNick){
+    if(text.replace(/\s/g,'').toLowerCase()===gameState.word.replace(/\s/g,'').toLowerCase()){
+      db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text:gameState.word,ts:Date.now(),correct:true});
+      addScore(myNick,1);addScore(gameState.drawer,1);
+      db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true,status:'reveal',nextDrawer:myNick});
+      return;
+    }
+  }
+  db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text,ts:Date.now()});
+}
+
 function appendChat(d){
   const container=document.getElementById('chat-messages'),div=document.createElement('div');
   if(d.system){div.className='chat-msg system';div.textContent=d.text;}
@@ -1049,6 +1127,13 @@ function appendChat(d){
     if(gameState&&gameState.status==='drawing'&&gameState.word){if(displayText.toLowerCase().includes(gameState.word.toLowerCase()))displayText=displayText.replace(new RegExp(gameState.word,'gi'),'***');}
     div.innerHTML=`<span class="nick">${esc(d.nick)}</span>${esc(displayText)}`;}
   container.appendChild(div);container.scrollTop=container.scrollHeight;
+  // 모바일: 채팅 탭이 아닐 때 뱃지 카운트
+  if(mobileTab!=='chat'&&window.innerWidth<=768){
+    unreadChat++;
+    const badge=document.getElementById('chat-badge');
+    badge.textContent=unreadChat>99?'99+':unreadChat;
+    badge.style.display='inline-block';
+  }
 }
 
 function showCorrectOverlay(nick,word){
@@ -1056,6 +1141,30 @@ function showCorrectOverlay(nick,word){
   document.getElementById('correct-who').textContent=`${nick} 정답!`;
   document.getElementById('correct-word').textContent=word;
   o.classList.add('show');setTimeout(()=>o.classList.remove('show'),2500);
+  // 모바일: 정답 나오면 그림판으로 전환
+  if(window.innerWidth<=768&&mobileTab==='chat') switchMobileTab('canvas');
+}
+
+/* ===== 모바일 탭 전환 ===== */
+let mobileTab='canvas',unreadChat=0;
+
+function switchMobileTab(tab){
+  mobileTab=tab;
+  const layout=document.getElementById('game-layout');
+  document.getElementById('tab-canvas').classList.toggle('active',tab==='canvas');
+  document.getElementById('tab-chat').classList.toggle('active',tab==='chat');
+  if(tab==='chat'){
+    layout.classList.add('show-chat');
+    unreadChat=0;
+    document.getElementById('chat-badge').style.display='none';
+    // 스크롤 최하단
+    const msgs=document.getElementById('chat-messages');
+    msgs.scrollTop=msgs.scrollHeight;
+    // 모바일에서 채팅 입력에 포커스
+    setTimeout(()=>document.getElementById('chat-input').focus(),100);
+  }else{
+    layout.classList.remove('show-chat');
+  }
 }
 </script>
 </body>
