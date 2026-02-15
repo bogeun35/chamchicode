@@ -585,9 +585,19 @@ function addGame() {
   const input = document.getElementById('new-game');
   const name = input.value.trim();
   if (!name) return;
-  if (Object.values(gamesData).some(g => g.name.toLowerCase() === name.toLowerCase())) return toast('이미 있는 게임입니다');
-  const id = db.ref(`games/${currentRoom.code}`).push().key;
-  db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes: 0, voters: {} });
+  const existing = Object.entries(gamesData).find(([,g]) => g.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    const [existId] = existing;
+    if (myVotes[existId]) { toast('이미 투표한 게임입니다'); input.value = ''; input.focus(); return; }
+    db.ref(`games/${currentRoom.code}/${existId}/voters/${sanitizeKey(myNick)}`).set(true);
+    db.ref(`games/${currentRoom.code}/${existId}/votes`).transaction(v => (v||0) + 1);
+    myVotes[existId] = true;
+    toast(`"${name}" 에 투표했습니다`);
+  } else {
+    const id = db.ref(`games/${currentRoom.code}`).push().key;
+    db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes: 1, voters: { [sanitizeKey(myNick)]: true } });
+    myVotes[id] = true;
+  }
   input.value = ''; input.focus();
 }
 
