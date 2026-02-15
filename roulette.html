@@ -73,15 +73,22 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .section-bar span { font-size:.82rem; color:var(--text-dim); font-weight:600; }
 
 .game-list { display:flex; flex-direction:column; gap:8px; }
-.game-item { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border:2px solid var(--border-mid); border-radius:10px; transition:all .2s; cursor:pointer; position:relative; overflow:hidden; }
-.game-item:hover { border-color:#93C5FD; background:#F0F9FF; }
-.game-item.voted { border-color:var(--accent); background:rgba(37,99,235,0.06); }
-.game-name { flex:1; font-weight:600; font-size:1rem; }
-.vote-check { width:22px; height:22px; border-radius:6px; border:2px solid var(--border-mid); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; background:var(--surface); }
+/* 미선택 상태 */
+.game-item { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border:2px solid #E2E8F0; border-radius:10px; transition:all .15s; cursor:pointer; position:relative; overflow:hidden; opacity:.7; }
+.game-item:hover { opacity:.85; border-color:#CBD5E1; }
+/* 선택 상태 */
+.game-item.voted { border-color:var(--accent); background:#EFF6FF; opacity:1; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+.game-item.voted:hover { background:#DBEAFE; }
+.game-name { flex:1; font-weight:600; font-size:1rem; color:var(--text-sub); }
+.game-item.voted .game-name { color:var(--text); }
+/* 체크박스 */
+.vote-check { width:24px; height:24px; border-radius:6px; border:2px solid #CBD5E1; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s; background:white; }
 .game-item.voted .vote-check { background:var(--accent); border-color:var(--accent); }
-.vote-check svg { display:none; }
-.game-item.voted .vote-check svg { display:block; }
-.vote-count { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; color:var(--accent); min-width:36px; text-align:right; }
+.vote-check-icon { display:none; }
+.game-item.voted .vote-check-icon { display:block; }
+/* 투표수 */
+.vote-count { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; color:var(--text-dim); min-width:36px; text-align:right; }
+.game-item.voted .vote-count { color:var(--accent); }
 .vote-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),#0EA5E9); border-radius:0 3px 0 0; transition:width .5s ease; }
 .game-delete { display:none; background:none; border:none; color:var(--text-dim); font-size:1.1rem; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all .2s; }
 .game-delete:hover { color:var(--red); background:rgba(220,38,38,0.08); }
@@ -433,14 +440,16 @@ function renderGames() {
     container.innerHTML = '<div class="empty-state"><p>아직 게임이 없습니다. 추가해주세요.</p></div>';
     document.getElementById('vote-total').textContent = '0표'; return;
   }
-  entries.sort((a,b) => (b[1].votes||0) - (a[1].votes||0));
-  const maxVotes = Math.max(...entries.map(e => e[1].votes||0), 1);
-  const totalVotes = entries.reduce((s,e) => s + (e[1].votes||0), 0);
+  // createdAt 순서 유지
+  entries.sort((a,b) => (a[1].createdAt||0) - (b[1].createdAt||0));
+  const getVotes = g => Object.keys(g.voters||{}).length;
+  const maxVotes = Math.max(...entries.map(([,g]) => getVotes(g)), 1);
+  const totalVotes = entries.reduce((s,[,g]) => s + getVotes(g), 0);
   document.getElementById('vote-total').textContent = `${totalVotes}표`;
   container.innerHTML = entries.map(([id, g]) => {
-    const votes = g.votes||0, pct = maxVotes>0?(votes/maxVotes*100):0, isVoted = myVotes[id];
+    const votes = getVotes(g), pct = maxVotes>0?(votes/maxVotes*100):0, isVoted = myVotes[id];
     return `<div class="game-item ${isVoted?'voted':''}" onclick="toggleVote('${id}')">
-      <div class="vote-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="vote-check"><svg class="vote-check-icon" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="game-name">${esc(g.name)}</span>
       <span class="vote-count">${votes}</span>
       <button class="game-delete" onclick="event.stopPropagation();deleteGame('${id}')">&#10005;</button>
@@ -457,11 +466,10 @@ function addGame() {
     const [existId] = existing;
     if (myVotes[existId]) { toast('이미 투표한 게임입니다'); input.value=''; input.focus(); return; }
     db.ref(`games/${currentRoom.code}/${existId}/voters/${sanitizeKey(myNick)}`).set(true);
-    db.ref(`games/${currentRoom.code}/${existId}/votes`).transaction(v=>(v||0)+1);
     myVotes[existId] = true; saveToHistory(name); toast(`"${name}" 에 투표했습니다`);
   } else {
     const id = db.ref(`games/${currentRoom.code}`).push().key;
-    db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes:1, voters:{ [sanitizeKey(myNick)]:true } });
+    db.ref(`games/${currentRoom.code}/${id}`).set({ name, voters:{ [sanitizeKey(myNick)]:true }, createdAt:Date.now() });
     myVotes[id] = true; saveToHistory(name);
   }
   input.value=''; input.focus(); renderHistory();
@@ -470,9 +478,8 @@ function addGame() {
 function toggleVote(gameId) {
   const game = gamesData[gameId]; if (!game) return;
   const voterRef = db.ref(`games/${currentRoom.code}/${gameId}/voters/${sanitizeKey(myNick)}`);
-  const voteRef = db.ref(`games/${currentRoom.code}/${gameId}/votes`);
-  if (myVotes[gameId]) { voterRef.remove(); voteRef.transaction(v=>Math.max((v||1)-1,0)); delete myVotes[gameId]; }
-  else { voterRef.set(true); voteRef.transaction(v=>(v||0)+1); myVotes[gameId]=true; }
+  if (myVotes[gameId]) { voterRef.remove(); delete myVotes[gameId]; }
+  else { voterRef.set(true); myVotes[gameId]=true; }
 }
 
 function deleteGame(gameId) { if(!isHost) return; db.ref(`games/${currentRoom.code}/${gameId}`).remove(); delete myVotes[gameId]; }
@@ -481,7 +488,6 @@ function selectAllGames() {
   Object.entries(gamesData).forEach(([id]) => {
     if (!myVotes[id]) {
       db.ref(`games/${currentRoom.code}/${id}/voters/${sanitizeKey(myNick)}`).set(true);
-      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v=>(v||0)+1);
       myVotes[id] = true;
     }
   });
@@ -490,14 +496,14 @@ function deselectAllGames() {
   Object.entries(gamesData).forEach(([id]) => {
     if (myVotes[id]) {
       db.ref(`games/${currentRoom.code}/${id}/voters/${sanitizeKey(myNick)}`).remove();
-      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v=>Math.max((v||1)-1,0));
       delete myVotes[id];
     }
   });
 }
 
 // === 룰렛 ===
-function getVotedGames() { return Object.entries(gamesData).filter(([,g])=>(g.votes||0)>0); }
+function getVoteCount(g) { return Object.keys(g.voters||{}).length; }
+function getVotedGames() { return Object.entries(gamesData).filter(([,g])=>getVoteCount(g)>0); }
 
 function drawRoulette(canvasId='roulette-canvas', angle=0) {
   const canvas = document.getElementById(canvasId); if(!canvas) return;
@@ -510,11 +516,11 @@ function drawRoulette(canvasId='roulette-canvas', angle=0) {
     ctx.fillStyle='#94A3B8'; ctx.font='bold 28px Rajdhani'; ctx.textAlign='center';
     ctx.fillText('투표된 게임 없음',cx,cy); return;
   }
-  const totalVotes = voted.reduce((s,[,g])=>s+(g.votes||0),0);
+  const totalVotes = voted.reduce((s,[,g])=>s+(getVoteCount(g)),0);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle);
   let startAngle = 0;
   voted.forEach(([,g],i) => {
-    const sliceAngle = ((g.votes||0)/totalVotes)*Math.PI*2;
+    const sliceAngle = ((getVoteCount(g))/totalVotes)*Math.PI*2;
     ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R,startAngle,startAngle+sliceAngle);
     ctx.closePath(); ctx.fillStyle=WHEEL_COLORS[i%WHEEL_COLORS.length]; ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2; ctx.stroke();
@@ -526,7 +532,7 @@ function drawRoulette(canvasId='roulette-canvas', angle=0) {
     ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=3;
     ctx.fillText(g.name.length>6?g.name.slice(0,5)+'...':g.name, 0, -6);
     ctx.font=`bold ${fontSize*0.65}px Orbitron`; ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,0.8)';
-    ctx.fillText(`${g.votes||0}`, 0, fontSize*0.45);
+    ctx.fillText(`${getVoteCount(g)}`, 0, fontSize*0.45);
     ctx.restore(); startAngle += sliceAngle;
   });
   ctx.restore();
@@ -537,26 +543,26 @@ function spinRoulette() {
   const voted = getVotedGames();
   if (!voted.length) return toast('투표된 게임이 없습니다');
   if (voted.length===1) {
-    showResult(voted[0][1].name,voted[0][1].votes||0);
-    db.ref(`rooms/${currentRoom.code}/roulette`).set({winner:voted[0][1].name,votes:voted[0][1].votes||0,timestamp:Date.now()}); return;
+    showResult(voted[0][1].name,getVoteCount(voted[0][1]));
+    db.ref(`rooms/${currentRoom.code}/roulette`).set({winner:voted[0][1].name,votes:getVoteCount(voted[0][1]),timestamp:Date.now()}); return;
   }
   document.getElementById('spin-btn').disabled=true;
-  const totalVotes=voted.reduce((s,[,g])=>s+(g.votes||0),0);
+  const totalVotes=voted.reduce((s,[,g])=>s+(getVoteCount(g)),0);
   let rand=Math.random()*totalVotes, winnerIdx=0;
-  for(let i=0;i<voted.length;i++){rand-=(voted[i][1].votes||0);if(rand<=0){winnerIdx=i;break;}}
+  for(let i=0;i<voted.length;i++){rand-=(getVoteCount(voted[i][1]));if(rand<=0){winnerIdx=i;break;}}
   let accAngle=0;
-  for(let i=0;i<winnerIdx;i++) accAngle+=((voted[i][1].votes||0)/totalVotes)*360;
-  const sliceDeg=((voted[winnerIdx][1].votes||0)/totalVotes)*360;
+  for(let i=0;i<winnerIdx;i++) accAngle+=((getVoteCount(voted[i][1]))/totalVotes)*360;
+  const sliceDeg=((getVoteCount(voted[winnerIdx][1]))/totalVotes)*360;
   const targetDeg=accAngle+sliceDeg*(0.2+Math.random()*0.6);
   const finalAngle=360*(6+Math.floor(Math.random()*4))+(360-targetDeg+270)%360;
   const duration=4000+Math.random()*1500, startTime=performance.now(), startA=spinAngle;
-  db.ref(`rooms/${currentRoom.code}/roulette`).set({spinning:true,finalAngle,duration,startTime:Date.now(),winner:voted[winnerIdx][1].name,votes:voted[winnerIdx][1].votes||0,timestamp:Date.now()});
+  db.ref(`rooms/${currentRoom.code}/roulette`).set({spinning:true,finalAngle,duration,startTime:Date.now(),winner:voted[winnerIdx][1].name,votes:getVoteCount(voted[winnerIdx][1]),timestamp:Date.now()});
   function animate(now){
     const elapsed=now-startTime, progress=Math.min(elapsed/duration,1), eased=1-Math.pow(1-progress,3);
     spinAngle=((startA*180/Math.PI+finalAngle*eased)%360)*Math.PI/180;
     drawRoulette('roulette-canvas',spinAngle);
     if(progress<1) requestAnimationFrame(animate);
-    else{document.getElementById('spin-btn').disabled=false;showResult(voted[winnerIdx][1].name,voted[winnerIdx][1].votes||0);db.ref(`rooms/${currentRoom.code}/roulette`).update({spinning:false});}
+    else{document.getElementById('spin-btn').disabled=false;showResult(voted[winnerIdx][1].name,getVoteCount(voted[winnerIdx][1]));db.ref(`rooms/${currentRoom.code}/roulette`).update({spinning:false});}
   }
   requestAnimationFrame(animate);
 }
