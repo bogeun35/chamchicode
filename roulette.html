@@ -614,18 +614,35 @@ function spinRoulette() {
   }
   document.getElementById('spin-btn').disabled=true;
   const totalVotes=voted.reduce((s,[,g])=>s+(getVoteCount(g)),0);
+
+  // 가중치 기반 랜덤 당첨자 선택
   let rand=Math.random()*totalVotes, winnerIdx=0;
   for(let i=0;i<voted.length;i++){rand-=(getVoteCount(voted[i][1]));if(rand<=0){winnerIdx=i;break;}}
-  let accAngle=0;
-  for(let i=0;i<winnerIdx;i++) accAngle+=((getVoteCount(voted[i][1]))/totalVotes)*360;
+
+  // 당첨 슬라이스 중앙이 화살표(12시=270도)에 오도록 최종 각도 계산
+  // 슬라이스는 0도(3시)부터 시작, 시계방향으로 배치
+  let accDeg=0;
+  for(let i=0;i<winnerIdx;i++) accDeg+=((getVoteCount(voted[i][1]))/totalVotes)*360;
   const sliceDeg=((getVoteCount(voted[winnerIdx][1]))/totalVotes)*360;
-  const targetDeg=accAngle+sliceDeg*(0.2+Math.random()*0.6);
-  const finalAngle=360*(6+Math.floor(Math.random()*4))+(360-targetDeg+270)%360;
-  const duration=4000+Math.random()*1500, startTime=performance.now(), startA=spinAngle;
-  db.ref(`rooms/${currentRoom.code}/roulette`).set({spinning:true,finalAngle,duration,startTime:Date.now(),winner:voted[winnerIdx][1].name,votes:getVoteCount(voted[winnerIdx][1]),timestamp:Date.now()});
+  // 슬라이스 내 랜덤 위치 (20%~80%)
+  const targetDeg=accDeg+sliceDeg*(0.2+Math.random()*0.6);
+  // 화살표는 270도(12시) 위치. 캔버스를 시계방향으로 회전시키므로
+  // targetDeg 위치가 270도에 오려면: 회전량 = targetDeg + 90 (= targetDeg - 270 + 360)
+  const stopDeg = (targetDeg + 90) % 360;
+  // 여러 바퀴 + 최종 위치
+  const totalSpin = 360 * (6 + Math.floor(Math.random()*4)) + stopDeg;
+
+  const duration=4000+Math.random()*1500, startTime=performance.now();
+  const startDeg = (spinAngle * 180 / Math.PI) % 360;
+  const finalAngleDeg = totalSpin;
+
+  db.ref(`rooms/${currentRoom.code}/roulette`).set({spinning:true,finalAngleDeg,duration,startTime:Date.now(),winner:voted[winnerIdx][1].name,votes:getVoteCount(voted[winnerIdx][1]),timestamp:Date.now()});
+
   function animate(now){
-    const elapsed=now-startTime, progress=Math.min(elapsed/duration,1), eased=1-Math.pow(1-progress,3);
-    spinAngle=((startA*180/Math.PI+finalAngle*eased)%360)*Math.PI/180;
+    const elapsed=now-startTime, progress=Math.min(elapsed/duration,1);
+    const eased=1-Math.pow(1-progress,3);
+    const currentDeg = startDeg + finalAngleDeg * eased;
+    spinAngle = (currentDeg % 360) * Math.PI / 180;
     drawRoulette('roulette-canvas',spinAngle);
     if(progress<1) requestAnimationFrame(animate);
     else{document.getElementById('spin-btn').disabled=false;showResult(voted[winnerIdx][1].name,getVoteCount(voted[winnerIdx][1]));db.ref(`rooms/${currentRoom.code}/roulette`).update({spinning:false});}
@@ -637,9 +654,9 @@ function listenRoulette() {
   const ref=db.ref(`rooms/${currentRoom.code}/roulette`);
   const cb=ref.on('value',snap=>{
     const d=snap.val();if(!d) return;
-    if(!isHost&&d.spinning&&d.finalAngle&&d.duration){
+    if(!isHost&&d.spinning&&d.finalAngleDeg&&d.duration){
       const remaining=Math.max(d.duration-(Date.now()-d.startTime),500);
-      animateViewer(d.finalAngle,remaining,d.winner,d.votes);
+      animateViewer(d.finalAngleDeg,remaining,d.winner,d.votes);
       document.getElementById('viewer-status').textContent='룰렛이 돌아가는 중...';
     }
     if(!isHost&&!d.spinning&&d.winner){
@@ -651,7 +668,7 @@ function listenRoulette() {
 }
 
 function listenRoomExists() {
-  if (isHost) return; // 방장은 자기가 삭제하는 거니까 불필요
+  if (isHost) return;
   const ref = db.ref(`rooms/${currentRoom.code}`);
   const cb = ref.on('value', snap => {
     if (!snap.exists()) {
@@ -664,11 +681,13 @@ function listenRoomExists() {
   listeners.push(() => ref.off('value', cb));
 }
 
-function animateViewer(finalAngle,duration,winnerName,winnerVotes){
-  const startTime=performance.now(),startA=spinAngle;
+function animateViewer(finalAngleDeg,duration,winnerName,winnerVotes){
+  const startTime=performance.now();
+  const startDeg=(spinAngle*180/Math.PI)%360;
   function animate(now){
     const elapsed=now-startTime,progress=Math.min(elapsed/duration,1),eased=1-Math.pow(1-progress,3);
-    spinAngle=((startA*180/Math.PI+finalAngle*eased)%360)*Math.PI/180;
+    const currentDeg=startDeg+finalAngleDeg*eased;
+    spinAngle=(currentDeg%360)*Math.PI/180;
     drawRoulette('roulette-canvas-viewer',spinAngle);
     if(progress<1) requestAnimationFrame(animate); else showResult(winnerName,winnerVotes);
   }
