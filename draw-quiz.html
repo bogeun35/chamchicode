@@ -85,12 +85,18 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 
 @media(max-width:768px){
   .screen-game{padding:12px 10px;}
-  .game-layout{grid-template-columns:1fr;gap:0;}
+  .game-layout{grid-template-columns:1fr;gap:0;position:relative;}
   .mobile-tabs{display:block;}
   .game-layout .canvas-panel{display:block;}
   .game-layout .chat-panel{display:none;height:360px;max-height:360px;}
-  .game-layout.show-chat .canvas-panel{display:none;}
-  .game-layout.show-chat .chat-panel{display:flex;}
+  /* 채팅 탭: 캔버스 위에 채팅 오버레이 */
+  .game-layout.show-chat{position:relative;}
+  .game-layout.show-chat .canvas-panel{display:block;opacity:0.15;pointer-events:none;}
+  .game-layout.show-chat .canvas-panel .toolbar{display:none !important;}
+  .game-layout.show-chat .canvas-panel .word-display{display:none !important;}
+  .game-layout.show-chat .canvas-panel .canvas-header{display:none;}
+  .game-layout.show-chat .canvas-panel .mobile-quick-input{display:none !important;}
+  .game-layout.show-chat .chat-panel{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;height:auto;max-height:none;background:rgba(255,255,255,0.88);border:none;border-radius:var(--radius);z-index:10;}
   .game-header{margin-bottom:8px;}
   .round-bar{margin-bottom:8px;padding:8px 12px;}
   .scoreboard{margin-bottom:8px;}
@@ -175,6 +181,26 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .gameover-item.first{background:rgba(217,119,6,0.3);border:1px solid rgba(217,119,6,0.5);}
 .gameover-pts{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;}
 .gameover-close{margin-top:8px;padding:10px 28px;background:white;color:var(--text);border:none;border-radius:10px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
+
+/* 히스토리 */
+.history-section{margin-top:16px;max-width:960px;}
+.history-toggle{padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);transition:all .15s;}
+.history-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.history-list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.history-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;align-items:stretch;}
+.history-card .h-thumb{width:140px;min-height:100px;flex-shrink:0;background:#f8f8f8;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);}
+.history-card .h-thumb img{width:100%;height:100%;object-fit:contain;}
+.history-card .h-info{flex:1;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.history-card .h-round{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;color:var(--text-dim);}
+.history-card .h-word{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--accent);}
+.history-card .h-detail{font-size:.8rem;color:var(--text-sub);font-weight:600;}
+.history-card .h-solver{font-size:.8rem;color:var(--green);font-weight:700;}
+.history-card .h-fail{font-size:.8rem;color:var(--red);font-weight:700;}
+@media(max-width:768px){
+  .history-card .h-thumb{width:100px;min-height:75px;}
+  .history-card .h-info{padding:10px 12px;}
+  .history-card .h-word{font-size:.85rem;}
+}
 
 /* 모달 공통 */
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:4000;backdrop-filter:blur(6px);}
@@ -324,6 +350,14 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
       </div>
     </div>
   </div>
+
+  <!-- 라운드 히스토리 -->
+  <div class="history-section" id="history-section" style="display:none;">
+    <div class="history-toggle" onclick="toggleHistory()">
+      <span class="history-toggle-text" id="history-toggle-text">이전 라운드 보기</span>
+    </div>
+    <div class="history-list" id="history-list" style="display:none;"></div>
+  </div>
 </div>
 
 <!-- 정답 오버레이 -->
@@ -437,6 +471,85 @@ function getSavedNick(){return localStorage.getItem(NICK_KEY)||'';}
 function saveNick(n){localStorage.setItem(NICK_KEY,n);}
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
 function makeHint(word){return word.split('').map(()=>'_').join(' ');}
+
+// 한글 초성 추출
+const CHOSUNG=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function getChosung(ch){
+  const code=ch.charCodeAt(0)-0xAC00;
+  if(code<0||code>11171) return '_'; // 한글 아니면 _
+  return CHOSUNG[Math.floor(code/588)];
+}
+function makeChosungHint(word){
+  return word.split('').map(ch=>{
+    const code=ch.charCodeAt(0);
+    if(code>=0xAC00&&code<=0xD7A3) return getChosung(ch);
+    if(/[a-zA-Z0-9]/.test(ch)) return ch[0].toUpperCase();
+    return '_';
+  }).join(' ');
+}
+function makePartialHint(word){
+  // 초성 + 일부 글자 공개 (약 1/3)
+  const arr=word.split('');
+  const revealCount=Math.max(1,Math.floor(arr.length/3));
+  const indices=new Set();
+  // 첫 글자는 항상 공개
+  indices.add(0);
+  while(indices.size<revealCount){
+    indices.add(Math.floor(Math.random()*arr.length));
+  }
+  // 한번 계산하면 같은 라운드 내 고정하기 위해 캐시
+  return arr.map((ch,i)=>{
+    if(indices.has(i)) return ch;
+    const code=ch.charCodeAt(0);
+    if(code>=0xAC00&&code<=0xD7A3) return getChosung(ch);
+    if(/[a-zA-Z0-9]/.test(ch)) return ch[0].toUpperCase();
+    return '_';
+  }).join(' ');
+}
+
+// 힌트 단계 캐시 (라운드마다 리셋)
+let hintStage=0,cachedPartialHint='',hintRound=0;
+let roundHistory=[]; // {round, drawer, word, solver, thumbUrl}
+
+// 로컬 전용 시스템 메시지 (Firebase에 안 보냄, 중복 방지)
+function addLocalSystemMsg(msg){
+  const container=document.getElementById('chat-messages'),div=document.createElement('div');
+  div.className='chat-msg system';div.textContent=msg;
+  container.appendChild(div);container.scrollTop=container.scrollHeight;
+}
+
+function updateHintDisplay(){
+  if(!gameState||gameState.status!=='drawing'||gameState.drawer===myNick) return;
+  const word=gameState.word||'';
+  const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
+  const third=Math.floor(ROUND_TIME/3);
+  let newStage=0;
+  if(elapsed>=third*2) newStage=2;
+  else if(elapsed>=third) newStage=1;
+
+  // 라운드 바뀌면 캐시 리셋
+  if(hintRound!==gameState.round){
+    hintRound=gameState.round;hintStage=0;cachedPartialHint='';
+  }
+
+  if(newStage!==hintStage){
+    hintStage=newStage;
+    if(hintStage===1) addLocalSystemMsg('초성 힌트가 공개되었습니다');
+    if(hintStage===2){
+      if(!cachedPartialHint) cachedPartialHint=makePartialHint(word);
+      addLocalSystemMsg('추가 힌트가 공개되었습니다');
+    }
+  }
+
+  const wordDisplay=document.getElementById('word-display');
+  if(hintStage===0){
+    wordDisplay.innerHTML=`<div class="word-label">힌트 (${word.length}글자)</div><div class="word-hint">${makeHint(word)}</div>`;
+  }else if(hintStage===1){
+    wordDisplay.innerHTML=`<div class="word-label">초성 힌트</div><div class="word-hint">${makeChosungHint(word)}</div>`;
+  }else{
+    wordDisplay.innerHTML=`<div class="word-label">추가 힌트</div><div class="word-hint">${cachedPartialHint}</div>`;
+  }
+}
 
 (function(){const n=getSavedNick();if(n){document.getElementById('room-host').value=n;document.getElementById('join-nick').value=n;}})();
 
@@ -675,6 +788,22 @@ function renderGameState(){
     if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
     timerBadge.textContent='--';timerBadge.classList.remove('warning');
 
+    // 히스토리 스냅샷 저장 (중복 방지)
+    const curRound=gameState.round||0;
+    if(curRound>0 && !roundHistory.find(h=>h.round===curRound)){
+      try{
+        const thumbUrl=document.getElementById('draw-canvas').toDataURL('image/png',0.4);
+        roundHistory.push({
+          round:curRound,
+          drawer:gameState.drawer||'',
+          word:gameState.word||'',
+          solver:gameState.nextDrawer||null,
+          thumbUrl
+        });
+        renderHistory();
+      }catch(ex){}
+    }
+
     // 방장: 자동 다음 라운드 or 게임 종료
     if(isHost){
       if(gameState.round>=gameState.totalRounds){
@@ -695,6 +824,7 @@ function startTimer(){
     const remain=Math.max(ROUND_TIME-elapsed,0);
     badge.textContent=remain+'s';
     badge.classList.toggle('warning',remain<=10);
+    updateHintDisplay();
     if(remain<=0&&isHost){clearInterval(timerInterval);timerInterval=null;endRound(null);}
   },500);
 }
@@ -723,6 +853,7 @@ function pickDrawerMode(mode,el){
 
 function confirmStartGame(){
   document.getElementById('round-modal').classList.remove('show');
+  roundHistory=[];renderHistory();
   const scores={};
   Object.values(membersData).forEach(m=>{scores[sanitizeKey(m.nick)]=0;});
   db.ref(`drawrooms/${currentRoom.code}/scores`).set(scores);
@@ -817,6 +948,36 @@ function finishGame(){
   setTimeout(()=>{
     if(currentRoom) db.ref(`drawrooms/${currentRoom.code}/game/gameover`).remove();
   },5000);
+}
+
+/* ===== 라운드 히스토리 ===== */
+function renderHistory(){
+  const section=document.getElementById('history-section');
+  const list=document.getElementById('history-list');
+  if(!roundHistory.length){section.style.display='none';list.innerHTML='';return;}
+  section.style.display='block';
+  document.getElementById('history-toggle-text').textContent=`이전 라운드 (${roundHistory.length})`;
+  list.innerHTML=roundHistory.slice().reverse().map(h=>{
+    const solverHtml=h.solver
+      ?`<div class="h-solver">${esc(h.solver)} 정답 (+1)</div>`
+      :`<div class="h-fail">시간 초과</div>`;
+    const drawerPts=h.solver?` (+1)`:'';
+    return `<div class="history-card">
+      <div class="h-thumb"><img src="${h.thumbUrl}" alt="R${h.round}"></div>
+      <div class="h-info">
+        <div class="h-round">ROUND ${h.round}</div>
+        <div class="h-word">${esc(h.word)}</div>
+        <div class="h-detail">${esc(h.drawer)} 출제${drawerPts}</div>
+        ${solverHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistory(){
+  const list=document.getElementById('history-list');
+  const visible=list.style.display!=='none';
+  list.style.display=visible?'none':'flex';
 }
 
 function showGameoverOverlay(){
