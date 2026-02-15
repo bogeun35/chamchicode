@@ -84,8 +84,8 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
 
 @media(max-width:768px){
-  .screen-game{padding:8px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;max-width:100%;display:flex;flex-direction:column;z-index:100;background:var(--bg);}
-  .screen-game.active{display:flex;}
+  .screen-game{padding:8px 10px;max-width:100%;}
+  .screen-game.active{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;display:flex;flex-direction:column;z-index:100;background:var(--bg);}
   .game-header{margin-bottom:4px;flex-shrink:0;}
   .round-bar{margin-bottom:4px;padding:6px 12px;flex-shrink:0;}
   .scoreboard{margin-bottom:4px;flex-shrink:0;}
