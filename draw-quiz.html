@@ -74,7 +74,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .member-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
 .member-chip.host{background:rgba(217,119,6,0.1);border-color:rgba(217,119,6,0.3);color:var(--orange);}
 
-.game-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+.game-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
 @media(max-width:768px){.game-layout{grid-template-columns:1fr;}}
 
 /* 캔버스 */
@@ -101,9 +101,9 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .word-hint{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text-dim);margin-top:4px;letter-spacing:0.2em;}
 
 /* 채팅 */
-.chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:100%;min-height:400px;}
-.chat-title{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--text-sub);padding:12px 16px;border-bottom:1px solid var(--border);}
-.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;}
+.chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:520px;max-height:520px;}
+.chat-title{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--text-sub);padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;min-height:0;}
 .chat-msg{font-size:.85rem;padding:6px 10px;border-radius:8px;max-width:90%;word-break:break-word;}
 .chat-msg.system{background:var(--surface-alt);color:var(--text-dim);font-weight:600;text-align:center;align-self:center;font-size:.78rem;}
 .chat-msg.correct{background:rgba(5,150,105,0.1);color:var(--green);font-weight:700;text-align:center;align-self:center;}
@@ -250,6 +250,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
       <div class="toolbar" id="toolbar" style="display:none;">
         <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)">&#9998;</button>
         <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)">&#9249;</button>
+        <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)">&#9724;</button>
         <button class="tool-btn" onclick="clearCanvas()">&#128465;</button>
         <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
         <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
@@ -291,12 +292,18 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 <!-- 라운드 설정 모달 -->
 <div class="modal-overlay" id="round-modal">
   <div class="modal-box" style="max-width:380px;">
-    <div class="modal-title">총 라운드 설정</div>
+    <div class="modal-title">게임 설정</div>
+    <div style="font-size:.82rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;">총 라운드</div>
     <div class="round-options" id="round-options">
       <div class="round-opt" onclick="pickRound(5,this)">5</div>
       <div class="round-opt active" onclick="pickRound(10,this)">10</div>
       <div class="round-opt" onclick="pickRound(15,this)">15</div>
       <div class="round-opt" onclick="pickRound(20,this)">20</div>
+    </div>
+    <div style="font-size:.82rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;">출제자 방식</div>
+    <div class="round-options" id="drawer-mode-options">
+      <div class="round-opt active" onclick="pickDrawerMode('winner',this)">정답자가 그리기</div>
+      <div class="round-opt" onclick="pickDrawerMode('sequential',this)">순서대로 그리기</div>
     </div>
     <div class="modal-row">
       <button class="btn btn-primary" onclick="confirmStartGame()" style="flex:1;">게임 시작</button>
@@ -352,7 +359,7 @@ let gameState=null,scoresData={},wordBank={},allWords=[];
 let drawCtx=null,drawing=false,lastX=0,lastY=0;
 let currentTool='pen',brushColor='#0F172A',brushSize=4;
 let strokeBuffer=[],strokeTimer=null,timerInterval=null;
-let selectedCat='',totalRounds=10;
+let selectedCat='',totalRounds=10,drawerMode='winner';
 
 const NICK_KEY='charms_draw_nick',ROUND_TIME=60;
 const AUTO_NEXT_DELAY=3000; // 정답 후 자동 다음 라운드 딜레이
@@ -636,41 +643,57 @@ function onStartClick(){
 
 function pickRound(n,el){
   totalRounds=n;
-  document.querySelectorAll('.round-opt').forEach(o=>o.classList.remove('active'));
+  document.querySelectorAll('#round-options .round-opt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function pickDrawerMode(mode,el){
+  drawerMode=mode;
+  document.querySelectorAll('#drawer-mode-options .round-opt').forEach(o=>o.classList.remove('active'));
   el.classList.add('active');
 }
 
 function confirmStartGame(){
   document.getElementById('round-modal').classList.remove('show');
-  // 점수 초기화
   const scores={};
   Object.values(membersData).forEach(m=>{scores[sanitizeKey(m.nick)]=0;});
   db.ref(`drawrooms/${currentRoom.code}/scores`).set(scores);
-  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,nextDrawer:null});
-  addSystemChat(`게임 시작! 총 ${totalRounds}라운드`);
-  // 첫 라운드
+  const modeLabel=drawerMode==='winner'?'정답자가 그리기':'순서대로 그리기';
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,nextDrawer:null,drawerMode,drawerIndex:0});
+  addSystemChat(`게임 시작! ${totalRounds}라운드 / ${modeLabel}`);
   setTimeout(()=>startNextRound(null),500);
 }
 
 function startNextRound(nextDrawer){
   if(!isHost)return;
   const members=Object.values(membersData).map(m=>m.nick);
+  const mode=gameState?.drawerMode||drawerMode;
   let drawer;
-  if(nextDrawer&&members.includes(nextDrawer)){
-    drawer=nextDrawer;
+  let nextIndex=gameState?.drawerIndex||0;
+
+  if(mode==='sequential'){
+    // 순서대로: drawerIndex 기반
+    drawer=members[nextIndex % members.length];
+    nextIndex=(nextIndex+1)%members.length;
   }else{
-    const prev=gameState?.drawer;
-    let candidates=members.filter(m=>m!==prev);
-    if(!candidates.length)candidates=members;
-    drawer=candidates[Math.floor(Math.random()*candidates.length)];
+    // winner 모드: 정답자 우선, 없으면 랜덤
+    if(nextDrawer&&members.includes(nextDrawer)){
+      drawer=nextDrawer;
+    }else{
+      const prev=gameState?.drawer;
+      let candidates=members.filter(m=>m!==prev);
+      if(!candidates.length)candidates=members;
+      drawer=candidates[Math.floor(Math.random()*candidates.length)];
+    }
   }
-  // picking 상태: 출제자에게 제시어 선택권 부여
+
   const round=(gameState?.round||0)+1;
   db.ref(`drawcanvas/${currentRoom.code}`).remove();
   db.ref(`drawrooms/${currentRoom.code}/game`).set({
     status:'picking',drawer,word:null,round,
     totalRounds:gameState?.totalRounds||totalRounds,
     startedAt:null,solved:false,nextDrawer:null,
+    drawerMode:mode,drawerIndex:nextIndex,
     wordChoices:getRandomWords(8)
   });
   addSystemChat(`[${round}/${gameState?.totalRounds||totalRounds}] ${drawer} 님이 제시어를 고르는 중...`);
@@ -760,18 +783,100 @@ function addCategory(){const input=document.getElementById('add-cat-input'),cat=
 function deleteCategory(){if(!selectedCat)return;if(!confirm(`"${selectedCat}" 카테고리를 삭제합니다.`))return;db.ref(`drawwords/${selectedCat}`).remove();delete wordBank[selectedCat];const cats=Object.keys(wordBank);selectedCat=cats[0]||'';renderWordManager();}
 
 /* ===== 캔버스 ===== */
-function initCanvas(){const canvas=document.getElementById('draw-canvas');drawCtx=canvas.getContext('2d');drawCtx.lineCap='round';drawCtx.lineJoin='round';clearCanvasLocal();canvas.addEventListener('pointerdown',onPointerDown);canvas.addEventListener('pointermove',onPointerMove);canvas.addEventListener('pointerup',onPointerUp);canvas.addEventListener('pointerleave',onPointerUp);}
-function getCanvasPos(e){const c=document.getElementById('draw-canvas'),r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,sx:c.width/r.width,sy:c.height/r.height};}
-function onPointerDown(e){if(!gameState||gameState.status!=='drawing'||gameState.drawer!==myNick)return;drawing=true;const p=getCanvasPos(e);lastX=p.x*p.sx;lastY=p.y*p.sy;strokeBuffer=[];}
-function onPointerMove(e){if(!drawing)return;const p=getCanvasPos(e),x=p.x*p.sx,y=p.y*p.sy;const color=currentTool==='eraser'?'#FFFFFF':brushColor;const size=currentTool==='eraser'?brushSize*4:brushSize;drawLine(lastX,lastY,x,y,color,size);strokeBuffer.push({x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:Number(size)});lastX=x;lastY=y;if(!strokeTimer){strokeTimer=setTimeout(()=>{flushStrokes();strokeTimer=null;},80);}}
+function initCanvas(){
+  const canvas=document.getElementById('draw-canvas');
+  drawCtx=canvas.getContext('2d');
+  drawCtx.lineCap='round';drawCtx.lineJoin='round';
+  clearCanvasLocal();
+  canvas.addEventListener('pointerdown',onPointerDown);
+  canvas.addEventListener('pointermove',onPointerMove);
+  canvas.addEventListener('pointerup',onPointerUp);
+  canvas.addEventListener('pointerleave',onPointerUp);
+}
+function getCanvasPos(e){
+  const c=document.getElementById('draw-canvas'),r=c.getBoundingClientRect();
+  return{x:e.clientX-r.left,y:e.clientY-r.top,sx:c.width/r.width,sy:c.height/r.height};
+}
+function onPointerDown(e){
+  if(!gameState||gameState.status!=='drawing'||gameState.drawer!==myNick)return;
+  const p=getCanvasPos(e);
+  if(currentTool==='fill'){
+    const x=Math.round(p.x*p.sx),y=Math.round(p.y*p.sy);
+    floodFill(x,y,brushColor);
+    db.ref(`drawcanvas/${currentRoom.code}`).push().set([{fill:true,x,y,c:brushColor}]);
+    return;
+  }
+  drawing=true;lastX=p.x*p.sx;lastY=p.y*p.sy;strokeBuffer=[];
+}
+function onPointerMove(e){
+  if(!drawing)return;
+  const p=getCanvasPos(e),x=p.x*p.sx,y=p.y*p.sy;
+  const color=currentTool==='eraser'?'#FFFFFF':brushColor;
+  const size=currentTool==='eraser'?brushSize*4:brushSize;
+  drawLine(lastX,lastY,x,y,color,size);
+  strokeBuffer.push({x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:Number(size)});
+  lastX=x;lastY=y;
+  if(!strokeTimer){strokeTimer=setTimeout(()=>{flushStrokes();strokeTimer=null;},80);}
+}
 function onPointerUp(){if(!drawing)return;drawing=false;flushStrokes();}
 function flushStrokes(){if(!strokeBuffer.length||!currentRoom)return;db.ref(`drawcanvas/${currentRoom.code}`).push().set(strokeBuffer);strokeBuffer=[];}
 function drawLine(x1,y1,x2,y2,color,size){drawCtx.strokeStyle=color;drawCtx.lineWidth=size;drawCtx.beginPath();drawCtx.moveTo(x1,y1);drawCtx.lineTo(x2,y2);drawCtx.stroke();}
 function clearCanvas(){if(!gameState||gameState.drawer!==myNick)return;clearCanvasLocal();db.ref(`drawcanvas/${currentRoom.code}`).remove();db.ref(`drawcanvas/${currentRoom.code}`).push().set([{clear:true}]);}
 function clearCanvasLocal(){if(!drawCtx)return;const c=document.getElementById('draw-canvas');drawCtx.fillStyle='#FFFFFF';drawCtx.fillRect(0,0,c.width,c.height);}
-function setTool(tool,el){currentTool=tool;document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function setTool(tool,el){
+  currentTool=tool;
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('draw-canvas').style.cursor=tool==='fill'?'cell':'crosshair';
+}
 function setColor(c,el){brushColor=c;currentTool='pen';document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='pen'));document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
-function listenCanvas(){const ref=db.ref(`drawcanvas/${currentRoom.code}`);const cb=ref.on('child_added',snap=>{const strokes=snap.val();if(!strokes||!Array.isArray(strokes))return;if(strokes[0]?.clear){clearCanvasLocal();return;}strokes.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));});listeners.push(()=>ref.off('child_added',cb));}
+
+// 채우기(Flood Fill)
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return[r,g,b];
+}
+function floodFill(startX,startY,fillHex){
+  const canvas=document.getElementById('draw-canvas');
+  const w=canvas.width,h=canvas.height;
+  if(startX<0||startX>=w||startY<0||startY>=h)return;
+  const imageData=drawCtx.getImageData(0,0,w,h);
+  const data=imageData.data;
+  const [fr,fg,fb]=hexToRgb(fillHex);
+  const idx=(startY*w+startX)*4;
+  const tr=data[idx],tg=data[idx+1],tb=data[idx+2];
+  // 같은 색이면 무시
+  if(tr===fr&&tg===fg&&tb===fb)return;
+  const tolerance=30;
+  function match(i){
+    return Math.abs(data[i]-tr)<=tolerance&&Math.abs(data[i+1]-tg)<=tolerance&&Math.abs(data[i+2]-tb)<=tolerance;
+  }
+  const stack=[[startX,startY]];
+  const visited=new Uint8Array(w*h);
+  while(stack.length){
+    const[x,y]=stack.pop();
+    const pi=y*w+x;
+    if(x<0||x>=w||y<0||y>=h||visited[pi])continue;
+    const i=pi*4;
+    if(!match(i))continue;
+    visited[pi]=1;
+    data[i]=fr;data[i+1]=fg;data[i+2]=fb;data[i+3]=255;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  drawCtx.putImageData(imageData,0,0);
+}
+
+function listenCanvas(){
+  const ref=db.ref(`drawcanvas/${currentRoom.code}`);
+  const cb=ref.on('child_added',snap=>{
+    const strokes=snap.val();
+    if(!strokes||!Array.isArray(strokes))return;
+    if(strokes[0]?.clear){clearCanvasLocal();return;}
+    if(strokes[0]?.fill){floodFill(strokes[0].x,strokes[0].y,strokes[0].c);return;}
+    strokes.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));
+  });
+  listeners.push(()=>ref.off('child_added',cb));
+}
 
 /* ===== 채팅 ===== */
 function listenChat(){const ref=db.ref(`drawchat/${currentRoom.code}`);const cb=ref.orderByChild('ts').limitToLast(100).on('child_added',snap=>{const d=snap.val();if(!d)return;appendChat(d);if(d.correct)showCorrectOverlay(d.nick,d.text);});listeners.push(()=>ref.off('child_added',cb));}
