@@ -533,9 +533,9 @@ function renderGameState(){
 
   // 방장 버튼 상태
   if(isHost){
-    const playing=status==='drawing'||status==='reveal';
+    const playing=status==='drawing'||status==='reveal'||status==='picking';
     document.getElementById('btn-start').style.display=(!status||status==='idle')?'':'none';
-    document.getElementById('btn-start').textContent=(!status||status==='idle')?'게임 시작':'다음 라운드';
+    document.getElementById('btn-start').textContent='게임 시작';
     document.getElementById('btn-skip').style.display=status==='drawing'?'':'none';
     document.getElementById('btn-end').style.display=playing?'':'none';
   }
@@ -548,6 +548,29 @@ function renderGameState(){
     clearCanvasLocal();
     document.getElementById('chat-input').disabled=false;
     document.getElementById('chat-input').placeholder='채팅...';
+    // 모달/오버레이 전부 닫기
+    document.getElementById('word-modal').classList.remove('show');
+    document.getElementById('correct-overlay').classList.remove('show');
+    // 게임 종료 결과 표시 (gameover 플래그)
+    if(gameState?.gameover){showGameoverOverlay();}
+    return;
+  }
+
+  if(status==='picking'){
+    waiting.style.display='none';toolbar.style.display='none';wordDisplay.style.display='none';
+    clearCanvasLocal();
+    canvasStatus.textContent=`${gameState.drawer} 님이 제시어 선택 중`;
+    timerBadge.textContent='--';
+    document.getElementById('chat-input').disabled=false;
+    document.getElementById('chat-input').placeholder='채팅...';
+    // 출제자 본인이면 모달 표시 (한 번만)
+    if(gameState.drawer===myNick && !document.getElementById('word-modal').classList.contains('show')){
+      showWordModal();
+    }
+    // 대기 화면에 안내
+    document.getElementById('waiting-screen').style.display='flex';
+    document.getElementById('waiting-sub').textContent=gameState.drawer===myNick?'제시어를 선택해주세요':`${gameState.drawer} 님이 제시어를 고르는 중...`;
+    renderScoreboard();
     return;
   }
 
@@ -641,42 +664,44 @@ function startNextRound(nextDrawer){
     if(!candidates.length)candidates=members;
     drawer=candidates[Math.floor(Math.random()*candidates.length)];
   }
-  showWordModal(drawer);
+  // picking 상태: 출제자에게 제시어 선택권 부여
+  const round=(gameState?.round||0)+1;
+  db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({
+    status:'picking',drawer,word:null,round,
+    totalRounds:gameState?.totalRounds||totalRounds,
+    startedAt:null,solved:false,nextDrawer:null,
+    wordChoices:getRandomWords(8)
+  });
+  addSystemChat(`[${round}/${gameState?.totalRounds||totalRounds}] ${drawer} 님이 제시어를 고르는 중...`);
 }
 
 function autoNextRound(){
   if(!gameState||gameState.status!=='reveal')return;
-  const next=gameState.nextDrawer||null;
-  startNextRound(next);
+  startNextRound(gameState.nextDrawer||null);
 }
 
-function showWordModal(drawer){
+function showWordModal(){
   document.getElementById('word-modal').classList.add('show');
   document.getElementById('word-input').value='';
-  document.getElementById('word-modal-title').textContent=drawer!==myNick?`${drawer} 님의 제시어를 선택하세요`:'제시어를 선택하세요';
-  const suggestions=getRandomWords(8);
+  document.getElementById('word-modal-title').textContent='제시어를 선택하세요';
+  const suggestions=gameState?.wordChoices||getRandomWords(8);
   document.getElementById('word-suggestions').innerHTML=suggestions.map(w=>
     `<span class="word-chip" onclick="document.getElementById('word-input').value='${esc(w)}';submitWord()">${esc(w)}</span>`
   ).join('');
-  window._pendingDrawer=drawer;
 }
 
 function submitWord(){
   const word=document.getElementById('word-input').value.trim();
   if(!word)return toast('제시어를 선택 또는 입력해주세요');
   document.getElementById('word-modal').classList.remove('show');
-  beginDrawing(window._pendingDrawer||myNick,word);
-}
-
-function beginDrawing(drawer,word){
-  db.ref(`drawcanvas/${currentRoom.code}`).remove();
-  clearCanvasLocal();
-  const round=(gameState?.round||0)+1;
-  db.ref(`drawrooms/${currentRoom.code}/game`).set({
-    status:'drawing',drawer,word,round,totalRounds:gameState?.totalRounds||totalRounds,
-    startedAt:Date.now(),solved:false,nextDrawer:null
+  const round=gameState?.round||1;
+  const total=gameState?.totalRounds||totalRounds;
+  // 출제자 본인이 직접 drawing 시작
+  db.ref(`drawrooms/${currentRoom.code}/game`).update({
+    status:'drawing',word,startedAt:Date.now(),solved:false,wordChoices:null
   });
-  addSystemChat(`[${round}/${gameState?.totalRounds||totalRounds}] ${drawer} 님이 그립니다! (${word.length}글자)`);
+  addSystemChat(`[${round}/${total}] ${myNick} 님이 그립니다! (${word.length}글자)`);
 }
 
 function skipRound(){if(!isHost)return;endRound(null);}
@@ -693,11 +718,14 @@ function endGame(){
 }
 
 function finishGame(){
-  // 최종 결과 표시
   showGameoverOverlay();
-  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds:0,nextDrawer:null});
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds:0,nextDrawer:null,gameover:true});
   db.ref(`drawcanvas/${currentRoom.code}`).remove();
   addSystemChat('게임이 종료되었습니다!');
+  // gameover 플래그 5초 후 제거
+  setTimeout(()=>{
+    if(currentRoom) db.ref(`drawrooms/${currentRoom.code}/game/gameover`).remove();
+  },5000);
 }
 
 function showGameoverOverlay(){
