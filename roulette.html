@@ -7,404 +7,141 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #EFF6FF;
-  --surface: #FFFFFF;
-  --surface-alt: #F8FAFC;
-  --accent: #2563EB;
-  --accent-dark: #1D4ED8;
-  --accent-glow: rgba(37,99,235,0.15);
-  --orange: #D97706;
-  --orange-dark: #B45309;
-  --green: #059669;
-  --purple: #6D28D9;
-  --red: #DC2626;
-  --text: #0F172A;
-  --text-sub: #475569;
-  --text-dim: #94A3B8;
-  --border: #DBEAFE;
-  --border-mid: #CBD5E1;
-  --radius: 12px;
+  --bg: #EFF6FF; --surface: #FFFFFF; --surface-alt: #F8FAFC;
+  --accent: #2563EB; --accent-dark: #1D4ED8; --accent-glow: rgba(37,99,235,0.15);
+  --orange: #D97706; --orange-dark: #B45309; --green: #059669; --purple: #6D28D9; --red: #DC2626;
+  --text: #0F172A; --text-sub: #475569; --text-dim: #94A3B8;
+  --border: #DBEAFE; --border-mid: #CBD5E1; --radius: 12px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Rajdhani', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
-.container {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 20px 16px 120px;
-}
+body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.container { max-width:560px; margin:0 auto; padding:20px 16px 120px; }
 
-/* Header */
-.header {
-  text-align: center;
-  padding: 32px 0 24px;
-}
-.header h1 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: var(--text);
-  letter-spacing: .05em;
-}
-.header p {
-  color: var(--text-dim);
-  font-size: .85rem;
-  margin-top: 4px;
-}
+.header { text-align:center; padding:32px 0 24px; }
+.header h1 { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; letter-spacing:.05em; }
+.header p { color:var(--text-dim); font-size:.85rem; margin-top:4px; }
 
-/* Screens */
 .screen { display:none; }
-.screen.active { display:block; animation: fadeIn .3s ease; }
+.screen.active { display:block; animation:fadeIn .3s ease; }
 
-/* Buttons */
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: var(--radius);
-  font-size: .95rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: 'Rajdhani', sans-serif;
-  transition: all .2s;
-  letter-spacing: .02em;
-}
-.btn-accent { background: var(--accent); color: white; box-shadow: 0 2px 10px var(--accent-glow); }
-.btn-accent:hover { background: var(--accent-dark); transform: translateY(-1px); }
-.btn-outline { background: var(--surface); color: var(--text-sub); border: 1px solid var(--border-mid); }
-.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-.btn-sm { padding: 8px 16px; font-size: .85rem; width: auto; }
+.btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px 20px; border:none; border-radius:var(--radius); font-size:.95rem; font-weight:700; cursor:pointer; font-family:'Rajdhani',sans-serif; transition:all .2s; letter-spacing:.02em; }
+.btn-accent { background:var(--accent); color:white; box-shadow:0 2px 10px var(--accent-glow); }
+.btn-accent:hover { background:var(--accent-dark); transform:translateY(-1px); }
+.btn-outline { background:var(--surface); color:var(--text-sub); border:1px solid var(--border-mid); }
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.btn-sm { padding:8px 16px; font-size:.85rem; width:auto; }
 .btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
 
-/* Cards */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px 20px;
-  margin-top: 16px;
-  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
-}
-.card h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: var(--text);
-}
+.card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px 20px; margin-top:16px; box-shadow:0 2px 10px rgba(15,23,42,0.04); }
+.card h2 { font-family:'Orbitron',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:16px; }
 
-/* Form */
-.form-group { margin-bottom: 14px; }
-.form-group label {
-  display: block;
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--text-dim);
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.form-group input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 2px solid var(--border-mid);
-  border-radius: 8px;
-  font-size: .95rem;
-  font-family: 'Rajdhani', sans-serif;
-  background: var(--surface);
-  color: var(--text);
-  outline: none;
-  transition: border-color .2s;
-}
-.form-group input:focus { border-color: var(--accent); }
-.form-group input::placeholder { color: var(--text-dim); }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:.78rem; font-weight:600; color:var(--text-dim); margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; }
+.form-group input { width:100%; padding:12px 14px; border:2px solid var(--border-mid); border-radius:8px; font-size:.95rem; font-family:'Rajdhani',sans-serif; background:var(--surface); color:var(--text); outline:none; transition:border-color .2s; }
+.form-group input:focus { border-color:var(--accent); }
+.form-group input::placeholder { color:var(--text-dim); }
 
-/* Divider */
-.divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 12px 0; color: var(--text-dim); font-size: .8rem;
-}
-.divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border-mid); }
+.divider { display:flex; align-items:center; gap:12px; margin:12px 0; color:var(--text-dim); font-size:.8rem; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border-mid); }
 
-/* Back */
-.btn-back {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: none; color: var(--text-dim);
-  font-size: .88rem; cursor: pointer; font-family: 'Rajdhani', sans-serif;
-  padding: 6px 0; transition: color .2s;
-}
-.btn-back:hover { color: var(--text); }
+.btn-back { display:inline-flex; align-items:center; gap:4px; background:none; border:none; color:var(--text-dim); font-size:.88rem; cursor:pointer; font-family:'Rajdhani',sans-serif; padding:6px 0; transition:color .2s; }
+.btn-back:hover { color:var(--text); }
 
-/* Room header */
-.room-top { text-align: center; padding: 12px 0 8px; }
-.room-top h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: var(--text);
-}
-.room-badge {
-  display: inline-block; margin-top: 8px;
-  padding: 5px 14px; background: var(--surface-alt);
-  border: 1px solid var(--border-mid); border-radius: 8px;
-  font-size: .82rem; color: var(--text-sub); cursor: pointer;
-}
-.room-badge:hover { border-color: var(--accent); }
-.room-badge .code { color: var(--accent); font-weight: 700; letter-spacing: 2px; }
+.room-top { text-align:center; padding:12px 0 8px; }
+.room-top h2 { font-family:'Orbitron',sans-serif; font-size:1.4rem; font-weight:900; }
+.room-badge { display:inline-block; margin-top:8px; padding:5px 14px; background:var(--surface-alt); border:1px solid var(--border-mid); border-radius:8px; font-size:.82rem; color:var(--text-sub); cursor:pointer; }
+.room-badge:hover { border-color:var(--accent); }
+.room-badge .code { color:var(--accent); font-weight:700; letter-spacing:2px; }
 
-.role-tag {
-  display: inline-block; padding: 3px 10px; border-radius: 6px;
-  font-size: .72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; margin-top: 8px;
-}
-.role-host { background: rgba(217,119,6,0.1); color: var(--orange-dark); border: 1px solid rgba(217,119,6,0.25); }
-.role-guest { background: rgba(37,99,235,0.08); color: var(--accent-dark); border: 1px solid rgba(37,99,235,0.2); }
+.role-tag { display:inline-block; padding:3px 10px; border-radius:6px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:8px; }
+.role-host { background:rgba(217,119,6,0.1); color:var(--orange-dark); border:1px solid rgba(217,119,6,0.25); }
+.role-guest { background:rgba(37,99,235,0.08); color:var(--accent-dark); border:1px solid rgba(37,99,235,0.2); }
 
-/* Share */
-.share-row { display: flex; gap: 8px; margin-top: 12px; }
-.share-row button {
-  flex:1; padding: 9px; border: 1px solid var(--border-mid); border-radius: 8px;
-  background: var(--surface); color: var(--text-sub); font-size: .82rem;
-  cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600;
-  transition: all .2s;
-}
-.share-row button:hover { border-color: var(--accent); color: var(--accent); }
+.share-row { display:flex; gap:8px; margin-top:12px; }
+.share-row button { flex:1; padding:9px; border:1px solid var(--border-mid); border-radius:8px; background:var(--surface); color:var(--text-sub); font-size:.82rem; cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:600; transition:all .2s; }
+.share-row button:hover { border-color:var(--accent); color:var(--accent); }
 
-/* Section title */
-.section-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  margin: 20px 0 10px;
-}
-.section-bar h3 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: .75rem; font-weight: 700; color: var(--text-dim);
-  text-transform: uppercase; letter-spacing: 1.5px;
-}
-.section-bar span { font-size: .82rem; color: var(--text-dim); font-weight: 600; }
+/* 참여자 패널 */
+.members-bar { display:flex; align-items:center; gap:8px; margin-top:16px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow-x:auto; }
+.members-label { font-size:.72rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; margin-right:4px; }
+.member-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:.78rem; font-weight:600; white-space:nowrap; background:var(--surface-alt); color:var(--text-sub); border:1px solid var(--border); }
+.member-chip.host { background:rgba(217,119,6,0.08); color:var(--orange-dark); border-color:rgba(217,119,6,0.2); }
+.member-chip .dot { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
 
-/* Game list */
-.game-list { display: flex; flex-direction: column; gap: 8px; }
-.game-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; background: var(--surface);
-  border: 1px solid var(--border-mid); border-radius: 10px;
-  transition: all .2s; cursor: pointer; position: relative; overflow: hidden;
-}
-.game-item:hover { border-color: #93C5FD; background: #F0F9FF; }
-.game-item.voted { border-color: var(--accent); background: rgba(37,99,235,0.04); }
-.game-name { flex:1; font-weight: 600; font-size: 1rem; color: var(--text); }
-.vote-count {
-  font-family: 'Orbitron', sans-serif;
-  font-size: .9rem; font-weight: 700; color: var(--accent);
-  min-width: 36px; text-align: right;
-}
-.vote-bar {
-  position: absolute; bottom:0; left:0; height: 3px;
-  background: linear-gradient(90deg, var(--accent), #0EA5E9);
-  border-radius: 0 3px 0 0; transition: width .5s ease;
-}
-.game-delete {
-  display: none; background: none; border: none;
-  color: var(--text-dim); font-size: 1.1rem; cursor: pointer;
-  padding: 2px 6px; border-radius: 4px; transition: all .2s;
-}
-.game-delete:hover { color: var(--red); background: rgba(220,38,38,0.08); }
-.is-host .game-delete { display: block; }
+.section-bar { display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px; }
+.section-bar h3 { font-family:'Orbitron',sans-serif; font-size:.75rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; }
+.section-bar span { font-size:.82rem; color:var(--text-dim); font-weight:600; }
 
-/* Host controls */
-.host-bar {
-  display: none; gap: 8px; margin-top: 8px;
-}
-.is-host .host-bar { display: flex; }
-.host-bar button {
-  flex: 1; padding: 8px; border: 1px solid var(--border-mid); border-radius: 8px;
-  background: var(--surface-alt); color: var(--text-sub); font-size: .82rem;
-  font-weight: 600; cursor: pointer; font-family: 'Rajdhani', sans-serif;
-  transition: all .2s;
-}
-.host-bar button:hover { border-color: var(--accent); color: var(--accent); }
+.game-list { display:flex; flex-direction:column; gap:8px; }
+.game-item { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border:1px solid var(--border-mid); border-radius:10px; transition:all .2s; cursor:pointer; position:relative; overflow:hidden; }
+.game-item:hover { border-color:#93C5FD; background:#F0F9FF; }
+.game-item.voted { border-color:var(--accent); background:rgba(37,99,235,0.04); }
+.game-name { flex:1; font-weight:600; font-size:1rem; }
+.vote-count { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; color:var(--accent); min-width:36px; text-align:right; }
+.vote-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),#0EA5E9); border-radius:0 3px 0 0; transition:width .5s ease; }
+.game-delete { display:none; background:none; border:none; color:var(--text-dim); font-size:1.1rem; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all .2s; }
+.game-delete:hover { color:var(--red); background:rgba(220,38,38,0.08); }
+.is-host .game-delete { display:block; }
 
-/* Add game */
-.add-row {
-  display: flex; gap: 8px; margin-top: 10px;
-}
-.add-row input {
-  flex:1; padding: 11px 14px; border: 2px dashed var(--border-mid);
-  border-radius: 8px; background: transparent; color: var(--text);
-  font-size: .92rem; font-family: 'Rajdhani', sans-serif; outline: none;
-  transition: border .2s;
-}
-.add-row input:focus { border-color: var(--accent); border-style: solid; }
-.add-row input::placeholder { color: var(--text-dim); }
-.add-row button {
-  padding: 11px 18px; border: none; border-radius: 8px;
-  background: var(--accent); color: white; font-size: .92rem;
-  cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700;
-  transition: all .2s;
-}
-.add-row button:hover { background: var(--accent-dark); }
+.host-bar { display:none; gap:8px; margin-top:8px; }
+.is-host .host-bar { display:flex; }
+.host-bar button { flex:1; padding:8px; border:1px solid var(--border-mid); border-radius:8px; background:var(--surface-alt); color:var(--text-sub); font-size:.82rem; font-weight:600; cursor:pointer; font-family:'Rajdhani',sans-serif; transition:all .2s; }
+.host-bar button:hover { border-color:var(--accent); color:var(--accent); }
 
-/* Roulette */
-.roulette-wrap {
-  position: relative; margin: 20px auto; width: 320px; height: 320px;
-}
-.roulette-canvas {
-  width: 320px; height: 320px; border-radius: 50%;
-  box-shadow: 0 4px 30px rgba(37,99,235,0.1), inset 0 0 16px rgba(0,0,0,0.05);
-}
-.roulette-pointer {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-top: 22px solid var(--accent);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-  z-index: 2;
-}
-.roulette-center {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 44px; height: 44px; border-radius: 50%;
-  background: white; border: 3px solid var(--border-mid);
-  z-index: 2;
-}
-
-.spin-btn {
-  display: block; margin: 16px auto 0;
-  padding: 14px 56px; border: none; border-radius: 50px;
-  background: var(--accent); color: white;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1rem; font-weight: 700; letter-spacing: 2px;
-  cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow);
-  transition: all .2s;
-}
-.spin-btn:hover { background: var(--accent-dark); transform: scale(1.03); }
-.spin-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
-
-/* Result overlay */
-.result-overlay {
-  display: none; position: fixed; inset:0;
-  background: rgba(15,23,42,0.6); backdrop-filter: blur(12px);
-  z-index: 100; align-items: center; justify-content: center; flex-direction: column;
-}
-.result-overlay.show { display: flex; }
-.result-card {
-  text-align: center; padding: 48px 40px;
-  background: white; border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-  animation: popIn .4s ease;
-  max-width: 360px; width: 90%;
-}
-.result-label {
-  font-size: .85rem; color: var(--text-dim);
-  text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px;
-}
-.result-name {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.6rem; font-weight: 900;
-  color: var(--accent); line-height: 1.1;
-}
-.result-votes { color: var(--text-sub); font-size: .95rem; margin-top: 8px; }
-
-/* Toast */
-.toast {
-  position: fixed; bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: white; border: 1px solid var(--border-mid);
-  color: var(--text); padding: 10px 22px; border-radius: 10px;
-  font-size: .88rem; font-weight: 600; opacity: 0;
-  transition: all .3s; z-index: 200; pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-.toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
-
-/* Empty */
-.empty-state {
-  text-align: center; padding: 48px 20px; color: var(--text-dim);
-}
-.empty-state p { font-size: .92rem; line-height: 1.5; }
+.add-row { display:flex; gap:8px; margin-top:10px; }
+.add-row input { flex:1; padding:11px 14px; border:2px dashed var(--border-mid); border-radius:8px; background:transparent; color:var(--text); font-size:.92rem; font-family:'Rajdhani',sans-serif; outline:none; transition:border .2s; }
+.add-row input:focus { border-color:var(--accent); border-style:solid; }
+.add-row input::placeholder { color:var(--text-dim); }
+.add-row button { padding:11px 18px; border:none; border-radius:8px; background:var(--accent); color:white; font-size:.92rem; cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:700; transition:all .2s; }
+.add-row button:hover { background:var(--accent-dark); }
 
 /* History panel */
-.history-panel {
-  display: none;
-  margin-top: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border-mid);
-  border-radius: 10px;
-  overflow: hidden;
-  animation: fadeIn .2s ease;
-  max-height: 240px;
-}
-.history-panel.show { display: block; }
-.history-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-alt);
-}
-.history-title {
-  font-size: .78rem; font-weight: 700;
-  color: var(--text-dim); text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.history-clear {
-  font-size: .72rem; font-weight: 600;
-  color: var(--red); background: none; border: none;
-  cursor: pointer; padding: 2px 6px; border-radius: 4px;
-}
-.history-clear:hover { background: rgba(220,38,38,0.06); }
-.history-list {
-  max-height: 190px; overflow-y: auto;
-  padding: 6px;
-}
-.history-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 9px 12px; border-radius: 8px;
-  cursor: pointer; transition: all .15s;
-  font-size: .92rem; font-weight: 600;
-  color: var(--text);
-}
-.history-item:hover { background: var(--bg); }
-.history-item.in-room {
-  color: var(--text-dim);
-  cursor: default;
-}
-.history-item.in-room:hover { background: transparent; }
-.history-item .h-status {
-  font-size: .72rem; font-weight: 600;
-  color: var(--text-dim); padding: 2px 8px;
-  border-radius: 4px; background: var(--surface-alt);
-}
-.history-item.in-room .h-status { color: var(--accent); background: rgba(37,99,235,0.08); }
-.history-empty {
-  text-align: center; padding: 20px;
-  color: var(--text-dim); font-size: .85rem;
-}
+.history-panel { display:none; margin-top:8px; background:var(--surface); border:1px solid var(--border-mid); border-radius:10px; overflow:hidden; animation:fadeIn .2s ease; max-height:240px; }
+.history-panel.show { display:block; }
+.history-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--border); background:var(--surface-alt); }
+.history-title { font-size:.78rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+.history-clear { font-size:.72rem; font-weight:600; color:var(--red); background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:4px; }
+.history-clear:hover { background:rgba(220,38,38,0.06); }
+.history-list { max-height:190px; overflow-y:auto; padding:6px; }
+.history-item { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-radius:8px; cursor:pointer; transition:all .15s; font-size:.92rem; font-weight:600; }
+.history-item:hover { background:var(--bg); }
+.history-item.in-room { color:var(--text-dim); cursor:default; }
+.history-item.in-room:hover { background:transparent; }
+.history-item .h-status { font-size:.72rem; font-weight:600; color:var(--text-dim); padding:2px 8px; border-radius:4px; background:var(--surface-alt); }
+.history-item.in-room .h-status { color:var(--accent); background:rgba(37,99,235,0.08); }
+.history-empty { text-align:center; padding:20px; color:var(--text-dim); font-size:.85rem; }
 
-/* Confetti canvas */
-#confetti-canvas { position: fixed; inset:0; pointer-events: none; z-index: 150; }
+/* Roulette */
+.roulette-wrap { position:relative; margin:20px auto; width:320px; height:320px; }
+.roulette-canvas { width:320px; height:320px; border-radius:50%; box-shadow:0 4px 30px rgba(37,99,235,0.1),inset 0 0 16px rgba(0,0,0,0.05); }
+.roulette-pointer { position:absolute; top:-12px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:22px solid var(--accent); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15)); z-index:2; }
+.roulette-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%; background:white; border:3px solid var(--border-mid); z-index:2; }
 
-/* Animations */
-@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-@keyframes popIn { 0% { opacity:0; transform:scale(.85); } 100% { opacity:1; transform:scale(1); } }
+.spin-btn { display:block; margin:16px auto 0; padding:14px 56px; border:none; border-radius:50px; background:var(--accent); color:white; font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700; letter-spacing:2px; cursor:pointer; box-shadow:0 4px 20px var(--accent-glow); transition:all .2s; }
+.spin-btn:hover { background:var(--accent-dark); transform:scale(1.03); }
+.spin-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
 
-@media (max-width:400px) {
-  .header h1 { font-size: 1.3rem; }
-  .roulette-wrap, .roulette-canvas { width: 280px; height: 280px; }
-  .result-name { font-size: 2rem; }
-}
+.result-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(12px); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
+.result-overlay.show { display:flex; }
+.result-card { text-align:center; padding:48px 40px; background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:popIn .4s ease; max-width:360px; width:90%; }
+.result-label { font-size:.85rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:3px; margin-bottom:8px; }
+.result-name { font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; color:var(--accent); line-height:1.1; }
+.result-votes { color:var(--text-sub); font-size:.95rem; margin-top:8px; }
+
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px); background:white; border:1px solid var(--border-mid); color:var(--text); padding:10px 22px; border-radius:10px; font-size:.88rem; font-weight:600; opacity:0; transition:all .3s; z-index:200; pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.empty-state { text-align:center; padding:48px 20px; color:var(--text-dim); }
+.empty-state p { font-size:.92rem; line-height:1.5; }
+
+#confetti-canvas { position:fixed; inset:0; pointer-events:none; z-index:150; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn { 0%{opacity:0;transform:scale(.85)} 100%{opacity:1;transform:scale(1)} }
+@media(max-width:400px) { .header h1{font-size:1.3rem} .roulette-wrap,.roulette-canvas{width:280px;height:280px} .result-name{font-size:2rem} }
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="header">
     <h1>참스코드 게임투표</h1>
@@ -422,7 +159,7 @@ body {
 
   <!-- CREATE -->
   <div id="screen-create" class="screen">
-    <button class="btn-back" onclick="showScreen('home')">← 돌아가기</button>
+    <button class="btn-back" onclick="showScreen('home')">&#8592; 돌아가기</button>
     <div class="card">
       <h2>방 만들기</h2>
       <div class="form-group">
@@ -436,7 +173,7 @@ body {
 
   <!-- JOIN -->
   <div id="screen-join" class="screen">
-    <button class="btn-back" onclick="showScreen('home')">← 돌아가기</button>
+    <button class="btn-back" onclick="showScreen('home')">&#8592; 돌아가기</button>
     <div class="card">
       <h2>참여하기</h2>
       <div class="form-group">
@@ -457,8 +194,7 @@ body {
 
   <!-- ROOM -->
   <div id="screen-room" class="screen">
-    <button class="btn-back" onclick="leaveRoom()">← 나가기</button>
-
+    <button class="btn-back" onclick="leaveRoom()">&#8592; 나가기</button>
     <div class="room-top">
       <h2 id="r-title">참스코드 게임투표</h2>
       <div class="room-badge" onclick="copyCode()">
@@ -471,6 +207,11 @@ body {
     <div class="share-row">
       <button onclick="copyLink()">링크 복사</button>
       <button onclick="shareNative()">공유하기</button>
+    </div>
+
+    <!-- 참여자 리스트 -->
+    <div class="members-bar" id="members-bar">
+      <span class="members-label">참여자</span>
     </div>
 
     <div class="section-bar">
@@ -491,7 +232,6 @@ body {
       <button onclick="addGame()">추가</button>
     </div>
 
-    <!-- 과거 게임 히스토리 -->
     <div class="history-panel" id="history-panel">
       <div class="history-header">
         <span class="history-title">내 게임 기록</span>
@@ -501,7 +241,7 @@ body {
     </div>
 
     <!-- Roulette (Host) -->
-    <div id="roulette-section" style="margin-top:28px; display:none;">
+    <div id="roulette-section" style="margin-top:28px;display:none;">
       <div class="section-bar"><h3>룰렛</h3></div>
       <div class="roulette-wrap">
         <div class="roulette-pointer"></div>
@@ -512,7 +252,7 @@ body {
     </div>
 
     <!-- Roulette (Guest) -->
-    <div id="roulette-viewer" style="margin-top:28px; display:none;">
+    <div id="roulette-viewer" style="margin-top:28px;display:none;">
       <div class="section-bar"><h3>룰렛</h3></div>
       <div class="roulette-wrap">
         <div class="roulette-pointer"></div>
@@ -537,118 +277,75 @@ body {
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",
-  authDomain: "rolling2-17a8f.firebaseapp.com",
-  databaseURL: "https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rolling2-17a8f",
-  storageBucket: "rolling2-17a8f.firebasestorage.app",
-  messagingSenderId: "936512265515",
-  appId: "1:936512265515:web:c9cb05f341267af81a796e",
-  measurementId: "G-DK7KLFPCT8"
+  apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",
+  databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",
+  messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e",measurementId:"G-DK7KLFPCT8"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let currentRoom = null, isHost = false, myNick = '', myVotes = {}, gamesData = {}, listeners = [], spinAngle = 0;
-
+let currentRoom = null, isHost = false, myNick = '', myVotes = {}, gamesData = {}, membersData = {}, listeners = [], spinAngle = 0;
+const NICK_KEY = 'charms_nickname';
 const HISTORY_KEY = 'charms_game_history';
 const WHEEL_COLORS = ['#2563EB','#D97706','#059669','#7C3AED','#0EA5E9','#DC2626','#6D28D9','#B45309','#0891B2','#4F46E5','#DB2777','#047857'];
 
+// === 닉네임 로컬 저장 ===
+function getSavedNick() { return localStorage.getItem(NICK_KEY) || ''; }
+function saveNick(nick) { localStorage.setItem(NICK_KEY, nick); }
+
 // === 게임 히스토리 ===
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) { return []; }
-}
+function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) { return []; } }
 function saveToHistory(name) {
-  let hist = getHistory();
-  hist = hist.filter(h => h.toLowerCase() !== name.toLowerCase());
-  hist.unshift(name);
-  if (hist.length > 50) hist = hist.slice(0, 50);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+  let h = getHistory(); h = h.filter(x => x.toLowerCase() !== name.toLowerCase());
+  h.unshift(name); if (h.length > 50) h = h.slice(0,50);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
 }
 function clearHistory() {
   if (!confirm('게임 기록을 모두 삭제할까요?')) return;
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
-  toast('기록이 삭제되었습니다');
+  localStorage.removeItem(HISTORY_KEY); renderHistory(); toast('기록이 삭제되었습니다');
 }
-
-function showHistory() {
-  renderHistory();
-  document.getElementById('history-panel').classList.add('show');
-}
-function hideHistory() {
-  setTimeout(() => {
-    document.getElementById('history-panel').classList.remove('show');
-  }, 200);
-}
-function filterHistory() {
-  renderHistory();
-}
+function showHistory() { renderHistory(); document.getElementById('history-panel').classList.add('show'); }
+function filterHistory() { renderHistory(); }
 function renderHistory() {
-  const panel = document.getElementById('history-panel');
   const list = document.getElementById('history-list');
   const hist = getHistory();
-  const input = document.getElementById('new-game');
-  const keyword = (input ? input.value.trim().toLowerCase() : '');
-
-  if (hist.length === 0) {
-    list.innerHTML = '<div class="history-empty">아직 기록이 없습니다</div>';
-    return;
-  }
-
+  const keyword = (document.getElementById('new-game')?.value.trim().toLowerCase() || '');
+  if (!hist.length) { list.innerHTML = '<div class="history-empty">아직 기록이 없습니다</div>'; return; }
   const currentNames = new Set(Object.values(gamesData).map(g => g.name.toLowerCase()));
-  let filtered = hist;
-  if (keyword) {
-    filtered = hist.filter(h => h.toLowerCase().includes(keyword));
-  }
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="history-empty">일치하는 기록 없음</div>';
-    return;
-  }
-
+  let filtered = keyword ? hist.filter(h => h.toLowerCase().includes(keyword)) : hist;
+  if (!filtered.length) { list.innerHTML = '<div class="history-empty">일치하는 기록 없음</div>'; return; }
   list.innerHTML = filtered.map(name => {
     const inRoom = currentNames.has(name.toLowerCase());
-    return `<div class="history-item ${inRoom ? 'in-room' : ''}" 
-                 onclick="${inRoom ? '' : `addFromHistory('${esc(name.replace(/'/g, "\\'"))}')`}">
-      <span>${esc(name)}</span>
-      <span class="h-status">${inRoom ? '추가됨' : '클릭하여 추가'}</span>
-    </div>`;
+    return `<div class="history-item ${inRoom?'in-room':''}" onclick="${inRoom?'':`addFromHistory('${esc(name.replace(/'/g,"\\'"))}')`}">
+      <span>${esc(name)}</span><span class="h-status">${inRoom?'추가됨':'클릭하여 추가'}</span></div>`;
   }).join('');
 }
+function addFromHistory(name) { document.getElementById('new-game').value = name; addGame(); renderHistory(); }
 
-function addFromHistory(name) {
-  const input = document.getElementById('new-game');
-  input.value = name;
-  addGame();
-  renderHistory();
-}
-
+// === 화면 전환 ===
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
-  if (name === 'create') document.getElementById('room-host').focus();
-  if (name === 'join') document.getElementById('join-code').focus();
+  if (name === 'create') { const el = document.getElementById('room-host'); el.value = el.value || getSavedNick(); el.focus(); }
+  if (name === 'join') { const el = document.getElementById('join-nick'); el.value = el.value || getSavedNick(); document.getElementById('join-code').focus(); }
 }
 
-function genCode() {
-  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = '';
-  for (let i=0;i<6;i++) r += c[Math.floor(Math.random()*c.length)]; return r;
-}
+function genCode() { const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r=''; for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
 
+// === 방 생성/참여 ===
 function createRoom() {
   const host = document.getElementById('room-host').value.trim();
   if (!host) return toast('닉네임을 입력해주세요');
+  saveNick(host);
   const code = genCode();
-  const title = '참스코드 게임투표';
-  db.ref(`rooms/${code}`).set({ title, host, createdAt: Date.now(), roulette: null }).then(() => {
-    currentRoom = { code, title, host }; isHost = true; myNick = host; enterRoom();
+  db.ref(`rooms/${code}`).set({ title:'참스코드 게임투표', host, createdAt:Date.now(), roulette:null }).then(() => {
+    currentRoom = { code, title:'참스코드 게임투표', host }; isHost = true; myNick = host; enterRoom();
   }).catch(() => toast('방 생성 실패'));
 }
 
@@ -657,6 +354,7 @@ function joinRoom() {
   const nick = document.getElementById('join-nick').value.trim();
   if (!code || code.length !== 6) return toast('6자리 코드를 입력해주세요');
   if (!nick) return toast('닉네임을 입력해주세요');
+  saveNick(nick);
   db.ref(`rooms/${code}`).once('value').then(snap => {
     if (!snap.exists()) return toast('존재하지 않는 방입니다');
     const d = snap.val(); currentRoom = { code, ...d };
@@ -668,27 +366,57 @@ function enterRoom() {
   document.getElementById('r-title').textContent = currentRoom.title || '참스코드 게임투표';
   document.getElementById('r-code').textContent = currentRoom.code;
   const roleEl = document.getElementById('r-role');
-  if (isHost) {
-    roleEl.textContent = '방장'; roleEl.className = 'role-tag role-host';
-    document.getElementById('screen-room').classList.add('is-host');
-  } else {
-    roleEl.textContent = '참여자'; roleEl.className = 'role-tag role-guest';
-    document.getElementById('screen-room').classList.remove('is-host');
-  }
+  if (isHost) { roleEl.textContent = '방장'; roleEl.className = 'role-tag role-host'; document.getElementById('screen-room').classList.add('is-host'); }
+  else { roleEl.textContent = '참여자'; roleEl.className = 'role-tag role-guest'; document.getElementById('screen-room').classList.remove('is-host'); }
   document.getElementById('roulette-section').style.display = isHost ? 'block' : 'none';
   document.getElementById('roulette-viewer').style.display = isHost ? 'none' : 'block';
-  showScreen('room'); listenGames(); listenRoulette();
+  showScreen('room');
+  registerPresence();
+  listenMembers();
+  listenGames();
+  listenRoulette();
 }
 
 function leaveRoom() {
+  if (currentRoom) db.ref(`members/${currentRoom.code}/${sanitizeKey(myNick)}`).remove();
   listeners.forEach(fn => fn()); listeners = [];
-  currentRoom = null; gamesData = {}; myVotes = {}; showScreen('home');
+  currentRoom = null; gamesData = {}; myVotes = {}; membersData = {};
+  showScreen('home');
 }
 
+// === 참여자 presence ===
+function registerPresence() {
+  const memberRef = db.ref(`members/${currentRoom.code}/${sanitizeKey(myNick)}`);
+  memberRef.set({ nick: myNick, isHost, joinedAt: Date.now() });
+  memberRef.onDisconnect().remove();
+  listeners.push(() => { memberRef.onDisconnect().cancel(); memberRef.remove(); });
+}
+
+function listenMembers() {
+  const ref = db.ref(`members/${currentRoom.code}`);
+  const cb = ref.on('value', snap => {
+    membersData = snap.val() || {};
+    renderMembers();
+  });
+  listeners.push(() => ref.off('value', cb));
+}
+
+function renderMembers() {
+  const bar = document.getElementById('members-bar');
+  const entries = Object.values(membersData);
+  entries.sort((a,b) => (b.isHost ? 1 : 0) - (a.isHost ? 1 : 0));
+  bar.innerHTML = `<span class="members-label">참여자 ${entries.length}</span>` +
+    entries.map(m => `<span class="member-chip ${m.isHost?'host':''}"><span class="dot"></span>${esc(m.nick)}</span>`).join('');
+}
+
+// === 게임 목록 (실시간) ===
 function listenGames() {
   const ref = db.ref(`games/${currentRoom.code}`);
   const cb = ref.on('value', snap => {
-    gamesData = snap.val() || {}; renderGames(); drawRoulette();
+    gamesData = snap.val() || {};
+    // 삭제된 게임의 myVotes 정리
+    Object.keys(myVotes).forEach(id => { if (!gamesData[id]) delete myVotes[id]; });
+    renderGames(); drawRoulette();
     if (!isHost) drawRouletteViewer();
   });
   listeners.push(() => ref.off('value', cb));
@@ -697,7 +425,7 @@ function listenGames() {
 function renderGames() {
   const container = document.getElementById('game-list');
   const entries = Object.entries(gamesData);
-  if (entries.length === 0) {
+  if (!entries.length) {
     container.innerHTML = '<div class="empty-state"><p>아직 게임이 없습니다. 추가해주세요.</p></div>';
     document.getElementById('vote-total').textContent = '0표'; return;
   }
@@ -706,253 +434,194 @@ function renderGames() {
   const totalVotes = entries.reduce((s,e) => s + (e[1].votes||0), 0);
   document.getElementById('vote-total').textContent = `${totalVotes}표`;
   container.innerHTML = entries.map(([id, g]) => {
-    const votes = g.votes || 0;
-    const pct = maxVotes > 0 ? (votes / maxVotes * 100) : 0;
-    const isVoted = myVotes[id];
-    return `<div class="game-item ${isVoted ? 'voted' : ''}" onclick="toggleVote('${id}')">
+    const votes = g.votes||0, pct = maxVotes>0?(votes/maxVotes*100):0, isVoted = myVotes[id];
+    return `<div class="game-item ${isVoted?'voted':''}" onclick="toggleVote('${id}')">
       <span class="game-name">${esc(g.name)}</span>
       <span class="vote-count">${votes}</span>
-      <button class="game-delete" onclick="event.stopPropagation();deleteGame('${id}')">✕</button>
+      <button class="game-delete" onclick="event.stopPropagation();deleteGame('${id}')">&#10005;</button>
       <div class="vote-bar" style="width:${pct}%"></div>
     </div>`;
   }).join('');
 }
 
 function addGame() {
-  const input = document.getElementById('new-game');
-  const name = input.value.trim();
+  const input = document.getElementById('new-game'), name = input.value.trim();
   if (!name) return;
   const existing = Object.entries(gamesData).find(([,g]) => g.name.toLowerCase() === name.toLowerCase());
   if (existing) {
     const [existId] = existing;
-    if (myVotes[existId]) { toast('이미 투표한 게임입니다'); input.value = ''; input.focus(); return; }
+    if (myVotes[existId]) { toast('이미 투표한 게임입니다'); input.value=''; input.focus(); return; }
     db.ref(`games/${currentRoom.code}/${existId}/voters/${sanitizeKey(myNick)}`).set(true);
-    db.ref(`games/${currentRoom.code}/${existId}/votes`).transaction(v => (v||0) + 1);
-    myVotes[existId] = true;
-    saveToHistory(name);
-    toast(`"${name}" 에 투표했습니다`);
+    db.ref(`games/${currentRoom.code}/${existId}/votes`).transaction(v=>(v||0)+1);
+    myVotes[existId] = true; saveToHistory(name); toast(`"${name}" 에 투표했습니다`);
   } else {
     const id = db.ref(`games/${currentRoom.code}`).push().key;
-    db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes: 1, voters: { [sanitizeKey(myNick)]: true } });
-    myVotes[id] = true;
-    saveToHistory(name);
+    db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes:1, voters:{ [sanitizeKey(myNick)]:true } });
+    myVotes[id] = true; saveToHistory(name);
   }
-  input.value = ''; input.focus();
-  renderHistory();
+  input.value=''; input.focus(); renderHistory();
 }
 
 function toggleVote(gameId) {
   const game = gamesData[gameId]; if (!game) return;
   const voterRef = db.ref(`games/${currentRoom.code}/${gameId}/voters/${sanitizeKey(myNick)}`);
   const voteRef = db.ref(`games/${currentRoom.code}/${gameId}/votes`);
-  if (myVotes[gameId]) {
-    voterRef.remove(); voteRef.transaction(v => Math.max((v||1) - 1, 0)); delete myVotes[gameId];
-  } else {
-    voterRef.set(true); voteRef.transaction(v => (v||0) + 1); myVotes[gameId] = true;
-  }
+  if (myVotes[gameId]) { voterRef.remove(); voteRef.transaction(v=>Math.max((v||1)-1,0)); delete myVotes[gameId]; }
+  else { voterRef.set(true); voteRef.transaction(v=>(v||0)+1); myVotes[gameId]=true; }
 }
 
-function deleteGame(gameId) { if (!isHost) return; db.ref(`games/${currentRoom.code}/${gameId}`).remove(); delete myVotes[gameId]; }
+function deleteGame(gameId) { if(!isHost) return; db.ref(`games/${currentRoom.code}/${gameId}`).remove(); delete myVotes[gameId]; }
 
 function selectAllGames() {
   Object.entries(gamesData).forEach(([id]) => {
     if (!myVotes[id]) {
       db.ref(`games/${currentRoom.code}/${id}/voters/${sanitizeKey(myNick)}`).set(true);
-      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v => (v||0) + 1);
+      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v=>(v||0)+1);
       myVotes[id] = true;
     }
   });
 }
-
 function deselectAllGames() {
   Object.entries(gamesData).forEach(([id]) => {
     if (myVotes[id]) {
       db.ref(`games/${currentRoom.code}/${id}/voters/${sanitizeKey(myNick)}`).remove();
-      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v => Math.max((v||1) - 1, 0));
+      db.ref(`games/${currentRoom.code}/${id}/votes`).transaction(v=>Math.max((v||1)-1,0));
       delete myVotes[id];
     }
   });
 }
 
-// Roulette
-function getVotedGames() { return Object.entries(gamesData).filter(([,g]) => (g.votes||0) > 0); }
+// === 룰렛 ===
+function getVotedGames() { return Object.entries(gamesData).filter(([,g])=>(g.votes||0)>0); }
 
-function drawRoulette(canvasId = 'roulette-canvas', angle = 0) {
-  const canvas = document.getElementById(canvasId); if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, cx = W/2, cy = W/2, R = W/2 - 8;
+function drawRoulette(canvasId='roulette-canvas', angle=0) {
+  const canvas = document.getElementById(canvasId); if(!canvas) return;
+  const ctx = canvas.getContext('2d'), W=canvas.width, cx=W/2, cy=W/2, R=W/2-8;
   ctx.clearRect(0,0,W,W);
   const voted = getVotedGames();
-  if (voted.length === 0) {
-    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
-    ctx.fillStyle = '#F1F5F9'; ctx.fill();
-    ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#94A3B8'; ctx.font = 'bold 28px Rajdhani'; ctx.textAlign = 'center';
-    ctx.fillText('투표된 게임 없음', cx, cy); return;
+  if (!voted.length) {
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle='#F1F5F9'; ctx.fill();
+    ctx.strokeStyle='#CBD5E1'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#94A3B8'; ctx.font='bold 28px Rajdhani'; ctx.textAlign='center';
+    ctx.fillText('투표된 게임 없음',cx,cy); return;
   }
-  const totalVotes = voted.reduce((s,[,g]) => s + (g.votes||0), 0);
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
+  const totalVotes = voted.reduce((s,[,g])=>s+(g.votes||0),0);
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle);
   let startAngle = 0;
-  voted.forEach(([, g], i) => {
-    const sliceAngle = ((g.votes||0) / totalVotes) * Math.PI * 2;
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R, startAngle, startAngle + sliceAngle);
-    ctx.closePath(); ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length]; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2; ctx.stroke();
-    const midAngle = startAngle + sliceAngle/2;
-    const labelR = R * 0.6;
-    ctx.save();
-    ctx.translate(Math.cos(midAngle)*labelR, Math.sin(midAngle)*labelR);
-    ctx.rotate(midAngle + Math.PI/2);
-    const fontSize = Math.min(32, Math.max(16, sliceAngle * R * 0.14));
-    ctx.font = `bold ${fontSize}px Rajdhani`;
-    ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 3;
-    const name = g.name.length > 6 ? g.name.slice(0,5)+'...' : g.name;
-    ctx.fillText(name, 0, -6);
-    ctx.font = `bold ${fontSize * 0.65}px Orbitron`;
-    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText(`${g.votes||0}`, 0, fontSize * 0.45);
-    ctx.restore();
-    startAngle += sliceAngle;
+  voted.forEach(([,g],i) => {
+    const sliceAngle = ((g.votes||0)/totalVotes)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R,startAngle,startAngle+sliceAngle);
+    ctx.closePath(); ctx.fillStyle=WHEEL_COLORS[i%WHEEL_COLORS.length]; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2; ctx.stroke();
+    const midAngle=startAngle+sliceAngle/2, labelR=R*0.6;
+    ctx.save(); ctx.translate(Math.cos(midAngle)*labelR,Math.sin(midAngle)*labelR);
+    ctx.rotate(midAngle+Math.PI/2);
+    const fontSize = Math.min(32,Math.max(16,sliceAngle*R*0.14));
+    ctx.font=`bold ${fontSize}px Rajdhani`; ctx.fillStyle='white'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=3;
+    ctx.fillText(g.name.length>6?g.name.slice(0,5)+'...':g.name, 0, -6);
+    ctx.font=`bold ${fontSize*0.65}px Orbitron`; ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.fillText(`${g.votes||0}`, 0, fontSize*0.45);
+    ctx.restore(); startAngle += sliceAngle;
   });
   ctx.restore();
 }
-
 function drawRouletteViewer() { drawRoulette('roulette-canvas-viewer', spinAngle); }
 
 function spinRoulette() {
   const voted = getVotedGames();
-  if (voted.length === 0) return toast('투표된 게임이 없습니다');
-  if (voted.length === 1) {
-    showResult(voted[0][1].name, voted[0][1].votes||0);
-    db.ref(`rooms/${currentRoom.code}/roulette`).set({ winner: voted[0][1].name, votes: voted[0][1].votes||0, timestamp: Date.now() }); return;
+  if (!voted.length) return toast('투표된 게임이 없습니다');
+  if (voted.length===1) {
+    showResult(voted[0][1].name,voted[0][1].votes||0);
+    db.ref(`rooms/${currentRoom.code}/roulette`).set({winner:voted[0][1].name,votes:voted[0][1].votes||0,timestamp:Date.now()}); return;
   }
-  document.getElementById('spin-btn').disabled = true;
-  const totalVotes = voted.reduce((s,[,g]) => s + (g.votes||0), 0);
-  let rand = Math.random() * totalVotes, winnerIdx = 0;
-  for (let i=0; i<voted.length; i++) { rand -= (voted[i][1].votes||0); if (rand <= 0) { winnerIdx = i; break; } }
-  let accAngle = 0;
-  for (let i=0; i<winnerIdx; i++) accAngle += ((voted[i][1].votes||0)/totalVotes) * 360;
-  const sliceDeg = ((voted[winnerIdx][1].votes||0)/totalVotes) * 360;
-  const targetDeg = accAngle + sliceDeg * (0.2 + Math.random()*0.6);
-  const finalAngle = 360 * (6 + Math.floor(Math.random()*4)) + (360 - targetDeg + 270) % 360;
-  const duration = 4000 + Math.random() * 1500;
-  const startTime = performance.now(), startA = spinAngle;
-  db.ref(`rooms/${currentRoom.code}/roulette`).set({
-    spinning: true, finalAngle, duration, startTime: Date.now(),
-    winner: voted[winnerIdx][1].name, votes: voted[winnerIdx][1].votes||0, timestamp: Date.now()
-  });
-  function animate(now) {
-    const elapsed = now - startTime, progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    spinAngle = ((startA * 180 / Math.PI + finalAngle * eased) % 360) * Math.PI / 180;
-    drawRoulette('roulette-canvas', spinAngle);
-    if (progress < 1) requestAnimationFrame(animate);
-    else {
-      document.getElementById('spin-btn').disabled = false;
-      showResult(voted[winnerIdx][1].name, voted[winnerIdx][1].votes||0);
-      db.ref(`rooms/${currentRoom.code}/roulette`).update({ spinning: false });
-    }
+  document.getElementById('spin-btn').disabled=true;
+  const totalVotes=voted.reduce((s,[,g])=>s+(g.votes||0),0);
+  let rand=Math.random()*totalVotes, winnerIdx=0;
+  for(let i=0;i<voted.length;i++){rand-=(voted[i][1].votes||0);if(rand<=0){winnerIdx=i;break;}}
+  let accAngle=0;
+  for(let i=0;i<winnerIdx;i++) accAngle+=((voted[i][1].votes||0)/totalVotes)*360;
+  const sliceDeg=((voted[winnerIdx][1].votes||0)/totalVotes)*360;
+  const targetDeg=accAngle+sliceDeg*(0.2+Math.random()*0.6);
+  const finalAngle=360*(6+Math.floor(Math.random()*4))+(360-targetDeg+270)%360;
+  const duration=4000+Math.random()*1500, startTime=performance.now(), startA=spinAngle;
+  db.ref(`rooms/${currentRoom.code}/roulette`).set({spinning:true,finalAngle,duration,startTime:Date.now(),winner:voted[winnerIdx][1].name,votes:voted[winnerIdx][1].votes||0,timestamp:Date.now()});
+  function animate(now){
+    const elapsed=now-startTime, progress=Math.min(elapsed/duration,1), eased=1-Math.pow(1-progress,3);
+    spinAngle=((startA*180/Math.PI+finalAngle*eased)%360)*Math.PI/180;
+    drawRoulette('roulette-canvas',spinAngle);
+    if(progress<1) requestAnimationFrame(animate);
+    else{document.getElementById('spin-btn').disabled=false;showResult(voted[winnerIdx][1].name,voted[winnerIdx][1].votes||0);db.ref(`rooms/${currentRoom.code}/roulette`).update({spinning:false});}
   }
   requestAnimationFrame(animate);
 }
 
 function listenRoulette() {
-  const ref = db.ref(`rooms/${currentRoom.code}/roulette`);
-  const cb = ref.on('value', snap => {
-    const d = snap.val(); if (!d) return;
-    if (!isHost && d.spinning && d.finalAngle && d.duration) {
-      const remaining = Math.max(d.duration - (Date.now() - d.startTime), 500);
-      animateViewer(d.finalAngle, remaining, d.winner, d.votes);
-      document.getElementById('viewer-status').textContent = '룰렛이 돌아가는 중...';
+  const ref=db.ref(`rooms/${currentRoom.code}/roulette`);
+  const cb=ref.on('value',snap=>{
+    const d=snap.val();if(!d) return;
+    if(!isHost&&d.spinning&&d.finalAngle&&d.duration){
+      const remaining=Math.max(d.duration-(Date.now()-d.startTime),500);
+      animateViewer(d.finalAngle,remaining,d.winner,d.votes);
+      document.getElementById('viewer-status').textContent='룰렛이 돌아가는 중...';
     }
-    if (!isHost && !d.spinning && d.winner) {
-      document.getElementById('viewer-status').textContent = `결과: ${d.winner}`;
-      if (d.timestamp && Date.now() - d.timestamp < 8000) showResult(d.winner, d.votes||0);
+    if(!isHost&&!d.spinning&&d.winner){
+      document.getElementById('viewer-status').textContent=`결과: ${d.winner}`;
+      if(d.timestamp&&Date.now()-d.timestamp<8000) showResult(d.winner,d.votes||0);
     }
   });
-  listeners.push(() => ref.off('value', cb));
+  listeners.push(()=>ref.off('value',cb));
 }
 
-function animateViewer(finalAngle, duration, winnerName, winnerVotes) {
-  const startTime = performance.now(), startA = spinAngle;
-  function animate(now) {
-    const elapsed = now - startTime, progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    spinAngle = ((startA * 180/Math.PI + finalAngle * eased) % 360) * Math.PI / 180;
-    drawRoulette('roulette-canvas-viewer', spinAngle);
-    if (progress < 1) requestAnimationFrame(animate);
-    else showResult(winnerName, winnerVotes);
+function animateViewer(finalAngle,duration,winnerName,winnerVotes){
+  const startTime=performance.now(),startA=spinAngle;
+  function animate(now){
+    const elapsed=now-startTime,progress=Math.min(elapsed/duration,1),eased=1-Math.pow(1-progress,3);
+    spinAngle=((startA*180/Math.PI+finalAngle*eased)%360)*Math.PI/180;
+    drawRoulette('roulette-canvas-viewer',spinAngle);
+    if(progress<1) requestAnimationFrame(animate); else showResult(winnerName,winnerVotes);
   }
   requestAnimationFrame(animate);
 }
 
-function showResult(name, votes) {
-  document.getElementById('result-name').textContent = name;
-  document.getElementById('result-votes').textContent = `${votes}표로 당첨`;
+function showResult(name,votes){
+  document.getElementById('result-name').textContent=name;
+  document.getElementById('result-votes').textContent=`${votes}표로 당첨`;
   document.getElementById('result-overlay').classList.add('show');
   launchConfetti();
 }
-function closeResult() { document.getElementById('result-overlay').classList.remove('show'); }
+function closeResult(){document.getElementById('result-overlay').classList.remove('show');}
 
-function launchConfetti() {
-  const canvas = document.getElementById('confetti-canvas');
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  const ctx = canvas.getContext('2d'), particles = [];
-  const colors = ['#2563EB','#D97706','#059669','#7C3AED','#0EA5E9','#DC2626'];
-  for (let i=0;i<100;i++) particles.push({
-    x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
-    w: Math.random()*8+4, h: Math.random()*6+2, color: colors[Math.floor(Math.random()*colors.length)],
-    vx: (Math.random()-0.5)*3, vy: Math.random()*4+2, rot: Math.random()*360,
-    rotSpeed: (Math.random()-0.5)*10, opacity: 1
-  });
-  let frame = 0;
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height); let alive = false;
-    particles.forEach(p => {
-      if (p.opacity <= 0) return; alive = true;
-      p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.rotSpeed;
-      if (p.y > canvas.height) p.opacity -= 0.02;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI/180);
-      ctx.globalAlpha = Math.max(p.opacity, 0); ctx.fillStyle = p.color;
-      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore();
-    });
-    frame++; if (alive && frame < 250) requestAnimationFrame(draw);
-    else ctx.clearRect(0,0,canvas.width,canvas.height);
-  }
+function launchConfetti(){
+  const canvas=document.getElementById('confetti-canvas');canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d'),particles=[],colors=['#2563EB','#D97706','#059669','#7C3AED','#0EA5E9','#DC2626'];
+  for(let i=0;i<100;i++) particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,w:Math.random()*8+4,h:Math.random()*6+2,color:colors[Math.floor(Math.random()*colors.length)],vx:(Math.random()-0.5)*3,vy:Math.random()*4+2,rot:Math.random()*360,rotSpeed:(Math.random()-0.5)*10,opacity:1});
+  let frame=0;
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;particles.forEach(p=>{if(p.opacity<=0)return;alive=true;p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.rot+=p.rotSpeed;if(p.y>canvas.height)p.opacity-=0.02;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=Math.max(p.opacity,0);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});frame++;if(alive&&frame<250)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);}
   requestAnimationFrame(draw);
 }
 
-function copyCode() { navigator.clipboard.writeText(currentRoom.code).then(() => toast('코드 복사됨')).catch(() => toast(currentRoom.code)); }
-function copyLink() {
-  const link = `${location.origin}${location.pathname}?room=${currentRoom.code}`;
-  navigator.clipboard.writeText(link).then(() => toast('링크 복사됨'));
-}
-function shareNative() {
-  const text = `"${currentRoom.title}" 게임 투표에 참여하세요! 초대코드: ${currentRoom.code}`;
-  if (navigator.share) navigator.share({ title: '게임 투표', text });
-  else navigator.clipboard.writeText(text).then(() => toast('공유 텍스트 복사됨'));
-}
+function copyCode(){navigator.clipboard.writeText(currentRoom.code).then(()=>toast('코드 복사됨')).catch(()=>toast(currentRoom.code));}
+function copyLink(){navigator.clipboard.writeText(`${location.origin}${location.pathname}?room=${currentRoom.code}`).then(()=>toast('링크 복사됨'));}
+function shareNative(){const text=`"${currentRoom.title}" 게임 투표에 참여하세요! 초대코드: ${currentRoom.code}`;if(navigator.share) navigator.share({title:'게임 투표',text});else navigator.clipboard.writeText(text).then(()=>toast('공유 텍스트 복사됨'));}
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function sanitizeKey(s) { return s.replace(/[.#$[\]\/]/g, '_'); }
-function toast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg;
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200);
-}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function sanitizeKey(s){return s.replace(/[.#$[\]\/]/g,'_');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// 페이지 나갈 때 presence 정리
+window.addEventListener('beforeunload', () => {
+  if (currentRoom) db.ref(`members/${currentRoom.code}/${sanitizeKey(myNick)}`).remove();
+});
 
 window.addEventListener('load', () => {
   const p = new URLSearchParams(location.search), room = p.get('room');
-  if (room) { document.getElementById('join-code').value = room.toUpperCase(); showScreen('join'); document.getElementById('join-nick').focus(); }
-
-  // 히스토리 패널 바깥 클릭 시 닫기
-  document.addEventListener('click', (e) => {
-    const panel = document.getElementById('history-panel');
-    const input = document.getElementById('new-game');
+  if (room) { document.getElementById('join-code').value = room.toUpperCase(); showScreen('join'); }
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('history-panel'), input = document.getElementById('new-game');
     const addRow = input ? input.closest('.add-row') : null;
     if (!panel || !panel.classList.contains('show')) return;
-    if (panel.contains(e.target)) return;
-    if (addRow && addRow.contains(e.target)) return;
+    if (panel.contains(e.target) || (addRow && addRow.contains(e.target))) return;
     panel.classList.remove('show');
   });
 });
