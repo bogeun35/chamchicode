@@ -332,6 +332,63 @@ body {
 }
 .empty-state p { font-size: .92rem; line-height: 1.5; }
 
+/* History panel */
+.history-panel {
+  display: none;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: 10px;
+  overflow: hidden;
+  animation: fadeIn .2s ease;
+  max-height: 240px;
+}
+.history-panel.show { display: block; }
+.history-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+.history-title {
+  font-size: .78rem; font-weight: 700;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.history-clear {
+  font-size: .72rem; font-weight: 600;
+  color: var(--red); background: none; border: none;
+  cursor: pointer; padding: 2px 6px; border-radius: 4px;
+}
+.history-clear:hover { background: rgba(220,38,38,0.06); }
+.history-list {
+  max-height: 190px; overflow-y: auto;
+  padding: 6px;
+}
+.history-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; border-radius: 8px;
+  cursor: pointer; transition: all .15s;
+  font-size: .92rem; font-weight: 600;
+  color: var(--text);
+}
+.history-item:hover { background: var(--bg); }
+.history-item.in-room {
+  color: var(--text-dim);
+  cursor: default;
+}
+.history-item.in-room:hover { background: transparent; }
+.history-item .h-status {
+  font-size: .72rem; font-weight: 600;
+  color: var(--text-dim); padding: 2px 8px;
+  border-radius: 4px; background: var(--surface-alt);
+}
+.history-item.in-room .h-status { color: var(--accent); background: rgba(37,99,235,0.08); }
+.history-empty {
+  text-align: center; padding: 20px;
+  color: var(--text-dim); font-size: .85rem;
+}
+
 /* Confetti canvas */
 #confetti-canvas { position: fixed; inset:0; pointer-events: none; z-index: 150; }
 
@@ -430,8 +487,17 @@ body {
 
     <div class="add-row">
       <input type="text" id="new-game" placeholder="게임 이름 추가..."
-             maxlength="30" onkeydown="if(event.key==='Enter'){addGame()}">
+             maxlength="30" onkeydown="if(event.key==='Enter'){addGame()}" onfocus="showHistory()" oninput="filterHistory()">
       <button onclick="addGame()">추가</button>
+    </div>
+
+    <!-- 과거 게임 히스토리 -->
+    <div class="history-panel" id="history-panel">
+      <div class="history-header">
+        <span class="history-title">내 게임 기록</span>
+        <button class="history-clear" onclick="clearHistory()">기록 삭제</button>
+      </div>
+      <div class="history-list" id="history-list"></div>
     </div>
 
     <!-- Roulette (Host) -->
@@ -491,7 +557,78 @@ const db = firebase.database();
 
 let currentRoom = null, isHost = false, myNick = '', myVotes = {}, gamesData = {}, listeners = [], spinAngle = 0;
 
+const HISTORY_KEY = 'charms_game_history';
 const WHEEL_COLORS = ['#2563EB','#D97706','#059669','#7C3AED','#0EA5E9','#DC2626','#6D28D9','#B45309','#0891B2','#4F46E5','#DB2777','#047857'];
+
+// === 게임 히스토리 ===
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) { return []; }
+}
+function saveToHistory(name) {
+  let hist = getHistory();
+  hist = hist.filter(h => h.toLowerCase() !== name.toLowerCase());
+  hist.unshift(name);
+  if (hist.length > 50) hist = hist.slice(0, 50);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+}
+function clearHistory() {
+  if (!confirm('게임 기록을 모두 삭제할까요?')) return;
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+  toast('기록이 삭제되었습니다');
+}
+
+function showHistory() {
+  renderHistory();
+  document.getElementById('history-panel').classList.add('show');
+}
+function hideHistory() {
+  setTimeout(() => {
+    document.getElementById('history-panel').classList.remove('show');
+  }, 200);
+}
+function filterHistory() {
+  renderHistory();
+}
+function renderHistory() {
+  const panel = document.getElementById('history-panel');
+  const list = document.getElementById('history-list');
+  const hist = getHistory();
+  const input = document.getElementById('new-game');
+  const keyword = (input ? input.value.trim().toLowerCase() : '');
+
+  if (hist.length === 0) {
+    list.innerHTML = '<div class="history-empty">아직 기록이 없습니다</div>';
+    return;
+  }
+
+  const currentNames = new Set(Object.values(gamesData).map(g => g.name.toLowerCase()));
+  let filtered = hist;
+  if (keyword) {
+    filtered = hist.filter(h => h.toLowerCase().includes(keyword));
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="history-empty">일치하는 기록 없음</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(name => {
+    const inRoom = currentNames.has(name.toLowerCase());
+    return `<div class="history-item ${inRoom ? 'in-room' : ''}" 
+                 onclick="${inRoom ? '' : `addFromHistory('${esc(name.replace(/'/g, "\\'"))}')`}">
+      <span>${esc(name)}</span>
+      <span class="h-status">${inRoom ? '추가됨' : '클릭하여 추가'}</span>
+    </div>`;
+  }).join('');
+}
+
+function addFromHistory(name) {
+  const input = document.getElementById('new-game');
+  input.value = name;
+  addGame();
+  renderHistory();
+}
 
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -592,13 +729,16 @@ function addGame() {
     db.ref(`games/${currentRoom.code}/${existId}/voters/${sanitizeKey(myNick)}`).set(true);
     db.ref(`games/${currentRoom.code}/${existId}/votes`).transaction(v => (v||0) + 1);
     myVotes[existId] = true;
+    saveToHistory(name);
     toast(`"${name}" 에 투표했습니다`);
   } else {
     const id = db.ref(`games/${currentRoom.code}`).push().key;
     db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes: 1, voters: { [sanitizeKey(myNick)]: true } });
     myVotes[id] = true;
+    saveToHistory(name);
   }
   input.value = ''; input.focus();
+  renderHistory();
 }
 
 function toggleVote(gameId) {
@@ -804,6 +944,17 @@ function toast(msg) {
 window.addEventListener('load', () => {
   const p = new URLSearchParams(location.search), room = p.get('room');
   if (room) { document.getElementById('join-code').value = room.toUpperCase(); showScreen('join'); document.getElementById('join-nick').focus(); }
+
+  // 히스토리 패널 바깥 클릭 시 닫기
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('history-panel');
+    const input = document.getElementById('new-game');
+    const addRow = input ? input.closest('.add-row') : null;
+    if (!panel || !panel.classList.contains('show')) return;
+    if (panel.contains(e.target)) return;
+    if (addRow && addRow.contains(e.target)) return;
+    panel.classList.remove('show');
+  });
 });
 </script>
 </body>
