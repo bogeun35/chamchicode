@@ -367,7 +367,8 @@ function createRoom() {
   if (!host) return toast('닉네임을 입력해주세요');
   saveNick(host);
   const code = genCode();
-  db.ref(`rooms/${code}`).set({ title:'참스코드 게임투표', host, createdAt:Date.now(), roulette:null }).then(() => {
+  const ROOM_TTL = 30 * 60 * 1000; // 30분
+  db.ref(`rooms/${code}`).set({ title:'참스코드 게임투표', host, createdAt:Date.now(), expiresAt:Date.now()+ROOM_TTL, roulette:null }).then(() => {
     currentRoom = { code, title:'참스코드 게임투표', host }; isHost = true; myNick = host; enterRoom();
   }).catch(() => toast('방 생성 실패'));
 }
@@ -380,7 +381,15 @@ function joinRoom() {
   saveNick(nick);
   db.ref(`rooms/${code}`).once('value').then(snap => {
     if (!snap.exists()) return toast('존재하지 않는 방입니다');
-    const d = snap.val(); currentRoom = { code, ...d };
+    const d = snap.val();
+    if (d.expiresAt && Date.now() > d.expiresAt) {
+      // 만료된 방 정리
+      db.ref(`rooms/${code}`).remove();
+      db.ref(`games/${code}`).remove();
+      db.ref(`members/${code}`).remove();
+      return toast('만료된 방입니다');
+    }
+    currentRoom = { code, ...d };
     isHost = (d.host === nick); myNick = nick; enterRoom();
   }).catch(() => toast('입장 실패'));
 }
@@ -398,21 +407,64 @@ function enterRoom() {
   listenMembers();
   listenGames();
   listenRoulette();
+  listenRoomExists();
 }
 
 function leaveRoom() {
-  if (currentRoom) db.ref(`members/${currentRoom.code}/${sanitizeKey(myNick)}`).remove();
+  if (isHost && !confirm('방장이 나가면 방이 삭제됩니다. 나가시겠습니까?')) return;
+  if (currentRoom) {
+    const code = currentRoom.code;
+    const myKey = sanitizeKey(myNick);
+    if (isHost) {
+      db.ref(`rooms/${code}`).remove();
+      db.ref(`games/${code}`).remove();
+      db.ref(`members/${code}`).remove();
+    } else {
+      db.ref(`members/${code}/${myKey}`).remove();
+      Object.keys(gamesData).forEach(id => {
+        db.ref(`games/${code}/${id}/voters/${myKey}`).remove();
+      });
+    }
+  }
   listeners.forEach(fn => fn()); listeners = [];
-  currentRoom = null; gamesData = {}; myVotes = {}; membersData = {};
+  currentRoom = null; gamesData = {}; myVotes = {}; membersData = {}; isHost = false;
   showScreen('home');
 }
 
 // === 참여자 presence ===
 function registerPresence() {
-  const memberRef = db.ref(`members/${currentRoom.code}/${sanitizeKey(myNick)}`);
+  const code = currentRoom.code;
+  const myKey = sanitizeKey(myNick);
+  const memberRef = db.ref(`members/${code}/${myKey}`);
   memberRef.set({ nick: myNick, isHost, joinedAt: Date.now() });
-  memberRef.onDisconnect().remove();
-  listeners.push(() => { memberRef.onDisconnect().cancel(); memberRef.remove(); });
+
+  if (isHost) {
+    // 방장 disconnect → 방 전체 삭제
+    db.ref(`rooms/${code}`).onDisconnect().remove();
+    db.ref(`games/${code}`).onDisconnect().remove();
+    db.ref(`members/${code}`).onDisconnect().remove();
+    listeners.push(() => {
+      db.ref(`rooms/${code}`).onDisconnect().cancel();
+      db.ref(`games/${code}`).onDisconnect().cancel();
+      db.ref(`members/${code}`).onDisconnect().cancel();
+    });
+  } else {
+    // 참여자 disconnect → presence 제거
+    memberRef.onDisconnect().remove();
+    listeners.push(() => { memberRef.onDisconnect().cancel(); memberRef.remove(); });
+  }
+}
+
+// 참여자 disconnect 시 투표도 제거 (게임 목록 변경 감지 후 등록)
+function registerVoteCleanup() {
+  if (isHost || !currentRoom) return;
+  const code = currentRoom.code;
+  const myKey = sanitizeKey(myNick);
+  Object.keys(gamesData).forEach(id => {
+    if (gamesData[id].voters && gamesData[id].voters[myKey]) {
+      db.ref(`games/${code}/${id}/voters/${myKey}`).onDisconnect().remove();
+    }
+  });
 }
 
 function listenMembers() {
@@ -444,6 +496,7 @@ function listenGames() {
       if (g.voters && g.voters[myKey]) myVotes[id] = true;
     });
     renderGames(); drawRoulette();
+    registerVoteCleanup();
     if (!isHost) drawRouletteViewer();
   });
   listeners.push(() => ref.off('value', cb));
@@ -595,6 +648,20 @@ function listenRoulette() {
     }
   });
   listeners.push(()=>ref.off('value',cb));
+}
+
+function listenRoomExists() {
+  if (isHost) return; // 방장은 자기가 삭제하는 거니까 불필요
+  const ref = db.ref(`rooms/${currentRoom.code}`);
+  const cb = ref.on('value', snap => {
+    if (!snap.exists()) {
+      toast('방이 종료되었습니다');
+      listeners.forEach(fn => fn()); listeners = [];
+      currentRoom = null; gamesData = {}; myVotes = {}; membersData = {}; isHost = false;
+      showScreen('home');
+    }
+  });
+  listeners.push(() => ref.off('value', cb));
 }
 
 function animateViewer(finalAngle,duration,winnerName,winnerVotes){
