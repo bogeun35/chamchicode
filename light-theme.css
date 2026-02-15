@@ -1,7 +1,9 @@
 /* ============================================
-   참스코드 라이트 테마 v2 - 가독성 최우선
+   참스코드 라이트 테마 v3 
+   모든 흰색 텍스트 문제 완전 해결
    ============================================ */
 
+/* === 1. 변수 오버라이드 === */
 :root {
     --ow-orange: #D97706 !important;
     --ow-blue: #2563EB !important;
@@ -11,6 +13,18 @@
     --ow-white: #0F172A !important;
 }
 
+/* === 2. 전역 텍스트 색상 강제 === */
+body {
+    color: #0F172A !important;
+    background: #EFF6FF !important;
+}
+
+/* 모든 요소 기본 텍스트를 어둡게 (배경이 밝으므로) */
+body *:not(.spectator-card):not(.spectator-card *):not(.saved-player-tag):not(.saved-player-tag *):not(.btn):not(.auction-bid-btn):not(.auction-control-btn):not(.auction-pass-btn):not(.auction-next-btn):not(.auction-close-btn):not(.add-player-btn):not(.modal-btn.save):not(.template-action-btn):not(.screenshot-btn.apply):not(.team-points):not(.leader-badge):not(.tier-badge):not(.auction-header *):not(.template-btn.active):not(.role-option.selected) {
+    color: inherit;
+}
+
+/* === 3. 배경 === */
 .hex-background {
     background: linear-gradient(135deg, rgba(37,99,235,0.04) 0%, transparent 50%),
                 linear-gradient(225deg, rgba(245,158,11,0.04) 0%, transparent 50%), #EFF6FF !important;
@@ -20,15 +34,15 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.25'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
 }
 
+/* === 4. 컨트롤 바 === */
 .controls {
     background: rgba(255,255,255,0.8) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid #DBEAFE !important;
-    border-radius: 12px !important;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #DBEAFE !important; border-radius: 12px !important;
     box-shadow: 0 2px 12px rgba(15,23,42,0.05);
 }
 
+/* === 5. 버튼 (색 배경 + 흰 텍스트 유지) === */
 .btn { border-radius: 8px !important; box-shadow: 0 2px 6px rgba(0,0,0,0.08); color: white !important; }
 .btn-balanced { background: linear-gradient(135deg, #2563EB, #0EA5E9) !important; }
 .btn-spectator { background: linear-gradient(135deg, #7C3AED, #6D28D9) !important; }
@@ -37,65 +51,87 @@
 .btn-reset-spectator { background: linear-gradient(135deg, #475569, #334155) !important; }
 .btn-add-all { background: linear-gradient(135deg, #059669, #047857) !important; }
 
+/* === 6. 팀 컨테이너 === */
 .teams-container {
     background: rgba(255,255,255,0.7) !important;
-    backdrop-filter: blur(16px);
-    border: 1px solid #DBEAFE !important;
-    border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
+    backdrop-filter: blur(16px); border: 1px solid #DBEAFE !important;
+    border-radius: 14px !important; box-shadow: 0 4px 16px rgba(15,23,42,0.05);
 }
 .team { background: white !important; border-radius: 12px !important; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
 .team-1 { border: 2px solid #93C5FD !important; }
 .team-2 { border: 2px solid #FCD34D !important; }
-.team-header { border-bottom: 1px solid #E2E8F0 !important; }
+.team-header { border-bottom: 1px solid #E2E8F0 !important; color: #0F172A !important; }
 .team-1 .team-header { color: #1D4ED8 !important; }
+.team-1 .team-header span { color: #1D4ED8 !important; }
 .team-2 .team-header { color: #B45309 !important; }
+.team-2 .team-header span { color: #B45309 !important; }
 .team-score { background: #F1F5F9 !important; color: #334155 !important; }
 .team-points { background: linear-gradient(135deg, #7C3AED, #6D28D9) !important; color: white !important; }
+.team-stats { color: #334155 !important; }
 
+/* === 7. 슬롯 === */
 .team-slot { background: #F8FAFC !important; border: 2px dashed #CBD5E1 !important; border-radius: 8px !important; }
 .team-slot.drag-over { background: #EFF6FF !important; border-style: solid !important; border-color: #2563EB !important; }
 .team-slot.empty::after { color: #CBD5E1 !important; }
 
-.player-card { background: white !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+/* === 8. 플레이어 카드 (흰 배경 → 어두운 텍스트) === */
+.player-card { background: white !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; color: #0F172A !important; }
+.player-card * { color: #0F172A !important; }
 .player-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important; }
 .player-card.is-leader { border: 2px solid #D97706 !important; box-shadow: 0 0 10px rgba(217,119,6,0.15) !important; }
-.player-role-icon { background: #F1F5F9 !important; }
+.player-card-content { color: #0F172A !important; }
+.player-role-icon { background: #F1F5F9 !important; color: inherit !important; }
 .player-role-icon:hover { background: #E2E8F0 !important; }
 .player-name { color: #0F172A !important; }
+.player-info { color: #0F172A !important; }
 .leader-badge { background: #D97706 !important; color: white !important; }
 .role-badge { background: #F1F5F9 !important; color: #475569 !important; }
+.player-meta span { color: #475569 !important; }
 
+/* 티어 뱃지 (진한 배경 + 흰 텍스트) */
+.tier-badge { color: white !important; }
 .tier-bronze { background: #92400E !important; color: white !important; }
 .tier-silver { background: #6B7280 !important; color: white !important; }
 .tier-gold { background: #B45309 !important; color: white !important; }
 .tier-platinum { background: #0E7490 !important; color: white !important; }
 .tier-diamond { background: #4F46E5 !important; color: white !important; }
 
+/* === 9. VS === */
+.vs-text { color: #0F172A !important; -webkit-text-fill-color: initial !important; background: none !important; }
 .score-diff { background: #F1F5F9 !important; color: #475569 !important; border-radius: 8px !important; }
 .score-diff.balanced { background: #ECFDF5 !important; border: 1px solid #6EE7B7 !important; color: #047857 !important; }
 
+/* === 10. 관전자 (보라 배경 → 흰 텍스트 유지) === */
 .spectators { background: white !important; border: 2px solid #DDD6FE !important; border-radius: 12px !important; }
 .spectators-header { color: #6D28D9 !important; }
+.spectators-header span { color: #6D28D9 !important; }
 .spectator-count { background: #EDE9FE !important; color: #6D28D9 !important; }
 .spectators-grid.drag-over { background: #F5F3FF !important; border: 2px dashed #8B5CF6 !important; }
 .spectators-grid.empty::after { color: #CBD5E1 !important; }
 .spectator-card { background: linear-gradient(135deg, #6D28D9, #7C3AED) !important; border-radius: 8px !important; }
 .spectator-card:hover { box-shadow: 0 4px 16px rgba(109,40,217,0.3) !important; }
-.spectator-card * { color: white !important; }
-.spectator-tier, .spectator-role { background: rgba(255,255,255,0.2) !important; color: white !important; }
-.spectator-tier:hover, .spectator-role:hover { background: rgba(255,255,255,0.35) !important; }
+.spectator-card, .spectator-card * { color: white !important; }
+.spectator-card .spectator-name { color: white !important; }
+.spectator-card .spectator-tier,
+.spectator-card .spectator-role { background: rgba(255,255,255,0.2) !important; color: white !important; }
+.spectator-card .spectator-tier:hover,
+.spectator-card .spectator-role:hover { background: rgba(255,255,255,0.35) !important; }
+.spectator-card .remove-spectator-btn { color: white !important; }
 
+/* === 11. 참가자 목록 === */
 .player-list-container {
     background: rgba(255,255,255,0.7) !important;
-    backdrop-filter: blur(16px);
-    border: 1px solid #DBEAFE !important;
-    border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
+    backdrop-filter: blur(16px); border: 1px solid #DBEAFE !important;
+    border-radius: 14px !important; box-shadow: 0 4px 16px rgba(15,23,42,0.05);
 }
+.player-input-section { color: #0F172A !important; }
 .section-title { color: #0F172A !important; }
 .saved-players { background: #F8FAFC !important; border: 1px dashed #CBD5E1 !important; border-radius: 8px !important; }
-.saved-player-tag { border-radius: 8px !important; color: white !important; }
+.saved-players > span { color: #94A3B8 !important; }
+
+/* 참가자 태그 (색 배경 → 흰 텍스트) */
+.saved-player-tag { border-radius: 8px !important; }
+.saved-player-tag, .saved-player-tag * { color: white !important; }
 .saved-player-tag.selectable { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; }
 .saved-player-tag.selectable:hover { box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important; }
 .saved-player-tag.in-spectator { background: linear-gradient(135deg, #6D28D9, #7C3AED) !important; }
@@ -103,81 +139,156 @@
 .saved-player-tag .tier-badge-small { background: rgba(255,255,255,0.25) !important; color: white !important; }
 .saved-player-tag .remove-btn { background: rgba(255,255,255,0.2) !important; color: white !important; }
 
-.player-name-input, .tier-input { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; border-radius: 8px !important; }
+/* === 12. 입력 폼 === */
+.player-name-input, .tier-input {
+    background: white !important; border: 2px solid #CBD5E1 !important;
+    color: #0F172A !important; border-radius: 8px !important;
+}
 .player-name-input:focus, .tier-input:focus { border-color: #2563EB !important; }
 .tier-input-label { color: #64748B !important; }
-.add-player-btn { border-radius: 8px !important; color: white !important; }
+.add-player-btn { border-radius: 8px !important; color: white !important; background: linear-gradient(135deg, #10B981, #059669) !important; }
+
+/* === 13. 안내 메시지 === */
 .info-message { background: #EFF6FF !important; border: 1px solid #BFDBFE !important; color: #475569 !important; border-radius: 8px !important; }
 
+/* === 14. 스크린샷 === */
 .screenshot-section { background: #FFFBEB !important; border: 2px dashed #FCD34D !important; border-radius: 10px !important; }
 .screenshot-section.drag-highlight { background: #FEF3C7 !important; border-color: #D97706 !important; }
 .screenshot-title { color: #92400E !important; }
-.screenshot-desc { color: #92400E !important; }
+.screenshot-desc { color: #78716C !important; }
+.screenshot-upload-area .upload-icon { filter: none !important; }
 .screenshot-upload-area .upload-text { color: #78716C !important; }
 .screenshot-upload-area .upload-text strong { color: #92400E !important; }
+.screenshot-names-area > div { color: #64748B !important; }
 .screenshot-names-textarea { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
-.screenshot-btn.apply { color: white !important; }
+.screenshot-names-textarea:focus { border-color: #D97706 !important; }
+.screenshot-btn.apply { color: white !important; background: linear-gradient(135deg, #D97706, #B45309) !important; }
 .screenshot-btn.cancel { background: #F1F5F9 !important; color: #475569 !important; }
 .screenshot-loading span { color: #475569 !important; }
 
-.sound-toggle { background: rgba(255,255,255,0.9) !important; border: 1px solid #DBEAFE !important; color: #0F172A !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; }
+/* === 15. 사운드 토글 === */
+.sound-toggle {
+    background: rgba(255,255,255,0.9) !important; border: 1px solid #DBEAFE !important;
+    color: #0F172A !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+/* === 16. 템플릿 === */
 .template-section { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.template-header .section-title { color: #0F172A !important; }
 .template-btn { border: 2px solid #2563EB !important; color: #2563EB !important; background: transparent !important; border-radius: 6px !important; }
 .template-btn:hover, .template-btn.active { background: #2563EB !important; color: white !important; }
+.template-action-btn.save { color: white !important; }
+.template-action-btn.rename { color: white !important; }
 
+/* === 17. 모달 (흰 배경 → 어두운 텍스트) === */
 .modal { background: rgba(15,23,42,0.4) !important; backdrop-filter: blur(4px); }
 .modal-content { background: white !important; border: 1px solid #E2E8F0 !important; border-radius: 14px !important; box-shadow: 0 20px 60px rgba(15,23,42,0.15) !important; }
+.modal-content * { color: #0F172A; }
 .modal-title { color: #0F172A !important; }
 .modal-input { background: #F8FAFC !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
 .modal-input:focus { border-color: #2563EB !important; }
-.modal-btn.save { color: white !important; }
+.modal-btn.save { color: white !important; background: linear-gradient(135deg, #10B981, #059669) !important; }
 .modal-btn.cancel { background: #F1F5F9 !important; color: #475569 !important; }
-.role-option { background: #F8FAFC !important; border: 2px solid #E2E8F0 !important; color: #475569 !important; }
-.role-option:hover { background: #EFF6FF !important; border-color: #93C5FD !important; color: #1D4ED8 !important; }
-.role-option.selected { background: #2563EB !important; border-color: #2563EB !important; color: white !important; }
+.modal-buttons .modal-btn { color: #475569 !important; }
+.modal-buttons .modal-btn.save { color: white !important; }
 
+/* 역할 선택 */
+.role-selector .role-option { background: #F8FAFC !important; border: 2px solid #E2E8F0 !important; color: #475569 !important; }
+.role-selector .role-option:hover { background: #EFF6FF !important; border-color: #93C5FD !important; color: #1D4ED8 !important; }
+.role-selector .role-option.selected { background: #2563EB !important; border-color: #2563EB !important; color: white !important; }
+
+/* === 18. 경매 모달 (핵심 가독성 영역) === */
 .auction-modal { background: rgba(15,23,42,0.5) !important; backdrop-filter: blur(8px); }
 .auction-content { background: white !important; border: 2px solid #FCD34D !important; border-radius: 16px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
+.auction-content * { color: #0F172A; }
+
+/* 경매 헤더 (오렌지 배경 → 흰 텍스트) */
 .auction-header { background: linear-gradient(135deg, #D97706, #B45309) !important; }
+.auction-header * { color: white !important; }
 .auction-title { color: white !important; }
+.auction-team-name { color: #0F172A !important; }
+.auction-header .auction-team-name { color: white !important; }
 #auctionLeader1Name, #auctionLeader2Name { color: white !important; text-shadow: none !important; }
+#auctionLeader1Wrap, #auctionLeader2Wrap { color: white !important; }
+
+/* 타이머 */
 .timer-ring-bg { stroke: #E2E8F0 !important; }
 .timer-seconds { color: #0F172A !important; }
+.timer-seconds.warning { color: #DC2626 !important; }
 .timer-label { color: #94A3B8 !important; }
+.timer-display { color: #0F172A !important; }
+.timer-display * { color: #0F172A !important; }
+.timer-seconds.warning, .timer-display .timer-seconds.warning { color: #DC2626 !important; }
+
+/* 현재 선수 */
 .auction-current-player { background: #FFFBEB !important; border: 2px solid #FCD34D !important; }
+.auction-current-player * { color: #0F172A !important; }
 .auction-player-name { color: #0F172A !important; }
 .auction-player-tier { background: #F1F5F9 !important; color: #334155 !important; }
 .auction-player-role { background: #F1F5F9 !important; color: #334155 !important; }
+
+/* 현재 입찰 */
 .current-bid-display { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
 .current-bid-label { color: #64748B !important; }
+.current-bid-value { color: #0F172A !important; }
 .current-bid-value.team-1 { color: #1D4ED8 !important; }
 .current-bid-value.team-2 { color: #B45309 !important; }
 .current-bid-value.none { color: #94A3B8 !important; }
+
+/* 경매 팀 박스 */
 .auction-team-box { background: #F8FAFC !important; }
+.auction-team-box * { color: #0F172A !important; }
 .auction-team-box.team-1 { border: 2px solid #93C5FD !important; }
 .auction-team-box.team-2 { border: 2px solid #FCD34D !important; }
 .auction-team-box.leading.team-1 { background: #EFF6FF !important; border-color: #2563EB !important; }
 .auction-team-box.leading.team-2 { background: #FFFBEB !important; border-color: #D97706 !important; }
-.team-1 .auction-team-name { color: #1D4ED8 !important; }
-.team-2 .auction-team-name { color: #B45309 !important; }
-.team-1 .auction-team-points { color: #1D4ED8 !important; }
-.team-2 .auction-team-points { color: #B45309 !important; }
+.auction-team-box.team-1 .auction-team-name { color: #1D4ED8 !important; }
+.auction-team-box.team-2 .auction-team-name { color: #B45309 !important; }
+.auction-team-box.team-1 .auction-team-points { color: #1D4ED8 !important; }
+.auction-team-box.team-2 .auction-team-points { color: #B45309 !important; }
+
+/* 입찰 입력 */
 .auction-bid-input { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
 .auction-bid-input:focus { border-color: #2563EB !important; }
+.auction-bid-input::placeholder { color: #94A3B8 !important; }
 .quick-bid-btn { background: #F1F5F9 !important; border: 1px solid #E2E8F0 !important; color: #334155 !important; }
 .quick-bid-btn:hover { background: #E2E8F0 !important; }
-.team-1 .auction-bid-btn { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; color: white !important; }
-.team-2 .auction-bid-btn { background: linear-gradient(135deg, #D97706, #B45309) !important; color: white !important; }
+
+/* 입찰 버튼 */
+.auction-team-box.team-1 .auction-bid-btn { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; color: white !important; }
+.auction-team-box.team-2 .auction-bid-btn { background: linear-gradient(135deg, #D97706, #B45309) !important; color: white !important; }
 .auction-bid-btn:disabled { background: #E2E8F0 !important; color: #94A3B8 !important; }
+
+/* 입찰 기록 */
 .bid-history { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
 .bid-history-title { color: #94A3B8 !important; }
+.bid-history-item { color: #0F172A !important; }
 .bid-history-item.team-1 { background: #EFF6FF !important; border-left: 3px solid #2563EB !important; color: #1D4ED8 !important; }
 .bid-history-item.team-2 { background: #FFFBEB !important; border-left: 3px solid #D97706 !important; color: #92400E !important; }
+
+/* 대기 선수 */
 .remaining-players { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
 .remaining-title { color: #64748B !important; }
+.remaining-title span { color: #64748B !important; }
 .remaining-player { background: #F1F5F9 !important; border: 1px solid #E2E8F0 !important; color: #334155 !important; }
 .remaining-player.current { background: #FFFBEB !important; border-color: #FCD34D !important; color: #92400E !important; }
-.auction-pass-btn { color: white !important; }
-.auction-next-btn { color: white !important; }
-.auction-close-btn { color: white !important; }
+.remaining-count { color: #64748B !important; }
+.remaining-grid { color: #334155 !important; }
+
+/* 경매 컨트롤 버튼 (색 배경 → 흰 텍스트) */
+.auction-control-btn { color: white !important; }
+.auction-pass-btn { background: linear-gradient(135deg, #6D28D9, #7C3AED) !important; color: white !important; }
+.auction-next-btn { background: linear-gradient(135deg, #059669, #047857) !important; color: white !important; }
+.auction-close-btn { background: linear-gradient(135deg, #DC2626, #B91C1C) !important; color: white !important; }
+
+/* 특수 효과 */
 .special-effect { color: #D97706 !important; text-shadow: 0 0 20px rgba(217,119,6,0.4) !important; }
+
+/* === 19. 헤더 제목 그라데이션 === */
+.header h1 {
+    background: linear-gradient(135deg, #2563EB, #06B6D4, #D97706) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+.header-subtitle { color: #94A3B8 !important; }
