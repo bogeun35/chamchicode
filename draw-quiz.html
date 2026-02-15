@@ -567,6 +567,7 @@ function makePartialHint(word){
 // 힌트 단계 캐시 (라운드마다 리셋)
 let hintStage=0,cachedPartialHint='',hintRound=0;
 let roundHistory=[]; // {round, drawer, word, solver, thumbUrl}
+let historyGameId=''; // 게임 세션 구분용
 
 // 로컬 전용 시스템 메시지 (Firebase에 안 보냄, 중복 방지)
 function addLocalSystemMsg(msg){
@@ -579,10 +580,10 @@ function updateHintDisplay(){
   if(!gameState||gameState.status!=='drawing'||gameState.drawer===myNick) return;
   const word=gameState.word||'';
   const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
-  const third=Math.floor(ROUND_TIME/3);
+  const remain=Math.max(ROUND_TIME-elapsed,0);
   let newStage=0;
-  if(elapsed>=third*2) newStage=2;
-  else if(elapsed>=third) newStage=1;
+  if(remain<=10) newStage=2;
+  else if(remain<=30) newStage=1;
 
   // 라운드 바뀌면 캐시 리셋
   if(hintRound!==gameState.round){
@@ -846,8 +847,10 @@ function renderGameState(){
     if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
     timerBadge.textContent='--';timerBadge.classList.remove('warning');
 
-    // 히스토리 스냅샷 저장 (중복 방지)
+    // 히스토리 스냅샷 저장
     const curRound=gameState.round||0;
+    const gid=gameState.gameId||'';
+    if(gid&&gid!==historyGameId){historyGameId=gid;roundHistory=[];}
     if(curRound>0 && !roundHistory.find(h=>h.round===curRound)){
       try{
         const thumbUrl=document.getElementById('draw-canvas').toDataURL('image/png',0.4);
@@ -912,11 +915,13 @@ function pickDrawerMode(mode,el){
 function confirmStartGame(){
   document.getElementById('round-modal').classList.remove('show');
   roundHistory=[];renderHistory();
+  const gameId=Date.now()+'';
+  historyGameId=gameId;
   const scores={};
   Object.values(membersData).forEach(m=>{scores[sanitizeKey(m.nick)]=0;});
   db.ref(`drawrooms/${currentRoom.code}/scores`).set(scores);
   const modeLabel=drawerMode==='winner'?'정답자가 그리기':'순서대로 그리기';
-  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,nextDrawer:null,drawerMode,drawerIndex:0});
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,nextDrawer:null,drawerMode,drawerIndex:0,gameId});
   addSystemChat(`게임 시작! ${totalRounds}라운드 / ${modeLabel}`);
   setTimeout(()=>startNextRound(null),500);
 }
