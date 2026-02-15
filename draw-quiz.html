@@ -84,25 +84,44 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
 
 @media(max-width:768px){
-  .screen-game{padding:8px 10px;max-width:100%;}
+  .screen-game{padding:6px 8px;max-width:100%;}
   .screen-game.active{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;display:flex;flex-direction:column;z-index:100;background:var(--bg);}
-  .game-header{margin-bottom:4px;flex-shrink:0;}
-  .round-bar{margin-bottom:4px;padding:6px 12px;flex-shrink:0;}
-  .scoreboard{margin-bottom:4px;flex-shrink:0;}
-  .members-bar{margin-bottom:4px;padding:6px 10px;flex-shrink:0;display:none;}
-  .host-controls{margin-bottom:4px;gap:4px;flex-shrink:0;}
-  .mobile-tabs{display:block;margin-bottom:4px;flex-shrink:0;}
+  .game-header{margin-bottom:3px;flex-shrink:0;}
+  .round-bar{margin-bottom:3px;padding:4px 10px;flex-shrink:0;}
+  .scoreboard{margin-bottom:3px;flex-shrink:0;}
+  .members-bar{display:none;}
+  .host-controls{margin-bottom:3px;gap:3px;flex-shrink:0;}
+  .mobile-tabs{display:none;}
   .game-layout{grid-template-columns:1fr;gap:0;position:relative;flex:1;min-height:0;overflow:hidden;}
   .game-layout .canvas-panel{display:flex;flex-direction:column;height:100%;overflow:hidden;}
   .game-layout .canvas-panel .canvas-wrap{flex:1;min-height:0;aspect-ratio:auto;}
-  .game-layout .chat-panel{display:none;}
-  /* 채팅 탭 */
-  .game-layout.show-chat .canvas-panel{display:flex;opacity:0.15;pointer-events:none;}
-  .game-layout.show-chat .canvas-panel .toolbar{display:none !important;}
-  .game-layout.show-chat .canvas-panel .word-display{display:none !important;}
-  .game-layout.show-chat .canvas-panel .canvas-header{display:none;}
-  .game-layout.show-chat .canvas-panel .mobile-quick-input{display:none !important;}
-  .game-layout.show-chat .chat-panel{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;height:auto;max-height:none;background:rgba(255,255,255,0.88);border:none;border-radius:var(--radius);z-index:10;}
+  .game-layout .canvas-panel .mobile-quick-input{display:none !important;}
+
+  /* 플로팅 채팅 */
+  .game-layout .chat-panel{
+    display:flex;position:absolute;bottom:0;left:0;right:0;
+    height:140px;max-height:140px;
+    background:rgba(255,255,255,0.92);
+    border:none;border-top:1px solid var(--border);
+    border-radius:12px 12px 0 0;
+    z-index:20;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  }
+  .game-layout .chat-panel .chat-title{display:none;}
+  .game-layout .chat-panel .chat-messages{padding:6px 10px;gap:3px;font-size:.78rem;}
+  .game-layout .chat-panel .chat-msg{padding:3px 8px;font-size:.78rem;}
+  .game-layout .chat-panel .chat-input-row{padding:4px 8px;gap:6px;}
+  .game-layout .chat-panel .chat-input{padding:7px 10px;font-size:.82rem;}
+  .game-layout .chat-panel .chat-send{padding:7px 12px;font-size:.78rem;}
+
+  /* 채팅 접기/펼치기 */
+  .game-layout .chat-panel.collapsed{height:36px;min-height:36px;max-height:36px;}
+  .game-layout .chat-panel.collapsed .chat-messages,
+  .game-layout .chat-panel.collapsed .chat-input-row{display:none;}
+  .chat-float-toggle{display:flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;flex-shrink:0;font-size:.75rem;font-weight:700;color:var(--text-sub);gap:6px;border-bottom:1px solid rgba(0,0,0,0.06);}
+  .chat-float-toggle .toggle-arrow{transition:transform .2s;}
+  .chat-panel.collapsed .chat-float-toggle .toggle-arrow{transform:rotate(180deg);}
+
   .ctrl-btn{padding:5px 8px;font-size:.75rem;}
   .canvas-header{padding:3px 8px;}
   .canvas-header .canvas-status{font-size:.7rem;}
@@ -118,10 +137,6 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
   .word-display .word-text{font-size:.9rem;}
   .word-display .word-hint{font-size:.8rem;}
   .word-display .word-label{font-size:.65rem;}
-  .chat-input-row{padding:6px 8px;}
-  .chat-input{padding:8px 10px;font-size:.85rem;}
-  .chat-send{padding:8px 14px;font-size:.8rem;}
-  .mobile-quick-input{padding:6px 8px;}
   .history-section{display:none !important;}
 }
 
@@ -161,6 +176,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 
 /* 채팅 */
 .chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:520px;max-height:520px;}
+.chat-float-toggle{display:none;}
 .chat-title{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--text-sub);padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;min-height:0;}
 .chat-msg{font-size:.85rem;padding:6px 10px;border-radius:8px;max-width:90%;word-break:break-word;}
@@ -377,7 +393,12 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
         <button class="chat-send" onclick="sendQuickChat()">전송</button>
       </div>
     </div>
-    <div class="chat-panel">
+    <div class="chat-panel" id="chat-panel">
+      <div class="chat-float-toggle" onclick="toggleFloatChat()">
+        <span class="toggle-arrow">&#9660;</span>
+        <span>채팅</span>
+        <span class="tab-badge" id="chat-badge-float" style="display:none;">0</span>
+      </div>
       <div class="chat-title">채팅</div>
       <div class="chat-messages" id="chat-messages"></div>
       <div class="chat-input-row">
@@ -1331,12 +1352,12 @@ function appendChat(d){
     if(gameState&&gameState.status==='drawing'&&gameState.word){if(displayText.toLowerCase().includes(gameState.word.toLowerCase()))displayText=displayText.replace(new RegExp(gameState.word,'gi'),'***');}
     div.innerHTML=`<span class="nick">${esc(d.nick)}</span>${esc(displayText)}`;}
   container.appendChild(div);container.scrollTop=container.scrollHeight;
-  // 모바일: 채팅 탭이 아닐 때 뱃지 카운트
-  if(mobileTab!=='chat'&&window.innerWidth<=768){
+  // 모바일: 채팅 접혀있을 때 뱃지 카운트
+  const panel=document.getElementById('chat-panel');
+  if(panel&&panel.classList.contains('collapsed')&&window.innerWidth<=768){
     unreadChat++;
-    const badge=document.getElementById('chat-badge');
-    badge.textContent=unreadChat>99?'99+':unreadChat;
-    badge.style.display='inline-block';
+    const badge=document.getElementById('chat-badge-float');
+    if(badge){badge.textContent=unreadChat>99?'99+':unreadChat;badge.style.display='inline-block';}
   }
 }
 
@@ -1345,27 +1366,26 @@ function showCorrectOverlay(nick,word){
   document.getElementById('correct-who').textContent=`${nick} 정답!`;
   document.getElementById('correct-word').textContent=word;
   o.classList.add('show');setTimeout(()=>o.classList.remove('show'),2500);
-  // 모바일: 정답 나오면 그림판으로 전환
-  if(window.innerWidth<=768&&mobileTab==='chat') switchMobileTab('canvas');
 }
 
-/* ===== 모바일 탭 전환 ===== */
+/* ===== 모바일 플로팅 채팅 ===== */
 let mobileTab='canvas',unreadChat=0;
 
-function switchMobileTab(tab){
-  mobileTab=tab;
-  const layout=document.getElementById('game-layout');
-  document.getElementById('tab-canvas').classList.toggle('active',tab==='canvas');
-  document.getElementById('tab-chat').classList.toggle('active',tab==='chat');
-  if(tab==='chat'){
-    layout.classList.add('show-chat');
+function toggleFloatChat(){
+  const panel=document.getElementById('chat-panel');
+  const collapsed=panel.classList.toggle('collapsed');
+  if(!collapsed){
     unreadChat=0;
-    document.getElementById('chat-badge').style.display='none';
+    const badge=document.getElementById('chat-badge-float');
+    badge.style.display='none';
     const msgs=document.getElementById('chat-messages');
     msgs.scrollTop=msgs.scrollHeight;
-  }else{
-    layout.classList.remove('show-chat');
   }
+}
+
+function switchMobileTab(tab){
+  // 레거시 호환 (모바일 탭은 이제 숨김)
+  mobileTab=tab;
 }
 
 // 모바일: 입력 포커스 시 페이지 스크롤 방지
