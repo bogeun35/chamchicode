@@ -1,11 +1,9 @@
 /* ============================================
-   참스코드 라이트 테마 오버라이드
-   기존 index.html(경매시스템)에 이 CSS를 추가하면 밝은 테마 적용
-   <link rel="stylesheet" href="light-theme.css">
+   참스코드 라이트 테마 v2 - 가독성 최우선
    ============================================ */
 
 :root {
-    --ow-orange: #F59E0B !important;
+    --ow-orange: #D97706 !important;
     --ow-blue: #2563EB !important;
     --ow-dark: #FFFFFF !important;
     --ow-darker: #EFF6FF !important;
@@ -13,256 +11,173 @@
     --ow-white: #0F172A !important;
 }
 
-/* Background */
 .hex-background {
     background: linear-gradient(135deg, rgba(37,99,235,0.04) 0%, transparent 50%),
                 linear-gradient(225deg, rgba(245,158,11,0.04) 0%, transparent 50%), #EFF6FF !important;
 }
 .hex-pattern {
-    opacity: 0.05 !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.3'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
+    opacity: 0.04 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.25'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
 }
 
-/* Controls bar */
 .controls {
-    background: rgba(255,255,255,0.75) !important;
+    background: rgba(255,255,255,0.8) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(148,187,233,0.3) !important;
+    border: 1px solid #DBEAFE !important;
     border-radius: 12px !important;
-    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+    box-shadow: 0 2px 12px rgba(15,23,42,0.05);
 }
 
-/* Buttons */
-.btn { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.btn { border-radius: 8px !important; box-shadow: 0 2px 6px rgba(0,0,0,0.08); color: white !important; }
 .btn-balanced { background: linear-gradient(135deg, #2563EB, #0EA5E9) !important; }
-.btn-spectator { background: linear-gradient(135deg, #7C3AED, #A855F7) !important; }
-.btn-auction { background: linear-gradient(135deg, #F59E0B, #D97706) !important; }
-.btn-secondary { background: linear-gradient(135deg, #EF4444, #DC2626) !important; }
-.btn-reset-spectator { background: linear-gradient(135deg, #64748B, #475569) !important; }
-.btn-add-all { background: linear-gradient(135deg, #10B981, #059669) !important; }
+.btn-spectator { background: linear-gradient(135deg, #7C3AED, #6D28D9) !important; }
+.btn-auction { background: linear-gradient(135deg, #D97706, #B45309) !important; }
+.btn-secondary { background: linear-gradient(135deg, #DC2626, #B91C1C) !important; }
+.btn-reset-spectator { background: linear-gradient(135deg, #475569, #334155) !important; }
+.btn-add-all { background: linear-gradient(135deg, #059669, #047857) !important; }
 
-/* Teams container */
 .teams-container {
-    background: rgba(255,255,255,0.65) !important;
+    background: rgba(255,255,255,0.7) !important;
     backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(148,187,233,0.25) !important;
+    border: 1px solid #DBEAFE !important;
     border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
 }
-.team {
-    background: white !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-}
-.team-1 { border-color: rgba(37,99,235,0.35) !important; box-shadow: 0 0 20px rgba(37,99,235,0.08) !important; }
-.team-2 { border-color: rgba(245,158,11,0.35) !important; box-shadow: 0 0 20px rgba(245,158,11,0.08) !important; }
-.team-header { border-bottom-color: #E2E8F0 !important; }
-.team-2 .team-header { color: #D97706 !important; }
-.team-score { background: #F1F5F9 !important; color: #475569 !important; }
-.team-points { background: linear-gradient(135deg, #A855F7, #7C3AED) !important; }
+.team { background: white !important; border-radius: 12px !important; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.team-1 { border: 2px solid #93C5FD !important; }
+.team-2 { border: 2px solid #FCD34D !important; }
+.team-header { border-bottom: 1px solid #E2E8F0 !important; }
+.team-1 .team-header { color: #1D4ED8 !important; }
+.team-2 .team-header { color: #B45309 !important; }
+.team-score { background: #F1F5F9 !important; color: #334155 !important; }
+.team-points { background: linear-gradient(135deg, #7C3AED, #6D28D9) !important; color: white !important; }
 
-/* Slots */
-.team-slot { background: #FAFBFE !important; border-color: #CBD5E1 !important; border-radius: 8px !important; }
-.team-slot.drag-over { background: rgba(37,99,235,0.06) !important; border-style: solid !important; border-color: #2563EB !important; }
+.team-slot { background: #F8FAFC !important; border: 2px dashed #CBD5E1 !important; border-radius: 8px !important; }
+.team-slot.drag-over { background: #EFF6FF !important; border-style: solid !important; border-color: #2563EB !important; }
 .team-slot.empty::after { color: #CBD5E1 !important; }
 
-/* Player cards */
-.player-card {
-    background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 8px !important;
-}
-.player-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important; }
-.player-card.is-leader { border: 2px solid #F59E0B !important; box-shadow: 0 0 12px rgba(245,158,11,0.2) !important; }
+.player-card { background: white !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.player-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important; }
+.player-card.is-leader { border: 2px solid #D97706 !important; box-shadow: 0 0 10px rgba(217,119,6,0.15) !important; }
 .player-role-icon { background: #F1F5F9 !important; }
 .player-role-icon:hover { background: #E2E8F0 !important; }
 .player-name { color: #0F172A !important; }
-.leader-badge { background: #F59E0B !important; color: white !important; }
+.leader-badge { background: #D97706 !important; color: white !important; }
 .role-badge { background: #F1F5F9 !important; color: #475569 !important; }
 
-/* Tier colors - brighter */
-.tier-gold { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: white !important; }
-.tier-platinum { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; }
-.tier-diamond { background: linear-gradient(135deg, #818cf8, #6366f1) !important; color: white !important; }
+.tier-bronze { background: #92400E !important; color: white !important; }
+.tier-silver { background: #6B7280 !important; color: white !important; }
+.tier-gold { background: #B45309 !important; color: white !important; }
+.tier-platinum { background: #0E7490 !important; color: white !important; }
+.tier-diamond { background: #4F46E5 !important; color: white !important; }
 
-/* VS divider */
 .score-diff { background: #F1F5F9 !important; color: #475569 !important; border-radius: 8px !important; }
-.score-diff.balanced { background: rgba(16,185,129,0.1) !important; border: 1px solid #10B981 !important; color: #059669 !important; }
+.score-diff.balanced { background: #ECFDF5 !important; border: 1px solid #6EE7B7 !important; color: #047857 !important; }
 
-/* Spectators */
-.spectators {
-    background: white !important;
-    border-color: rgba(124,58,237,0.25) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 10px rgba(124,58,237,0.06);
-}
-.spectators-header { color: #7C3AED !important; }
-.spectator-count { background: rgba(124,58,237,0.1) !important; color: #7C3AED !important; }
-.spectators-grid.drag-over { background: rgba(124,58,237,0.05) !important; border-color: rgba(124,58,237,0.3) !important; }
+.spectators { background: white !important; border: 2px solid #DDD6FE !important; border-radius: 12px !important; }
+.spectators-header { color: #6D28D9 !important; }
+.spectator-count { background: #EDE9FE !important; color: #6D28D9 !important; }
+.spectators-grid.drag-over { background: #F5F3FF !important; border: 2px dashed #8B5CF6 !important; }
 .spectators-grid.empty::after { color: #CBD5E1 !important; }
-.spectator-card { border-radius: 8px !important; }
-.spectator-card:hover { box-shadow: 0 6px 16px rgba(124,58,237,0.3) !important; }
+.spectator-card { background: linear-gradient(135deg, #6D28D9, #7C3AED) !important; border-radius: 8px !important; }
+.spectator-card:hover { box-shadow: 0 4px 16px rgba(109,40,217,0.3) !important; }
+.spectator-card * { color: white !important; }
+.spectator-tier, .spectator-role { background: rgba(255,255,255,0.2) !important; color: white !important; }
+.spectator-tier:hover, .spectator-role:hover { background: rgba(255,255,255,0.35) !important; }
 
-/* Player list container */
 .player-list-container {
-    background: rgba(255,255,255,0.65) !important;
+    background: rgba(255,255,255,0.7) !important;
     backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(148,187,233,0.25) !important;
+    border: 1px solid #DBEAFE !important;
     border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
 }
 .section-title { color: #0F172A !important; }
-.saved-players {
-    background: #FAFBFE !important;
-    border-color: #CBD5E1 !important;
-    border-radius: 8px !important;
-}
-.saved-player-tag { border-radius: 8px !important; }
+.saved-players { background: #F8FAFC !important; border: 1px dashed #CBD5E1 !important; border-radius: 8px !important; }
+.saved-player-tag { border-radius: 8px !important; color: white !important; }
+.saved-player-tag.selectable { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; }
 .saved-player-tag.selectable:hover { box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important; }
+.saved-player-tag.in-spectator { background: linear-gradient(135deg, #6D28D9, #7C3AED) !important; }
+.saved-player-tag.in-team { background: #94A3B8 !important; opacity: 0.7 !important; }
+.saved-player-tag .tier-badge-small { background: rgba(255,255,255,0.25) !important; color: white !important; }
+.saved-player-tag .remove-btn { background: rgba(255,255,255,0.2) !important; color: white !important; }
 
-/* Inputs */
-.player-name-input, .tier-input {
-    background: white !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #0F172A !important;
-    border-radius: 8px !important;
-}
+.player-name-input, .tier-input { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; border-radius: 8px !important; }
 .player-name-input:focus, .tier-input:focus { border-color: #2563EB !important; }
-.tier-input-label { color: #94A3B8 !important; }
-.add-player-btn { border-radius: 8px !important; }
+.tier-input-label { color: #64748B !important; }
+.add-player-btn { border-radius: 8px !important; color: white !important; }
+.info-message { background: #EFF6FF !important; border: 1px solid #BFDBFE !important; color: #475569 !important; border-radius: 8px !important; }
 
-.info-message {
-    background: rgba(37,99,235,0.06) !important;
-    border-color: rgba(37,99,235,0.15) !important;
-    color: #64748B !important;
-    border-radius: 8px !important;
-}
+.screenshot-section { background: #FFFBEB !important; border: 2px dashed #FCD34D !important; border-radius: 10px !important; }
+.screenshot-section.drag-highlight { background: #FEF3C7 !important; border-color: #D97706 !important; }
+.screenshot-title { color: #92400E !important; }
+.screenshot-desc { color: #92400E !important; }
+.screenshot-upload-area .upload-text { color: #78716C !important; }
+.screenshot-upload-area .upload-text strong { color: #92400E !important; }
+.screenshot-names-textarea { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
+.screenshot-btn.apply { color: white !important; }
+.screenshot-btn.cancel { background: #F1F5F9 !important; color: #475569 !important; }
+.screenshot-loading span { color: #475569 !important; }
 
-/* Screenshot section */
-.screenshot-section {
-    background: rgba(245,158,11,0.04) !important;
-    border-color: rgba(245,158,11,0.3) !important;
-    border-radius: 10px !important;
-}
-.screenshot-section.drag-highlight {
-    background: rgba(245,158,11,0.1) !important;
-    box-shadow: 0 0 16px rgba(245,158,11,0.12) !important;
-}
-.screenshot-title { color: #D97706 !important; }
-.screenshot-desc { color: #94A3B8 !important; }
-.screenshot-upload-area .upload-text { color: #94A3B8 !important; }
-.screenshot-upload-area .upload-text strong { color: #D97706 !important; }
-.screenshot-names-textarea {
-    background: white !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #0F172A !important;
-    border-radius: 8px !important;
-}
-.screenshot-names-textarea:focus { border-color: #D97706 !important; }
-.screenshot-btn.cancel { background: #F1F5F9 !important; color: #64748B !important; }
-.screenshot-loading span { color: #64748B !important; }
+.sound-toggle { background: rgba(255,255,255,0.9) !important; border: 1px solid #DBEAFE !important; color: #0F172A !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; }
+.template-section { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.template-btn { border: 2px solid #2563EB !important; color: #2563EB !important; background: transparent !important; border-radius: 6px !important; }
+.template-btn:hover, .template-btn.active { background: #2563EB !important; color: white !important; }
 
-/* Sound toggle */
-.sound-toggle {
-    background: rgba(255,255,255,0.85) !important;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(148,187,233,0.3) !important;
-    color: #0F172A !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
-}
-
-/* Template section */
-.template-section {
-    background: #FAFBFE !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 8px !important;
-}
-.template-btn { border-radius: 6px !important; }
-
-/* Modals */
 .modal { background: rgba(15,23,42,0.4) !important; backdrop-filter: blur(4px); }
-.modal-content {
-    background: white !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 14px !important;
-    box-shadow: 0 20px 60px rgba(15,23,42,0.15) !important;
-}
+.modal-content { background: white !important; border: 1px solid #E2E8F0 !important; border-radius: 14px !important; box-shadow: 0 20px 60px rgba(15,23,42,0.15) !important; }
 .modal-title { color: #0F172A !important; }
-.modal-input {
-    background: #F8FAFC !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #0F172A !important;
-    border-radius: 8px !important;
-}
+.modal-input { background: #F8FAFC !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
 .modal-input:focus { border-color: #2563EB !important; }
-.modal-btn.cancel { background: #F1F5F9 !important; color: #64748B !important; }
-.role-option {
-    background: #F8FAFC !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #64748B !important;
-    border-radius: 10px !important;
-}
-.role-option:hover { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; }
+.modal-btn.save { color: white !important; }
+.modal-btn.cancel { background: #F1F5F9 !important; color: #475569 !important; }
+.role-option { background: #F8FAFC !important; border: 2px solid #E2E8F0 !important; color: #475569 !important; }
+.role-option:hover { background: #EFF6FF !important; border-color: #93C5FD !important; color: #1D4ED8 !important; }
 .role-option.selected { background: #2563EB !important; border-color: #2563EB !important; color: white !important; }
 
-/* Auction modal */
 .auction-modal { background: rgba(15,23,42,0.5) !important; backdrop-filter: blur(8px); }
-.auction-content {
-    background: white !important;
-    border: 2px solid rgba(245,158,11,0.3) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 20px 60px rgba(245,158,11,0.15) !important;
-}
-.auction-header { border-radius: 14px 14px 0 0 !important; }
-
+.auction-content { background: white !important; border: 2px solid #FCD34D !important; border-radius: 16px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
+.auction-header { background: linear-gradient(135deg, #D97706, #B45309) !important; }
+.auction-title { color: white !important; }
+#auctionLeader1Name, #auctionLeader2Name { color: white !important; text-shadow: none !important; }
 .timer-ring-bg { stroke: #E2E8F0 !important; }
 .timer-seconds { color: #0F172A !important; }
-
-.auction-current-player {
-    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)) !important;
-    border: 2px solid rgba(245,158,11,0.3) !important;
-    border-radius: 10px !important;
-}
+.timer-label { color: #94A3B8 !important; }
+.auction-current-player { background: #FFFBEB !important; border: 2px solid #FCD34D !important; }
 .auction-player-name { color: #0F172A !important; }
-.auction-player-tier { background: #F1F5F9 !important; color: #475569 !important; }
-.auction-player-role { background: #E2E8F0 !important; color: #334155 !important; }
-
-.current-bid-display { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
-.current-bid-label { color: #94A3B8 !important; }
-.current-bid-value.team-2 { color: #D97706 !important; }
-.current-bid-value.none { color: #CBD5E1 !important; }
-
-.auction-team-box { background: #FAFBFE !important; border-radius: 10px !important; }
-.auction-team-box.team-1 { border-color: rgba(37,99,235,0.2) !important; }
-.auction-team-box.team-2 { border-color: rgba(245,158,11,0.2) !important; }
-.auction-team-box.leading.team-1 { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; }
-.auction-team-box.leading.team-2 { background: rgba(245,158,11,0.06) !important; border-color: #D97706 !important; }
-.team-2 .auction-team-name { color: #D97706 !important; }
-.team-2 .auction-team-points { color: #D97706 !important; }
-
-.auction-bid-input {
-    background: white !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #0F172A !important;
-    border-radius: 6px !important;
-}
+.auction-player-tier { background: #F1F5F9 !important; color: #334155 !important; }
+.auction-player-role { background: #F1F5F9 !important; color: #334155 !important; }
+.current-bid-display { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
+.current-bid-label { color: #64748B !important; }
+.current-bid-value.team-1 { color: #1D4ED8 !important; }
+.current-bid-value.team-2 { color: #B45309 !important; }
+.current-bid-value.none { color: #94A3B8 !important; }
+.auction-team-box { background: #F8FAFC !important; }
+.auction-team-box.team-1 { border: 2px solid #93C5FD !important; }
+.auction-team-box.team-2 { border: 2px solid #FCD34D !important; }
+.auction-team-box.leading.team-1 { background: #EFF6FF !important; border-color: #2563EB !important; }
+.auction-team-box.leading.team-2 { background: #FFFBEB !important; border-color: #D97706 !important; }
+.team-1 .auction-team-name { color: #1D4ED8 !important; }
+.team-2 .auction-team-name { color: #B45309 !important; }
+.team-1 .auction-team-points { color: #1D4ED8 !important; }
+.team-2 .auction-team-points { color: #B45309 !important; }
+.auction-bid-input { background: white !important; border: 2px solid #CBD5E1 !important; color: #0F172A !important; }
 .auction-bid-input:focus { border-color: #2563EB !important; }
-.quick-bid-btn { background: #F1F5F9 !important; border-color: #E2E8F0 !important; color: #475569 !important; border-radius: 6px !important; }
+.quick-bid-btn { background: #F1F5F9 !important; border: 1px solid #E2E8F0 !important; color: #334155 !important; }
 .quick-bid-btn:hover { background: #E2E8F0 !important; }
+.team-1 .auction-bid-btn { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; color: white !important; }
+.team-2 .auction-bid-btn { background: linear-gradient(135deg, #D97706, #B45309) !important; color: white !important; }
 .auction-bid-btn:disabled { background: #E2E8F0 !important; color: #94A3B8 !important; }
-.team-2 .auction-bid-btn { background: linear-gradient(135deg, #F59E0B, #D97706) !important; }
-
-.bid-history { background: #FAFBFE !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.bid-history { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
 .bid-history-title { color: #94A3B8 !important; }
-.bid-history-item.team-1 { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; color: #2563EB !important; }
-.bid-history-item.team-2 { background: rgba(245,158,11,0.06) !important; border-color: #D97706 !important; color: #D97706 !important; }
-
-.remaining-players { background: #FAFBFE !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
-.remaining-title { color: #94A3B8 !important; }
-.remaining-player { background: #F1F5F9 !important; border-color: #E2E8F0 !important; color: #475569 !important; }
-.remaining-player.current { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05)) !important; border-color: rgba(245,158,11,0.4) !important; color: #D97706 !important; }
-
-.special-effect { color: #D97706 !important; text-shadow: 0 0 20px rgba(245,158,11,0.6) !important; }
+.bid-history-item.team-1 { background: #EFF6FF !important; border-left: 3px solid #2563EB !important; color: #1D4ED8 !important; }
+.bid-history-item.team-2 { background: #FFFBEB !important; border-left: 3px solid #D97706 !important; color: #92400E !important; }
+.remaining-players { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; }
+.remaining-title { color: #64748B !important; }
+.remaining-player { background: #F1F5F9 !important; border: 1px solid #E2E8F0 !important; color: #334155 !important; }
+.remaining-player.current { background: #FFFBEB !important; border-color: #FCD34D !important; color: #92400E !important; }
+.auction-pass-btn { color: white !important; }
+.auction-next-btn { color: white !important; }
+.auction-close-btn { color: white !important; }
+.special-effect { color: #D97706 !important; text-shadow: 0 0 20px rgba(217,119,6,0.4) !important; }
