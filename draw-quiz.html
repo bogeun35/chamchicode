@@ -224,6 +224,31 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .gameover-pts{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;}
 .gameover-close{margin-top:8px;padding:10px 28px;background:white;color:var(--text);border:none;border-radius:10px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
 
+/* 리액션 */
+.reaction-bar{display:flex;gap:4px;}
+.react-btn{background:var(--surface-alt);border:1px solid var(--border);border-radius:16px;padding:2px 8px;cursor:pointer;font-size:.75rem;display:flex;align-items:center;gap:3px;transition:all .15s;font-family:inherit;font-weight:600;color:var(--text-sub);}
+.react-btn:hover{border-color:var(--accent);transform:scale(1.05);}
+.react-btn:active{transform:scale(0.95);}
+.react-btn span{font-size:.7rem;}
+.react-float{position:absolute;font-size:1.5rem;pointer-events:none;animation:reactFloat 1.2s ease-out forwards;z-index:50;}
+@keyframes reactFloat{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-60px) scale(1.5);}}
+
+/* 연속 정답 */
+.streak-badge{display:inline-block;background:linear-gradient(135deg,var(--orange),var(--red));color:white;font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;animation:streakPop .3s ease;}
+@keyframes streakPop{0%{transform:scale(0);}50%{transform:scale(1.3);}100%{transform:scale(1);}}
+
+/* MVP 투표 */
+.mvp-section{margin-top:12px;width:100%;max-width:320px;}
+.mvp-title{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:900;color:white;text-align:center;margin-bottom:10px;}
+.mvp-cats{display:flex;gap:12px;}
+.mvp-cat{flex:1;}
+.mvp-cat-label{font-size:.75rem;font-weight:700;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:6px;}
+.mvp-options{display:flex;flex-direction:column;gap:4px;}
+.mvp-opt{padding:6px 10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:white;font-size:.8rem;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;}
+.mvp-opt:hover{background:rgba(255,255,255,0.2);}
+.mvp-opt.voted{background:var(--accent);border-color:var(--accent);}
+.mvp-results{margin-top:10px;text-align:center;font-size:.8rem;color:rgba(255,255,255,0.9);font-weight:700;}
+
 /* 히스토리 */
 .history-section{margin-top:16px;max-width:960px;}
 .history-toggle{padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);transition:all .15s;}
@@ -346,6 +371,11 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
     <div class="canvas-panel">
       <div class="canvas-header">
         <span class="canvas-status" id="canvas-status">대기 중</span>
+        <div class="reaction-bar" id="reaction-bar" style="display:none;">
+          <button class="react-btn" onclick="sendReaction('nice')">&#128077;<span id="react-nice">0</span></button>
+          <button class="react-btn" onclick="sendReaction('funny')">&#128514;<span id="react-funny">0</span></button>
+          <button class="react-btn" onclick="sendReaction('what')">&#129300;<span id="react-what">0</span></button>
+        </div>
         <span class="timer-badge" id="timer-badge">--</span>
       </div>
       <div class="canvas-wrap">
@@ -427,6 +457,20 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 <div class="gameover-overlay" id="gameover-overlay">
   <div class="gameover-title">게임 종료</div>
   <div class="gameover-list" id="gameover-list"></div>
+  <div class="mvp-section" id="mvp-section" style="display:none;">
+    <div class="mvp-title">MVP 투표</div>
+    <div class="mvp-cats">
+      <div class="mvp-cat">
+        <div class="mvp-cat-label">최고의 화가</div>
+        <div class="mvp-options" id="mvp-artist"></div>
+      </div>
+      <div class="mvp-cat">
+        <div class="mvp-cat-label">최고의 눈치</div>
+        <div class="mvp-options" id="mvp-guesser"></div>
+      </div>
+    </div>
+    <div class="mvp-results" id="mvp-results" style="display:none;"></div>
+  </div>
   <button class="gameover-close" onclick="closeGameover()">확인</button>
 </div>
 
@@ -440,6 +484,12 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
       <div class="round-opt active" onclick="pickRound(10,this)">10</div>
       <div class="round-opt" onclick="pickRound(15,this)">15</div>
       <div class="round-opt" onclick="pickRound(20,this)">20</div>
+    </div>
+    <div style="font-size:.82rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;">제한 시간</div>
+    <div class="round-options" id="time-options">
+      <div class="round-opt active" onclick="pickTime(60,this)">60s</div>
+      <div class="round-opt" onclick="pickTime(90,this)">90s</div>
+      <div class="round-opt" onclick="pickTime(120,this)">120s</div>
     </div>
     <div style="font-size:.82rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;">출제자 방식</div>
     <div class="round-options" id="drawer-mode-options">
@@ -500,10 +550,13 @@ let gameState=null,scoresData={},wordBank={},allWords=[];
 let drawCtx=null,drawing=false,lastX=0,lastY=0;
 let currentTool='pen',brushColor='#0F172A',brushSize=4;
 let strokeBuffer=[],strokeTimer=null,timerInterval=null;
-let selectedCat='',totalRounds=10,drawerMode='winner';
+let selectedCat='',totalRounds=10,drawerMode='winner',roundTime=60;
 
-const NICK_KEY='charms_draw_nick',ROUND_TIME=60;
-const AUTO_NEXT_DELAY=3000; // 정답 후 자동 다음 라운드 딜레이
+const NICK_KEY='charms_draw_nick';
+const AUTO_NEXT_DELAY=3000;
+
+// 연속 정답 추적
+let streakMap={}; // nick → 연속 정답 수
 
 const DEFAULT_WORDS={
   '오버워치':['겐지','트레이서','위도우메이커','파라','리퍼','솔저76','메이','토르비욘','시메트라','바스티온','라인하르트','자리야','루시우','머시','정크랫','로드호그','디바','윈스턴','한조','아나','솜브라','오리사','둠피스트','모이라','에코','소전','용검','나노강화','자폭','대지분쇄','중력자탄','쌍용','핵폭탄'],
@@ -580,7 +633,7 @@ function updateHintDisplay(){
   if(!gameState||gameState.status!=='drawing'||gameState.drawer===myNick) return;
   const word=gameState.word||'';
   const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
-  const remain=Math.max(ROUND_TIME-elapsed,0);
+  const remain=Math.max(getRoundTime()-elapsed,0);
   let newStage=0;
   if(remain<=10) newStage=2;
   else if(remain<=30) newStage=1;
@@ -665,7 +718,7 @@ function enterRoom(){
   const role=document.getElementById('g-role');
   if(isHost){role.textContent='방장';role.className='role-tag role-host';document.getElementById('host-controls').style.display='flex';}
   else{role.textContent='참여자';role.className='role-tag role-guest';document.getElementById('host-controls').style.display='none';}
-  showScreen('game');initCanvas();registerPresence();listenMembers();listenGame();listenScores();listenCanvas();listenChat();listenRoomExists();
+  showScreen('game');initCanvas();registerPresence();listenMembers();listenGame();listenScores();listenCanvas();listenChat();listenReactions();listenRoomExists();
   addSystemChat(`${myNick} 님이 입장했습니다`);
 }
 
@@ -786,6 +839,7 @@ function renderGameState(){
   if(!status||status==='idle'){
     waiting.style.display='flex';toolbar.style.display='none';wordDisplay.style.display='none';
     if(canvasWrap)canvasWrap.style.display='none';
+    document.getElementById('reaction-bar').style.display='none';
     canvasStatus.textContent='대기 중';timerBadge.textContent='--';
     document.getElementById('waiting-sub').textContent=isHost?'"게임 시작" 버튼을 눌러주세요':'방장이 시작하면 게임이 시작됩니다';
     if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
@@ -818,6 +872,8 @@ function renderGameState(){
   waiting.style.display='none';
 
   if(status==='drawing'){
+    document.getElementById('reaction-bar').style.display='flex';
+    if(isHost)resetReactions();
     const qi=document.getElementById('quick-input');
     if(isDrawer){
       toolbar.style.display='flex';wordDisplay.style.display='block';
@@ -838,6 +894,7 @@ function renderGameState(){
 
   if(status==='reveal'){
     toolbar.style.display='none';wordDisplay.style.display='block';
+    document.getElementById('reaction-bar').style.display='none';
     wordDisplay.innerHTML=`<div class="word-label">정답</div><div class="word-text">${esc(gameState.word||'')}</div>`;
     canvasStatus.textContent='라운드 종료';
     document.getElementById('chat-input').disabled=false;
@@ -882,7 +939,7 @@ function startTimer(){
   timerInterval=setInterval(()=>{
     if(!gameState||gameState.status!=='drawing')return;
     const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
-    const remain=Math.max(ROUND_TIME-elapsed,0);
+    const remain=Math.max(getRoundTime()-elapsed,0);
     badge.textContent=remain+'s';
     badge.classList.toggle('warning',remain<=10);
     updateHintDisplay();
@@ -906,25 +963,133 @@ function pickRound(n,el){
   el.classList.add('active');
 }
 
+function pickTime(t,el){
+  roundTime=t;
+  document.querySelectorAll('#time-options .round-opt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+}
+
 function pickDrawerMode(mode,el){
   drawerMode=mode;
   document.querySelectorAll('#drawer-mode-options .round-opt').forEach(o=>o.classList.remove('active'));
   el.classList.add('active');
 }
 
+function getRoundTime(){return gameState?.roundTime||roundTime||60;}
+
 function confirmStartGame(){
   document.getElementById('round-modal').classList.remove('show');
   roundHistory=[];renderHistory();
+  streakMap={};
   const gameId=Date.now()+'';
   historyGameId=gameId;
   const scores={};
   Object.values(membersData).forEach(m=>{scores[sanitizeKey(m.nick)]=0;});
   db.ref(`drawrooms/${currentRoom.code}/scores`).set(scores);
+  db.ref(`drawrooms/${currentRoom.code}/reactions`).remove();
+  db.ref(`drawrooms/${currentRoom.code}/mvp`).remove();
   const modeLabel=drawerMode==='winner'?'정답자가 그리기':'순서대로 그리기';
-  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,nextDrawer:null,drawerMode,drawerIndex:0,gameId});
-  addSystemChat(`게임 시작! ${totalRounds}라운드 / ${modeLabel}`);
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle',round:0,totalRounds,roundTime,nextDrawer:null,drawerMode,drawerIndex:0,gameId});
+  addSystemChat(`게임 시작! ${totalRounds}라운드 / ${modeLabel} / ${roundTime}초`);
   setTimeout(()=>startNextRound(null),500);
 }
+
+/* ===== 리액션 ===== */
+function sendReaction(type){
+  if(!currentRoom||!gameState||gameState.status!=='drawing')return;
+  db.ref(`drawrooms/${currentRoom.code}/reactions/${type}`).transaction(v=>(v||0)+1);
+  const emojis={nice:'\u{1F44D}',funny:'\u{1F602}',what:'\u{1F914}'};
+  const wrap=document.querySelector('.canvas-wrap');
+  if(!wrap)return;
+  const el=document.createElement('div');
+  el.className='react-float';
+  el.textContent=emojis[type];
+  el.style.left=Math.random()*70+15+'%';
+  el.style.bottom='10%';
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+
+function listenReactions(){
+  const ref=db.ref(`drawrooms/${currentRoom.code}/reactions`);
+  const cb=ref.on('value',snap=>{
+    const d=snap.val()||{};
+    ['nice','funny','what'].forEach(t=>{
+      const el=document.getElementById('react-'+t);
+      if(el)el.textContent=d[t]||0;
+    });
+  });
+  listeners.push(()=>ref.off('value',cb));
+}
+
+function resetReactions(){
+  if(!currentRoom)return;
+  db.ref(`drawrooms/${currentRoom.code}/reactions`).set({nice:0,funny:0,what:0});
+}
+
+/* ===== 연속 정답 보너스 ===== */
+function handleStreak(nick){
+  Object.keys(streakMap).forEach(k=>{if(k!==nick)streakMap[k]=0;});
+  streakMap[nick]=(streakMap[nick]||0)+1;
+  const streak=streakMap[nick];
+  if(streak>=2){
+    const bonus=streak>=4?3:streak>=3?2:1;
+    addScore(nick,bonus);
+    addSystemChat(`${nick} ${streak}연속 정답! (+${bonus} 보너스)`);
+  }
+  return streakMap[nick];
+}
+
+/* ===== MVP 투표 ===== */
+let myVotes={artist:null,guesser:null};
+
+function showMvpVote(){
+  const section=document.getElementById('mvp-section');
+  const members=Object.values(membersData).map(m=>m.nick);
+  if(members.length<2){section.style.display='none';return;}
+  section.style.display='block';
+  myVotes={artist:null,guesser:null};
+  ['artist','guesser'].forEach(cat=>{
+    const container=document.getElementById('mvp-'+cat);
+    container.innerHTML=members.filter(n=>n!==myNick).map(n=>
+      `<div class="mvp-opt" onclick="castMvp('${cat}','${n}',this)">${n}</div>`
+    ).join('');
+  });
+  document.getElementById('mvp-results').style.display='none';
+  listenMvpResults();
+}
+
+function castMvp(cat,nick,el){
+  if(myVotes[cat])return;
+  myVotes[cat]=nick;
+  el.classList.add('voted');
+  db.ref(`drawrooms/${currentRoom.code}/mvp/${cat}/${sanitizeKey(nick)}`).transaction(v=>(v||0)+1);
+  if(myVotes.artist&&myVotes.guesser) setTimeout(()=>showMvpResults(),1500);
+}
+
+function listenMvpResults(){
+  const ref=db.ref(`drawrooms/${currentRoom.code}/mvp`);
+  const cb=ref.on('value',snap=>{
+    const d=snap.val();if(!d)return;
+    const results=[];
+    ['artist','guesser'].forEach(cat=>{
+      const label=cat==='artist'?'Best Artist':'Best Guesser';
+      const votes=d[cat]||{};
+      let maxN='',maxV=0;
+      Object.entries(votes).forEach(([k,v])=>{if(v>maxV){maxV=v;maxN=k;}});
+      if(maxN){
+        const nick=Object.values(membersData).find(m=>sanitizeKey(m.nick)===maxN)?.nick||maxN;
+        results.push(`${label}: ${nick} (${maxV}표)`);
+      }
+    });
+    if(results.length){
+      const el=document.getElementById('mvp-results');
+      el.style.display='block';el.innerHTML=results.join('<br>');
+    }
+  });
+  listeners.push(()=>ref.off('value',cb));
+}
+
 
 function startNextRound(nextDrawer){
   if(!isHost)return;
@@ -994,7 +1159,7 @@ function skipRound(){if(!isHost)return;endRound(null);}
 function endRound(solver){
   if(!gameState||gameState.status!=='drawing')return;
   db.ref(`drawrooms/${currentRoom.code}/game`).update({status:'reveal',nextDrawer:solver||null});
-  if(!solver)addSystemChat(`정답: ${gameState.word}`);
+  if(!solver){addSystemChat(`정답: ${gameState.word}`);streakMap={};}
 }
 
 function endGame(){
@@ -1052,6 +1217,7 @@ function showGameoverOverlay(){
     `<div class="gameover-item ${i===0&&item.pts>0?'first':''}"><span>${i===0&&item.pts>0?'&#127942; ':''}${esc(item.nick)}</span><span class="gameover-pts">${item.pts}점</span></div>`
   ).join('');
   document.getElementById('gameover-overlay').classList.add('show');
+  showMvpVote();
 }
 function closeGameover(){document.getElementById('gameover-overlay').classList.remove('show');}
 
@@ -1317,15 +1483,11 @@ function listenChat(){const ref=db.ref(`drawchat/${currentRoom.code}`);const cb=
 function sendChat(){
   const input=document.getElementById('chat-input'),text=input.value.trim();
   if(!text||!currentRoom)return;input.value='';
-  // 정답 체크
   if(gameState&&gameState.status==='drawing'&&!gameState.solved&&gameState.drawer!==myNick){
     if(text.replace(/\s/g,'').toLowerCase()===gameState.word.replace(/\s/g,'').toLowerCase()){
-      // 정답!
       db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text:gameState.word,ts:Date.now(),correct:true});
-      // 점수: 정답자 +1, 출제자 +1
-      addScore(myNick,1);
-      addScore(gameState.drawer,1);
-      // 다음 출제자 = 정답자, 라운드 종료
+      addScore(myNick,1);addScore(gameState.drawer,1);
+      handleStreak(myNick);
       db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true,status:'reveal',nextDrawer:myNick});
       return;
     }
@@ -1342,6 +1504,7 @@ function sendQuickChat(){
     if(text.replace(/\s/g,'').toLowerCase()===gameState.word.replace(/\s/g,'').toLowerCase()){
       db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text:gameState.word,ts:Date.now(),correct:true});
       addScore(myNick,1);addScore(gameState.drawer,1);
+      handleStreak(myNick);
       db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true,status:'reveal',nextDrawer:myNick});
       return;
     }
@@ -1352,7 +1515,12 @@ function sendQuickChat(){
 function appendChat(d){
   const container=document.getElementById('chat-messages'),div=document.createElement('div');
   if(d.system){div.className='chat-msg system';div.textContent=d.text;}
-  else if(d.correct){div.className='chat-msg correct';div.textContent=`${d.nick} 님이 정답! (+1점)`;}
+  else if(d.correct){
+    div.className='chat-msg correct';
+    const streak=streakMap[d.nick]||0;
+    const streakTxt=streak>=2?` <span class="streak-badge">${streak} STREAK</span>`:'';
+    div.innerHTML=`${esc(d.nick)} 님이 정답! (+1점)${streakTxt}`;
+  }
   else{div.className='chat-msg user';let displayText=d.text;
     if(gameState&&gameState.status==='drawing'&&gameState.word){if(displayText.toLowerCase().includes(gameState.word.toLowerCase()))displayText=displayText.replace(new RegExp(gameState.word,'gi'),'***');}
     div.innerHTML=`<span class="nick">${esc(d.nick)}</span>${esc(displayText)}`;}
