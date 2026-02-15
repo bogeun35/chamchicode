@@ -17,15 +17,12 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-/* 토스트 */
 .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--text); color:white; padding:10px 24px; border-radius:20px; font-size:.9rem; font-weight:600; z-index:9999; opacity:0; transition:opacity .3s; pointer-events:none; }
 .toast.show { opacity:1; }
 
-/* 화면 전환 */
 .screen { display:none; max-width:480px; margin:0 auto; padding:20px; }
 .screen.active { display:block; }
 
-/* 홈 */
 .home-title { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; text-align:center; margin:40px 0 8px;
   background:linear-gradient(135deg,var(--accent),var(--orange)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 .home-sub { text-align:center; color:var(--text-dim); font-size:.9rem; margin-bottom:32px; font-weight:600; }
@@ -39,18 +36,20 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .btn:hover { transform:translateY(-1px); }
 .btn-primary { background:var(--accent); color:white; flex:1; }
 .btn-orange { background:var(--orange); color:white; flex:1; }
+.btn-green { background:var(--green); color:white; }
+.btn-red { background:var(--red); color:white; }
+.btn-sm { padding:6px 12px; font-size:.75rem; border-radius:6px; }
 .btn-back { background:none; border:1px solid var(--border); color:var(--text-sub); font-family:'Rajdhani',sans-serif; font-size:.9rem; font-weight:600; padding:8px 16px; border-radius:8px; cursor:pointer; }
 
-/* 방 화면 - 2단 레이아웃 */
+/* 게임 2단 */
 .screen-game { max-width:960px; }
-.game-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.game-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
 .room-info { display:flex; align-items:center; gap:12px; }
 .room-code { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; background:var(--surface); border:1px solid var(--border); padding:6px 14px; border-radius:8px; }
 .role-tag { font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:6px; }
 .role-host { background:var(--orange); color:white; }
 .role-guest { background:var(--accent-light); color:var(--accent); }
 
-/* 참여자 */
 .members-bar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; align-items:center; }
 .members-label { font-size:.8rem; font-weight:700; color:var(--text-dim); margin-right:4px; }
 .member-chip { font-size:.78rem; font-weight:600; padding:4px 10px; border-radius:6px; background:var(--surface-alt); border:1px solid var(--border); color:var(--text-sub); display:flex; align-items:center; gap:4px; }
@@ -58,15 +57,13 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .member-chip.host { background:rgba(217,119,6,0.1); border-color:rgba(217,119,6,0.3); color:var(--orange); }
 .member-chip.drawing { background:rgba(37,99,235,0.1); border-color:var(--accent); color:var(--accent); }
 
-/* 2단 구조 */
 .game-layout { display:grid; grid-template-columns:1fr 300px; gap:16px; }
 @media(max-width:768px) { .game-layout { grid-template-columns:1fr; } }
 
-/* 캔버스 영역 */
+/* 캔버스 */
 .canvas-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .canvas-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
 .canvas-status { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; color:var(--text-sub); }
-.round-info { font-size:.8rem; font-weight:600; color:var(--text-dim); }
 .timer-badge { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:900; padding:4px 12px; border-radius:6px; background:var(--surface-alt); color:var(--text-sub); }
 .timer-badge.warning { background:rgba(220,38,38,0.1); color:var(--red); animation:pulse .5s ease-in-out infinite; }
 @keyframes pulse { 50%{ transform:scale(1.05); } }
@@ -74,7 +71,6 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .canvas-wrap { position:relative; background:white; aspect-ratio:4/3; }
 .canvas-wrap canvas { width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }
 
-/* 그리기 도구 */
 .toolbar { display:flex; align-items:center; gap:6px; padding:10px 16px; border-top:1px solid var(--border); flex-wrap:wrap; }
 .tool-btn { width:34px; height:34px; border:2px solid var(--border); border-radius:8px; background:var(--surface-alt); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:all .15s; }
 .tool-btn:hover { border-color:var(--accent); }
@@ -83,13 +79,12 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .color-btn.active { border-color:var(--text); box-shadow:0 0 0 2px var(--accent-light); transform:scale(1.15); }
 .size-range { width:60px; accent-color:var(--accent); }
 
-/* 제시어 표시 */
 .word-display { text-align:center; padding:16px; border-top:1px solid var(--border); }
 .word-label { font-size:.75rem; color:var(--text-dim); font-weight:600; }
 .word-text { font-family:'Orbitron',sans-serif; font-size:1.4rem; font-weight:900; color:var(--accent); margin-top:4px; letter-spacing:0.1em; }
 .word-hint { font-family:'Orbitron',sans-serif; font-size:1.2rem; font-weight:700; color:var(--text-dim); margin-top:4px; letter-spacing:0.2em; }
 
-/* 채팅 패널 */
+/* 채팅 */
 .chat-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; height:100%; min-height:400px; }
 .chat-title { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; color:var(--text-sub); padding:12px 16px; border-bottom:1px solid var(--border); }
 .chat-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
@@ -110,8 +105,8 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .ctrl-btn.start { background:var(--green); color:white; border-color:var(--green); }
 .ctrl-btn.skip { background:var(--orange); color:white; border-color:var(--orange); }
 .ctrl-btn.end { background:var(--red); color:white; border-color:var(--red); }
+.ctrl-btn.words { background:var(--purple); color:white; border-color:var(--purple); }
 
-/* 대기 화면 */
 .waiting { text-align:center; padding:60px 20px; }
 .waiting-icon { font-size:3rem; margin-bottom:12px; }
 .waiting-text { font-size:1.1rem; font-weight:700; color:var(--text-sub); }
@@ -123,24 +118,40 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 .correct-overlay .big-text { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:white; }
 .correct-overlay .sub-text { font-size:1.2rem; color:rgba(255,255,255,0.8); font-weight:600; }
 
-/* 제시어 입력 모달 */
+/* 모달 공통 */
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); display:none; align-items:center; justify-content:center; z-index:4000; backdrop-filter:blur(6px); }
 .modal-overlay.show { display:flex; }
-.modal-box { background:white; border-radius:16px; padding:28px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); }
+.modal-box { background:white; border-radius:16px; padding:28px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); max-height:80vh; overflow-y:auto; position:relative; }
 .modal-title { font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700; margin-bottom:16px; text-align:center; }
 .modal-row { display:flex; gap:8px; margin-top:12px; }
+.modal-close { position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-dim); line-height:1; }
 
-/* 제시어 추천 */
+/* 제시어 칩 */
 .word-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .word-chip { padding:8px 14px; background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .15s; }
 .word-chip:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+
+/* 제시어 관리 */
+.category-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.cat-tab { padding:6px 14px; border:1px solid var(--border); border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; background:var(--surface-alt); color:var(--text-sub); transition:all .15s; }
+.cat-tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+.cat-tab .cat-count { font-size:.7rem; opacity:.7; margin-left:4px; }
+.word-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-height:40px; }
+.word-tag { display:flex; align-items:center; gap:4px; padding:4px 10px; background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; font-size:.8rem; font-weight:600; }
+.word-tag .del-btn { background:none; border:none; color:var(--red); cursor:pointer; font-size:.75rem; font-weight:700; padding:0 2px; }
+.add-row { display:flex; gap:6px; margin-top:10px; }
+.add-row input { flex:1; padding:8px 10px; border:2px solid var(--border); border-radius:8px; font-size:.85rem; font-family:inherit; font-weight:600; outline:none; }
+.add-row input:focus { border-color:var(--accent); }
+.mgmt-divider { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+.mgmt-footer { margin-top:16px; text-align:center; }
+.word-stats { font-size:.8rem; color:var(--text-dim); margin-bottom:12px; text-align:center; }
 </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
 
-<!-- 홈 화면 -->
+<!-- 홈 -->
 <div class="screen active" id="screen-home">
   <div class="home-title">참스코드 그림퀴즈</div>
   <div class="home-sub">그려서 맞추는 실시간 파티게임</div>
@@ -157,7 +168,7 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
   </div>
 </div>
 
-<!-- 게임 화면 -->
+<!-- 게임 -->
 <div class="screen screen-game" id="screen-game">
   <div class="game-header">
     <div class="room-info">
@@ -167,16 +178,13 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
   <div class="members-bar" id="g-members"></div>
-
-  <!-- 방장 컨트롤 -->
   <div class="host-controls" id="host-controls" style="display:none;">
     <button class="ctrl-btn start" onclick="startRound()">라운드 시작</button>
     <button class="ctrl-btn skip" onclick="skipRound()">스킵</button>
+    <button class="ctrl-btn words" onclick="openWordManager()">제시어 관리</button>
     <button class="ctrl-btn end" onclick="endGame()">게임 종료</button>
   </div>
-
   <div class="game-layout">
-    <!-- 캔버스 -->
     <div class="canvas-panel">
       <div class="canvas-header">
         <span class="canvas-status" id="canvas-status">대기 중</span>
@@ -205,13 +213,8 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
         <div class="color-btn" style="background:#7C3AED" onclick="setColor('#7C3AED',this)"></div>
         <div class="color-btn" style="background:#FFFFFF;border-color:#CBD5E1;" onclick="setColor('#FFFFFF',this)"></div>
       </div>
-      <div class="word-display" id="word-display" style="display:none;">
-        <div class="word-label" id="word-label">제시어</div>
-        <div class="word-text" id="word-text"></div>
-      </div>
+      <div class="word-display" id="word-display" style="display:none;"></div>
     </div>
-
-    <!-- 채팅 -->
     <div class="chat-panel">
       <div class="chat-title">채팅</div>
       <div class="chat-messages" id="chat-messages"></div>
@@ -229,14 +232,38 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
   <div class="sub-text" id="correct-word"></div>
 </div>
 
-<!-- 제시어 입력 모달 -->
+<!-- 제시어 선택 모달 -->
 <div class="modal-overlay" id="word-modal">
   <div class="modal-box">
-    <div class="modal-title">제시어를 입력하세요</div>
-    <input class="input" id="word-input" placeholder="제시어..." maxlength="20">
+    <div class="modal-title" id="word-modal-title">제시어를 선택하세요</div>
     <div class="word-suggestions" id="word-suggestions"></div>
+    <div style="text-align:center;color:var(--text-dim);font-size:.8rem;margin-top:12px;">또는 직접 입력</div>
+    <input class="input" id="word-input" placeholder="직접 입력..." maxlength="20" style="margin-top:8px;" onkeydown="if(event.key==='Enter')submitWord()">
     <div class="modal-row">
       <button class="btn btn-primary" onclick="submitWord()" style="flex:1;">시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- 제시어 관리 모달 -->
+<div class="modal-overlay" id="word-mgmt-modal">
+  <div class="modal-box" style="max-width:560px;">
+    <button class="modal-close" onclick="closeWordManager()">&#10005;</button>
+    <div class="modal-title">제시어 관리</div>
+    <div class="word-stats" id="word-stats"></div>
+    <div class="category-tabs" id="cat-tabs"></div>
+    <div class="word-tags" id="word-tags"></div>
+    <div class="add-row">
+      <input id="add-word-input" placeholder="제시어 추가..." maxlength="20" onkeydown="if(event.key==='Enter')addWord()">
+      <button class="btn btn-green btn-sm" onclick="addWord()">추가</button>
+    </div>
+    <div class="add-row mgmt-divider">
+      <input id="add-cat-input" placeholder="새 카테고리..." maxlength="10" onkeydown="if(event.key==='Enter')addCategory()">
+      <button class="btn btn-primary btn-sm" onclick="addCategory()">카테고리 추가</button>
+      <button class="btn btn-red btn-sm" onclick="deleteCategory()">삭제</button>
+    </div>
+    <div class="mgmt-footer">
+      <button class="btn btn-orange btn-sm" onclick="seedDefaultWords()">기본 제시어 초기화</button>
     </div>
   </div>
 </div>
@@ -245,60 +272,95 @@ body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
 firebase.initializeApp({
-  apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",
+  apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",
+  authDomain:"rolling2-17a8f.firebaseapp.com",
   databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",
-  messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"
+  projectId:"rolling2-17a8f",
+  storageBucket:"rolling2-17a8f.firebasestorage.app",
+  messagingSenderId:"936512265515",
+  appId:"1:936512265515:web:c9cb05f341267af81a796e"
 });
 const db = firebase.database();
 
-// === 전역 ===
+/* ========== 전역 ========== */
 let currentRoom=null, isHost=false, myNick='', listeners=[], membersData={};
-let gameState=null; // {status, drawer, word, hint, round, startedAt, endAt}
+let gameState=null, wordBank={}, allWords=[];
 let drawCtx=null, drawing=false, lastX=0, lastY=0;
 let currentTool='pen', brushColor='#0F172A', brushSize=4;
-let strokeBuffer=[], strokeTimer=null;
-let timerInterval=null;
+let strokeBuffer=[], strokeTimer=null, timerInterval=null;
+let selectedCat='';
 
 const NICK_KEY='charms_draw_nick';
-const ROUND_TIME=60; // 60초
-const WORD_BANK=[
-  '사과','바나나','피자','햄버거','라면','치킨','아이스크림','케이크','초밥','떡볶이',
-  '강아지','고양이','토끼','코끼리','공룡','펭귄','돌고래','나비','거북이','독수리',
-  '자동차','비행기','자전거','로켓','배','기차','헬리콥터','오토바이','트럭','잠수함',
-  '축구','야구','농구','테니스','수영','스키','태권도','복싱','골프','볼링',
-  '선생님','의사','소방관','경찰','요리사','우주인','해적','마법사','닌자','로봇',
-  '집','학교','병원','성','피라미드','텐트','등대','풍차','다리','놀이공원',
-  '기타','피아노','드럼','바이올린','마이크','헤드폰','카메라','망원경','시계','우산',
-  '해','달','별','구름','무지개','눈사람','화산','폭포','선인장','나무',
-  '오버워치','마인크래프트','롤','배틀그라운드','메이플','포켓몬','마리오','젤다','테트리스','팩맨'
-];
+const ROUND_TIME=60;
 
+const DEFAULT_WORDS = {
+  '오버워치':['겐지','트레이서','위도우메이커','파라','리퍼','솔저76','메이','토르비욘','시메트라','바스티온','라인하르트','자리야','루시우','머시','정크랫','로드호그','디바','윈스턴','한조','아나','솜브라','오리사','둠피스트','모이라','에코','소전','용검','나노강화','자폭','대지분쇄','중력자탄','쌍용','핵폭탄'],
+  '롤':['가렌','티모','야스오','아리','이즈리얼','럭스','리신','쓰레쉬','진','징크스','카타리나','아칼리','제드','르블랑','바이','케이틀린','드레이븐','블리츠크랭크','미스포춘','소라카','내셔남작','바론','드래곤','와드','미니언','포탑','넥서스','엘더드래곤','강타','점멸','캐니언','페이커'],
+  '발로란트':['제트','레이즈','세이지','소바','오멘','바이퍼','피닉스','사이퍼','브림스톤','레이나','킬조이','스카이','요루','아스트라','네온','챔버','페이드','하버','데드록','클로브','테일윈드','블레이드스톰','부활','헌터의분노','바인드','어센트','헤이븐','스파이크'],
+  '마인크래프트':['크리퍼','엔더맨','좀비','스켈레톤','다이아몬드','네더','엔더드래곤','위더','레드스톤','인챈트','엔더포탈','블레이즈','가스트','철골렘','마을주민','엔더진주','양털','TNT','흑요석','네더라이트','비콘','엘리트라','셜커상자','피글린','워든','체리나무'],
+  '포켓몬':['피카츄','이상해씨','파이리','꼬부기','뮤츠','리자몽','잠만보','이브이','뮤','루기아','가이오가','레쿠쟈','디아루가','아르세우스','루카리오','가브리아스','리자드','나무지기','팽도리','뿔카노','게꿀닌자','지가르데','네크로즈마','울트라비스트','테라스탈'],
+  '마리오':['마리오','루이지','피치','쿠파','요시','키노피오','와리오','로젤리나','굼바','엉금엉금','부끄부끄','뻐꾸기','별','슈퍼버섯','파이어플라워','무적별','카트','바나나껍질','파란등껍질','빨간등껍질','무지개로드','피치성','대쉬버섯'],
+  '젤다':['링크','젤다','가논돌프','마스터소드','하이랄','시커슬레이트','파라세일','가디언','보코블린','라이넬','코로그','쉬커','야생의숨결','왕국의눈물','울트라핸드','퓨즈','조나이','트라이포스','요리','미파','달리아','시드','리발'],
+  '배틀그라운드':['치킨','에란겔','미라마','프라이팬','AWM','카98','M416','에어드랍','부스트','자기장','레드존','낙하산','차량','길리슈트','레벨3헬멧','응급키트','수류탄','연막탄','윈체스터','크로스보우','교두보','태이고','데스턴'],
+  '메이플스토리':['주황버섯','슬라임','예티','발록','핑크빈','검은마법사','카닝시티','헤네시스','리스항구','엘리니아','커닝타워','메소','메이플옹','넥슨','비숍','나이트로드','아크메이지','팬텀','루미너스','제로','아델','카인','라라'],
+  '음식':['피자','치킨','햄버거','라면','초밥','떡볶이','김밥','짜장면','스파게티','타코','돈까스','삼겹살','불고기','비빔밥','냉면','만두','곱창','감자튀김','아이스크림','케이크','마카롱','붕어빵','호떡','떡갈비','파스타'],
+  '게임용어':['GG','팀킬','캐리','딜러','탱커','힐러','버프','너프','쿨타임','마나','체력','경험치','레벨업','파밍','로밍','갱킹','라인전','한타','오브젝트','백도어','어그로','CC기','궁극기','패시브','리스폰','페이즈','랭크','티어','매치메이킹','메타']
+};
+
+/* ========== 유틸 ========== */
 function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function getSavedNick(){return localStorage.getItem(NICK_KEY)||'';}
 function saveNick(n){localStorage.setItem(NICK_KEY,n);}
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
-function makeHint(word){return word.split('').map((_,i)=>i===0?'_':'_').join(' ');}
+function makeHint(word){return word.split('').map(()=>'_').join(' ');}
 
-// 초기화
-(function(){
-  const n=getSavedNick();
-  if(n){document.getElementById('room-host').value=n;document.getElementById('join-nick').value=n;}
-})();
+(function(){const n=getSavedNick();if(n){document.getElementById('room-host').value=n;document.getElementById('join-nick').value=n;}})();
 
-// === 방 생성/참여 ===
+/* ========== 제시어 DB ========== */
+function loadWordBank(){
+  db.ref('drawwords').on('value', snap => {
+    wordBank = snap.val() || {};
+    allWords = [];
+    Object.values(wordBank).forEach(cat => {
+      if (Array.isArray(cat)) allWords.push(...cat);
+    });
+    // DB가 비어있으면 자동 시드
+    if (!Object.keys(wordBank).length) {
+      db.ref('drawwords').set(DEFAULT_WORDS);
+      return; // set 후 on('value')가 다시 호출됨
+    }
+  });
+}
+loadWordBank();
+
+function seedDefaultWords(){
+  if(!confirm('기본 제시어로 초기화합니다. 기존 데이터를 덮어씁니다.'))return;
+  db.ref('drawwords').set(DEFAULT_WORDS).then(()=>{toast('초기화 완료');renderWordManager();});
+}
+
+function getRandomWords(n){
+  const pool=[...allWords]; const result=[];
+  while(result.length<n && pool.length){
+    const i=Math.floor(Math.random()*pool.length);
+    result.push(pool.splice(i,1)[0]);
+  }
+  return result;
+}
+
+/* ========== 방 생성/참여 ========== */
 function createRoom(){
   const host=document.getElementById('room-host').value.trim();
   if(!host)return toast('닉네임을 입력해주세요');
   saveNick(host);
   const code=genCode();
-  db.ref(`drawrooms/${code}`).set({host,createdAt:Date.now(),expiresAt:Date.now()+30*60*1000,game:null}).then(()=>{
-    currentRoom={code,host};isHost=true;myNick=host;enterRoom();
+  db.ref(`drawrooms/${code}`).set({host, createdAt:Date.now(), expiresAt:Date.now()+30*60*1000, game:null}).then(()=>{
+    currentRoom={code,host}; isHost=true; myNick=host; enterRoom();
   }).catch(()=>toast('방 생성 실패'));
 }
+
 function joinRoom(){
   const code=document.getElementById('join-code').value.trim().toUpperCase();
   const nick=document.getElementById('join-nick').value.trim();
@@ -308,8 +370,11 @@ function joinRoom(){
   db.ref(`drawrooms/${code}`).once('value').then(snap=>{
     if(!snap.exists())return toast('존재하지 않는 방입니다');
     const d=snap.val();
-    if(d.expiresAt&&Date.now()>d.expiresAt){db.ref(`drawrooms/${code}`).remove();db.ref(`drawchat/${code}`).remove();db.ref(`drawcanvas/${code}`).remove();db.ref(`drawmembers/${code}`).remove();return toast('만료된 방입니다');}
-    currentRoom={code,host:d.host};isHost=(d.host===nick);myNick=nick;enterRoom();
+    if(d.expiresAt && Date.now()>d.expiresAt){
+      ['drawrooms','drawchat','drawcanvas','drawmembers'].forEach(p=>db.ref(`${p}/${code}`).remove());
+      return toast('만료된 방입니다');
+    }
+    currentRoom={code,host:d.host}; isHost=(d.host===nick); myNick=nick; enterRoom();
   }).catch(()=>toast('입장 실패'));
 }
 
@@ -319,55 +384,43 @@ function enterRoom(){
   if(isHost){role.textContent='방장';role.className='role-tag role-host';document.getElementById('host-controls').style.display='flex';}
   else{role.textContent='참여자';role.className='role-tag role-guest';document.getElementById('host-controls').style.display='none';}
   showScreen('game');
-  initCanvas();
-  registerPresence();
-  listenMembers();
-  listenGame();
-  listenCanvas();
-  listenChat();
-  listenRoomExists();
+  initCanvas(); registerPresence(); listenMembers(); listenGame(); listenCanvas(); listenChat(); listenRoomExists();
   addSystemChat('방에 입장했습니다');
 }
 
 function leaveRoom(){
-  if(isHost&&!confirm('방장이 나가면 방이 삭제됩니다.'))return;
+  if(isHost && !confirm('방장이 나가면 방이 삭제됩니다.'))return;
   if(currentRoom){
     const code=currentRoom.code;
-    if(isHost){
-      db.ref(`drawrooms/${code}`).remove();db.ref(`drawchat/${code}`).remove();
-      db.ref(`drawcanvas/${code}`).remove();db.ref(`drawmembers/${code}`).remove();
-    }else{
-      db.ref(`drawmembers/${code}/${sanitizeKey(myNick)}`).remove();
-    }
+    if(isHost){['drawrooms','drawchat','drawcanvas','drawmembers'].forEach(p=>db.ref(`${p}/${code}`).remove());}
+    else{db.ref(`drawmembers/${code}/${sanitizeKey(myNick)}`).remove();}
   }
-  listeners.forEach(fn=>fn());listeners=[];
+  listeners.forEach(fn=>fn()); listeners=[];
   if(timerInterval)clearInterval(timerInterval);
-  currentRoom=null;gameState=null;membersData={};isHost=false;
+  currentRoom=null; gameState=null; membersData={}; isHost=false;
   showScreen('home');
 }
 
-// === Presence ===
+/* ========== Presence ========== */
 function registerPresence(){
-  const code=currentRoom.code,myKey=sanitizeKey(myNick);
+  const code=currentRoom.code, myKey=sanitizeKey(myNick);
   const ref=db.ref(`drawmembers/${code}/${myKey}`);
-  ref.set({nick:myNick,isHost,joinedAt:Date.now()});
+  ref.set({nick:myNick, isHost, joinedAt:Date.now()});
   if(isHost){
-    db.ref(`drawrooms/${code}`).onDisconnect().remove();
-    db.ref(`drawchat/${code}`).onDisconnect().remove();
-    db.ref(`drawcanvas/${code}`).onDisconnect().remove();
-    db.ref(`drawmembers/${code}`).onDisconnect().remove();
-    listeners.push(()=>{db.ref(`drawrooms/${code}`).onDisconnect().cancel();db.ref(`drawchat/${code}`).onDisconnect().cancel();db.ref(`drawcanvas/${code}`).onDisconnect().cancel();db.ref(`drawmembers/${code}`).onDisconnect().cancel();});
-  }else{
+    ['drawrooms','drawchat','drawcanvas','drawmembers'].forEach(p=>db.ref(`${p}/${code}`).onDisconnect().remove());
+    listeners.push(()=>{['drawrooms','drawchat','drawcanvas','drawmembers'].forEach(p=>db.ref(`${p}/${code}`).onDisconnect().cancel());});
+  } else {
     ref.onDisconnect().remove();
-    listeners.push(()=>{ref.onDisconnect().cancel();ref.remove();});
+    listeners.push(()=>{ref.onDisconnect().cancel(); ref.remove();});
   }
 }
 
 function listenMembers(){
   const ref=db.ref(`drawmembers/${currentRoom.code}`);
-  const cb=ref.on('value',snap=>{membersData=snap.val()||{};renderMembers();});
+  const cb=ref.on('value',snap=>{membersData=snap.val()||{}; renderMembers();});
   listeners.push(()=>ref.off('value',cb));
 }
+
 function renderMembers(){
   const bar=document.getElementById('g-members');
   const entries=Object.values(membersData);
@@ -375,27 +428,30 @@ function renderMembers(){
   const drawer=gameState?.drawer||'';
   bar.innerHTML=`<span class="members-label">참여자 ${entries.length}</span>`+
     entries.map(m=>{
-      let cls=m.isHost?'host':'';
-      if(m.nick===drawer)cls='drawing';
+      let cls=m.isHost?'host':''; if(m.nick===drawer) cls='drawing';
       return `<span class="member-chip ${cls}"><span class="dot"></span>${esc(m.nick)}${m.nick===drawer?' (출제)':''}</span>`;
     }).join('');
 }
+
 function listenRoomExists(){
   if(isHost)return;
   const ref=db.ref(`drawrooms/${currentRoom.code}`);
   const cb=ref.on('value',snap=>{
-    if(!snap.exists()){toast('방이 종료되었습니다');listeners.forEach(fn=>fn());listeners=[];if(timerInterval)clearInterval(timerInterval);currentRoom=null;gameState=null;membersData={};isHost=false;showScreen('home');}
+    if(!snap.exists()){
+      toast('방이 종료되었습니다');
+      listeners.forEach(fn=>fn()); listeners=[];
+      if(timerInterval)clearInterval(timerInterval);
+      currentRoom=null; gameState=null; membersData={}; isHost=false;
+      showScreen('home');
+    }
   });
   listeners.push(()=>ref.off('value',cb));
 }
 
-// === 게임 상태 ===
+/* ========== 게임 상태 ========== */
 function listenGame(){
   const ref=db.ref(`drawrooms/${currentRoom.code}/game`);
-  const cb=ref.on('value',snap=>{
-    gameState=snap.val();
-    renderGameState();
-  });
+  const cb=ref.on('value',snap=>{gameState=snap.val(); renderGameState();});
   listeners.push(()=>ref.off('value',cb));
 }
 
@@ -408,37 +464,31 @@ function renderGameState(){
   const canvasStatus=document.getElementById('canvas-status');
   const timerBadge=document.getElementById('timer-badge');
 
-  if(!status||status==='idle'){
-    waiting.style.display='flex';toolbar.style.display='none';wordDisplay.style.display='none';
-    canvasStatus.textContent='대기 중';timerBadge.textContent='--';
+  if(!status || status==='idle'){
+    waiting.style.display='flex'; toolbar.style.display='none'; wordDisplay.style.display='none';
+    canvasStatus.textContent='대기 중'; timerBadge.textContent='--';
     document.getElementById('waiting-sub').textContent=isHost?'라운드 시작 버튼을 눌러주세요':'방장이 시작하면 게임이 시작됩니다';
-    if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
-    clearCanvasLocal();
-    return;
+    if(timerInterval){clearInterval(timerInterval); timerInterval=null;}
+    clearCanvasLocal(); return;
   }
 
   if(status==='drawing'){
     waiting.style.display='none';
     if(isDrawer){
-      toolbar.style.display='flex';wordDisplay.style.display='block';
-      document.getElementById('word-label').textContent='제시어';
-      document.getElementById('word-text').textContent=gameState.word;
-      document.getElementById('word-text').style.display='block';
+      toolbar.style.display='flex';
+      wordDisplay.style.display='block';
+      wordDisplay.innerHTML=`<div class="word-label">제시어</div><div class="word-text">${esc(gameState.word)}</div>`;
       document.getElementById('chat-input').disabled=true;
       document.getElementById('chat-input').placeholder='출제자는 채팅 불가';
-    }else{
-      toolbar.style.display='none';wordDisplay.style.display='block';
-      document.getElementById('word-label').textContent='힌트';
-      document.getElementById('word-text').style.display='none';
-      const hintEl=document.createElement('div');
-      document.getElementById('word-display').innerHTML=`<div class="word-label">힌트 (${gameState.word?.length||'?'}글자)</div><div class="word-hint">${makeHint(gameState.word||'')}</div>`;
+    } else {
+      toolbar.style.display='none';
+      wordDisplay.style.display='block';
+      wordDisplay.innerHTML=`<div class="word-label">힌트 (${gameState.word?.length||'?'}글자)</div><div class="word-hint">${makeHint(gameState.word||'')}</div>`;
       document.getElementById('chat-input').disabled=false;
       document.getElementById('chat-input').placeholder='정답 입력...';
     }
-    const drawer=gameState.drawer;
-    canvasStatus.textContent=`${drawer} 님이 그리는 중`;
-    startTimer();
-    renderMembers();
+    canvasStatus.textContent=`${gameState.drawer} 님이 그리는 중`;
+    startTimer(); renderMembers();
   }
 
   if(status==='reveal'){
@@ -448,72 +498,59 @@ function renderGameState(){
     canvasStatus.textContent='라운드 종료';
     document.getElementById('chat-input').disabled=false;
     document.getElementById('chat-input').placeholder='정답 입력...';
-    if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
-    timerBadge.textContent='--';timerBadge.classList.remove('warning');
+    if(timerInterval){clearInterval(timerInterval); timerInterval=null;}
+    timerBadge.textContent='--'; timerBadge.classList.remove('warning');
   }
 }
 
 function startTimer(){
-  if(timerInterval)clearInterval(timerInterval);
+  if(timerInterval) clearInterval(timerInterval);
   const badge=document.getElementById('timer-badge');
   timerInterval=setInterval(()=>{
-    if(!gameState||gameState.status!=='drawing')return;
+    if(!gameState || gameState.status!=='drawing') return;
     const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
-    const remain=Math.max(ROUND_TIME-elapsed,0);
+    const remain=Math.max(ROUND_TIME-elapsed, 0);
     badge.textContent=remain+'s';
-    badge.classList.toggle('warning',remain<=10);
-    if(remain<=0&&isHost){
-      clearInterval(timerInterval);timerInterval=null;
-      endRound();
-    }
+    badge.classList.toggle('warning', remain<=10);
+    if(remain<=0 && isHost){clearInterval(timerInterval); timerInterval=null; endRound();}
   },500);
 }
 
-// === 방장 컨트롤 ===
+/* ========== 방장 컨트롤 ========== */
 function startRound(){
-  if(!isHost)return;
+  if(!isHost) return;
   const members=Object.values(membersData).map(m=>m.nick);
-  if(members.length<2)return toast('2명 이상 필요합니다');
-  // 출제자 선택 (순서대로 or 랜덤)
+  if(members.length<2) return toast('2명 이상 필요합니다');
+  if(!allWords.length) return toast('제시어가 없습니다. 제시어 관리에서 추가해주세요');
   const prevDrawer=gameState?.drawer;
   let candidates=members.filter(m=>m!==prevDrawer);
-  if(!candidates.length)candidates=members;
+  if(!candidates.length) candidates=members;
   const drawer=candidates[Math.floor(Math.random()*candidates.length)];
-
-  if(drawer===myNick){
-    // 방장이 출제자 → 제시어 모달
-    showWordModal(drawer);
-  }else{
-    // 다른 사람이 출제자 → 제시어 선택권을 출제자에게 (단순 구현: 랜덤 제시어)
-    const word=WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];
-    beginDrawing(drawer,word);
-  }
+  showWordModal(drawer);
 }
 
 function showWordModal(drawer){
-  const modal=document.getElementById('word-modal');
-  modal.classList.add('show');
+  document.getElementById('word-modal').classList.add('show');
   document.getElementById('word-input').value='';
-  // 추천 단어
-  const suggestions=[];
-  const used=new Set();
-  while(suggestions.length<6){const w=WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];if(!used.has(w)){used.add(w);suggestions.push(w);}}
+  document.getElementById('word-modal-title').textContent=
+    drawer!==myNick ? `${drawer} 님의 제시어를 선택하세요` : '제시어를 선택하세요';
+  const suggestions=getRandomWords(8);
   document.getElementById('word-suggestions').innerHTML=suggestions.map(w=>
-    `<span class="word-chip" onclick="document.getElementById('word-input').value='${w}'">${w}</span>`
+    `<span class="word-chip" onclick="document.getElementById('word-input').value='${esc(w)}'; submitWord()">${esc(w)}</span>`
   ).join('');
   window._pendingDrawer=drawer;
 }
 
 function submitWord(){
   const word=document.getElementById('word-input').value.trim();
-  if(!word)return toast('제시어를 입력해주세요');
+  if(!word) return toast('제시어를 선택 또는 입력해주세요');
   document.getElementById('word-modal').classList.remove('show');
-  beginDrawing(window._pendingDrawer||myNick,word);
+  beginDrawing(window._pendingDrawer||myNick, word);
 }
 
-function beginDrawing(drawer,word){
-  // 캔버스 초기화
+function beginDrawing(drawer, word){
   db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  clearCanvasLocal();
   db.ref(`drawrooms/${currentRoom.code}/game`).set({
     status:'drawing', drawer, word,
     round:(gameState?.round||0)+1,
@@ -522,93 +559,134 @@ function beginDrawing(drawer,word){
   addSystemChat(`${drawer} 님이 그립니다! (${word.length}글자)`);
 }
 
-function skipRound(){
-  if(!isHost)return;
-  endRound();
-}
-
+function skipRound(){ if(!isHost) return; endRound(); }
 function endRound(){
-  if(!gameState||gameState.status!=='drawing')return;
+  if(!gameState || gameState.status!=='drawing') return;
   db.ref(`drawrooms/${currentRoom.code}/game`).update({status:'reveal'});
   addSystemChat(`정답: ${gameState.word}`);
 }
-
 function endGame(){
-  if(!isHost)return;
+  if(!isHost) return;
   db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle'});
   db.ref(`drawcanvas/${currentRoom.code}`).remove();
   addSystemChat('게임이 종료되었습니다');
 }
 
-// === 캔버스 ===
+/* ========== 제시어 관리 ========== */
+function openWordManager(){
+  document.getElementById('word-mgmt-modal').classList.add('show');
+  const cats=Object.keys(wordBank);
+  if(cats.length && !cats.includes(selectedCat)) selectedCat=cats[0];
+  renderWordManager();
+}
+function closeWordManager(){ document.getElementById('word-mgmt-modal').classList.remove('show'); }
+
+function renderWordManager(){
+  const cats=Object.keys(wordBank);
+  const totalWords=allWords.length;
+  document.getElementById('word-stats').textContent=`${cats.length}개 카테고리 / 총 ${totalWords}개 제시어`;
+
+  document.getElementById('cat-tabs').innerHTML=cats.map(c=>
+    `<span class="cat-tab ${c===selectedCat?'active':''}" onclick="selectedCat='${esc(c)}'; renderWordManager()">${esc(c)}<span class="cat-count">${(wordBank[c]||[]).length}</span></span>`
+  ).join('');
+
+  const words=wordBank[selectedCat]||[];
+  document.getElementById('word-tags').innerHTML=
+    words.map((w,i)=>`<span class="word-tag">${esc(w)}<button class="del-btn" onclick="removeWord(${i})">&#10005;</button></span>`).join('')
+    || `<span style="color:var(--text-dim);font-size:.85rem;">${selectedCat?'비어있음':'카테고리를 선택하세요'}</span>`;
+}
+
+function addWord(){
+  const input=document.getElementById('add-word-input');
+  const word=input.value.trim();
+  if(!word) return;
+  if(!selectedCat) return toast('카테고리를 먼저 선택하세요');
+  const words=wordBank[selectedCat]||[];
+  if(words.includes(word)) return toast('이미 있는 제시어입니다');
+  words.push(word);
+  db.ref(`drawwords/${selectedCat}`).set(words);
+  input.value=''; input.focus();
+}
+
+function removeWord(idx){
+  if(!selectedCat) return;
+  const words=wordBank[selectedCat]||[];
+  words.splice(idx,1);
+  if(words.length) db.ref(`drawwords/${selectedCat}`).set(words);
+  else { db.ref(`drawwords/${selectedCat}`).remove(); delete wordBank[selectedCat]; const cats=Object.keys(wordBank); selectedCat=cats[0]||''; }
+}
+
+function addCategory(){
+  const input=document.getElementById('add-cat-input');
+  const cat=input.value.trim();
+  if(!cat) return;
+  if(wordBank[cat]) return toast('이미 있는 카테고리입니다');
+  db.ref(`drawwords/${cat}`).set([]);
+  selectedCat=cat; input.value='';
+}
+
+function deleteCategory(){
+  if(!selectedCat) return;
+  if(!confirm(`"${selectedCat}" 카테고리의 모든 제시어가 삭제됩니다.`)) return;
+  db.ref(`drawwords/${selectedCat}`).remove();
+  delete wordBank[selectedCat];
+  const cats=Object.keys(wordBank); selectedCat=cats[0]||'';
+  renderWordManager();
+}
+
+/* ========== 캔버스 ========== */
 function initCanvas(){
   const canvas=document.getElementById('draw-canvas');
   drawCtx=canvas.getContext('2d');
-  drawCtx.lineCap='round';drawCtx.lineJoin='round';
+  drawCtx.lineCap='round'; drawCtx.lineJoin='round';
   clearCanvasLocal();
-
-  canvas.addEventListener('pointerdown',onPointerDown);
-  canvas.addEventListener('pointermove',onPointerMove);
-  canvas.addEventListener('pointerup',onPointerUp);
-  canvas.addEventListener('pointerleave',onPointerUp);
+  canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointerleave', onPointerUp);
 }
 
 function getCanvasPos(e){
-  const canvas=document.getElementById('draw-canvas');
-  const rect=canvas.getBoundingClientRect();
-  return{x:e.clientX-rect.left,y:e.clientY-rect.top,sx:canvas.width/rect.width,sy:canvas.height/rect.height};
+  const c=document.getElementById('draw-canvas'), r=c.getBoundingClientRect();
+  return {x:e.clientX-r.left, y:e.clientY-r.top, sx:c.width/r.width, sy:c.height/r.height};
 }
 
 function onPointerDown(e){
-  if(!gameState||gameState.status!=='drawing'||gameState.drawer!==myNick)return;
-  drawing=true;
-  const p=getCanvasPos(e);
-  lastX=p.x*p.sx;lastY=p.y*p.sy;
-  strokeBuffer=[];
+  if(!gameState || gameState.status!=='drawing' || gameState.drawer!==myNick) return;
+  drawing=true; const p=getCanvasPos(e); lastX=p.x*p.sx; lastY=p.y*p.sy; strokeBuffer=[];
 }
 function onPointerMove(e){
-  if(!drawing)return;
-  const p=getCanvasPos(e);
-  const x=p.x*p.sx,y=p.y*p.sy;
+  if(!drawing) return;
+  const p=getCanvasPos(e), x=p.x*p.sx, y=p.y*p.sy;
   const color=currentTool==='eraser'?'#FFFFFF':brushColor;
   const size=currentTool==='eraser'?brushSize*4:brushSize;
   drawLine(lastX,lastY,x,y,color,size);
-  strokeBuffer.push({x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:size});
-  lastX=x;lastY=y;
-
-  // 100ms마다 Firebase에 전송
-  if(!strokeTimer){
-    strokeTimer=setTimeout(()=>{flushStrokes();strokeTimer=null;},80);
-  }
+  strokeBuffer.push({x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:Number(size)});
+  lastX=x; lastY=y;
+  if(!strokeTimer){ strokeTimer=setTimeout(()=>{flushStrokes(); strokeTimer=null;}, 80); }
 }
-function onPointerUp(){
-  if(!drawing)return;
-  drawing=false;
-  flushStrokes();
-}
-
+function onPointerUp(){ if(!drawing) return; drawing=false; flushStrokes(); }
 function flushStrokes(){
-  if(!strokeBuffer.length||!currentRoom)return;
-  const ref=db.ref(`drawcanvas/${currentRoom.code}`).push();
-  ref.set(strokeBuffer);
+  if(!strokeBuffer.length || !currentRoom) return;
+  db.ref(`drawcanvas/${currentRoom.code}`).push().set(strokeBuffer);
   strokeBuffer=[];
 }
 
 function drawLine(x1,y1,x2,y2,color,size){
-  drawCtx.strokeStyle=color;drawCtx.lineWidth=size;
-  drawCtx.beginPath();drawCtx.moveTo(x1,y1);drawCtx.lineTo(x2,y2);drawCtx.stroke();
+  drawCtx.strokeStyle=color; drawCtx.lineWidth=size;
+  drawCtx.beginPath(); drawCtx.moveTo(x1,y1); drawCtx.lineTo(x2,y2); drawCtx.stroke();
 }
 
 function clearCanvas(){
-  if(!gameState||gameState.drawer!==myNick)return;
+  if(!gameState || gameState.drawer!==myNick) return;
   clearCanvasLocal();
   db.ref(`drawcanvas/${currentRoom.code}`).remove();
   db.ref(`drawcanvas/${currentRoom.code}`).push().set([{clear:true}]);
 }
 function clearCanvasLocal(){
-  if(!drawCtx)return;
+  if(!drawCtx) return;
   const c=document.getElementById('draw-canvas');
-  drawCtx.fillStyle='#FFFFFF';drawCtx.fillRect(0,0,c.width,c.height);
+  drawCtx.fillStyle='#FFFFFF'; drawCtx.fillRect(0,0,c.width,c.height);
 }
 
 function setTool(tool,el){
@@ -617,7 +695,7 @@ function setTool(tool,el){
   el.classList.add('active');
 }
 function setColor(c,el){
-  brushColor=c;currentTool='pen';
+  brushColor=c; currentTool='pen';
   document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='pen'));
   document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
@@ -625,25 +703,22 @@ function setColor(c,el){
 
 function listenCanvas(){
   const ref=db.ref(`drawcanvas/${currentRoom.code}`);
-  const cb=ref.on('child_added',snap=>{
+  const cb=ref.on('child_added', snap=>{
     const strokes=snap.val();
-    if(!strokes||!Array.isArray(strokes))return;
-    if(strokes[0]?.clear){clearCanvasLocal();return;}
+    if(!strokes || !Array.isArray(strokes)) return;
+    if(strokes[0]?.clear){ clearCanvasLocal(); return; }
     strokes.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));
   });
   listeners.push(()=>ref.off('child_added',cb));
 }
 
-// === 채팅 ===
+/* ========== 채팅 ========== */
 function listenChat(){
   const ref=db.ref(`drawchat/${currentRoom.code}`);
-  const cb=ref.orderByChild('ts').limitToLast(100).on('child_added',snap=>{
-    const d=snap.val();if(!d)return;
+  const cb=ref.orderByChild('ts').limitToLast(100).on('child_added', snap=>{
+    const d=snap.val(); if(!d) return;
     appendChat(d);
-    // 정답 체크
-    if(d.correct){
-      showCorrectOverlay(d.nick,d.text);
-    }
+    if(d.correct) showCorrectOverlay(d.nick, d.text);
   });
   listeners.push(()=>ref.off('child_added',cb));
 }
@@ -651,42 +726,36 @@ function listenChat(){
 function sendChat(){
   const input=document.getElementById('chat-input');
   const text=input.value.trim();
-  if(!text||!currentRoom)return;
+  if(!text || !currentRoom) return;
   input.value='';
 
   // 정답 체크
-  if(gameState&&gameState.status==='drawing'&&!gameState.solved&&gameState.drawer!==myNick){
-    if(text.replace(/\s/g,'').toLowerCase()===gameState.word.replace(/\s/g,'').toLowerCase()){
-      // 정답!
-      db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text:gameState.word,ts:Date.now(),correct:true});
-      db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true,status:'reveal'});
+  if(gameState && gameState.status==='drawing' && !gameState.solved && gameState.drawer!==myNick){
+    if(text.replace(/\s/g,'').toLowerCase() === gameState.word.replace(/\s/g,'').toLowerCase()){
+      db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick, text:gameState.word, ts:Date.now(), correct:true});
+      db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true, status:'reveal'});
       return;
     }
   }
-  db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text,ts:Date.now()});
+  db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick, text, ts:Date.now()});
 }
 
 function addSystemChat(msg){
-  if(!currentRoom)return;
-  db.ref(`drawchat/${currentRoom.code}`).push().set({system:true,text:msg,ts:Date.now()});
+  if(!currentRoom) return;
+  db.ref(`drawchat/${currentRoom.code}`).push().set({system:true, text:msg, ts:Date.now()});
 }
 
 function appendChat(d){
   const container=document.getElementById('chat-messages');
   const div=document.createElement('div');
-  if(d.system){
-    div.className='chat-msg system';div.textContent=d.text;
-  }else if(d.correct){
-    div.className='chat-msg correct';div.textContent=`${d.nick} 님이 정답을 맞혔습니다!`;
-  }else{
+  if(d.system){ div.className='chat-msg system'; div.textContent=d.text; }
+  else if(d.correct){ div.className='chat-msg correct'; div.textContent=`${d.nick} 님이 정답을 맞혔습니다!`; }
+  else {
     div.className='chat-msg user';
-    // 정답 단어 가리기 (출제 중일 때)
     let displayText=d.text;
-    if(gameState&&gameState.status==='drawing'&&gameState.word){
-      const word=gameState.word.toLowerCase();
-      if(displayText.toLowerCase().includes(word)){
+    if(gameState && gameState.status==='drawing' && gameState.word){
+      if(displayText.toLowerCase().includes(gameState.word.toLowerCase()))
         displayText=displayText.replace(new RegExp(gameState.word,'gi'),'***');
-      }
     }
     div.innerHTML=`<span class="nick">${esc(d.nick)}</span>${esc(displayText)}`;
   }
@@ -694,12 +763,12 @@ function appendChat(d){
   container.scrollTop=container.scrollHeight;
 }
 
-function showCorrectOverlay(nick,word){
-  const overlay=document.getElementById('correct-overlay');
+function showCorrectOverlay(nick, word){
+  const o=document.getElementById('correct-overlay');
   document.getElementById('correct-who').textContent=`${nick} 정답!`;
   document.getElementById('correct-word').textContent=word;
-  overlay.classList.add('show');
-  setTimeout(()=>overlay.classList.remove('show'),2500);
+  o.classList.add('show');
+  setTimeout(()=>o.classList.remove('show'), 2500);
 }
 </script>
 </body>
