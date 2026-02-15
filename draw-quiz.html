@@ -15,7 +15,7 @@
   --radius:12px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--text);color:white;padding:10px 24px;border-radius:20px;font-size:.9rem;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast.show{opacity:1;}
@@ -88,7 +88,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
   .game-layout{grid-template-columns:1fr;gap:0;}
   .mobile-tabs{display:block;}
   .game-layout .canvas-panel{display:block;}
-  .game-layout .chat-panel{display:none;height:calc(100vh - 280px);max-height:none;}
+  .game-layout .chat-panel{display:none;height:360px;max-height:360px;}
   .game-layout.show-chat .canvas-panel{display:none;}
   .game-layout.show-chat .chat-panel{display:flex;}
   .game-header{margin-bottom:8px;}
