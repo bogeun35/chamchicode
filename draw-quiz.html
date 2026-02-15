@@ -103,15 +103,25 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
   .game-layout.show-chat .canvas-panel .canvas-header{display:none;}
   .game-layout.show-chat .canvas-panel .mobile-quick-input{display:none !important;}
   .game-layout.show-chat .chat-panel{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;height:auto;max-height:none;background:rgba(255,255,255,0.88);border:none;border-radius:var(--radius);z-index:10;}
-  .ctrl-btn{padding:6px 10px;font-size:.78rem;}
-  .canvas-header{padding:6px 10px;}
-  .toolbar{padding:6px 8px;gap:3px;}
-  .tool-btn{width:28px;height:28px;font-size:.75rem;}
-  .color-btn{width:22px;height:22px;}
-  .word-display{padding:6px;}
-  .word-display .word-text{font-size:1.1rem;}
-  .word-display .word-hint{font-size:1rem;}
-  .chat-input-row{padding:8px;}
+  .ctrl-btn{padding:5px 8px;font-size:.75rem;}
+  .canvas-header{padding:3px 8px;}
+  .canvas-header .canvas-status{font-size:.7rem;}
+  .canvas-header .timer-badge{font-size:.7rem;padding:2px 6px;}
+  .toolbar{padding:3px 6px;gap:1px;}
+  .toolbar-row{gap:2px;}
+  .colors-row{gap:1px;}
+  .tool-btn{width:26px;height:26px;font-size:.7rem;border-width:1.5px;border-radius:6px;}
+  .color-btn{width:18px;height:18px;border-width:1.5px;}
+  .color-picker{width:18px;height:18px;border-width:1.5px;}
+  .size-range{width:44px;}
+  .word-display{padding:3px 6px;}
+  .word-display .word-text{font-size:.9rem;}
+  .word-display .word-hint{font-size:.8rem;}
+  .word-display .word-label{font-size:.65rem;}
+  .chat-input-row{padding:6px 8px;}
+  .chat-input{padding:8px 10px;font-size:.85rem;}
+  .chat-send{padding:8px 14px;font-size:.8rem;}
+  .mobile-quick-input{padding:6px 8px;}
   .history-section{display:none !important;}
 }
 
@@ -125,12 +135,18 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .canvas-wrap{position:relative;background:white;aspect-ratio:4/3;}
 .canvas-wrap canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none;}
 
-.toolbar{display:flex;align-items:center;gap:6px;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.toolbar{display:flex;flex-direction:column;gap:4px;padding:8px 16px;border-top:1px solid var(--border);}
+.toolbar-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.colors-row{gap:4px;}
 .tool-btn{width:34px;height:34px;border:2px solid var(--border);border-radius:8px;background:var(--surface-alt);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .15s;}
 .tool-btn:hover{border-color:var(--accent);}
 .tool-btn.active{border-color:var(--accent);background:var(--accent-light);}
-.color-btn{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);cursor:pointer;transition:all .15s;}
+.color-btn{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .color-btn.active{border-color:var(--text);box-shadow:0 0 0 2px var(--accent-light);transform:scale(1.15);}
+.color-picker{width:24px;height:24px;border:2px solid var(--border);border-radius:50%;padding:0;cursor:pointer;background:none;-webkit-appearance:none;appearance:none;overflow:hidden;flex-shrink:0;}
+.color-picker::-webkit-color-swatch-wrapper{padding:0;}
+.color-picker::-webkit-color-swatch{border:none;border-radius:50%;}
+.color-picker::-moz-color-swatch{border:none;border-radius:50%;}
 .size-range{width:60px;accent-color:var(--accent);}
 
 .word-display{text-align:center;padding:16px;border-top:1px solid var(--border);}
@@ -325,24 +341,34 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
         </div>
       </div>
       <div class="toolbar" id="toolbar" style="display:none;">
-        <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)" title="펜">&#9998;</button>
-        <button class="tool-btn" data-tool="line" onclick="setTool('line',this)" title="직선">&#9585;</button>
-        <button class="tool-btn" data-tool="rect" onclick="setTool('rect',this)" title="사각형">&#9633;</button>
-        <button class="tool-btn" data-tool="circle" onclick="setTool('circle',this)" title="원">&#9675;</button>
-        <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="지우개">&#9249;</button>
-        <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)" title="채우기">&#9724;</button>
-        <button class="tool-btn" onclick="undoLast()" title="되돌리기 (Ctrl+Z)">&#8630;</button>
-        <button class="tool-btn" onclick="clearCanvas()" title="전체 지우기">&#128465;</button>
-        <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
-        <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
-        <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
-        <div class="color-btn active" style="background:#0F172A" onclick="setColor('#0F172A',this)"></div>
-        <div class="color-btn" style="background:#DC2626" onclick="setColor('#DC2626',this)"></div>
-        <div class="color-btn" style="background:#2563EB" onclick="setColor('#2563EB',this)"></div>
-        <div class="color-btn" style="background:#059669" onclick="setColor('#059669',this)"></div>
-        <div class="color-btn" style="background:#D97706" onclick="setColor('#D97706',this)"></div>
-        <div class="color-btn" style="background:#7C3AED" onclick="setColor('#7C3AED',this)"></div>
-        <div class="color-btn" style="background:#FFFFFF;border-color:#CBD5E1;" onclick="setColor('#FFFFFF',this)"></div>
+        <div class="toolbar-row">
+          <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)" title="펜">&#9998;</button>
+          <button class="tool-btn" data-tool="line" onclick="setTool('line',this)" title="직선">&#9585;</button>
+          <button class="tool-btn" data-tool="rect" onclick="setTool('rect',this)" title="사각형">&#9633;</button>
+          <button class="tool-btn" data-tool="circle" onclick="setTool('circle',this)" title="원">&#9675;</button>
+          <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="지우개">&#9249;</button>
+          <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)" title="채우기">&#9724;</button>
+          <button class="tool-btn" onclick="undoLast()" title="되돌리기 (Ctrl+Z)">&#8630;</button>
+          <button class="tool-btn" onclick="clearCanvas()" title="전체 지우기">&#128465;</button>
+          <span style="width:1px;height:20px;background:var(--border);margin:0 2px;"></span>
+          <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
+        </div>
+        <div class="toolbar-row colors-row">
+          <div class="color-btn active" style="background:#0F172A" onclick="setColor('#0F172A',this)"></div>
+          <div class="color-btn" style="background:#64748B" onclick="setColor('#64748B',this)"></div>
+          <div class="color-btn" style="background:#DC2626" onclick="setColor('#DC2626',this)"></div>
+          <div class="color-btn" style="background:#F97316" onclick="setColor('#F97316',this)"></div>
+          <div class="color-btn" style="background:#EAB308" onclick="setColor('#EAB308',this)"></div>
+          <div class="color-btn" style="background:#22C55E" onclick="setColor('#22C55E',this)"></div>
+          <div class="color-btn" style="background:#059669" onclick="setColor('#059669',this)"></div>
+          <div class="color-btn" style="background:#06B6D4" onclick="setColor('#06B6D4',this)"></div>
+          <div class="color-btn" style="background:#2563EB" onclick="setColor('#2563EB',this)"></div>
+          <div class="color-btn" style="background:#7C3AED" onclick="setColor('#7C3AED',this)"></div>
+          <div class="color-btn" style="background:#EC4899" onclick="setColor('#EC4899',this)"></div>
+          <div class="color-btn" style="background:#A16207" onclick="setColor('#A16207',this)"></div>
+          <div class="color-btn" style="background:#FFFFFF;border-color:#CBD5E1;" onclick="setColor('#FFFFFF',this)"></div>
+          <input type="color" class="color-picker" id="color-picker" value="#0F172A" oninput="setColorFromPicker(this.value)" title="직접 선택">
+        </div>
       </div>
       <div class="word-display" id="word-display" style="display:none;"></div>
       <!-- 모바일: 그림판에서 바로 정답 입력 -->
@@ -1165,11 +1191,17 @@ function setTool(tool,el){
 }
 function setColor(c,el){
   brushColor=c;
-  // 도형 도구 사용 중이면 유지, 아니면 pen으로
   if(!SHAPE_TOOLS.includes(currentTool)&&currentTool!=='fill') currentTool='pen';
   document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===currentTool));
   document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('color-picker').value=c;
+}
+function setColorFromPicker(c){
+  brushColor=c;
+  if(!SHAPE_TOOLS.includes(currentTool)&&currentTool!=='fill') currentTool='pen';
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===currentTool));
+  document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
 }
 
 // Flood Fill
