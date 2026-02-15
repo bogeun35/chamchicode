@@ -84,31 +84,36 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
 
 @media(max-width:768px){
-  .screen-game{padding:12px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
-  .game-layout{grid-template-columns:1fr;gap:0;position:relative;}
-  .mobile-tabs{display:block;}
-  .game-layout .canvas-panel{display:block;}
-  .game-layout .chat-panel{display:none;height:360px;max-height:360px;}
-  /* 채팅 탭: 캔버스 위에 채팅 오버레이 */
-  .game-layout.show-chat{position:relative;}
-  .game-layout.show-chat .canvas-panel{display:block;opacity:0.15;pointer-events:none;}
+  html,body{height:100%;overflow:hidden;}
+  .screen-game{padding:8px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;max-width:100%;display:flex;flex-direction:column;}
+  .screen-game.active{display:flex;}
+  .game-header{margin-bottom:4px;flex-shrink:0;}
+  .round-bar{margin-bottom:4px;padding:6px 12px;flex-shrink:0;}
+  .scoreboard{margin-bottom:4px;flex-shrink:0;}
+  .members-bar{margin-bottom:4px;padding:6px 10px;flex-shrink:0;display:none;}
+  .host-controls{margin-bottom:4px;gap:4px;flex-shrink:0;}
+  .mobile-tabs{display:block;margin-bottom:4px;flex-shrink:0;}
+  .game-layout{grid-template-columns:1fr;gap:0;position:relative;flex:1;min-height:0;overflow:hidden;}
+  .game-layout .canvas-panel{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+  .game-layout .canvas-panel .canvas-wrap{flex:1;min-height:0;aspect-ratio:auto;}
+  .game-layout .chat-panel{display:none;}
+  /* 채팅 탭 */
+  .game-layout.show-chat .canvas-panel{display:flex;opacity:0.15;pointer-events:none;}
   .game-layout.show-chat .canvas-panel .toolbar{display:none !important;}
   .game-layout.show-chat .canvas-panel .word-display{display:none !important;}
   .game-layout.show-chat .canvas-panel .canvas-header{display:none;}
   .game-layout.show-chat .canvas-panel .mobile-quick-input{display:none !important;}
   .game-layout.show-chat .chat-panel{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;height:auto;max-height:none;background:rgba(255,255,255,0.88);border:none;border-radius:var(--radius);z-index:10;}
-  .game-header{margin-bottom:8px;}
-  .round-bar{margin-bottom:8px;padding:8px 12px;}
-  .scoreboard{margin-bottom:8px;}
-  .members-bar{margin-bottom:8px;padding:8px 10px;}
-  .host-controls{margin-bottom:8px;gap:6px;}
-  .ctrl-btn{padding:8px 12px;font-size:.8rem;}
-  .canvas-header{padding:8px 12px;}
-  .toolbar{padding:8px 10px;gap:4px;}
-  .tool-btn{width:30px;height:30px;font-size:.8rem;}
-  .color-btn{width:24px;height:24px;}
-  .word-display{padding:10px;}
-  .chat-input-row{padding:10px;}
+  .ctrl-btn{padding:6px 10px;font-size:.78rem;}
+  .canvas-header{padding:6px 10px;}
+  .toolbar{padding:6px 8px;gap:3px;}
+  .tool-btn{width:28px;height:28px;font-size:.75rem;}
+  .color-btn{width:22px;height:22px;}
+  .word-display{padding:6px;}
+  .word-display .word-text{font-size:1.1rem;}
+  .word-display .word-hint{font-size:1rem;}
+  .chat-input-row{padding:8px;}
+  .history-section{display:none !important;}
 }
 
 /* 캔버스 */
@@ -166,6 +171,12 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .waiting-icon{font-size:3rem;margin-bottom:12px;}
 .waiting-text{font-size:1.1rem;font-weight:700;color:var(--text-sub);}
 .waiting-sub{font-size:.85rem;color:var(--text-dim);margin-top:4px;}
+@media(max-width:768px){
+  .waiting{padding:16px 12px;}
+  .waiting-icon{font-size:1.8rem;margin-bottom:6px;}
+  .waiting-text{font-size:.9rem;}
+  .waiting-sub{font-size:.75rem;}
+}
 
 /* 오버레이 */
 .correct-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,150,105,0.92);display:none;align-items:center;justify-content:center;z-index:5000;flex-direction:column;gap:12px;}
