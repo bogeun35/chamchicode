@@ -84,8 +84,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
 
 @media(max-width:768px){
-  html,body{height:100%;overflow:hidden;}
-  .screen-game{padding:8px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;max-width:100%;display:flex;flex-direction:column;}
+  .screen-game{padding:8px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;max-width:100%;display:flex;flex-direction:column;z-index:100;background:var(--bg);}
   .screen-game.active{display:flex;}
   .game-header{margin-bottom:4px;flex-shrink:0;}
   .round-bar{margin-bottom:4px;padding:6px 12px;flex-shrink:0;}
@@ -734,42 +733,43 @@ function renderGameState(){
     document.getElementById('btn-end').style.display=playing?'':'none';
   }
 
+  const canvasWrap=document.querySelector('.canvas-wrap');
+
   if(!status||status==='idle'){
     waiting.style.display='flex';toolbar.style.display='none';wordDisplay.style.display='none';
+    if(canvasWrap)canvasWrap.style.display='none';
     canvasStatus.textContent='대기 중';timerBadge.textContent='--';
     document.getElementById('waiting-sub').textContent=isHost?'"게임 시작" 버튼을 눌러주세요':'방장이 시작하면 게임이 시작됩니다';
     if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
     clearCanvasLocal();
     document.getElementById('chat-input').disabled=false;
     document.getElementById('chat-input').placeholder='채팅...';
-    // 모달/오버레이 전부 닫기
     document.getElementById('word-modal').classList.remove('show');
     document.getElementById('correct-overlay').classList.remove('show');
-    // 게임 종료 결과 표시 (gameover 플래그)
     if(gameState?.gameover){showGameoverOverlay();}
     return;
   }
 
   if(status==='picking'){
-    waiting.style.display='none';toolbar.style.display='none';wordDisplay.style.display='none';
-    clearCanvasLocal();
+    waiting.style.display='flex';toolbar.style.display='none';wordDisplay.style.display='none';
+    if(canvasWrap)canvasWrap.style.display='none';
     canvasStatus.textContent=`${gameState.drawer} 님이 제시어 선택 중`;
     timerBadge.textContent='--';
     document.getElementById('chat-input').disabled=false;
     document.getElementById('chat-input').placeholder='채팅...';
-    // 출제자 본인이면 모달 표시 (한 번만)
     if(gameState.drawer===myNick && !document.getElementById('word-modal').classList.contains('show')){
       showWordModal();
     }
-    // 대기 화면에 안내
-    document.getElementById('waiting-screen').style.display='flex';
     document.getElementById('waiting-sub').textContent=gameState.drawer===myNick?'제시어를 선택해주세요':`${gameState.drawer} 님이 제시어를 고르는 중...`;
     renderScoreboard();
     return;
   }
 
+  // drawing/reveal: 캔버스 보이기
+  if(canvasWrap)canvasWrap.style.display='';
+  waiting.style.display='none';
+
   if(status==='drawing'){
-    waiting.style.display='none';
     const qi=document.getElementById('quick-input');
     if(isDrawer){
       toolbar.style.display='flex';wordDisplay.style.display='block';
@@ -1337,22 +1337,29 @@ function switchMobileTab(tab){
 }
 
 // 모바일: 입력 포커스 시 페이지 스크롤 방지
-if('visualViewport' in window){
-  window.visualViewport.addEventListener('resize',()=>{
-    if(window.innerWidth<=768){
-      document.getElementById('screen-game').scrollTop=0;
-      window.scrollTo(0,0);
-    }
+try{
+  if('visualViewport' in window&&window.visualViewport){
+    window.visualViewport.addEventListener('resize',()=>{
+      if(window.innerWidth<=768){
+        const sg=document.getElementById('screen-game');
+        if(sg)sg.scrollTop=0;
+        window.scrollTo(0,0);
+      }
+    });
+  }
+  ['chat-input','quick-input'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('focus',()=>{
+      if(window.innerWidth>768)return;
+      setTimeout(()=>{
+        window.scrollTo(0,0);
+        const sg=document.getElementById('screen-game');
+        if(sg)sg.scrollTop=0;
+      },300);
+    });
   });
-}
-['chat-input','quick-input'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.addEventListener('focus',()=>{
-    if(window.innerWidth>768)return;
-    setTimeout(()=>{window.scrollTo(0,0);document.getElementById('screen-game').scrollTop=0;},300);
-  });
-});
+}catch(e){}
 </script>
 </body>
 </html>
