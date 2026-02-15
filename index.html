@@ -347,6 +347,12 @@ body::after {
       <span>게임 투표 룰렛</span>
       <span class="nav-badge">NEW</span>
     </div>
+
+    <div class="nav-item" data-page="drawquiz" onclick="navigate('drawquiz')">
+      <span class="nav-icon">🎨</span>
+      <span>그림퀴즈</span>
+      <span class="nav-badge">NEW</span>
+    </div>
   </div>
 
   <div class="lnb-footer">
@@ -376,6 +382,11 @@ body::after {
           <div class="landing-card-title">게임 투표 룰렛</div>
           <div class="landing-card-desc">투표로 게임을 정하고<br>룰렛으로 결정!</div>
         </div>
+        <div class="landing-card" onclick="navigate('drawquiz')">
+          <div class="landing-card-icon">🎨</div>
+          <div class="landing-card-title">그림퀴즈</div>
+          <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
+        </div>
       </div>
     </div>
   </div>
@@ -388,6 +399,11 @@ body::after {
   <!-- Roulette iframe -->
   <div class="page-frame" id="page-roulette">
     <iframe src="roulette.html" id="iframe-roulette"></iframe>
+  </div>
+
+  <!-- Draw Quiz iframe -->
+  <div class="page-frame" id="page-drawquiz">
+    <iframe src="draw-quiz.html" id="iframe-drawquiz"></iframe>
   </div>
 </div>
 
