@@ -84,7 +84,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
 .mob-tab .tab-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--red);color:white;font-size:.65rem;font-weight:900;margin-left:4px;text-align:center;vertical-align:middle;}
 
 @media(max-width:768px){
-  .screen-game{padding:12px 10px;}
+  .screen-game{padding:12px 10px;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
   .game-layout{grid-template-columns:1fr;gap:0;position:relative;}
   .mobile-tabs{display:block;}
   .game-layout .canvas-panel{display:block;}
@@ -1318,15 +1318,30 @@ function switchMobileTab(tab){
     layout.classList.add('show-chat');
     unreadChat=0;
     document.getElementById('chat-badge').style.display='none';
-    // 스크롤 최하단
     const msgs=document.getElementById('chat-messages');
     msgs.scrollTop=msgs.scrollHeight;
-    // 모바일에서 채팅 입력에 포커스
-    setTimeout(()=>document.getElementById('chat-input').focus(),100);
   }else{
     layout.classList.remove('show-chat');
   }
 }
+
+// 모바일: 입력 포커스 시 페이지 스크롤 방지
+if('visualViewport' in window){
+  window.visualViewport.addEventListener('resize',()=>{
+    if(window.innerWidth<=768){
+      document.getElementById('screen-game').scrollTop=0;
+      window.scrollTo(0,0);
+    }
+  });
+}
+['chat-input','quick-input'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('focus',()=>{
+    if(window.innerWidth>768)return;
+    setTimeout(()=>{window.scrollTo(0,0);document.getElementById('screen-game').scrollTop=0;},300);
+  });
+});
 </script>
 </body>
 </html>
