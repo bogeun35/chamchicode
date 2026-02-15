@@ -248,10 +248,13 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
         </div>
       </div>
       <div class="toolbar" id="toolbar" style="display:none;">
-        <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)">&#9998;</button>
-        <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)">&#9249;</button>
-        <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)">&#9724;</button>
-        <button class="tool-btn" onclick="clearCanvas()">&#128465;</button>
+        <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)" title="펜">&#9998;</button>
+        <button class="tool-btn" data-tool="line" onclick="setTool('line',this)" title="직선">&#9585;</button>
+        <button class="tool-btn" data-tool="rect" onclick="setTool('rect',this)" title="사각형">&#9633;</button>
+        <button class="tool-btn" data-tool="circle" onclick="setTool('circle',this)" title="원">&#9675;</button>
+        <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="지우개">&#9249;</button>
+        <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)" title="채우기">&#9724;</button>
+        <button class="tool-btn" onclick="clearCanvas()" title="전체 지우기">&#128465;</button>
         <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
         <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
         <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
