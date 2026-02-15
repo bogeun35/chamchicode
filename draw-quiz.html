@@ -254,6 +254,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);mi
         <button class="tool-btn" data-tool="circle" onclick="setTool('circle',this)" title="원">&#9675;</button>
         <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="지우개">&#9249;</button>
         <button class="tool-btn" data-tool="fill" onclick="setTool('fill',this)" title="채우기">&#9724;</button>
+        <button class="tool-btn" onclick="undoLast()" title="되돌리기 (Ctrl+Z)">&#8630;</button>
         <button class="tool-btn" onclick="clearCanvas()" title="전체 지우기">&#128465;</button>
         <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
         <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
@@ -788,8 +789,14 @@ function deleteCategory(){if(!selectedCat)return;if(!confirm(`"${selectedCat}" �
 /* ===== 캔버스 ===== */
 let shapeStartX=0,shapeStartY=0,canvasSnapshot=null,shiftHeld=false;
 const SHAPE_TOOLS=['line','rect','circle'];
+let undoKeys=[];       // 내가 push한 Firebase key 목록
+let canvasData={};     // key→데이터 전체 캐시 (리드로우용)
+let canvasKeyOrder=[]; // key 순서 보존
 
-document.addEventListener('keydown',e=>{if(e.key==='Shift')shiftHeld=true;});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Shift')shiftHeld=true;
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undoLast();}
+});
 document.addEventListener('keyup',e=>{if(e.key==='Shift')shiftHeld=false;});
 
 function initCanvas(){
@@ -817,7 +824,7 @@ function onPointerDown(e){
   if(currentTool==='fill'){
     const x=Math.round(p.x),y=Math.round(p.y);
     floodFill(x,y,brushColor);
-    db.ref(`drawcanvas/${currentRoom.code}`).push().set([{fill:true,x,y,c:brushColor}]);
+    pushToCanvas([{fill:true,x,y,c:brushColor}]);
     return;
   }
   drawing=true;
@@ -857,7 +864,7 @@ function onPointerUp(e){
     drawCtx.putImageData(canvasSnapshot,0,0);
     const s=calcShape(shapeStartX,shapeStartY,endX,endY,shiftHeld);
     renderShape(s,currentTool,brushColor,Number(brushSize));
-    db.ref(`drawcanvas/${currentRoom.code}`).push().set([{
+    pushToCanvas([{
       shape:currentTool,x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2,c:brushColor,s:Number(brushSize)
     }]);
     canvasSnapshot=null;
@@ -904,9 +911,14 @@ function renderShape(s,type,color,size){
   drawCtx.stroke();
 }
 
-function flushStrokes(){if(!strokeBuffer.length||!currentRoom)return;db.ref(`drawcanvas/${currentRoom.code}`).push().set(strokeBuffer);strokeBuffer=[];}
+function flushStrokes(){if(!strokeBuffer.length||!currentRoom)return;pushToCanvas(strokeBuffer);strokeBuffer=[];}
 function drawLine(x1,y1,x2,y2,color,size){drawCtx.strokeStyle=color;drawCtx.lineWidth=size;drawCtx.beginPath();drawCtx.moveTo(x1,y1);drawCtx.lineTo(x2,y2);drawCtx.stroke();}
-function clearCanvas(){if(!gameState||gameState.drawer!==myNick)return;clearCanvasLocal();db.ref(`drawcanvas/${currentRoom.code}`).remove();db.ref(`drawcanvas/${currentRoom.code}`).push().set([{clear:true}]);}
+function clearCanvas(){
+  if(!gameState||gameState.drawer!==myNick)return;
+  clearCanvasLocal();undoKeys=[];
+  db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  db.ref(`drawcanvas/${currentRoom.code}`).push().set([{clear:true}]);
+}
 function clearCanvasLocal(){if(!drawCtx)return;const c=document.getElementById('draw-canvas');drawCtx.fillStyle='#FFFFFF';drawCtx.fillRect(0,0,c.width,c.height);}
 
 function setTool(tool,el){
@@ -948,10 +960,27 @@ function floodFill(startX,startY,fillHex){
   drawCtx.putImageData(imageData,0,0);
 }
 
-function listenCanvas(){
-  const ref=db.ref(`drawcanvas/${currentRoom.code}`);
-  const cb=ref.on('child_added',snap=>{
-    const arr=snap.val();
+// Firebase push 래퍼 (undo key 저장)
+function pushToCanvas(data){
+  if(!currentRoom)return;
+  const ref=db.ref(`drawcanvas/${currentRoom.code}`).push();
+  ref.set(data);
+  undoKeys.push(ref.key);
+}
+
+// Undo
+function undoLast(){
+  if(!gameState||gameState.drawer!==myNick||!undoKeys.length)return;
+  const key=undoKeys.pop();
+  db.ref(`drawcanvas/${currentRoom.code}/${key}`).remove();
+  // child_removed가 리드로우를 트리거함
+}
+
+// 전체 리드로우
+function redrawAll(){
+  clearCanvasLocal();
+  canvasKeyOrder.forEach(key=>{
+    const arr=canvasData[key];
     if(!arr||!Array.isArray(arr))return;
     const first=arr[0];
     if(first?.clear){clearCanvasLocal();return;}
@@ -959,7 +988,33 @@ function listenCanvas(){
     if(first?.shape){renderShape(first,first.shape,first.c,first.s);return;}
     arr.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));
   });
-  listeners.push(()=>ref.off('child_added',cb));
+}
+
+function listenCanvas(){
+  const ref=db.ref(`drawcanvas/${currentRoom.code}`);
+  canvasData={};canvasKeyOrder=[];undoKeys=[];
+
+  const cbAdd=ref.on('child_added',snap=>{
+    const key=snap.key,arr=snap.val();
+    if(!arr||!Array.isArray(arr))return;
+    canvasData[key]=arr;
+    canvasKeyOrder.push(key);
+    // 실시간 렌더링 (이미 그려진 건 다시 안 그림)
+    const first=arr[0];
+    if(first?.clear){clearCanvasLocal();return;}
+    if(first?.fill){floodFill(first.x,first.y,first.c);return;}
+    if(first?.shape){renderShape(first,first.shape,first.c,first.s);return;}
+    arr.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));
+  });
+
+  const cbRemove=ref.on('child_removed',snap=>{
+    const key=snap.key;
+    delete canvasData[key];
+    canvasKeyOrder=canvasKeyOrder.filter(k=>k!==key);
+    redrawAll();
+  });
+
+  listeners.push(()=>{ref.off('child_added',cbAdd);ref.off('child_removed',cbRemove);});
 }
 
 /* ===== 채팅 ===== */
