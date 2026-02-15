@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 게임 투표 룰렛</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EFF6FF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --accent: #2563EB;
+  --accent-glow: rgba(37,99,235,0.2);
+  --neon-blue: #0EA5E9;
+  --neon-green: #10B981;
+  --neon-purple: #7C3AED;
+  --neon-yellow: #F59E0B;
+  --neon-orange: #F97316;
+  --neon-pink: #EC4899;
+  --text: #0F172A;
+  --text-dim: #64748B;
+  --border: rgba(148,187,233,0.3);
+  --radius: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: white;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  display: none;
+  /* noise disabled */ background: none; /* url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); */
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 16px 100px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 36px 0 28px;
+  animation: fadeDown .5s ease;
+}
+.header h1 {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 2.6rem;
+  background: linear-gradient(135deg, #2563EB, #06B6D4, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+}
+.header p {
+  color: var(--text-dim);
+  font-size: .88rem;
+  margin-top: 6px;
+}
+
+/* Screens */
+.screen { display:none; }
+.screen.active { display:block; animation: fadeIn .35s ease; }
+
+/* Buttons */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all .2s ease;
+}
+.btn-accent {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+.btn-accent:hover { transform: translateY(-2px); box-shadow: 0 6px 28px var(--accent-glow); }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 2px solid rgba(148,187,233,0.25);
+}
+.btn-outline:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+.btn-sm {
+  padding: 10px 18px;
+  font-size: .88rem;
+  width: auto;
+}
+.btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+/* Cards */
+.card {
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(148,187,233,0.25);
+  border-radius: 18px;
+  padding: 28px 22px;
+  margin-top: 20px;
+}
+.card h2 {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+/* Form */
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.form-group input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 2px solid rgba(148,187,233,0.25);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: white;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.form-group input::placeholder { color: #555570; }
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Back */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: .88rem;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding: 6px 0;
+  transition: color .2s;
+}
+.btn-back:hover { color: var(--text); }
+
+/* Room header */
+.room-top {
+  text-align: center;
+  padding: 16px 0 8px;
+}
+.room-top h2 {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 1.8rem;
+}
+.room-top .badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 14px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(148,187,233,0.25);
+  border-radius: 8px;
+  font-size: .8rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.room-top .badge:hover { border-color: var(--neon-blue); }
+.room-top .badge .code { color: var(--neon-blue); font-weight: 700; letter-spacing: 2px; }
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px;
+}
+.role-host { background: rgba(233,69,96,.15); color: var(--accent); border: 1px solid rgba(233,69,96,.3); }
+.role-guest { background: rgba(14,165,233,.12); color: var(--neon-blue); border: 1px solid rgba(14,165,233,.25); }
+
+/* Game list */
+.game-list { margin-top: 16px; }
+.game-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(148,187,233,0.25);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: all .2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.game-item:hover { border-color: #93C5FD; background: #F0F9FF; }
+.game-item.voted { border-color: #2563EB; background: rgba(37,99,235,.06); }
+.game-item .game-name {
+  flex: 1;
+  font-weight: 500;
+  font-size: .95rem;
+}
+.game-item .vote-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--neon-blue);
+  min-width: 42px;
+  justify-content: flex-end;
+}
+.game-item .vote-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 0 3px 0 0;
+  transition: width .6s ease;
+}
+.game-item .game-emoji {
+  font-size: 1.3rem;
+  width: 32px;
+  text-align: center;
+}
+
+/* Add game input */
+.add-game-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.add-game-row input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px dashed rgba(148,187,233,0.3);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: .92rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+  transition: border-color .2s;
+}
+.add-game-row input:focus { border-color: var(--accent); border-style: solid; }
+.add-game-row input::placeholder { color: #444460; }
+.add-game-row button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font-size: .92rem;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all .2s;
+}
+.add-game-row button:hover { background: #D63D56; }
+
+/* Section title */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 12px;
+}
+.section-title h3 {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.section-title span {
+  font-size: .8rem;
+  color: var(--text-dim);
+}
+
+/* Roulette */
+.roulette-wrap {
+  position: relative;
+  margin: 24px auto;
+  width: 320px;
+  height: 320px;
+}
+.roulette-canvas {
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(233,69,96,.15), 0 0 80px rgba(168,85,247,.08), inset 0 0 20px rgba(0,0,0,.3);
+}
+.roulette-pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
+  z-index: 2;
+}
+.roulette-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  z-index: 2;
+}
+
+.spin-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 14px 48px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Black Han Sans', sans-serif;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 24px var(--accent-glow);
+  transition: all .3s;
+}
+.spin-btn:hover { transform: scale(1.05); box-shadow: 0 6px 32px var(--accent-glow); }
+.spin-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+/* Result overlay */
+.result-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.7); backdrop-filter: blur(12px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  animation: fadeIn .3s ease;
+}
+.result-overlay.show { display: flex; }
+.result-card {
+  text-align: center;
+  padding: 40px;
+  animation: popIn .5s ease;
+}
+.result-card .result-emoji { font-size: 4rem; margin-bottom: 16px; }
+.result-card .result-label {
+  font-size: .85rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+.result-card .result-name {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 2.8rem;
+  background: linear-gradient(135deg, var(--neon-yellow), var(--neon-orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.result-card .result-votes {
+  color: var(--text-dim);
+  font-size: .9rem;
+  margin-top: 8px;
+}
+.result-card .btn { margin-top: 28px; width: auto; padding: 12px 36px; }
+
+/* Share bar */
+.share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.share-row button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid rgba(148,187,233,0.25);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.85);
+  color: var(--text-dim);
+  font-size: .82rem;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all .2s;
+}
+.share-row button:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(148,187,233,0.25);
+  color: var(--text);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: .88rem;
+  opacity: 0;
+  transition: all .3s ease;
+  z-index: 200;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+
+/* Host control bar */
+.host-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.host-controls .btn { font-size: .85rem; padding: 10px 14px; }
+
+/* Delete button on game item (host only) */
+.game-delete {
+  display: none;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all .2s;
+}
+.game-delete:hover { color: var(--accent); background: rgba(233,69,96,.1); }
+.is-host .game-delete { display: block; }
+
+/* Online count */
+.online-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--neon-green);
+  border-radius: 50%;
+  margin-right: 4px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50% { opacity:.4; }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeDown {
+  from { opacity:0; transform:translateY(-16px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes popIn {
+  0% { opacity:0; transform:scale(.8); }
+  60% { transform:scale(1.05); }
+  100% { opacity:1; transform:scale(1); }
+}
+
+/* Confetti canvas */
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+}
+
+/* Responsive */
+@media (max-width:400px) {
+  .header h1 { font-size: 2rem; }
+  .roulette-wrap, .roulette-canvas { width: 280px; height: 280px; }
+  .container { padding: 16px 12px 100px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🎮 게임 투표 룰렛</h1>
+    <p>투표하고 돌려서 오늘의 게임을 정하자!</p>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:24px;">
+      <button class="btn btn-accent" onclick="showScreen('create')">🎯 새 방 만들기 (방장)</button>
+      <div class="divider">또는</div>
+      <button class="btn btn-outline" onclick="showScreen('join')">🔗 코드로 참여하기</button>
+    </div>
+  </div>
+
+  <!-- CREATE -->
+  <div id="screen-create" class="screen">
+    <button class="btn-back" onclick="showScreen('home')">← 돌아가기</button>
+    <div class="card">
+      <h2>🎯 방 만들기</h2>
+      <div class="form-group">
+        <label>방 이름</label>
+        <input type="text" id="room-title" placeholder="예: 금요일 게임 투표" maxlength="30"
+               onkeydown="if(event.key==='Enter'){document.getElementById('room-host').focus()}">
+      </div>
+      <div class="form-group">
+        <label>방장 닉네임</label>
+        <input type="text" id="room-host" placeholder="내 닉네임" maxlength="12"
+               onkeydown="if(event.key==='Enter'){createRoom()}">
+      </div>
+      <button class="btn btn-accent" onclick="createRoom()" style="margin-top:8px;">방 만들기</button>
+    </div>
+  </div>
+
+  <!-- JOIN -->
+  <div id="screen-join" class="screen">
+    <button class="btn-back" onclick="showScreen('home')">← 돌아가기</button>
+    <div class="card">
+      <h2>🔗 참여하기</h2>
+      <div class="form-group">
+        <label>초대 코드</label>
+        <input type="text" id="join-code" placeholder="6자리 코드" maxlength="6"
+               style="text-align:center;font-size:1.4rem;letter-spacing:6px;font-weight:700;"
+               oninput="this.value=this.value.toUpperCase()"
+               onkeydown="if(event.key==='Enter'){document.getElementById('join-nick').focus()}">
+      </div>
+      <div class="form-group">
+        <label>내 닉네임</label>
+        <input type="text" id="join-nick" placeholder="닉네임 입력" maxlength="12"
+               onkeydown="if(event.key==='Enter'){joinRoom()}">
+      </div>
+      <button class="btn btn-accent" onclick="joinRoom()" style="margin-top:8px;">입장하기</button>
+    </div>
+  </div>
+
+  <!-- ROOM -->
+  <div id="screen-room" class="screen">
+    <button class="btn-back" onclick="leaveRoom()">← 나가기</button>
+
+    <div class="room-top">
+      <h2 id="r-title"></h2>
+      <div class="badge" onclick="copyCode()" title="클릭하여 복사">
+        초대코드 <span class="code" id="r-code"></span> 📋
+      </div>
+      <br>
+      <span class="role-badge" id="r-role"></span>
+    </div>
+
+    <div class="share-row">
+      <button onclick="copyLink()">🔗 링크 복사</button>
+      <button onclick="shareNative()">📤 공유하기</button>
+    </div>
+
+    <!-- Game List -->
+    <div class="section-title">
+      <h3>🎮 게임 목록</h3>
+      <span id="vote-total">0표</span>
+    </div>
+
+    <div id="game-list" class="game-list"></div>
+
+    <div class="add-game-row">
+      <input type="text" id="new-game" placeholder="게임 이름 추가..."
+             maxlength="30" onkeydown="if(event.key==='Enter'){addGame()}">
+      <button onclick="addGame()">추가</button>
+    </div>
+
+    <!-- Roulette Section (Host) -->
+    <div id="roulette-section" style="margin-top:32px; display:none;">
+      <div class="section-title">
+        <h3>🎰 룰렛</h3>
+      </div>
+      <div class="roulette-wrap">
+        <div class="roulette-pointer">▼</div>
+        <canvas class="roulette-canvas" id="roulette-canvas" width="640" height="640"></canvas>
+        <div class="roulette-center">🎯</div>
+      </div>
+      <button class="spin-btn" id="spin-btn" onclick="spinRoulette()">돌리기!</button>
+    </div>
+
+    <!-- Roulette viewer (Guest sees result) -->
+    <div id="roulette-viewer" style="margin-top:32px; display:none;">
+      <div class="section-title">
+        <h3>🎰 룰렛</h3>
+      </div>
+      <div class="roulette-wrap">
+        <div class="roulette-pointer">▼</div>
+        <canvas class="roulette-canvas" id="roulette-canvas-viewer" width="640" height="640"></canvas>
+        <div class="roulette-center">🎯</div>
+      </div>
+      <p style="text-align:center;color:var(--text-dim);font-size:.85rem;margin-top:12px;" id="viewer-status">방장이 룰렛을 돌리면 여기에 표시됩니다</p>
+    </div>
+  </div>
+</div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="result-overlay">
+  <canvas id="confetti-canvas"></canvas>
+  <div class="result-card">
+    <div class="result-emoji">🎉</div>
+    <div class="result-label">오늘의 게임</div>
+    <div class="result-name" id="result-name"></div>
+    <div class="result-votes" id="result-votes"></div>
+    <button class="btn btn-outline btn-sm" onclick="closeResult()" style="margin-top:24px;">확인</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// ==========================================
+// Firebase Config
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",
+  authDomain: "rolling2-17a8f.firebaseapp.com",
+  databaseURL: "https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rolling2-17a8f",
+  storageBucket: "rolling2-17a8f.firebasestorage.app",
+  messagingSenderId: "936512265515",
+  appId: "1:936512265515:web:c9cb05f341267af81a796e",
+  measurementId: "G-DK7KLFPCT8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ==========================================
+// State
+// ==========================================
+let currentRoom = null;
+let isHost = false;
+let myNick = '';
+let myVotes = {}; // { gameId: true }
+let gamesData = {};
+let listeners = [];
+let spinAngle = 0;
+
+const GAME_EMOJIS = ['🎮','🕹️','🎲','🃏','♟️','🏆','⚔️','🎯','🚀','💣','🧩','🎪','🏅','⭐','🔥','💎','👾','🤖','🦊','🐉'];
+const WHEEL_COLORS = ['#E94560','#0EA5E9','#A855F7','#22D3EE','#FACC15','#FB923C','#EC4899','#10B981','#6366F1','#F43F5E','#14B8A6','#8B5CF6'];
+
+// ==========================================
+// Screens
+// ==========================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  if (name === 'create') document.getElementById('room-title').focus();
+  if (name === 'join') document.getElementById('join-code').focus();
+}
+
+// ==========================================
+// Room CRUD
+// ==========================================
+function genCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r = '';
+  for (let i=0;i<6;i++) r += c[Math.floor(Math.random()*c.length)];
+  return r;
+}
+
+function createRoom() {
+  const title = document.getElementById('room-title').value.trim();
+  const host = document.getElementById('room-host').value.trim();
+  if (!title) return toast('방 이름을 입력해주세요');
+  if (!host) return toast('닉네임을 입력해주세요');
+
+  const code = genCode();
+  const roomData = { title, host, createdAt: Date.now(), roulette: null };
+
+  db.ref(`rooms/${code}`).set(roomData).then(() => {
+    currentRoom = { code, ...roomData };
+    isHost = true;
+    myNick = host;
+    enterRoom();
+  }).catch(e => { toast('방 생성 실패'); console.error(e); });
+}
+
+function joinRoom() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const nick = document.getElementById('join-nick').value.trim();
+  if (!code || code.length !== 6) return toast('6자리 코드를 입력해주세요');
+  if (!nick) return toast('닉네임을 입력해주세요');
+
+  db.ref(`rooms/${code}`).once('value').then(snap => {
+    if (!snap.exists()) return toast('존재하지 않는 방입니다');
+    const data = snap.val();
+    currentRoom = { code, ...data };
+    isHost = (data.host === nick);
+    myNick = nick;
+    enterRoom();
+  }).catch(e => { toast('입장 실패'); console.error(e); });
+}
+
+function enterRoom() {
+  document.getElementById('r-title').textContent = currentRoom.title;
+  document.getElementById('r-code').textContent = currentRoom.code;
+
+  const roleEl = document.getElementById('r-role');
+  if (isHost) {
+    roleEl.textContent = '👑 방장';
+    roleEl.className = 'role-badge role-host';
+    document.getElementById('screen-room').classList.add('is-host');
+  } else {
+    roleEl.textContent = '🎮 참여자';
+    roleEl.className = 'role-badge role-guest';
+    document.getElementById('screen-room').classList.remove('is-host');
+  }
+
+  // Show appropriate roulette section
+  document.getElementById('roulette-section').style.display = isHost ? 'block' : 'none';
+  document.getElementById('roulette-viewer').style.display = isHost ? 'none' : 'block';
+
+  showScreen('room');
+  listenGames();
+  listenRoulette();
+}
+
+function leaveRoom() {
+  listeners.forEach(fn => fn());
+  listeners = [];
+  currentRoom = null;
+  gamesData = {};
+  myVotes = {};
+  showScreen('home');
+}
+
+// ==========================================
+// Games & Voting
+// ==========================================
+function listenGames() {
+  const ref = db.ref(`games/${currentRoom.code}`);
+  const cb = ref.on('value', snap => {
+    gamesData = snap.val() || {};
+    renderGames();
+    drawRoulette();
+    if (!isHost) drawRouletteViewer();
+  });
+  listeners.push(() => ref.off('value', cb));
+}
+
+function renderGames() {
+  const container = document.getElementById('game-list');
+  const entries = Object.entries(gamesData);
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-dim);font-size:.9rem;">아직 게임이 없어요. 추가해주세요!</div>';
+    document.getElementById('vote-total').textContent = '0표';
+    return;
+  }
+
+  // Sort by votes desc
+  entries.sort((a,b) => (b[1].votes||0) - (a[1].votes||0));
+  const maxVotes = Math.max(...entries.map(e => e[1].votes||0), 1);
+  const totalVotes = entries.reduce((s,e) => s + (e[1].votes||0), 0);
+  document.getElementById('vote-total').textContent = `${totalVotes}표`;
+
+  container.innerHTML = entries.map(([id, g]) => {
+    const votes = g.votes || 0;
+    const pct = maxVotes > 0 ? (votes / maxVotes * 100) : 0;
+    const isVoted = myVotes[id];
+    const emoji = GAME_EMOJIS[Math.abs(hashCode(id)) % GAME_EMOJIS.length];
+    return `
+      <div class="game-item ${isVoted ? 'voted' : ''}" onclick="toggleVote('${id}')">
+        <span class="game-emoji">${emoji}</span>
+        <span class="game-name">${esc(g.name)}</span>
+        <span class="vote-count">🔥 ${votes}</span>
+        <button class="game-delete" onclick="event.stopPropagation();deleteGame('${id}')" title="삭제">✕</button>
+        <div class="vote-bar" style="width:${pct}%"></div>
+      </div>`;
+  }).join('');
+}
+
+function addGame() {
+  const input = document.getElementById('new-game');
+  const name = input.value.trim();
+  if (!name) return;
+  if (Object.values(gamesData).some(g => g.name.toLowerCase() === name.toLowerCase())) {
+    return toast('이미 있는 게임입니다');
+  }
+
+  const id = db.ref(`games/${currentRoom.code}`).push().key;
+  db.ref(`games/${currentRoom.code}/${id}`).set({ name, votes: 0, voters: {} });
+  input.value = '';
+  input.focus();
+}
+
+function toggleVote(gameId) {
+  const game = gamesData[gameId];
+  if (!game) return;
+
+  const voterRef = db.ref(`games/${currentRoom.code}/${gameId}/voters/${sanitizeKey(myNick)}`);
+  const voteRef = db.ref(`games/${currentRoom.code}/${gameId}/votes`);
+
+  if (myVotes[gameId]) {
+    // Unvote
+    voterRef.remove();
+    voteRef.transaction(v => Math.max((v||1) - 1, 0));
+    delete myVotes[gameId];
+  } else {
+    // Vote
+    voterRef.set(true);
+    voteRef.transaction(v => (v||0) + 1);
+    myVotes[gameId] = true;
+  }
+}
+
+function deleteGame(gameId) {
+  if (!isHost) return;
+  db.ref(`games/${currentRoom.code}/${gameId}`).remove();
+  delete myVotes[gameId];
+}
+
+// ==========================================
+// Roulette Drawing
+// ==========================================
+function getVotedGames() {
+  return Object.entries(gamesData).filter(([,g]) => (g.votes||0) > 0);
+}
+
+function drawRoulette(canvasId = 'roulette-canvas', angle = 0) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, R = W/2 - 10;
+
+  ctx.clearRect(0,0,W,H);
+
+  const voted = getVotedGames();
+  if (voted.length === 0) {
+    // Empty state
+    ctx.beginPath();
+    ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle = '#1A1A2E';
+    ctx.fill();
+    ctx.strokeStyle = '#2A2A45';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#555570';
+    ctx.font = '24px Noto Sans KR';
+    ctx.textAlign = 'center';
+    ctx.fillText('투표된 게임이 없어요', cx, cy);
+    return;
+  }
+
+  const totalVotes = voted.reduce((s,[,g]) => s + (g.votes||0), 0);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+
+  let startAngle = 0;
+  voted.forEach(([id, g], i) => {
+    const sliceAngle = ((g.votes||0) / totalVotes) * Math.PI * 2;
+    const color = WHEEL_COLORS[i % WHEEL_COLORS.length];
+
+    // Slice
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,R, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(15,15,26,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label
+    const midAngle = startAngle + sliceAngle/2;
+    const labelR = R * 0.65;
+    const lx = Math.cos(midAngle) * labelR;
+    const ly = Math.sin(midAngle) * labelR;
+
+    ctx.save();
+    ctx.translate(lx, ly);
+    ctx.rotate(midAngle + Math.PI/2);
+
+    const fontSize = Math.min(22, Math.max(13, sliceAngle * R * 0.12));
+    ctx.font = `bold ${fontSize}px Noto Sans KR`;
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 4;
+
+    const name = g.name.length > 8 ? g.name.slice(0,7)+'…' : g.name;
+    ctx.fillText(name, 0, -8);
+
+    ctx.font = `${fontSize * 0.7}px Noto Sans KR`;
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.shadowBlur = 0;
+    ctx.fillText(`${g.votes||0}표`, 0, 10);
+
+    ctx.restore();
+    startAngle += sliceAngle;
+  });
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(0,0,R,0,Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawRouletteViewer() {
+  drawRoulette('roulette-canvas-viewer', spinAngle);
+}
+
+// ==========================================
+// Roulette Spin
+// ==========================================
+function spinRoulette() {
+  const voted = getVotedGames();
+  if (voted.length === 0) return toast('투표된 게임이 없습니다');
+  if (voted.length === 1) {
+    showResult(voted[0][1].name, voted[0][1].votes||0);
+    db.ref(`rooms/${currentRoom.code}/roulette`).set({
+      winner: voted[0][1].name,
+      votes: voted[0][1].votes||0,
+      timestamp: Date.now()
+    });
+    return;
+  }
+
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+
+  const totalVotes = voted.reduce((s,[,g]) => s + (g.votes||0), 0);
+
+  // Pick winner weighted by votes
+  let rand = Math.random() * totalVotes;
+  let winnerIdx = 0;
+  for (let i=0; i<voted.length; i++) {
+    rand -= (voted[i][1].votes||0);
+    if (rand <= 0) { winnerIdx = i; break; }
+  }
+
+  // Calculate target angle
+  let accAngle = 0;
+  for (let i=0; i<winnerIdx; i++) {
+    accAngle += ((voted[i][1].votes||0)/totalVotes) * 360;
+  }
+  const sliceDeg = ((voted[winnerIdx][1].votes||0)/totalVotes) * 360;
+  const targetDeg = accAngle + sliceDeg * (0.2 + Math.random()*0.6);
+  // Pointer is at top (270°), we need to land winner there
+  const finalAngle = 360 * (6 + Math.floor(Math.random()*4)) + (360 - targetDeg + 270) % 360;
+
+  const duration = 4000 + Math.random() * 1500;
+  const startTime = performance.now();
+  const startAngle = spinAngle;
+
+  // Broadcast spin to Firebase
+  db.ref(`rooms/${currentRoom.code}/roulette`).set({
+    spinning: true,
+    finalAngle: finalAngle,
+    duration: duration,
+    startTime: Date.now(),
+    winner: voted[winnerIdx][1].name,
+    votes: voted[winnerIdx][1].votes||0,
+    timestamp: Date.now()
+  });
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    spinAngle = ((startAngle * 180 / Math.PI + finalAngle * eased) % 360) * Math.PI / 180;
+
+    drawRoulette('roulette-canvas', spinAngle);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      btn.disabled = false;
+      const winner = voted[winnerIdx][1];
+      showResult(winner.name, winner.votes||0);
+      db.ref(`rooms/${currentRoom.code}/roulette`).update({ spinning: false });
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+// ==========================================
+// Listen Roulette (for guests)
+// ==========================================
+function listenRoulette() {
+  const ref = db.ref(`rooms/${currentRoom.code}/roulette`);
+  const cb = ref.on('value', snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    if (!isHost && data.spinning && data.finalAngle && data.duration) {
+      // Animate for viewer
+      const serverElapsed = Date.now() - data.startTime;
+      const remaining = Math.max(data.duration - serverElapsed, 500);
+      animateViewer(data.finalAngle, remaining, data.winner, data.votes);
+      document.getElementById('viewer-status').textContent = '🎰 룰렛이 돌아가는 중...!';
+    }
+
+    if (!isHost && !data.spinning && data.winner) {
+      document.getElementById('viewer-status').textContent = `🎉 결과: ${data.winner}`;
+      if (data.timestamp && Date.now() - data.timestamp < 8000) {
+        showResult(data.winner, data.votes||0);
+      }
+    }
+  });
+  listeners.push(() => ref.off('value', cb));
+}
+
+function animateViewer(finalAngle, duration, winnerName, winnerVotes) {
+  const startTime = performance.now();
+  const startA = spinAngle;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    spinAngle = ((startA * 180/Math.PI + finalAngle * eased) % 360) * Math.PI / 180;
+
+    drawRoulette('roulette-canvas-viewer', spinAngle);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      showResult(winnerName, winnerVotes);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+// ==========================================
+// Result
+// ==========================================
+function showResult(name, votes) {
+  document.getElementById('result-name').textContent = name;
+  document.getElementById('result-votes').textContent = `${votes}표로 당첨!`;
+  document.getElementById('result-overlay').classList.add('show');
+  launchConfetti();
+}
+
+function closeResult() {
+  document.getElementById('result-overlay').classList.remove('show');
+}
+
+// ==========================================
+// Confetti
+// ==========================================
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const colors = ['#E94560','#0EA5E9','#A855F7','#22D3EE','#FACC15','#FB923C','#EC4899','#10B981'];
+
+  for (let i=0;i<120;i++) {
+    particles.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height - canvas.height,
+      w: Math.random()*8+4,
+      h: Math.random()*6+2,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      vx: (Math.random()-0.5)*3,
+      vy: Math.random()*4+2,
+      rot: Math.random()*360,
+      rotSpeed: (Math.random()-0.5)*10,
+      opacity: 1
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      if (p.opacity <= 0) return;
+      alive = true;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.05;
+      p.rot += p.rotSpeed;
+      if (p.y > canvas.height) p.opacity -= 0.02;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.globalAlpha = Math.max(p.opacity, 0);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (alive && frame < 300) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ==========================================
+// Sharing
+// ==========================================
+function copyCode() {
+  navigator.clipboard.writeText(currentRoom.code)
+    .then(() => toast('코드 복사됨!'))
+    .catch(() => toast(currentRoom.code));
+}
+
+function copyLink() {
+  const link = `${location.origin}${location.pathname}?room=${currentRoom.code}`;
+  navigator.clipboard.writeText(link)
+    .then(() => toast('링크 복사됨!'))
+    .catch(() => toast('복사 실패'));
+}
+
+function shareNative() {
+  const text = `🎮 "${currentRoom.title}" 게임 투표에 참여하세요!\n초대코드: ${currentRoom.code}`;
+  if (navigator.share) navigator.share({ title: '게임 투표', text });
+  else {
+    navigator.clipboard.writeText(text).then(() => toast('공유 텍스트 복사됨!'));
+  }
+}
+
+// ==========================================
+// Utilities
+// ==========================================
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function sanitizeKey(s) {
+  return s.replace(/[.#$[\]\/]/g, '_');
+}
+
+function hashCode(s) {
+  let h = 0;
+  for (let i=0;i<s.length;i++) { h = ((h<<5)-h)+s.charCodeAt(i); h |= 0; }
+  return h;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// URL auto-join
+window.addEventListener('load', () => {
+  const p = new URLSearchParams(location.search);
+  const room = p.get('room');
+  if (room) {
+    document.getElementById('join-code').value = room.toUpperCase();
+    showScreen('join');
+    document.getElementById('join-nick').focus();
+  }
+});
+</script>
+</body>
+</html>
