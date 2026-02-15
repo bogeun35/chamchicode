@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 그림퀴즈</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EFF6FF; --surface: #FFFFFF; --surface-alt: #F8FAFC;
+  --border: #E2E8F0; --border-mid: #CBD5E1;
+  --text: #0F172A; --text-sub: #475569; --text-dim: #94A3B8;
+  --accent: #2563EB; --accent-light: #DBEAFE;
+  --orange: #D97706; --green: #059669; --red: #DC2626; --purple: #7C3AED;
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* 토스트 */
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--text); color:white; padding:10px 24px; border-radius:20px; font-size:.9rem; font-weight:600; z-index:9999; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+
+/* 화면 전환 */
+.screen { display:none; max-width:480px; margin:0 auto; padding:20px; }
+.screen.active { display:block; }
+
+/* 홈 */
+.home-title { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; text-align:center; margin:40px 0 8px;
+  background:linear-gradient(135deg,var(--accent),var(--orange)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.home-sub { text-align:center; color:var(--text-dim); font-size:.9rem; margin-bottom:32px; font-weight:600; }
+
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
+.card-title { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; color:var(--text-sub); margin-bottom:12px; }
+.input { width:100%; padding:12px 14px; border:2px solid var(--border); border-radius:10px; font-size:1rem; font-family:inherit; font-weight:600; color:var(--text); background:var(--surface-alt); outline:none; }
+.input:focus { border-color:var(--accent); }
+.input-row { display:flex; gap:8px; margin-top:8px; }
+.btn { padding:12px 20px; border:none; border-radius:10px; font-family:'Orbitron',sans-serif; font-size:.82rem; font-weight:700; cursor:pointer; transition:all .15s; }
+.btn:hover { transform:translateY(-1px); }
+.btn-primary { background:var(--accent); color:white; flex:1; }
+.btn-orange { background:var(--orange); color:white; flex:1; }
+.btn-back { background:none; border:1px solid var(--border); color:var(--text-sub); font-family:'Rajdhani',sans-serif; font-size:.9rem; font-weight:600; padding:8px 16px; border-radius:8px; cursor:pointer; }
+
+/* 방 화면 - 2단 레이아웃 */
+.screen-game { max-width:960px; }
+.game-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.room-info { display:flex; align-items:center; gap:12px; }
+.room-code { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; background:var(--surface); border:1px solid var(--border); padding:6px 14px; border-radius:8px; }
+.role-tag { font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:6px; }
+.role-host { background:var(--orange); color:white; }
+.role-guest { background:var(--accent-light); color:var(--accent); }
+
+/* 참여자 */
+.members-bar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; align-items:center; }
+.members-label { font-size:.8rem; font-weight:700; color:var(--text-dim); margin-right:4px; }
+.member-chip { font-size:.78rem; font-weight:600; padding:4px 10px; border-radius:6px; background:var(--surface-alt); border:1px solid var(--border); color:var(--text-sub); display:flex; align-items:center; gap:4px; }
+.member-chip .dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
+.member-chip.host { background:rgba(217,119,6,0.1); border-color:rgba(217,119,6,0.3); color:var(--orange); }
+.member-chip.drawing { background:rgba(37,99,235,0.1); border-color:var(--accent); color:var(--accent); }
+
+/* 2단 구조 */
+.game-layout { display:grid; grid-template-columns:1fr 300px; gap:16px; }
+@media(max-width:768px) { .game-layout { grid-template-columns:1fr; } }
+
+/* 캔버스 영역 */
+.canvas-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.canvas-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+.canvas-status { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; color:var(--text-sub); }
+.round-info { font-size:.8rem; font-weight:600; color:var(--text-dim); }
+.timer-badge { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:900; padding:4px 12px; border-radius:6px; background:var(--surface-alt); color:var(--text-sub); }
+.timer-badge.warning { background:rgba(220,38,38,0.1); color:var(--red); animation:pulse .5s ease-in-out infinite; }
+@keyframes pulse { 50%{ transform:scale(1.05); } }
+
+.canvas-wrap { position:relative; background:white; aspect-ratio:4/3; }
+.canvas-wrap canvas { width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }
+
+/* 그리기 도구 */
+.toolbar { display:flex; align-items:center; gap:6px; padding:10px 16px; border-top:1px solid var(--border); flex-wrap:wrap; }
+.tool-btn { width:34px; height:34px; border:2px solid var(--border); border-radius:8px; background:var(--surface-alt); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:all .15s; }
+.tool-btn:hover { border-color:var(--accent); }
+.tool-btn.active { border-color:var(--accent); background:var(--accent-light); }
+.color-btn { width:28px; height:28px; border-radius:50%; border:2px solid var(--border); cursor:pointer; transition:all .15s; }
+.color-btn.active { border-color:var(--text); box-shadow:0 0 0 2px var(--accent-light); transform:scale(1.15); }
+.size-range { width:60px; accent-color:var(--accent); }
+
+/* 제시어 표시 */
+.word-display { text-align:center; padding:16px; border-top:1px solid var(--border); }
+.word-label { font-size:.75rem; color:var(--text-dim); font-weight:600; }
+.word-text { font-family:'Orbitron',sans-serif; font-size:1.4rem; font-weight:900; color:var(--accent); margin-top:4px; letter-spacing:0.1em; }
+.word-hint { font-family:'Orbitron',sans-serif; font-size:1.2rem; font-weight:700; color:var(--text-dim); margin-top:4px; letter-spacing:0.2em; }
+
+/* 채팅 패널 */
+.chat-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; height:100%; min-height:400px; }
+.chat-title { font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; color:var(--text-sub); padding:12px 16px; border-bottom:1px solid var(--border); }
+.chat-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
+.chat-msg { font-size:.85rem; padding:6px 10px; border-radius:8px; max-width:90%; word-break:break-word; }
+.chat-msg.system { background:var(--surface-alt); color:var(--text-dim); font-weight:600; text-align:center; align-self:center; font-size:.78rem; }
+.chat-msg.correct { background:rgba(5,150,105,0.1); color:var(--green); font-weight:700; text-align:center; align-self:center; }
+.chat-msg.user { background:var(--surface-alt); }
+.chat-msg .nick { font-weight:700; color:var(--accent); margin-right:6px; }
+.chat-input-row { display:flex; gap:8px; padding:12px; border-top:1px solid var(--border); }
+.chat-input { flex:1; padding:10px 12px; border:2px solid var(--border); border-radius:8px; font-size:.9rem; font-family:inherit; font-weight:600; outline:none; }
+.chat-input:focus { border-color:var(--accent); }
+.chat-send { padding:10px 16px; background:var(--accent); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+/* 방장 컨트롤 */
+.host-controls { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.ctrl-btn { padding:10px 16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-sub); font-size:.85rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+.ctrl-btn:hover { border-color:var(--accent); color:var(--accent); }
+.ctrl-btn.start { background:var(--green); color:white; border-color:var(--green); }
+.ctrl-btn.skip { background:var(--orange); color:white; border-color:var(--orange); }
+.ctrl-btn.end { background:var(--red); color:white; border-color:var(--red); }
+
+/* 대기 화면 */
+.waiting { text-align:center; padding:60px 20px; }
+.waiting-icon { font-size:3rem; margin-bottom:12px; }
+.waiting-text { font-size:1.1rem; font-weight:700; color:var(--text-sub); }
+.waiting-sub { font-size:.85rem; color:var(--text-dim); margin-top:4px; }
+
+/* 정답 오버레이 */
+.correct-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(5,150,105,0.9); display:none; align-items:center; justify-content:center; z-index:5000; flex-direction:column; gap:12px; }
+.correct-overlay.show { display:flex; }
+.correct-overlay .big-text { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:white; }
+.correct-overlay .sub-text { font-size:1.2rem; color:rgba(255,255,255,0.8); font-weight:600; }
+
+/* 제시어 입력 모달 */
+.modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); display:none; align-items:center; justify-content:center; z-index:4000; backdrop-filter:blur(6px); }
+.modal-overlay.show { display:flex; }
+.modal-box { background:white; border-radius:16px; padding:28px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); }
+.modal-title { font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700; margin-bottom:16px; text-align:center; }
+.modal-row { display:flex; gap:8px; margin-top:12px; }
+
+/* 제시어 추천 */
+.word-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.word-chip { padding:8px 14px; background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.word-chip:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- 홈 화면 -->
+<div class="screen active" id="screen-home">
+  <div class="home-title">참스코드 그림퀴즈</div>
+  <div class="home-sub">그려서 맞추는 실시간 파티게임</div>
+  <div class="card">
+    <div class="card-title">방 만들기</div>
+    <input class="input" id="room-host" placeholder="닉네임" maxlength="10">
+    <div class="input-row"><button class="btn btn-primary" onclick="createRoom()">방 만들기</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">참여하기</div>
+    <input class="input" id="join-code" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:0.15em;font-family:'Orbitron',sans-serif;">
+    <input class="input" id="join-nick" placeholder="닉네임" maxlength="10" style="margin-top:8px;">
+    <div class="input-row"><button class="btn btn-orange" onclick="joinRoom()">참여하기</button></div>
+  </div>
+</div>
+
+<!-- 게임 화면 -->
+<div class="screen screen-game" id="screen-game">
+  <div class="game-header">
+    <div class="room-info">
+      <button class="btn-back" onclick="leaveRoom()">&#8592; 나가기</button>
+      <span class="room-code" id="g-code"></span>
+      <span class="role-tag" id="g-role"></span>
+    </div>
+  </div>
+  <div class="members-bar" id="g-members"></div>
+
+  <!-- 방장 컨트롤 -->
+  <div class="host-controls" id="host-controls" style="display:none;">
+    <button class="ctrl-btn start" onclick="startRound()">라운드 시작</button>
+    <button class="ctrl-btn skip" onclick="skipRound()">스킵</button>
+    <button class="ctrl-btn end" onclick="endGame()">게임 종료</button>
+  </div>
+
+  <div class="game-layout">
+    <!-- 캔버스 -->
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <span class="canvas-status" id="canvas-status">대기 중</span>
+        <span class="timer-badge" id="timer-badge">--</span>
+      </div>
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="draw-canvas" width="800" height="600"></canvas>
+        <div class="waiting" id="waiting-screen">
+          <div class="waiting-icon">&#9998;</div>
+          <div class="waiting-text">방장이 게임을 시작하면<br>그림퀴즈가 시작됩니다</div>
+          <div class="waiting-sub" id="waiting-sub"></div>
+        </div>
+      </div>
+      <div class="toolbar" id="toolbar" style="display:none;">
+        <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)">&#9998;</button>
+        <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)">&#9249;</button>
+        <button class="tool-btn" onclick="clearCanvas()">&#128465;</button>
+        <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
+        <input type="range" class="size-range" min="2" max="20" value="4" oninput="brushSize=this.value">
+        <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
+        <div class="color-btn active" style="background:#0F172A" onclick="setColor('#0F172A',this)"></div>
+        <div class="color-btn" style="background:#DC2626" onclick="setColor('#DC2626',this)"></div>
+        <div class="color-btn" style="background:#2563EB" onclick="setColor('#2563EB',this)"></div>
+        <div class="color-btn" style="background:#059669" onclick="setColor('#059669',this)"></div>
+        <div class="color-btn" style="background:#D97706" onclick="setColor('#D97706',this)"></div>
+        <div class="color-btn" style="background:#7C3AED" onclick="setColor('#7C3AED',this)"></div>
+        <div class="color-btn" style="background:#FFFFFF;border-color:#CBD5E1;" onclick="setColor('#FFFFFF',this)"></div>
+      </div>
+      <div class="word-display" id="word-display" style="display:none;">
+        <div class="word-label" id="word-label">제시어</div>
+        <div class="word-text" id="word-text"></div>
+      </div>
+    </div>
+
+    <!-- 채팅 -->
+    <div class="chat-panel">
+      <div class="chat-title">채팅</div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" placeholder="정답 입력..." maxlength="30" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()">전송</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 정답 오버레이 -->
+<div class="correct-overlay" id="correct-overlay">
+  <div class="big-text" id="correct-who"></div>
+  <div class="sub-text" id="correct-word"></div>
+</div>
+
+<!-- 제시어 입력 모달 -->
+<div class="modal-overlay" id="word-modal">
+  <div class="modal-box">
+    <div class="modal-title">제시어를 입력하세요</div>
+    <input class="input" id="word-input" placeholder="제시어..." maxlength="20">
+    <div class="word-suggestions" id="word-suggestions"></div>
+    <div class="modal-row">
+      <button class="btn btn-primary" onclick="submitWord()" style="flex:1;">시작</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",
+  databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",
+  messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"
+});
+const db = firebase.database();
+
+// === 전역 ===
+let currentRoom=null, isHost=false, myNick='', listeners=[], membersData={};
+let gameState=null; // {status, drawer, word, hint, round, startedAt, endAt}
+let drawCtx=null, drawing=false, lastX=0, lastY=0;
+let currentTool='pen', brushColor='#0F172A', brushSize=4;
+let strokeBuffer=[], strokeTimer=null;
+let timerInterval=null;
+
+const NICK_KEY='charms_draw_nick';
+const ROUND_TIME=60; // 60초
+const WORD_BANK=[
+  '사과','바나나','피자','햄버거','라면','치킨','아이스크림','케이크','초밥','떡볶이',
+  '강아지','고양이','토끼','코끼리','공룡','펭귄','돌고래','나비','거북이','독수리',
+  '자동차','비행기','자전거','로켓','배','기차','헬리콥터','오토바이','트럭','잠수함',
+  '축구','야구','농구','테니스','수영','스키','태권도','복싱','골프','볼링',
+  '선생님','의사','소방관','경찰','요리사','우주인','해적','마법사','닌자','로봇',
+  '집','학교','병원','성','피라미드','텐트','등대','풍차','다리','놀이공원',
+  '기타','피아노','드럼','바이올린','마이크','헤드폰','카메라','망원경','시계','우산',
+  '해','달','별','구름','무지개','눈사람','화산','폭포','선인장','나무',
+  '오버워치','마인크래프트','롤','배틀그라운드','메이플','포켓몬','마리오','젤다','테트리스','팩맨'
+];
+
+function sanitizeKey(s){return s.replace(/[.#$/\[\]]/g,'_');}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+function getSavedNick(){return localStorage.getItem(NICK_KEY)||'';}
+function saveNick(n){localStorage.setItem(NICK_KEY,n);}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
+function makeHint(word){return word.split('').map((_,i)=>i===0?'_':'_').join(' ');}
+
+// 초기화
+(function(){
+  const n=getSavedNick();
+  if(n){document.getElementById('room-host').value=n;document.getElementById('join-nick').value=n;}
+})();
+
+// === 방 생성/참여 ===
+function createRoom(){
+  const host=document.getElementById('room-host').value.trim();
+  if(!host)return toast('닉네임을 입력해주세요');
+  saveNick(host);
+  const code=genCode();
+  db.ref(`drawrooms/${code}`).set({host,createdAt:Date.now(),expiresAt:Date.now()+30*60*1000,game:null}).then(()=>{
+    currentRoom={code,host};isHost=true;myNick=host;enterRoom();
+  }).catch(()=>toast('방 생성 실패'));
+}
+function joinRoom(){
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  const nick=document.getElementById('join-nick').value.trim();
+  if(!code||code.length!==6)return toast('6자리 코드를 입력해주세요');
+  if(!nick)return toast('닉네임을 입력해주세요');
+  saveNick(nick);
+  db.ref(`drawrooms/${code}`).once('value').then(snap=>{
+    if(!snap.exists())return toast('존재하지 않는 방입니다');
+    const d=snap.val();
+    if(d.expiresAt&&Date.now()>d.expiresAt){db.ref(`drawrooms/${code}`).remove();db.ref(`drawchat/${code}`).remove();db.ref(`drawcanvas/${code}`).remove();db.ref(`drawmembers/${code}`).remove();return toast('만료된 방입니다');}
+    currentRoom={code,host:d.host};isHost=(d.host===nick);myNick=nick;enterRoom();
+  }).catch(()=>toast('입장 실패'));
+}
+
+function enterRoom(){
+  document.getElementById('g-code').textContent=currentRoom.code;
+  const role=document.getElementById('g-role');
+  if(isHost){role.textContent='방장';role.className='role-tag role-host';document.getElementById('host-controls').style.display='flex';}
+  else{role.textContent='참여자';role.className='role-tag role-guest';document.getElementById('host-controls').style.display='none';}
+  showScreen('game');
+  initCanvas();
+  registerPresence();
+  listenMembers();
+  listenGame();
+  listenCanvas();
+  listenChat();
+  listenRoomExists();
+  addSystemChat('방에 입장했습니다');
+}
+
+function leaveRoom(){
+  if(isHost&&!confirm('방장이 나가면 방이 삭제됩니다.'))return;
+  if(currentRoom){
+    const code=currentRoom.code;
+    if(isHost){
+      db.ref(`drawrooms/${code}`).remove();db.ref(`drawchat/${code}`).remove();
+      db.ref(`drawcanvas/${code}`).remove();db.ref(`drawmembers/${code}`).remove();
+    }else{
+      db.ref(`drawmembers/${code}/${sanitizeKey(myNick)}`).remove();
+    }
+  }
+  listeners.forEach(fn=>fn());listeners=[];
+  if(timerInterval)clearInterval(timerInterval);
+  currentRoom=null;gameState=null;membersData={};isHost=false;
+  showScreen('home');
+}
+
+// === Presence ===
+function registerPresence(){
+  const code=currentRoom.code,myKey=sanitizeKey(myNick);
+  const ref=db.ref(`drawmembers/${code}/${myKey}`);
+  ref.set({nick:myNick,isHost,joinedAt:Date.now()});
+  if(isHost){
+    db.ref(`drawrooms/${code}`).onDisconnect().remove();
+    db.ref(`drawchat/${code}`).onDisconnect().remove();
+    db.ref(`drawcanvas/${code}`).onDisconnect().remove();
+    db.ref(`drawmembers/${code}`).onDisconnect().remove();
+    listeners.push(()=>{db.ref(`drawrooms/${code}`).onDisconnect().cancel();db.ref(`drawchat/${code}`).onDisconnect().cancel();db.ref(`drawcanvas/${code}`).onDisconnect().cancel();db.ref(`drawmembers/${code}`).onDisconnect().cancel();});
+  }else{
+    ref.onDisconnect().remove();
+    listeners.push(()=>{ref.onDisconnect().cancel();ref.remove();});
+  }
+}
+
+function listenMembers(){
+  const ref=db.ref(`drawmembers/${currentRoom.code}`);
+  const cb=ref.on('value',snap=>{membersData=snap.val()||{};renderMembers();});
+  listeners.push(()=>ref.off('value',cb));
+}
+function renderMembers(){
+  const bar=document.getElementById('g-members');
+  const entries=Object.values(membersData);
+  entries.sort((a,b)=>(b.isHost?1:0)-(a.isHost?1:0));
+  const drawer=gameState?.drawer||'';
+  bar.innerHTML=`<span class="members-label">참여자 ${entries.length}</span>`+
+    entries.map(m=>{
+      let cls=m.isHost?'host':'';
+      if(m.nick===drawer)cls='drawing';
+      return `<span class="member-chip ${cls}"><span class="dot"></span>${esc(m.nick)}${m.nick===drawer?' (출제)':''}</span>`;
+    }).join('');
+}
+function listenRoomExists(){
+  if(isHost)return;
+  const ref=db.ref(`drawrooms/${currentRoom.code}`);
+  const cb=ref.on('value',snap=>{
+    if(!snap.exists()){toast('방이 종료되었습니다');listeners.forEach(fn=>fn());listeners=[];if(timerInterval)clearInterval(timerInterval);currentRoom=null;gameState=null;membersData={};isHost=false;showScreen('home');}
+  });
+  listeners.push(()=>ref.off('value',cb));
+}
+
+// === 게임 상태 ===
+function listenGame(){
+  const ref=db.ref(`drawrooms/${currentRoom.code}/game`);
+  const cb=ref.on('value',snap=>{
+    gameState=snap.val();
+    renderGameState();
+  });
+  listeners.push(()=>ref.off('value',cb));
+}
+
+function renderGameState(){
+  const status=gameState?.status;
+  const isDrawer=gameState?.drawer===myNick;
+  const waiting=document.getElementById('waiting-screen');
+  const toolbar=document.getElementById('toolbar');
+  const wordDisplay=document.getElementById('word-display');
+  const canvasStatus=document.getElementById('canvas-status');
+  const timerBadge=document.getElementById('timer-badge');
+
+  if(!status||status==='idle'){
+    waiting.style.display='flex';toolbar.style.display='none';wordDisplay.style.display='none';
+    canvasStatus.textContent='대기 중';timerBadge.textContent='--';
+    document.getElementById('waiting-sub').textContent=isHost?'라운드 시작 버튼을 눌러주세요':'방장이 시작하면 게임이 시작됩니다';
+    if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+    clearCanvasLocal();
+    return;
+  }
+
+  if(status==='drawing'){
+    waiting.style.display='none';
+    if(isDrawer){
+      toolbar.style.display='flex';wordDisplay.style.display='block';
+      document.getElementById('word-label').textContent='제시어';
+      document.getElementById('word-text').textContent=gameState.word;
+      document.getElementById('word-text').style.display='block';
+      document.getElementById('chat-input').disabled=true;
+      document.getElementById('chat-input').placeholder='출제자는 채팅 불가';
+    }else{
+      toolbar.style.display='none';wordDisplay.style.display='block';
+      document.getElementById('word-label').textContent='힌트';
+      document.getElementById('word-text').style.display='none';
+      const hintEl=document.createElement('div');
+      document.getElementById('word-display').innerHTML=`<div class="word-label">힌트 (${gameState.word?.length||'?'}글자)</div><div class="word-hint">${makeHint(gameState.word||'')}</div>`;
+      document.getElementById('chat-input').disabled=false;
+      document.getElementById('chat-input').placeholder='정답 입력...';
+    }
+    const drawer=gameState.drawer;
+    canvasStatus.textContent=`${drawer} 님이 그리는 중`;
+    startTimer();
+    renderMembers();
+  }
+
+  if(status==='reveal'){
+    toolbar.style.display='none';
+    wordDisplay.style.display='block';
+    wordDisplay.innerHTML=`<div class="word-label">정답</div><div class="word-text">${esc(gameState.word||'')}</div>`;
+    canvasStatus.textContent='라운드 종료';
+    document.getElementById('chat-input').disabled=false;
+    document.getElementById('chat-input').placeholder='정답 입력...';
+    if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+    timerBadge.textContent='--';timerBadge.classList.remove('warning');
+  }
+}
+
+function startTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  const badge=document.getElementById('timer-badge');
+  timerInterval=setInterval(()=>{
+    if(!gameState||gameState.status!=='drawing')return;
+    const elapsed=Math.floor((Date.now()-gameState.startedAt)/1000);
+    const remain=Math.max(ROUND_TIME-elapsed,0);
+    badge.textContent=remain+'s';
+    badge.classList.toggle('warning',remain<=10);
+    if(remain<=0&&isHost){
+      clearInterval(timerInterval);timerInterval=null;
+      endRound();
+    }
+  },500);
+}
+
+// === 방장 컨트롤 ===
+function startRound(){
+  if(!isHost)return;
+  const members=Object.values(membersData).map(m=>m.nick);
+  if(members.length<2)return toast('2명 이상 필요합니다');
+  // 출제자 선택 (순서대로 or 랜덤)
+  const prevDrawer=gameState?.drawer;
+  let candidates=members.filter(m=>m!==prevDrawer);
+  if(!candidates.length)candidates=members;
+  const drawer=candidates[Math.floor(Math.random()*candidates.length)];
+
+  if(drawer===myNick){
+    // 방장이 출제자 → 제시어 모달
+    showWordModal(drawer);
+  }else{
+    // 다른 사람이 출제자 → 제시어 선택권을 출제자에게 (단순 구현: 랜덤 제시어)
+    const word=WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];
+    beginDrawing(drawer,word);
+  }
+}
+
+function showWordModal(drawer){
+  const modal=document.getElementById('word-modal');
+  modal.classList.add('show');
+  document.getElementById('word-input').value='';
+  // 추천 단어
+  const suggestions=[];
+  const used=new Set();
+  while(suggestions.length<6){const w=WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];if(!used.has(w)){used.add(w);suggestions.push(w);}}
+  document.getElementById('word-suggestions').innerHTML=suggestions.map(w=>
+    `<span class="word-chip" onclick="document.getElementById('word-input').value='${w}'">${w}</span>`
+  ).join('');
+  window._pendingDrawer=drawer;
+}
+
+function submitWord(){
+  const word=document.getElementById('word-input').value.trim();
+  if(!word)return toast('제시어를 입력해주세요');
+  document.getElementById('word-modal').classList.remove('show');
+  beginDrawing(window._pendingDrawer||myNick,word);
+}
+
+function beginDrawing(drawer,word){
+  // 캔버스 초기화
+  db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({
+    status:'drawing', drawer, word,
+    round:(gameState?.round||0)+1,
+    startedAt:Date.now(), solved:false
+  });
+  addSystemChat(`${drawer} 님이 그립니다! (${word.length}글자)`);
+}
+
+function skipRound(){
+  if(!isHost)return;
+  endRound();
+}
+
+function endRound(){
+  if(!gameState||gameState.status!=='drawing')return;
+  db.ref(`drawrooms/${currentRoom.code}/game`).update({status:'reveal'});
+  addSystemChat(`정답: ${gameState.word}`);
+}
+
+function endGame(){
+  if(!isHost)return;
+  db.ref(`drawrooms/${currentRoom.code}/game`).set({status:'idle'});
+  db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  addSystemChat('게임이 종료되었습니다');
+}
+
+// === 캔버스 ===
+function initCanvas(){
+  const canvas=document.getElementById('draw-canvas');
+  drawCtx=canvas.getContext('2d');
+  drawCtx.lineCap='round';drawCtx.lineJoin='round';
+  clearCanvasLocal();
+
+  canvas.addEventListener('pointerdown',onPointerDown);
+  canvas.addEventListener('pointermove',onPointerMove);
+  canvas.addEventListener('pointerup',onPointerUp);
+  canvas.addEventListener('pointerleave',onPointerUp);
+}
+
+function getCanvasPos(e){
+  const canvas=document.getElementById('draw-canvas');
+  const rect=canvas.getBoundingClientRect();
+  return{x:e.clientX-rect.left,y:e.clientY-rect.top,sx:canvas.width/rect.width,sy:canvas.height/rect.height};
+}
+
+function onPointerDown(e){
+  if(!gameState||gameState.status!=='drawing'||gameState.drawer!==myNick)return;
+  drawing=true;
+  const p=getCanvasPos(e);
+  lastX=p.x*p.sx;lastY=p.y*p.sy;
+  strokeBuffer=[];
+}
+function onPointerMove(e){
+  if(!drawing)return;
+  const p=getCanvasPos(e);
+  const x=p.x*p.sx,y=p.y*p.sy;
+  const color=currentTool==='eraser'?'#FFFFFF':brushColor;
+  const size=currentTool==='eraser'?brushSize*4:brushSize;
+  drawLine(lastX,lastY,x,y,color,size);
+  strokeBuffer.push({x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:size});
+  lastX=x;lastY=y;
+
+  // 100ms마다 Firebase에 전송
+  if(!strokeTimer){
+    strokeTimer=setTimeout(()=>{flushStrokes();strokeTimer=null;},80);
+  }
+}
+function onPointerUp(){
+  if(!drawing)return;
+  drawing=false;
+  flushStrokes();
+}
+
+function flushStrokes(){
+  if(!strokeBuffer.length||!currentRoom)return;
+  const ref=db.ref(`drawcanvas/${currentRoom.code}`).push();
+  ref.set(strokeBuffer);
+  strokeBuffer=[];
+}
+
+function drawLine(x1,y1,x2,y2,color,size){
+  drawCtx.strokeStyle=color;drawCtx.lineWidth=size;
+  drawCtx.beginPath();drawCtx.moveTo(x1,y1);drawCtx.lineTo(x2,y2);drawCtx.stroke();
+}
+
+function clearCanvas(){
+  if(!gameState||gameState.drawer!==myNick)return;
+  clearCanvasLocal();
+  db.ref(`drawcanvas/${currentRoom.code}`).remove();
+  db.ref(`drawcanvas/${currentRoom.code}`).push().set([{clear:true}]);
+}
+function clearCanvasLocal(){
+  if(!drawCtx)return;
+  const c=document.getElementById('draw-canvas');
+  drawCtx.fillStyle='#FFFFFF';drawCtx.fillRect(0,0,c.width,c.height);
+}
+
+function setTool(tool,el){
+  currentTool=tool;
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function setColor(c,el){
+  brushColor=c;currentTool='pen';
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='pen'));
+  document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function listenCanvas(){
+  const ref=db.ref(`drawcanvas/${currentRoom.code}`);
+  const cb=ref.on('child_added',snap=>{
+    const strokes=snap.val();
+    if(!strokes||!Array.isArray(strokes))return;
+    if(strokes[0]?.clear){clearCanvasLocal();return;}
+    strokes.forEach(s=>drawLine(s.x1,s.y1,s.x2,s.y2,s.c,s.s));
+  });
+  listeners.push(()=>ref.off('child_added',cb));
+}
+
+// === 채팅 ===
+function listenChat(){
+  const ref=db.ref(`drawchat/${currentRoom.code}`);
+  const cb=ref.orderByChild('ts').limitToLast(100).on('child_added',snap=>{
+    const d=snap.val();if(!d)return;
+    appendChat(d);
+    // 정답 체크
+    if(d.correct){
+      showCorrectOverlay(d.nick,d.text);
+    }
+  });
+  listeners.push(()=>ref.off('child_added',cb));
+}
+
+function sendChat(){
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text||!currentRoom)return;
+  input.value='';
+
+  // 정답 체크
+  if(gameState&&gameState.status==='drawing'&&!gameState.solved&&gameState.drawer!==myNick){
+    if(text.replace(/\s/g,'').toLowerCase()===gameState.word.replace(/\s/g,'').toLowerCase()){
+      // 정답!
+      db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text:gameState.word,ts:Date.now(),correct:true});
+      db.ref(`drawrooms/${currentRoom.code}/game`).update({solved:true,status:'reveal'});
+      return;
+    }
+  }
+  db.ref(`drawchat/${currentRoom.code}`).push().set({nick:myNick,text,ts:Date.now()});
+}
+
+function addSystemChat(msg){
+  if(!currentRoom)return;
+  db.ref(`drawchat/${currentRoom.code}`).push().set({system:true,text:msg,ts:Date.now()});
+}
+
+function appendChat(d){
+  const container=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  if(d.system){
+    div.className='chat-msg system';div.textContent=d.text;
+  }else if(d.correct){
+    div.className='chat-msg correct';div.textContent=`${d.nick} 님이 정답을 맞혔습니다!`;
+  }else{
+    div.className='chat-msg user';
+    // 정답 단어 가리기 (출제 중일 때)
+    let displayText=d.text;
+    if(gameState&&gameState.status==='drawing'&&gameState.word){
+      const word=gameState.word.toLowerCase();
+      if(displayText.toLowerCase().includes(word)){
+        displayText=displayText.replace(new RegExp(gameState.word,'gi'),'***');
+      }
+    }
+    div.innerHTML=`<span class="nick">${esc(d.nick)}</span>${esc(displayText)}`;
+  }
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+
+function showCorrectOverlay(nick,word){
+  const overlay=document.getElementById('correct-overlay');
+  document.getElementById('correct-who').textContent=`${nick} 정답!`;
+  document.getElementById('correct-word').textContent=word;
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
