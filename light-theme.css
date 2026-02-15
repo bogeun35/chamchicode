@@ -1,0 +1,268 @@
+/* ============================================
+   참스코드 라이트 테마 오버라이드
+   기존 index.html(경매시스템)에 이 CSS를 추가하면 밝은 테마 적용
+   <link rel="stylesheet" href="light-theme.css">
+   ============================================ */
+
+:root {
+    --ow-orange: #F59E0B !important;
+    --ow-blue: #2563EB !important;
+    --ow-dark: #FFFFFF !important;
+    --ow-darker: #EFF6FF !important;
+    --ow-gray: #F1F5F9 !important;
+    --ow-white: #0F172A !important;
+}
+
+/* Background */
+.hex-background {
+    background: linear-gradient(135deg, rgba(37,99,235,0.04) 0%, transparent 50%),
+                linear-gradient(225deg, rgba(245,158,11,0.04) 0%, transparent 50%), #EFF6FF !important;
+}
+.hex-pattern {
+    opacity: 0.05 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.3'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
+}
+
+/* Controls bar */
+.controls {
+    background: rgba(255,255,255,0.75) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(148,187,233,0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+}
+
+/* Buttons */
+.btn { border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.btn-balanced { background: linear-gradient(135deg, #2563EB, #0EA5E9) !important; }
+.btn-spectator { background: linear-gradient(135deg, #7C3AED, #A855F7) !important; }
+.btn-auction { background: linear-gradient(135deg, #F59E0B, #D97706) !important; }
+.btn-secondary { background: linear-gradient(135deg, #EF4444, #DC2626) !important; }
+.btn-reset-spectator { background: linear-gradient(135deg, #64748B, #475569) !important; }
+.btn-add-all { background: linear-gradient(135deg, #10B981, #059669) !important; }
+
+/* Teams container */
+.teams-container {
+    background: rgba(255,255,255,0.65) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(148,187,233,0.25) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+}
+.team {
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+.team-1 { border-color: rgba(37,99,235,0.35) !important; box-shadow: 0 0 20px rgba(37,99,235,0.08) !important; }
+.team-2 { border-color: rgba(245,158,11,0.35) !important; box-shadow: 0 0 20px rgba(245,158,11,0.08) !important; }
+.team-header { border-bottom-color: #E2E8F0 !important; }
+.team-2 .team-header { color: #D97706 !important; }
+.team-score { background: #F1F5F9 !important; color: #475569 !important; }
+.team-points { background: linear-gradient(135deg, #A855F7, #7C3AED) !important; }
+
+/* Slots */
+.team-slot { background: #FAFBFE !important; border-color: #CBD5E1 !important; border-radius: 8px !important; }
+.team-slot.drag-over { background: rgba(37,99,235,0.06) !important; border-style: solid !important; border-color: #2563EB !important; }
+.team-slot.empty::after { color: #CBD5E1 !important; }
+
+/* Player cards */
+.player-card {
+    background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+}
+.player-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important; }
+.player-card.is-leader { border: 2px solid #F59E0B !important; box-shadow: 0 0 12px rgba(245,158,11,0.2) !important; }
+.player-role-icon { background: #F1F5F9 !important; }
+.player-role-icon:hover { background: #E2E8F0 !important; }
+.player-name { color: #0F172A !important; }
+.leader-badge { background: #F59E0B !important; color: white !important; }
+.role-badge { background: #F1F5F9 !important; color: #475569 !important; }
+
+/* Tier colors - brighter */
+.tier-gold { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: white !important; }
+.tier-platinum { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; }
+.tier-diamond { background: linear-gradient(135deg, #818cf8, #6366f1) !important; color: white !important; }
+
+/* VS divider */
+.score-diff { background: #F1F5F9 !important; color: #475569 !important; border-radius: 8px !important; }
+.score-diff.balanced { background: rgba(16,185,129,0.1) !important; border: 1px solid #10B981 !important; color: #059669 !important; }
+
+/* Spectators */
+.spectators {
+    background: white !important;
+    border-color: rgba(124,58,237,0.25) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(124,58,237,0.06);
+}
+.spectators-header { color: #7C3AED !important; }
+.spectator-count { background: rgba(124,58,237,0.1) !important; color: #7C3AED !important; }
+.spectators-grid.drag-over { background: rgba(124,58,237,0.05) !important; border-color: rgba(124,58,237,0.3) !important; }
+.spectators-grid.empty::after { color: #CBD5E1 !important; }
+.spectator-card { border-radius: 8px !important; }
+.spectator-card:hover { box-shadow: 0 6px 16px rgba(124,58,237,0.3) !important; }
+
+/* Player list container */
+.player-list-container {
+    background: rgba(255,255,255,0.65) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(148,187,233,0.25) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+}
+.section-title { color: #0F172A !important; }
+.saved-players {
+    background: #FAFBFE !important;
+    border-color: #CBD5E1 !important;
+    border-radius: 8px !important;
+}
+.saved-player-tag { border-radius: 8px !important; }
+.saved-player-tag.selectable:hover { box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important; }
+
+/* Inputs */
+.player-name-input, .tier-input {
+    background: white !important;
+    border: 2px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    border-radius: 8px !important;
+}
+.player-name-input:focus, .tier-input:focus { border-color: #2563EB !important; }
+.tier-input-label { color: #94A3B8 !important; }
+.add-player-btn { border-radius: 8px !important; }
+
+.info-message {
+    background: rgba(37,99,235,0.06) !important;
+    border-color: rgba(37,99,235,0.15) !important;
+    color: #64748B !important;
+    border-radius: 8px !important;
+}
+
+/* Screenshot section */
+.screenshot-section {
+    background: rgba(245,158,11,0.04) !important;
+    border-color: rgba(245,158,11,0.3) !important;
+    border-radius: 10px !important;
+}
+.screenshot-section.drag-highlight {
+    background: rgba(245,158,11,0.1) !important;
+    box-shadow: 0 0 16px rgba(245,158,11,0.12) !important;
+}
+.screenshot-title { color: #D97706 !important; }
+.screenshot-desc { color: #94A3B8 !important; }
+.screenshot-upload-area .upload-text { color: #94A3B8 !important; }
+.screenshot-upload-area .upload-text strong { color: #D97706 !important; }
+.screenshot-names-textarea {
+    background: white !important;
+    border: 2px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    border-radius: 8px !important;
+}
+.screenshot-names-textarea:focus { border-color: #D97706 !important; }
+.screenshot-btn.cancel { background: #F1F5F9 !important; color: #64748B !important; }
+.screenshot-loading span { color: #64748B !important; }
+
+/* Sound toggle */
+.sound-toggle {
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(148,187,233,0.3) !important;
+    color: #0F172A !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+/* Template section */
+.template-section {
+    background: #FAFBFE !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+}
+.template-btn { border-radius: 6px !important; }
+
+/* Modals */
+.modal { background: rgba(15,23,42,0.4) !important; backdrop-filter: blur(4px); }
+.modal-content {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 20px 60px rgba(15,23,42,0.15) !important;
+}
+.modal-title { color: #0F172A !important; }
+.modal-input {
+    background: #F8FAFC !important;
+    border: 2px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    border-radius: 8px !important;
+}
+.modal-input:focus { border-color: #2563EB !important; }
+.modal-btn.cancel { background: #F1F5F9 !important; color: #64748B !important; }
+.role-option {
+    background: #F8FAFC !important;
+    border: 2px solid #E2E8F0 !important;
+    color: #64748B !important;
+    border-radius: 10px !important;
+}
+.role-option:hover { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; }
+.role-option.selected { background: #2563EB !important; border-color: #2563EB !important; color: white !important; }
+
+/* Auction modal */
+.auction-modal { background: rgba(15,23,42,0.5) !important; backdrop-filter: blur(8px); }
+.auction-content {
+    background: white !important;
+    border: 2px solid rgba(245,158,11,0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(245,158,11,0.15) !important;
+}
+.auction-header { border-radius: 14px 14px 0 0 !important; }
+
+.timer-ring-bg { stroke: #E2E8F0 !important; }
+.timer-seconds { color: #0F172A !important; }
+
+.auction-current-player {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)) !important;
+    border: 2px solid rgba(245,158,11,0.3) !important;
+    border-radius: 10px !important;
+}
+.auction-player-name { color: #0F172A !important; }
+.auction-player-tier { background: #F1F5F9 !important; color: #475569 !important; }
+.auction-player-role { background: #E2E8F0 !important; color: #334155 !important; }
+
+.current-bid-display { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.current-bid-label { color: #94A3B8 !important; }
+.current-bid-value.team-2 { color: #D97706 !important; }
+.current-bid-value.none { color: #CBD5E1 !important; }
+
+.auction-team-box { background: #FAFBFE !important; border-radius: 10px !important; }
+.auction-team-box.team-1 { border-color: rgba(37,99,235,0.2) !important; }
+.auction-team-box.team-2 { border-color: rgba(245,158,11,0.2) !important; }
+.auction-team-box.leading.team-1 { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; }
+.auction-team-box.leading.team-2 { background: rgba(245,158,11,0.06) !important; border-color: #D97706 !important; }
+.team-2 .auction-team-name { color: #D97706 !important; }
+.team-2 .auction-team-points { color: #D97706 !important; }
+
+.auction-bid-input {
+    background: white !important;
+    border: 2px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    border-radius: 6px !important;
+}
+.auction-bid-input:focus { border-color: #2563EB !important; }
+.quick-bid-btn { background: #F1F5F9 !important; border-color: #E2E8F0 !important; color: #475569 !important; border-radius: 6px !important; }
+.quick-bid-btn:hover { background: #E2E8F0 !important; }
+.auction-bid-btn:disabled { background: #E2E8F0 !important; color: #94A3B8 !important; }
+.team-2 .auction-bid-btn { background: linear-gradient(135deg, #F59E0B, #D97706) !important; }
+
+.bid-history { background: #FAFBFE !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.bid-history-title { color: #94A3B8 !important; }
+.bid-history-item.team-1 { background: rgba(37,99,235,0.06) !important; border-color: #2563EB !important; color: #2563EB !important; }
+.bid-history-item.team-2 { background: rgba(245,158,11,0.06) !important; border-color: #D97706 !important; color: #D97706 !important; }
+
+.remaining-players { background: #FAFBFE !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; }
+.remaining-title { color: #94A3B8 !important; }
+.remaining-player { background: #F1F5F9 !important; border-color: #E2E8F0 !important; color: #475569 !important; }
+.remaining-player.current { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05)) !important; border-color: rgba(245,158,11,0.4) !important; color: #D97706 !important; }
+
+.special-effect { color: #D97706 !important; text-shadow: 0 0 20px rgba(245,158,11,0.6) !important; }
