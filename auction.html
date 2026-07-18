@@ -386,7 +386,7 @@
         .auction-content {
             background: white;
             border: 2px solid var(--ow-orange); border-radius: 14px;
-            max-width: 750px; width: 100%; 
+            max-width: 1100px; width: 100%;
             box-shadow: 0 20px 60px rgba(217,119,6,0.15);
         }
         .auction-header {
@@ -536,6 +536,88 @@
             20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) translateY(-50px); }
         }
+
+        /* ===== 경매 좌우 낙찰 명단 ===== */
+        .auction-layout { display: grid; grid-template-columns: 175px 1fr 175px; align-items: start; }
+        .auction-roster {
+            padding: 12px 10px; align-self: stretch; display: flex; flex-direction: column; gap: 8px;
+        }
+        .auction-roster.team-1 { border-right: 2px solid rgba(37,99,235,0.15); background: linear-gradient(180deg, rgba(37,99,235,0.05), transparent); border-radius: 0 0 0 12px; }
+        .auction-roster.team-2 { border-left: 2px solid rgba(217,119,6,0.15); background: linear-gradient(180deg, rgba(217,119,6,0.05), transparent); border-radius: 0 0 12px 0; }
+        .auction-roster-title {
+            font-family: 'Orbitron', sans-serif; font-size: 0.75em; font-weight: 900;
+            text-align: center; letter-spacing: 1px; padding-bottom: 6px;
+        }
+        .team-1 .auction-roster-title { color: var(--ow-blue); border-bottom: 2px solid rgba(37,99,235,0.25); }
+        .team-2 .auction-roster-title { color: var(--ow-orange); border-bottom: 2px solid rgba(217,119,6,0.25); }
+        .roster-empty { font-size: 0.75em; color: #94A3B8; text-align: center; padding: 10px 0; }
+        .roster-card {
+            display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+            background: white; border-radius: 8px; border: 1.5px solid #E2E8F0;
+            font-size: 0.8em; box-shadow: 0 2px 6px rgba(15,23,42,0.06);
+        }
+        .team-1 .roster-card { border-left: 4px solid var(--ow-blue); }
+        .team-2 .roster-card { border-left: 4px solid var(--ow-orange); }
+        .roster-card .rc-icon { font-size: 1.15em; }
+        .roster-card .rc-name { font-weight: 700; color: #0F172A; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .roster-card .rc-price {
+            font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.9em;
+        }
+        .team-1 .roster-card .rc-price { color: var(--ow-blue); }
+        .team-2 .roster-card .rc-price { color: var(--ow-orange); }
+        .roster-card.new { animation: rosterPop 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes rosterPop {
+            0% { opacity: 0; transform: scale(0.4) translateY(-14px); }
+            60% { opacity: 1; transform: scale(1.12); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* ===== 낙찰(SOLD) 오버레이 ===== */
+        .auction-content { position: relative; overflow: hidden; }
+        .sold-overlay {
+            position: absolute; inset: 0; z-index: 50; display: none;
+            align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+            background: rgba(255,255,255,0.88); backdrop-filter: blur(4px); border-radius: 12px;
+            pointer-events: none;
+        }
+        .sold-overlay.active { display: flex; }
+        .sold-stamp {
+            font-family: 'Orbitron', sans-serif; font-size: 4.2em; font-weight: 900;
+            letter-spacing: 4px; transform: rotate(-6deg);
+            animation: soldStamp 0.45s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .sold-overlay.team-1 .sold-stamp { color: var(--ow-blue); text-shadow: 0 0 40px rgba(37,99,235,0.5); }
+        .sold-overlay.team-2 .sold-stamp { color: var(--ow-orange); text-shadow: 0 0 40px rgba(217,119,6,0.5); }
+        @keyframes soldStamp {
+            0% { opacity: 0; transform: rotate(-6deg) scale(3); }
+            60% { opacity: 1; transform: rotate(-6deg) scale(0.9); }
+            100% { opacity: 1; transform: rotate(-6deg) scale(1); }
+        }
+        .sold-player { font-size: 1.6em; font-weight: 900; color: #0F172A; animation: soldFadeUp 0.5s 0.2s ease-out backwards; }
+        .sold-detail { font-family: 'Orbitron', sans-serif; font-size: 1.15em; font-weight: 700; animation: soldFadeUp 0.5s 0.35s ease-out backwards; }
+        .sold-overlay.team-1 .sold-detail { color: var(--ow-blue); }
+        .sold-overlay.team-2 .sold-detail { color: var(--ow-orange); }
+        @keyframes soldFadeUp { 0% { opacity: 0; transform: translateY(16px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        /* ===== 컨페티 & 흔들림 ===== */
+        .confetti-piece {
+            position: absolute; top: -12px; width: 9px; height: 14px; z-index: 60;
+            pointer-events: none; animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+        }
+        .auction-content.shake { animation: contentShake 0.4s ease-in-out; }
+        @keyframes contentShake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-8px) rotate(-0.4deg); }
+            40% { transform: translateX(8px) rotate(0.4deg); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        .special-effect.sub { font-size: 1.3em; color: #DC2626; text-shadow: 0 0 25px rgba(220,38,38,0.6); }
+        @media (max-width: 900px) { .auction-layout { grid-template-columns: 1fr; } .auction-roster { display: none; } }
         @media (max-width: 768px) {
             .header h1 { font-size: 1.8em; }
             .teams-grid { grid-template-columns: 1fr; gap: 20px; }
@@ -701,6 +783,16 @@
             <div class="auction-header">
                 <div class="auction-title">경매 진행중</div>
             </div>
+            <div class="sold-overlay" id="soldOverlay">
+                <div class="sold-stamp" id="soldStamp">낙찰!</div>
+                <div class="sold-player" id="soldPlayerName"></div>
+                <div class="sold-detail" id="soldDetail"></div>
+            </div>
+            <div class="auction-layout">
+            <div class="auction-roster team-1">
+                <div class="auction-roster-title">🔵 1팀 낙찰 <span id="rosterCount1"></span></div>
+                <div id="auctionRoster1"><div class="roster-empty">아직 없음</div></div>
+            </div>
             <div class="auction-body">
                 <div class="auction-top-section">
                     <div class="timer-container">
@@ -778,9 +870,14 @@
                     <button class="auction-control-btn auction-close-btn" id="auctionCloseBtn">닫기</button>
                 </div>
             </div>
+            <div class="auction-roster team-2">
+                <div class="auction-roster-title">🟠 2팀 낙찰 <span id="rosterCount2"></span></div>
+                <div id="auctionRoster2"><div class="roster-empty">아직 없음</div></div>
+            </div>
+            </div>
         </div>
     </div>
-    
+
     <script>
         let soundEnabled = true;
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -920,6 +1017,12 @@
         function resetAuctionTimer() { startAuctionTimer(); }
         function updateTimerDisplay() { const ts=document.getElementById('timerSeconds'),tp=document.getElementById('timerProgress'); ts.textContent=auctionTimeLeft; const circ=2*Math.PI*50,off=circ*(1-auctionTimeLeft/AUCTION_TIME); tp.style.strokeDashoffset=off; if(auctionTimeLeft<=3){ts.classList.add('warning');tp.classList.add('warning');}else{ts.classList.remove('warning');tp.classList.remove('warning');} }
         function showSpecialEffect(t) { const e=document.createElement('div');e.className='special-effect';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1500); }
+        function showSubEffect(t) { const e=document.createElement('div');e.className='special-effect sub';e.style.top='38%';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1500); }
+        let auctionResults={1:[],2:[]},bidCombo=0,lastBidTime=0;
+        function renderAuctionRosters(highlightTeam) { [1,2].forEach(t=>{const g=document.getElementById('auctionRoster'+t);const cnt=document.getElementById('rosterCount'+t);const list=auctionResults[t];cnt.textContent=list.length?`(${list.length})`:'';if(list.length===0){g.innerHTML='<div class="roster-empty">아직 없음</div>';return;}g.innerHTML='';list.forEach((r,i)=>{const d=document.createElement('div');d.className='roster-card'+(t===highlightTeam&&i===list.length-1?' new':'');d.innerHTML=`<span class="rc-icon">${ROLE_ICONS[r.role]||"🎲"}</span><span class="rc-name">${r.name}</span><span class="rc-price">${r.price>0?r.price+'P':'무료'}</span>`;g.appendChild(d);});}); }
+        function shakeAuction() { const c=document.querySelector('.auction-content');if(!c)return;c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),450); }
+        function launchConfetti(team) { const c=document.querySelector('.auction-content');if(!c)return;const colors=team===1?['#2563EB','#0EA5E9','#93C5FD','#FFFFFF']:['#D97706','#F59E0B','#FCD34D','#FFFFFF'];for(let i=0;i<36;i++){const p=document.createElement('div');p.className='confetti-piece';p.style.left=Math.random()*100+'%';p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.animationDuration=(0.9+Math.random()*0.9)+'s';p.style.animationDelay=(Math.random()*0.25)+'s';p.style.borderRadius=Math.random()>0.5?'50%':'2px';c.appendChild(p);setTimeout(()=>p.remove(),2300);} }
+        function showSoldOverlay(p,team,amount) { const o=document.getElementById('soldOverlay');o.className='sold-overlay active team-'+team;document.getElementById('soldStamp').textContent=amount>0?'낙찰!':'배정!';document.getElementById('soldPlayerName').textContent=`${ROLE_ICONS[p.role]||'🎲'} ${p.name}`;document.getElementById('soldDetail').textContent=(amount>0?amount+'P → ':'')+team+'팀'+(getTeamLeaderName(team)!=='-'?` (${getTeamLeaderName(team)})`:'');setTimeout(()=>o.classList.remove('active'),2000); }
 
         function setupSpectatorsDragDrop() { const g=document.getElementById('spectatorsGrid'); g.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';}); g.addEventListener('dragenter',e=>e.currentTarget.classList.add('drag-over')); g.addEventListener('dragleave',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('drag-over');}); g.addEventListener('drop',e=>{e.stopPropagation();e.preventDefault();g.classList.remove('drag-over');if(!draggedElement||!sourceContainer)return;const p=JSON.parse(draggedElement.dataset.player);if(sourceContainer.classList.contains('team-slot')){sourceContainer.innerHTML='';sourceContainer.classList.add('empty');addToSpectators(p);updateTeamScores();updateSpectatorCount();updateSavedPlayersUI();updateTeamSlots();}}); }
 
@@ -965,18 +1068,18 @@
         function balancedRandomAssign() { const sp=getSpectatorPlayers();if(sp.length<2)return alert('관전자가 2명 이상 필요합니다!');clearTeams();updateTeamSlots();const size=calculateTeamSize(),max=size*2;const assign=sp.slice(0,Math.min(sp.length,max)),remain=sp.slice(max);let best=null,bestScore=Infinity;for(let i=0;i<10000;i++){const sh=[...assign].sort(()=>Math.random()-0.5);const t1=sh.slice(0,size),t2=sh.slice(size,size*2);const d=Math.abs(t1.reduce((s,p)=>s+p.tier,0)-t2.reduce((s,p)=>s+p.tier,0));const r1=getRoleCounts(t1),r2=getRoleCounts(t2);let rd=0;Object.keys(r1).forEach(k=>rd+=Math.abs(r1[k]-r2[k]));const score=d+rd*10;if(score<bestScore){bestScore=score;best=sh;if(score===0)break;}}if(best){assignPlayersToTeams(best,size);const g=document.getElementById('spectatorsGrid');g.innerHTML='';remain.forEach(p=>addToSpectators(p));updateSpectatorCount();updateSavedPlayersUI();playSuccessSound();if(bestScore===0)setTimeout(()=>showSpecialEffect('완벽한 밸런스!'),100);} }
         function spectatorRandomAssign() { const sp=getSpectatorPlayers();if(sp.length===0)return alert('관전자가 없습니다!');let empty=0;document.querySelectorAll('.team-slot').forEach(s=>{if(!s.querySelector('.player-card'))empty++;});if(empty===0)return alert('빈 슬롯이 없습니다!');const t1c=[],t2c=[];document.querySelectorAll('#team1 .player-card').forEach(c=>t1c.push(JSON.parse(c.dataset.player)));document.querySelectorAll('#team2 .player-card').forEach(c=>t2c.push(JSON.parse(c.dataset.player)));const size=calculateTeamSize(),toAssign=Math.min(sp.length,empty);let best=null,bestScore=Infinity;for(let i=0;i<10000;i++){const sh=[...sp].sort(()=>Math.random()-0.5).slice(0,toAssign);let t1=[...t1c],t2=[...t2c];sh.forEach(p=>{if(t1.length<size)t1.push(p);else if(t2.length<size)t2.push(p);});const d=Math.abs(t1.reduce((s,p)=>s+p.tier,0)-t2.reduce((s,p)=>s+p.tier,0));const r1=getRoleCounts(t1),r2=getRoleCounts(t2);let rd=0;Object.keys(r1).forEach(k=>rd+=Math.abs(r1[k]-r2[k]));const score=d+rd*10;if(score<bestScore){bestScore=score;best=sh;if(score===0)break;}}if(best){let idx=0;document.querySelectorAll('#team1 .team-slot').forEach((s,i)=>{if(!s.querySelector('.player-card')&&idx<best.length){s.innerHTML='';s.classList.remove('empty');s.appendChild(createPlayerCard(best[idx++],i===0));}});document.querySelectorAll('#team2 .team-slot').forEach((s,i)=>{if(!s.querySelector('.player-card')&&idx<best.length){s.innerHTML='';s.classList.remove('empty');s.appendChild(createPlayerCard(best[idx++],i===0));}});const g=document.getElementById('spectatorsGrid');g.innerHTML='';sp.slice(idx).forEach(p=>addToSpectators(p));updateSpectatorCount();updateTeamScores();updateSavedPlayersUI();playSuccessSound();} }
 
-        function startAuction() { const sp=getSpectatorPlayers();if(sp.length<2)return alert('관전자가 2명 이상 필요합니다!');updateTeamSlots();auctionPlayers=[...sp].sort(()=>Math.random()-0.5);currentAuctionIndex=0;currentBid={team:null,amount:0};bidHistory=[];team1Points=100;team2Points=100;updateTeamPoints();playAuctionStartSound();setTimeout(()=>shout('경매를 시작합니다!'),1200);setTimeout(()=>startBGM(),1800);showAuctionModal(); }
-        function showAuctionModal() { if(currentAuctionIndex>=auctionPlayers.length){alert('모든 경매가 끝났습니다!');closeAuction();return;}const p=auctionPlayers[currentAuctionIndex];const leader1=getTeamLeaderName(1);const leader2=getTeamLeaderName(2);document.getElementById('auctionLeader1Name').textContent=leader1!=='-'?leader1:'';document.getElementById('auctionLeader1Wrap').style.display=leader1!=='-'?'':'none';document.getElementById('auctionLeader2Name').textContent=leader2!=='-'?leader2:'';document.getElementById('auctionLeader2Wrap').style.display=leader2!=='-'?'':'none';document.getElementById('auctionPlayerIcon').textContent=ROLE_ICONS[p.role];document.getElementById('auctionPlayerName').textContent=p.name;document.getElementById('auctionPlayerTier').textContent=p.tier+'점';document.getElementById('auctionPlayerRole').textContent=ROLE_ICONS[p.role]+' '+ROLE_NAMES[p.role];document.getElementById('auctionTeam1Points').textContent=team1Points;document.getElementById('auctionTeam2Points').textContent=team2Points;document.getElementById('team1BidInput').value='';document.getElementById('team2BidInput').value='';currentBid={team:null,amount:0};bidHistory=[];updateCurrentBidDisplay();updateBidHistory();updateLeadingTeam();updateRemainingPlayers();document.getElementById('team1BidBtn').disabled=team1Points===0;document.getElementById('team2BidBtn').disabled=team2Points===0;document.getElementById('auctionModal').classList.add('active');playNewPlayerSound();const order=currentAuctionIndex+1;setTimeout(()=>{shout(`${order}번째 선수! ${p.name}! ${p.tier}점! 입찰 시작!`);},500);startAuctionTimer();setTimeout(()=>document.getElementById('team1BidInput').focus(),100); }
+        function startAuction() { const sp=getSpectatorPlayers();if(sp.length<2)return alert('관전자가 2명 이상 필요합니다!');updateTeamSlots();auctionPlayers=[...sp].sort(()=>Math.random()-0.5);currentAuctionIndex=0;currentBid={team:null,amount:0};bidHistory=[];team1Points=100;team2Points=100;auctionResults={1:[],2:[]};renderAuctionRosters();updateTeamPoints();playAuctionStartSound();setTimeout(()=>shout('경매를 시작합니다!'),1200);setTimeout(()=>startBGM(),1800);showAuctionModal(); }
+        function showAuctionModal() { if(currentAuctionIndex>=auctionPlayers.length){alert('모든 경매가 끝났습니다!');closeAuction();return;}const p=auctionPlayers[currentAuctionIndex];const leader1=getTeamLeaderName(1);const leader2=getTeamLeaderName(2);document.getElementById('auctionLeader1Name').textContent=leader1!=='-'?leader1:'';document.getElementById('auctionLeader1Wrap').style.display=leader1!=='-'?'':'none';document.getElementById('auctionLeader2Name').textContent=leader2!=='-'?leader2:'';document.getElementById('auctionLeader2Wrap').style.display=leader2!=='-'?'':'none';document.getElementById('auctionPlayerIcon').textContent=ROLE_ICONS[p.role];document.getElementById('auctionPlayerName').textContent=p.name;document.getElementById('auctionPlayerTier').textContent=p.tier+'점';document.getElementById('auctionPlayerRole').textContent=ROLE_ICONS[p.role]+' '+ROLE_NAMES[p.role];document.getElementById('auctionTeam1Points').textContent=team1Points;document.getElementById('auctionTeam2Points').textContent=team2Points;document.getElementById('team1BidInput').value='';document.getElementById('team2BidInput').value='';currentBid={team:null,amount:0};bidHistory=[];bidCombo=0;lastBidTime=0;updateCurrentBidDisplay();updateBidHistory();updateLeadingTeam();updateRemainingPlayers();document.getElementById('team1BidBtn').disabled=team1Points===0;document.getElementById('team2BidBtn').disabled=team2Points===0;document.getElementById('auctionModal').classList.add('active');playNewPlayerSound();const order=currentAuctionIndex+1;setTimeout(()=>{shout(`${order}번째 선수! ${p.name}! ${p.tier}점! 입찰 시작!`);},500);startAuctionTimer();setTimeout(()=>document.getElementById('team1BidInput').focus(),100); }
         function updateRemainingPlayers() { const g=document.getElementById('remainingGrid');g.innerHTML='';document.getElementById('remainingCount').textContent=(auctionPlayers.length-currentAuctionIndex)+'명';auctionPlayers.forEach((p,i)=>{if(i>=currentAuctionIndex){const d=document.createElement('div');d.className='remaining-player'+(i===currentAuctionIndex?' current':'');d.innerHTML=`${ROLE_ICONS[p.role]} ${p.name} (${p.tier}점)`;g.appendChild(d);}}); }
         function updateCurrentBidDisplay() { const v=document.getElementById('currentBidValue');if(currentBid.team===null){v.textContent='입찰 없음';v.className='current-bid-value none';}else{v.textContent=currentBid.team+'팀 - '+currentBid.amount+'P';v.className='current-bid-value team-'+currentBid.team;} }
         function updateLeadingTeam() { const b1=document.getElementById('auctionTeamBox1'),b2=document.getElementById('auctionTeamBox2');b1.classList.remove('leading');b2.classList.remove('leading');if(currentBid.team===1)b1.classList.add('leading');else if(currentBid.team===2)b2.classList.add('leading'); }
         function updateBidHistory() { const l=document.getElementById('bidHistoryList');l.innerHTML='';bidHistory.slice(-5).reverse().forEach(b=>{const d=document.createElement('div');d.className='bid-history-item team-'+b.team;d.textContent=b.team+'팀: '+b.amount+'P';l.appendChild(d);}); }
         function quickBid(team,inc) { const inp=document.getElementById('team'+team+'BidInput');const min=currentBid.amount+1;inp.value=Math.max(min,(parseInt(inp.value)||min)+inc);playClickSound(); }
         function allInBid(team) { document.getElementById('team'+team+'BidInput').value=team===1?team1Points:team2Points;playAllInSound(); }
-        function placeBid(team) { const amt=parseInt(document.getElementById('team'+team+'BidInput').value);const pts=team===1?team1Points:team2Points;if(isNaN(amt)||amt<0)return alert('올바른 입찰가를 입력하세요!');if(amt>pts)return alert('포인트가 부족합니다!');if(amt<=currentBid.amount)return alert(currentBid.amount+'P 보다 높아야 합니다!');playBidSound();const isAllIn=amt===pts;if(isAllIn){playAllInSound();showSpecialEffect('올인!');setTimeout(()=>shout(`${team}팀! 올인! ${amt}포인트!`),200);}else if(currentBid.amount>0&&amt===currentBid.amount+1){showSpecialEffect('퍼펙트 입찰!');shout(`${team}팀! ${amt}!`);}else if(auctionTimeLeft<=2){showSpecialEffect('막판 입찰!');shout(`막판 뒤집기! ${team}팀! ${amt}!`);}else{speak(`${team}팀, ${amt}!`,1.3,0.6);}currentBid={team,amount:amt};bidHistory.push({team,amount:amt});updateCurrentBidDisplay();updateLeadingTeam();updateBidHistory();resetAuctionTimer();const opp=team===1?'team2BidInput':'team1BidInput';const targetInput=document.getElementById(opp);targetInput.focus();targetInput.select(); }
+        function placeBid(team) { const amt=parseInt(document.getElementById('team'+team+'BidInput').value);const pts=team===1?team1Points:team2Points;if(isNaN(amt)||amt<0)return alert('올바른 입찰가를 입력하세요!');if(amt>pts)return alert('포인트가 부족합니다!');if(amt<=currentBid.amount)return alert(currentBid.amount+'P 보다 높아야 합니다!');playBidSound();const isAllIn=amt===pts;if(isAllIn){playAllInSound();showSpecialEffect('올인!');setTimeout(()=>shout(`${team}팀! 올인! ${amt}포인트!`),200);}else if(currentBid.amount>0&&amt===currentBid.amount+1){showSpecialEffect('퍼펙트 입찰!');shout(`${team}팀! ${amt}!`);}else if(auctionTimeLeft<=2){showSpecialEffect('막판 입찰!');shout(`막판 뒤집기! ${team}팀! ${amt}!`);}else{speak(`${team}팀, ${amt}!`,1.3,0.6);}currentBid={team,amount:amt};bidHistory.push({team,amount:amt});const _now=Date.now();bidCombo=(_now-lastBidTime<4000)?bidCombo+1:1;lastBidTime=_now;if(isAllIn){shakeAuction();}if(bidCombo>=3&&bidCombo%2===1){showSubEffect('🔥 입찰 경쟁 과열! x'+bidCombo);shakeAuction();if(bidCombo>=5)shout('불붙었다!');}updateCurrentBidDisplay();updateLeadingTeam();updateBidHistory();resetAuctionTimer();const opp=team===1?'team2BidInput':'team1BidInput';const targetInput=document.getElementById(opp);targetInput.focus();targetInput.select(); }
         function passAuction() { if(currentBid.team!==null)return alert('입찰이 있어서 유찰할 수 없습니다!');playPassSound();const passed=auctionPlayers[currentAuctionIndex];speak(`${passed.name}, 유찰!`,1.0,0.5);auctionPlayers.splice(currentAuctionIndex,1);auctionPlayers.push(passed);resetAuctionTimer();if(currentAuctionIndex<auctionPlayers.length){currentBid={team:null,amount:0};bidHistory=[];showAuctionModal();}else{alert('모든 경매가 끝났습니다!');closeAuction();} }
-        function nextAuctionPlayer() { if(currentBid.team===null){if(team1Points===0&&team2Points>0)currentBid={team:2,amount:0};else if(team2Points===0&&team1Points>0)currentBid={team:1,amount:0};else return alert('아직 입찰이 없습니다!');}playSuccessSound();const p=auctionPlayers[currentAuctionIndex];if(currentBid.amount>0){shout(`낙찰! ${p.name}! ${currentBid.team}팀! ${currentBid.amount}포인트!`);}else{shout(`${p.name}! ${currentBid.team}팀 배정!`);}if(currentBid.team===1)team1Points-=currentBid.amount;else team2Points-=currentBid.amount;updateTeamPoints();addPlayerToTeam(p,currentBid.team);removeFromSpectators(p);currentAuctionIndex++;resetAuctionTimer();if(currentAuctionIndex<auctionPlayers.length){if(team1Points===0||team2Points===0){stopAuctionTimer();autoAssignRemaining();}else setTimeout(()=>showAuctionModal(),1500);}else{stopAuctionTimer();stopBGM();playCompleteSound();showSpecialEffect('경매 완료!');setTimeout(()=>shout('경매가 모두 끝났습니다! 좋은 경기 되세요!'),500);setTimeout(closeAuction,3000);} }
-        function autoAssignRemaining() { const remain=auctionPlayers.slice(currentAuctionIndex);const target=team1Points===0?2:1;remain.forEach(p=>{addPlayerToTeam(p,target);removeFromSpectators(p);});playCompleteSound();stopBGM();showSpecialEffect('남은 선수 → '+target+'팀');shout(`남은 선수 전원! ${target}팀 배정! 경매 종료!`);setTimeout(closeAuction,2000); }
+        function nextAuctionPlayer() { if(currentBid.team===null){if(team1Points===0&&team2Points>0)currentBid={team:2,amount:0};else if(team2Points===0&&team1Points>0)currentBid={team:1,amount:0};else return alert('아직 입찰이 없습니다!');}playSuccessSound();const p=auctionPlayers[currentAuctionIndex];if(currentBid.amount>0){shout(`낙찰! ${p.name}! ${currentBid.team}팀! ${currentBid.amount}포인트!`);}else{shout(`${p.name}! ${currentBid.team}팀 배정!`);}if(currentBid.team===1)team1Points-=currentBid.amount;else team2Points-=currentBid.amount;updateTeamPoints();addPlayerToTeam(p,currentBid.team);removeFromSpectators(p);auctionResults[currentBid.team].push({name:p.name,role:p.role,tier:p.tier,price:currentBid.amount});renderAuctionRosters(currentBid.team);showSoldOverlay(p,currentBid.team,currentBid.amount);launchConfetti(currentBid.team);shakeAuction();stopAuctionTimer();currentAuctionIndex++;if(currentAuctionIndex<auctionPlayers.length){if(team1Points===0||team2Points===0){autoAssignRemaining();}else setTimeout(()=>showAuctionModal(),2300);}else{stopAuctionTimer();stopBGM();playCompleteSound();showSpecialEffect('경매 완료!');setTimeout(()=>shout('경매가 모두 끝났습니다! 좋은 경기 되세요!'),500);setTimeout(closeAuction,3000);} }
+        function autoAssignRemaining() { const remain=auctionPlayers.slice(currentAuctionIndex);const target=team1Points===0?2:1;remain.forEach(p=>{addPlayerToTeam(p,target);removeFromSpectators(p);auctionResults[target].push({name:p.name,role:p.role,tier:p.tier,price:0});});renderAuctionRosters(target);playCompleteSound();stopBGM();showSpecialEffect('남은 선수 → '+target+'팀');shout(`남은 선수 전원! ${target}팀 배정! 경매 종료!`);setTimeout(closeAuction,2000); }
         function addPlayerToTeam(p,team) { const slots=document.querySelectorAll('#team'+team+' .team-slot');let slotIndex=0;for(let s of slots){if(!s.querySelector('.player-card')){s.innerHTML='';s.classList.remove('empty');s.appendChild(createPlayerCard(p,slotIndex===0));break;}slotIndex++;}updateTeamScores();updateSavedPlayersUI(); }
         function closeAuction() { stopAuctionTimer();stopBGM();speechSynthesis.cancel();document.getElementById('auctionModal').classList.remove('active'); }
         function assignPlayersToTeams(players,size) { const t1=document.querySelectorAll('#team1 .team-slot');const t2=document.querySelectorAll('#team2 .team-slot');let idx=0;for(let i=0;i<size&&idx<players.length;i++){t1[i].innerHTML='';t1[i].classList.remove('empty');t1[i].appendChild(createPlayerCard(players[idx++],i===0));}for(let i=0;i<size&&idx<players.length;i++){t2[i].innerHTML='';t2[i].classList.remove('empty');t2[i].appendChild(createPlayerCard(players[idx++],i===0));}updateTeamScores(); }
