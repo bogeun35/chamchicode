@@ -629,6 +629,114 @@
             .auction-top-section { flex-direction: column; }
             .screenshot-preview-area.active { flex-direction: column; }
         }
+    
+        /* ═══════════ DARK REFINED THEME ═══════════ */
+        :root {
+            --bg0:#060B16; --card:#0E1728; --card2:#13213A;
+            --line:rgba(148,163,184,0.13); --line2:rgba(148,163,184,0.25);
+            --text:#EDF2FA; --muted:#8CA0BC;
+            --ow-blue:#3B82F6; --ow-orange:#F59E0B;
+        }
+        body { background: var(--bg0); color: var(--text); }
+        .hex-background { background:
+            radial-gradient(1000px 650px at 10% -8%, rgba(59,130,246,0.16), transparent 60%),
+            radial-gradient(1000px 650px at 92% 108%, rgba(245,158,11,0.13), transparent 60%),
+            linear-gradient(180deg, #0A1322 0%, #060B16 100%); }
+        .hex-pattern { opacity: 0.06; }
+        .header h1 { background: linear-gradient(100deg, #60A5FA 5%, #DFE8F5 48%, #FBBF24 95%); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 6px 26px rgba(59,130,246,0.35)); }
+        .header-subtitle { color: #5B6B84; }
+
+        /* 패널 (글래스) */
+        .controls, .spectators, .player-list-container, .screenshot-section, .team, .bid-history, .remaining-players, .current-bid-display {
+            background: linear-gradient(180deg, rgba(19,30,52,0.92), rgba(12,19,34,0.92));
+            border: 1px solid var(--line); box-shadow: 0 12px 44px rgba(2,6,23,0.55);
+            backdrop-filter: blur(14px);
+        }
+        .team-1 { border-top: 2px solid rgba(59,130,246,0.55); }
+        .team-2 { border-top: 2px solid rgba(245,158,11,0.55); }
+        .section-title, .spectators-header, .screenshot-title, .bid-history-title, .remaining-title { color: var(--text); }
+        .screenshot-desc { color: var(--muted); }
+
+        /* 카드류 */
+        .player-card, .spectator-card, .roster-card {
+            background: linear-gradient(180deg, #16233C, #101B30);
+            border: 1px solid var(--line2); color: var(--text);
+            box-shadow: 0 4px 16px rgba(2,6,23,0.5);
+        }
+        .player-card:hover, .spectator-card:hover { border-color: rgba(96,165,250,0.5); box-shadow: 0 6px 24px rgba(59,130,246,0.18); }
+        .player-name, .spectator-name, .roster-card .rc-name { color: var(--text); }
+        .role-badge { background: rgba(148,163,184,0.14); color: #B9C6DA; }
+        .team-slot { background: rgba(9,15,28,0.6); border: 2px dashed rgba(148,163,184,0.2); }
+        .team-slot.drag-over { background: rgba(59,130,246,0.12); border-color: var(--ow-blue); }
+        .team-slot.empty::after { color: #4B5B74; }
+        .spectators-grid { background: transparent; }
+        .saved-player-tag { background: #16233C; border: 1px solid var(--line2); color: var(--text); }
+        .saved-player-tag.selectable:hover { background: #1D2F4F; border-color: rgba(96,165,250,0.6); }
+        .saved-player-tag.in-team { opacity: 0.35; }
+        .saved-player-tag.in-spectator { opacity: 0.55; }
+
+        /* 입력/버튼 */
+        .player-name-input, .tier-input, .modal-input, .auction-bid-input, .screenshot-names-textarea {
+            background: #0B1424; border: 1.5px solid var(--line2); color: var(--text);
+        }
+        .player-name-input::placeholder, .tier-input::placeholder, .auction-bid-input::placeholder { color: #55677F; }
+        .player-name-input:focus, .tier-input:focus, .auction-bid-input:focus, .modal-input:focus, .screenshot-names-textarea:focus {
+            border-color: var(--ow-blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+        }
+        .quick-bid-btn { background: #182A48; border: 1px solid var(--line2); color: #C7D4E8; }
+        .quick-bid-btn:hover { background: #21375D; border-color: rgba(96,165,250,0.6); }
+        .template-btn { background: #12203A; border: 1px solid var(--line2); color: #9FB0C8; }
+        .template-btn:hover, .template-btn.active { background: linear-gradient(135deg, #1D4ED8, #2563EB); color: white; border-color: transparent; }
+        .btn { box-shadow: 0 4px 18px rgba(2,6,23,0.5); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(59,130,246,0.25); }
+        .sound-toggle { background: #12203A; border: 1px solid var(--line2); }
+
+        /* 경매 모달 */
+        .auction-modal { background: rgba(3,7,16,0.75); }
+        .auction-content { background: linear-gradient(180deg, #0F1B30, #0A1322); border: 1px solid rgba(245,158,11,0.45); box-shadow: 0 30px 90px rgba(2,6,23,0.8), 0 0 60px rgba(245,158,11,0.07); }
+        .auction-header { background: linear-gradient(135deg, #B45309, #92400E); }
+        .auction-current-player { background: linear-gradient(180deg, #182A48, #12203A); border: 1px solid rgba(245,158,11,0.35); }
+        .auction-player-name { color: var(--text); }
+        .auction-player-tier { background: rgba(148,163,184,0.14); color: #C7D4E8; }
+        .auction-player-role { background: rgba(148,163,184,0.1); color: #B9C6DA; }
+        .current-bid-display { border: 1px solid var(--line); }
+        .current-bid-value.none { color: #55677F; }
+        .auction-team-box { background: rgba(13,22,40,0.8); }
+        .auction-team-box.team-1 { border-color: rgba(59,130,246,0.3); }
+        .auction-team-box.team-2 { border-color: rgba(245,158,11,0.3); }
+        .auction-team-box.leading.team-1 { background: rgba(59,130,246,0.12); box-shadow: 0 0 24px rgba(59,130,246,0.15) inset; }
+        .auction-team-box.leading.team-2 { background: rgba(245,158,11,0.12); box-shadow: 0 0 24px rgba(245,158,11,0.15) inset; }
+        .bid-history-item { background: #101B30; color: #B9C6DA; }
+        .remaining-player { background: #101B30; border: 1px solid var(--line); color: #93A5BE; }
+        .remaining-player.current { background: rgba(245,158,11,0.15); border-color: var(--ow-orange); color: #FBD38D; }
+        .timer-ring-bg { stroke: rgba(148,163,184,0.15); }
+        .timer-seconds { color: var(--text); }
+
+        /* 낙찰 명단 + SOLD 오버레이 */
+        .auction-roster.team-1 { background: linear-gradient(180deg, rgba(59,130,246,0.09), transparent); border-right-color: rgba(59,130,246,0.2); }
+        .auction-roster.team-2 { background: linear-gradient(180deg, rgba(245,158,11,0.09), transparent); border-left-color: rgba(245,158,11,0.2); }
+        .roster-empty { color: #4B5B74; }
+        .sold-overlay { background: rgba(4,9,20,0.88); }
+        .sold-player { color: var(--text); }
+
+        /* 일반 모달 */
+        .modal { background: rgba(3,7,16,0.7); }
+        .modal-content { background: linear-gradient(180deg, #101C32, #0B1424); border: 1px solid var(--line2); color: var(--text); box-shadow: 0 24px 70px rgba(2,6,23,0.8); }
+        .modal-title { color: var(--text); }
+
+        /* 스크롤바 */
+        ::-webkit-scrollbar { width: 9px; height: 9px; }
+        ::-webkit-scrollbar-track { background: #0A1322; }
+        ::-webkit-scrollbar-thumb { background: #24354F; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #31486C; }
+
+    
+        /* 레이아웃 v2: 입찰기록을 2팀 옆으로, 높이 고정 */
+        .auction-teams-row { grid-template-columns: 1fr 1fr 210px; align-items: stretch; }
+        .auction-teams-row .bid-history { margin: 0; display: flex; flex-direction: column; padding: 10px 12px; }
+        .auction-teams-row .bid-history-list { flex: 1; min-height: 0; max-height: 140px; overflow-y: auto; }
+        @media (max-width: 900px) { .auction-teams-row { grid-template-columns: 1fr; } }
+
     </style>
 </head>
 <body>
@@ -830,12 +938,6 @@
                             <div class="auction-team-points" id="auctionTeam1Points">100</div>
                         </div>
                         <input type="number" class="auction-bid-input" id="team1BidInput" min="0" placeholder="입찰가">
-                        <div class="quick-bid-row">
-                            <button class="quick-bid-btn" onclick="quickBid(1,1)">+1</button>
-                            <button class="quick-bid-btn" onclick="quickBid(1,5)">+5</button>
-                            <button class="quick-bid-btn" onclick="quickBid(1,10)">+10</button>
-                            <button class="quick-bid-btn" onclick="allInBid(1)">올인</button>
-                        </div>
                         <button class="auction-bid-btn" id="team1BidBtn">입찰</button>
                     </div>
                     <div class="auction-team-box team-2" id="auctionTeamBox2">
@@ -844,18 +946,12 @@
                             <div class="auction-team-points" id="auctionTeam2Points">100</div>
                         </div>
                         <input type="number" class="auction-bid-input" id="team2BidInput" min="0" placeholder="입찰가">
-                        <div class="quick-bid-row">
-                            <button class="quick-bid-btn" onclick="quickBid(2,1)">+1</button>
-                            <button class="quick-bid-btn" onclick="quickBid(2,5)">+5</button>
-                            <button class="quick-bid-btn" onclick="quickBid(2,10)">+10</button>
-                            <button class="quick-bid-btn" onclick="allInBid(2)">올인</button>
-                        </div>
                         <button class="auction-bid-btn" id="team2BidBtn">입찰</button>
                     </div>
-                </div>
-                <div class="bid-history">
-                    <div class="bid-history-title">입찰 기록</div>
-                    <div class="bid-history-list" id="bidHistoryList"></div>
+                    <div class="bid-history">
+                        <div class="bid-history-title">입찰 기록</div>
+                        <div class="bid-history-list" id="bidHistoryList"></div>
+                    </div>
                 </div>
                 <div class="remaining-players">
                     <div class="remaining-title">
@@ -952,22 +1048,38 @@
         function playChord(freqs, duration, volume = 0.06) { freqs.forEach(f => playTone(f, duration, volume)); }
 
         let bgmVolume = 0.2, bgmBeat = 0;
+        // ═══ BGM v2: 128BPM 하우스 시퀀서 (킥/햇/클랩/베이스/아르페지오, 텐션 반응) ═══
+        let bgmScheduler=null, bgmStep=0, bgmNextTime=0, bgmTension=0, bgmMaster=null, bgmComp=null, bgmNoiseBuf=null;
+        const BGM_STEP_DUR = 60/126/4; // 126BPM 16분음표
+        function bgmBus(){ const ctx=getAudioCtx(); if(!bgmMaster){ bgmComp=ctx.createDynamicsCompressor(); bgmComp.threshold.value=-20; bgmComp.knee.value=10; bgmComp.ratio.value=6; bgmComp.attack.value=0.004; bgmComp.release.value=0.18; bgmComp.connect(ctx.destination); bgmMaster=ctx.createGain(); bgmMaster.gain.value=0.0001; bgmMaster.connect(bgmComp); } return bgmMaster; }
+        function bgmNoise(){ const ctx=getAudioCtx(); if(!bgmNoiseBuf){ bgmNoiseBuf=ctx.createBuffer(1, ctx.sampleRate*0.5, ctx.sampleRate); const d=bgmNoiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; } return bgmNoiseBuf; }
+        function bgmKick(t,v){ const ctx=getAudioCtx(); const o=ctx.createOscillator(),g=ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(46,t+0.11); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.24); o.connect(g); g.connect(bgmBus()); o.start(t); o.stop(t+0.26); }
+        function bgmHat(t,v,open){ const ctx=getAudioCtx(); const len=open?0.22:0.05; const s=ctx.createBufferSource(); s.buffer=bgmNoise(); const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=7800; const g=ctx.createGain(); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+len); s.connect(f); f.connect(g); g.connect(bgmBus()); s.start(t); s.stop(t+len+0.02); }
+        function bgmClap(t,v){ const ctx=getAudioCtx(); [0,0.012,0.026].forEach((off,i)=>{ const s=ctx.createBufferSource(); s.buffer=bgmNoise(); const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900; f.Q.value=1.2; const g=ctx.createGain(); const vv=v*(i===2?1:0.55); g.gain.setValueAtTime(vv,t+off); g.gain.exponentialRampToValueAtTime(0.001,t+off+(i===2?0.16:0.03)); s.connect(f); f.connect(g); g.connect(bgmBus()); s.start(t+off); s.stop(t+off+0.2); }); }
+        function bgmBass(t,freq,v,len){ const ctx=getAudioCtx(); const o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain(); o.type='sawtooth'; o.frequency.value=freq; f.type='lowpass'; f.frequency.value=260+bgmTension*750; f.Q.value=6; g.gain.setValueAtTime(v,t); g.gain.setTargetAtTime(0.001,t+len*0.7,0.03); o.connect(f); f.connect(g); g.connect(bgmBus()); o.start(t); o.stop(t+len+0.05); }
+        function bgmPluck(t,freq,v){ const ctx=getAudioCtx(); [0,0.006].forEach((det,i)=>{ const o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain(); o.type='triangle'; o.frequency.value=freq*(1+ (i?0.003:0)); f.type='lowpass'; f.frequency.value=1400+bgmTension*2600; g.gain.setValueAtTime(v*(i?0.6:1),t+det); g.gain.exponentialRampToValueAtTime(0.001,t+det+0.28); o.connect(f); f.connect(g); g.connect(bgmBus()); o.start(t+det); o.stop(t+det+0.32); }); }
+        // 4마디 루프: Am - Am - F - G
+        const BGM_ROOTS=[55.0,55.0,43.65,49.0];
+        const BGM_ARPS=[[220,261.6,329.6,261.6],[220,261.6,329.6,261.6],[174.6,220,261.6,220],[196,246.9,293.7,246.9]];
+        const BGM_BASS_STEPS={0:1,3:2,6:1,8:1,11:2,14:1}; // step: 옥타브배수
+        function bgmPlayStep(step,t){ const bar=Math.floor(step/16)%4, s=step%16, T=bgmTension;
+            if(s%4===0) bgmKick(t,0.5+T*0.12);
+            if(s===4||s===12) bgmClap(t,0.16+T*0.1);
+            if(s%4===2) bgmHat(t,0.14+T*0.1,false);
+            if(T>0.45&&s%2===1) bgmHat(t,0.05+T*0.06,false);
+            if(s===14&&bar%2===1) bgmHat(t,0.1+T*0.08,true);
+            const bm=BGM_BASS_STEPS[s]; if(bm) bgmBass(t,BGM_ROOTS[bar]*bm,0.34+T*0.1,BGM_STEP_DUR*(bm===2?1.6:2.6));
+            if(s%2===0){ const arp=BGM_ARPS[bar]; const note=arp[(s/2)%4]; bgmPluck(t,note,0.055+T*0.075); if(T>0.3) bgmPluck(t+BGM_STEP_DUR*1.5,note*2,0.02+T*0.03); }
+        }
+        function bgmSchedule(){ if(!bgmPlaying) return; const ctx=getAudioCtx(); while(bgmNextTime<ctx.currentTime+0.12){ bgmPlayStep(bgmStep,bgmNextTime); bgmNextTime+=BGM_STEP_DUR; bgmStep=(bgmStep+1)%64; } }
         function startBGM() {
             if (!soundEnabled || bgmPlaying) return;
-            bgmPlaying = true; bgmStopped = false; bgmVolume = 0.15; bgmBeat = 0; bgmLoop();
+            const ctx=getAudioCtx(); bgmPlaying=true; bgmStopped=false; bgmStep=0; bgmTension=0; bgmBus();
+            bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setValueAtTime(0.0001,ctx.currentTime); bgmMaster.gain.exponentialRampToValueAtTime(0.5,ctx.currentTime+1.4);
+            bgmNextTime=ctx.currentTime+0.06; bgmScheduler=setInterval(bgmSchedule,40);
         }
-        function bgmLoop() {
-            if (bgmStopped || !bgmPlaying) return;
-            const pattern = bgmBeat % 8; const v = bgmVolume;
-            if (pattern === 0) playKick(v);
-            else if (pattern === 2) playSubBass(65, 0.2, v * 0.7);
-            else if (pattern === 4) playKick(v * 0.85);
-            else if (pattern === 5) playKick(v * 0.6);
-            else if (pattern === 6) playSubBass(55, 0.2, v * 0.7);
-            bgmBeat++; bgmTimeout = setTimeout(() => bgmLoop(), 217);
-        }
-        function stopBGM() { bgmStopped = true; bgmPlaying = false; if (bgmTimeout) { clearTimeout(bgmTimeout); bgmTimeout = null; } }
-        function setBGMTension(level) { bgmVolume = 0.12 + level * 0.15; }
+        function stopBGM() { bgmStopped=true; bgmPlaying=false; if(bgmScheduler){clearInterval(bgmScheduler);bgmScheduler=null;} if(bgmTimeout){clearTimeout(bgmTimeout);bgmTimeout=null;} if(bgmMaster){const ctx=getAudioCtx(); bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setTargetAtTime(0.0001,ctx.currentTime,0.12);} }
+        function setBGMTension(level) { bgmTension=Math.max(0,Math.min(1,level)); }
 
         function playBidSound() { playKick(0.25); setTimeout(() => playSubBass(80, 0.15, 0.15), 60); }
         function playSuccessSound() { playKick(0.35); setTimeout(()=>playSubBass(55,0.3,0.2),100); setTimeout(()=>playKick(0.3),300); setTimeout(()=>playSubBass(65,0.3,0.2),400); setTimeout(()=>{playKick(0.35);playSubBass(82,0.5,0.25);},600); }
