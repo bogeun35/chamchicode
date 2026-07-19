@@ -339,7 +339,9 @@
             width: 15px; height: 15px; border: none; border-radius: 50%;
             background: var(--ow-orange); cursor: pointer;
         }
-        #bgmVolLabel { min-width: 22px; text-align: right; }
+        #bgmVolLabel, #bgmVolLabel2 { min-width: 22px; text-align: right; }
+        .modal-vol { background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.25); color: white; padding: 4px 10px; }
+        .modal-vol input[type=range] { width: 80px; background: rgba(255,255,255,0.3); }
 
         .template-section {
             background: #F8FAFC; padding: 12px;
@@ -409,7 +411,7 @@
         .auction-content {
             background: white;
             border: 2px solid var(--ow-orange); border-radius: 14px;
-            max-width: 1380px; width: 100%;
+            max-width: 1240px; width: 100%;
             box-shadow: 0 20px 60px rgba(217,119,6,0.15);
         }
         .auction-header {
@@ -757,17 +759,20 @@
 
     
         /* 레이아웃 v3: 우측에 입찰기록 + 대기선수 컬럼 */
-        .auction-layout { grid-template-columns: 160px 1fr 160px 180px 175px; }
-        .auction-waiting-col { align-self: stretch; padding: 12px 10px; border-left: 1px solid var(--line); }
-        .auction-waiting-col .remaining-players { margin: 0; height: 100%; display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; backdrop-filter: none; padding: 0; }
-        .auction-waiting-col .remaining-title { justify-content: space-between; }
-        .auction-waiting-col .remaining-grid { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; flex-wrap: nowrap; gap: 5px; align-content: flex-start; }
-        .auction-waiting-col .remaining-player { width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .auction-layout { grid-template-columns: 160px 1fr 160px 180px; }
         .auction-bidlog-col { align-self: stretch; padding: 12px 10px; border-left: 1px solid var(--line); }
         .auction-bidlog-col .bid-history { margin: 0; height: 100%; display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; backdrop-filter: none; padding: 0; }
         .auction-bidlog-col .bid-history-title { text-align: center; }
         .auction-bidlog-col .bid-history-list { flex: 1; min-height: 0; overflow-y: auto; }
-        @media (max-width: 1000px) { .auction-layout { grid-template-columns: 1fr; } .auction-roster, .auction-bidlog-col, .auction-waiting-col { display: none; } }
+        @media (max-width: 1000px) { .auction-layout { grid-template-columns: 1fr; } .auction-roster, .auction-bidlog-col { display: none; } }
+
+    
+        /* 메인: 관전자를 팀 그리드 우측 세로 컬럼으로 */
+        .teams-container { display: grid; grid-template-columns: 1fr 290px; gap: 16px; align-items: stretch; }
+        .teams-container .spectators { margin-top: 0; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+        .teams-container .spectators-grid { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; flex-wrap: nowrap; gap: 8px; align-content: flex-start; }
+        .teams-container .spectator-card { width: 100%; box-sizing: border-box; }
+        @media (max-width: 1200px) { .teams-container { grid-template-columns: 1fr; } .teams-container .spectators-grid { flex-direction: row; flex-wrap: wrap; } }
 
     </style>
 </head>
@@ -929,6 +934,11 @@
         <div class="auction-content">
             <div class="auction-header">
                 <div class="auction-title">경매 진행중</div>
+                <div class="bgm-volume modal-vol" title="배경음악 볼륨">
+                    <span id="bgmVolIcon2">🎵</span>
+                    <input type="range" id="bgmVolSlider2" min="0" max="100" value="50" oninput="setBgmVolume(this.value)">
+                    <span id="bgmVolLabel2">50</span>
+                </div>
             </div>
             <div class="sold-overlay" id="soldOverlay">
                 <div class="sold-stamp" id="soldStamp">낙찰!</div>
@@ -988,6 +998,13 @@
                         <button class="auction-bid-btn" id="team2BidBtn">입찰</button>
                     </div>
                 </div>
+                <div class="remaining-players">
+                    <div class="remaining-title">
+                        <span>대기 선수</span>
+                        <span id="remainingCount">0명</span>
+                    </div>
+                    <div class="remaining-grid" id="remainingGrid"></div>
+                </div>
                 <div class="auction-controls">
                     <button class="auction-control-btn auction-pass-btn" id="auctionPassBtn">유찰 (F2)</button>
                     <button class="auction-control-btn auction-next-btn" id="auctionNextBtn">낙찰 (F1)</button>
@@ -1002,15 +1019,6 @@
                 <div class="bid-history">
                     <div class="bid-history-title">입찰 기록</div>
                     <div class="bid-history-list" id="bidHistoryList"></div>
-                </div>
-            </div>
-            <div class="auction-waiting-col">
-                <div class="remaining-players">
-                    <div class="remaining-title">
-                        <span>대기 선수</span>
-                        <span id="remainingCount">0명</span>
-                    </div>
-                    <div class="remaining-grid" id="remainingGrid"></div>
                 </div>
             </div>
             </div>
@@ -1043,8 +1051,10 @@
         function setBgmVolume(val) {
             bgmUserVolume = Math.max(0, Math.min(1, val/100));
             localStorage.setItem('bgmVol', bgmUserVolume);
-            document.getElementById('bgmVolLabel').textContent = Math.round(bgmUserVolume*100);
-            document.getElementById('bgmVolIcon').textContent = bgmUserVolume===0 ? '🔇' : (bgmUserVolume<0.34 ? '🔈' : (bgmUserVolume<0.67 ? '🔉' : '🎵'));
+            const pct=Math.round(bgmUserVolume*100), ic=bgmUserVolume===0?'🔇':(bgmUserVolume<0.34?'🔈':(bgmUserVolume<0.67?'🔉':'🎵'));
+            [['bgmVolLabel',pct],['bgmVolLabel2',pct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+            [['bgmVolIcon',ic],['bgmVolIcon2',ic]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+            [['bgmVolSlider',pct],['bgmVolSlider2',pct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v;});
             if (bgmMaster) { const ctx=getAudioCtx(); bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setTargetAtTime(Math.max(0.0001, bgmUserVolume), ctx.currentTime, 0.05); }
         }
 
@@ -1262,7 +1272,7 @@
 
         function startAuction() { const sp=getSpectatorPlayers();if(sp.length<2)return alert('관전자가 2명 이상 필요합니다!');updateTeamSlots();auctionPlayers=[...sp].sort(()=>Math.random()-0.5);currentAuctionIndex=0;currentBid={team:null,amount:0};bidHistory=[];team1Points=100;team2Points=100;auctionResults={1:[],2:[]};renderAuctionRosters();updateTeamPoints();playAuctionStartSound();setTimeout(()=>shout('경매를 시작합니다!'),1200);setTimeout(()=>startBGM(),1800);showAuctionModal(); }
         function showAuctionModal() { if(currentAuctionIndex>=auctionPlayers.length){alert('모든 경매가 끝났습니다!');closeAuction();return;}const p=auctionPlayers[currentAuctionIndex];const leader1=getTeamLeaderName(1);const leader2=getTeamLeaderName(2);document.getElementById('auctionLeader1Name').textContent=leader1!=='-'?leader1:'';document.getElementById('auctionLeader1Wrap').style.display=leader1!=='-'?'':'none';document.getElementById('auctionLeader2Name').textContent=leader2!=='-'?leader2:'';document.getElementById('auctionLeader2Wrap').style.display=leader2!=='-'?'':'none';document.getElementById('auctionPlayerIcon').textContent=ROLE_ICONS[p.role];document.getElementById('auctionPlayerName').textContent=p.name;document.getElementById('auctionPlayerTier').textContent=p.tier+'점';document.getElementById('auctionPlayerRole').textContent=ROLE_ICONS[p.role]+' '+ROLE_NAMES[p.role];document.getElementById('auctionTeam1Points').textContent=team1Points;document.getElementById('auctionTeam2Points').textContent=team2Points;document.getElementById('team1BidInput').value='';document.getElementById('team2BidInput').value='';currentBid={team:null,amount:0};bidHistory=[];bidCombo=0;lastBidTime=0;updateCurrentBidDisplay();updateBidHistory();updateLeadingTeam();updateRemainingPlayers();document.getElementById('team1BidBtn').disabled=team1Points===0;document.getElementById('team2BidBtn').disabled=team2Points===0;document.getElementById('auctionModal').classList.add('active');playNewPlayerSound();const order=currentAuctionIndex+1;setTimeout(()=>{shout(`${order}번째 선수! ${p.name}! ${p.tier}점! 입찰 시작!`);},500);startAuctionTimer();setTimeout(()=>document.getElementById('team1BidInput').focus(),100); }
-        function updateRemainingPlayers() { const g=document.getElementById('remainingGrid');g.innerHTML='';document.getElementById('remainingCount').textContent=(auctionPlayers.length-currentAuctionIndex)+'명';auctionPlayers.forEach((p,i)=>{if(i>=currentAuctionIndex){const d=document.createElement('div');d.className='remaining-player'+(i===currentAuctionIndex?' current':'');d.innerHTML=`${ROLE_ICONS[p.role]} ${p.name} (${p.tier}점)`;g.appendChild(d);}}); }
+        function updateRemainingPlayers() { const g=document.getElementById('remainingGrid');g.innerHTML='';document.getElementById('remainingCount').textContent=(auctionPlayers.length-currentAuctionIndex)+'명';auctionPlayers.forEach((p,i)=>{if(i>=currentAuctionIndex){const d=document.createElement('div');d.className='remaining-player'+(i===currentAuctionIndex?' current':'');d.innerHTML=i===currentAuctionIndex?`${ROLE_ICONS[p.role]} ${p.name} (${p.tier}점)`:'❓ ???';g.appendChild(d);}}); }
         function updateCurrentBidDisplay() { const v=document.getElementById('currentBidValue');if(currentBid.team===null){v.textContent='입찰 없음';v.className='current-bid-value none';}else{v.textContent=currentBid.team+'팀 - '+currentBid.amount+'P';v.className='current-bid-value team-'+currentBid.team;} }
         function updateLeadingTeam() { const b1=document.getElementById('auctionTeamBox1'),b2=document.getElementById('auctionTeamBox2');b1.classList.remove('leading');b2.classList.remove('leading');if(currentBid.team===1)b1.classList.add('leading');else if(currentBid.team===2)b2.classList.add('leading'); }
         function updateBidHistory() { const l=document.getElementById('bidHistoryList');l.innerHTML='';bidHistory.slice(-5).reverse().forEach(b=>{const d=document.createElement('div');d.className='bid-history-item team-'+b.team;d.textContent=b.team+'팀: '+b.amount+'P';l.appendChild(d);}); }
