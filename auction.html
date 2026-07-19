@@ -317,6 +317,29 @@
         }
         .sound-toggle:hover { border-color: var(--ow-blue); }
         .sound-toggle.muted { opacity: 0.5; }
+        .sound-panel { position: fixed; top: 15px; right: 15px; z-index: 100; display: flex; align-items: center; gap: 8px; }
+        .sound-panel .sound-toggle { position: static; }
+        .bgm-volume {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.9); border: 1px solid #E2E8F0;
+            padding: 8px 12px; border-radius: 20px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.72em; font-weight: 700;
+            backdrop-filter: blur(12px); box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+        }
+        .bgm-volume input[type=range] {
+            -webkit-appearance: none; appearance: none; width: 90px; height: 5px;
+            border-radius: 5px; background: #CBD5E1; outline: none; cursor: pointer;
+        }
+        .bgm-volume input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 15px; height: 15px;
+            border-radius: 50%; background: var(--ow-orange); cursor: pointer;
+            box-shadow: 0 0 8px rgba(245,158,11,0.6);
+        }
+        .bgm-volume input[type=range]::-moz-range-thumb {
+            width: 15px; height: 15px; border: none; border-radius: 50%;
+            background: var(--ow-orange); cursor: pointer;
+        }
+        #bgmVolLabel { min-width: 22px; text-align: right; }
 
         .template-section {
             background: #F8FAFC; padding: 12px;
@@ -386,7 +409,7 @@
         .auction-content {
             background: white;
             border: 2px solid var(--ow-orange); border-radius: 14px;
-            max-width: 1100px; width: 100%;
+            max-width: 1380px; width: 100%;
             box-shadow: 0 20px 60px rgba(217,119,6,0.15);
         }
         .auction-header {
@@ -617,7 +640,7 @@
             80% { transform: translateX(5px); }
         }
         .special-effect.sub { font-size: 1.3em; color: #DC2626; text-shadow: 0 0 25px rgba(220,38,38,0.6); }
-        @media (max-width: 900px) { .auction-layout { grid-template-columns: 1fr; } .auction-roster { display: none; } }
+
         @media (max-width: 768px) {
             .header h1 { font-size: 1.8em; }
             .teams-grid { grid-template-columns: 1fr; gap: 20px; }
@@ -690,6 +713,8 @@
         .btn { box-shadow: 0 4px 18px rgba(2,6,23,0.5); }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(59,130,246,0.25); }
         .sound-toggle { background: #12203A; border: 1px solid var(--line2); }
+        .bgm-volume { background: #12203A; border: 1px solid var(--line2); color: var(--text); }
+        .bgm-volume input[type=range] { background: #24354F; }
 
         /* 경매 모달 */
         .auction-modal { background: rgba(3,7,16,0.75); }
@@ -731,11 +756,18 @@
         ::-webkit-scrollbar-thumb:hover { background: #31486C; }
 
     
-        /* 레이아웃 v2: 입찰기록을 2팀 옆으로, 높이 고정 */
-        .auction-teams-row { grid-template-columns: 1fr 1fr 210px; align-items: stretch; }
-        .auction-teams-row .bid-history { margin: 0; display: flex; flex-direction: column; padding: 10px 12px; }
-        .auction-teams-row .bid-history-list { flex: 1; min-height: 0; max-height: 140px; overflow-y: auto; }
-        @media (max-width: 900px) { .auction-teams-row { grid-template-columns: 1fr; } }
+        /* 레이아웃 v3: 우측에 입찰기록 + 대기선수 컬럼 */
+        .auction-layout { grid-template-columns: 160px 1fr 160px 180px 175px; }
+        .auction-waiting-col { align-self: stretch; padding: 12px 10px; border-left: 1px solid var(--line); }
+        .auction-waiting-col .remaining-players { margin: 0; height: 100%; display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; backdrop-filter: none; padding: 0; }
+        .auction-waiting-col .remaining-title { justify-content: space-between; }
+        .auction-waiting-col .remaining-grid { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; flex-wrap: nowrap; gap: 5px; align-content: flex-start; }
+        .auction-waiting-col .remaining-player { width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .auction-bidlog-col { align-self: stretch; padding: 12px 10px; border-left: 1px solid var(--line); }
+        .auction-bidlog-col .bid-history { margin: 0; height: 100%; display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; backdrop-filter: none; padding: 0; }
+        .auction-bidlog-col .bid-history-title { text-align: center; }
+        .auction-bidlog-col .bid-history-list { flex: 1; min-height: 0; overflow-y: auto; }
+        @media (max-width: 1000px) { .auction-layout { grid-template-columns: 1fr; } .auction-roster, .auction-bidlog-col, .auction-waiting-col { display: none; } }
 
     </style>
 </head>
@@ -743,8 +775,15 @@
     <div class="hex-background"></div>
     <div class="hex-pattern"></div>
     
-    <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">
-        <span id="soundIcon">🔊</span> <span id="soundLabel">ON</span>
+    <div class="sound-panel">
+        <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">
+            <span id="soundIcon">🔊</span> <span id="soundLabel">ON</span>
+        </div>
+        <div class="bgm-volume" title="배경음악 볼륨">
+            <span id="bgmVolIcon">🎵</span>
+            <input type="range" id="bgmVolSlider" min="0" max="100" value="50" oninput="setBgmVolume(this.value)">
+            <span id="bgmVolLabel">50</span>
+        </div>
     </div>
     
     <div class="container">
@@ -948,17 +987,6 @@
                         <input type="number" class="auction-bid-input" id="team2BidInput" min="0" placeholder="입찰가">
                         <button class="auction-bid-btn" id="team2BidBtn">입찰</button>
                     </div>
-                    <div class="bid-history">
-                        <div class="bid-history-title">입찰 기록</div>
-                        <div class="bid-history-list" id="bidHistoryList"></div>
-                    </div>
-                </div>
-                <div class="remaining-players">
-                    <div class="remaining-title">
-                        <span>대기 선수</span>
-                        <span id="remainingCount">0명</span>
-                    </div>
-                    <div class="remaining-grid" id="remainingGrid"></div>
                 </div>
                 <div class="auction-controls">
                     <button class="auction-control-btn auction-pass-btn" id="auctionPassBtn">유찰 (F2)</button>
@@ -969,6 +997,21 @@
             <div class="auction-roster team-2">
                 <div class="auction-roster-title">🟠 2팀 낙찰 <span id="rosterCount2"></span></div>
                 <div id="auctionRoster2"><div class="roster-empty">아직 없음</div></div>
+            </div>
+            <div class="auction-bidlog-col">
+                <div class="bid-history">
+                    <div class="bid-history-title">입찰 기록</div>
+                    <div class="bid-history-list" id="bidHistoryList"></div>
+                </div>
+            </div>
+            <div class="auction-waiting-col">
+                <div class="remaining-players">
+                    <div class="remaining-title">
+                        <span>대기 선수</span>
+                        <span id="remainingCount">0명</span>
+                    </div>
+                    <div class="remaining-grid" id="remainingGrid"></div>
+                </div>
             </div>
             </div>
         </div>
@@ -995,20 +1038,57 @@
             document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
             if (!soundEnabled) { stopBGM(); speechSynthesis.cancel(); }
         }
+        // BGM 볼륨 (0~1). 0.5 = 기본. localStorage 저장.
+        let bgmUserVolume = (function(){ const s=parseFloat(localStorage.getItem('bgmVol')); return isNaN(s)?0.5:s; })();
+        function setBgmVolume(val) {
+            bgmUserVolume = Math.max(0, Math.min(1, val/100));
+            localStorage.setItem('bgmVol', bgmUserVolume);
+            document.getElementById('bgmVolLabel').textContent = Math.round(bgmUserVolume*100);
+            document.getElementById('bgmVolIcon').textContent = bgmUserVolume===0 ? '🔇' : (bgmUserVolume<0.34 ? '🔈' : (bgmUserVolume<0.67 ? '🔉' : '🎵'));
+            if (bgmMaster) { const ctx=getAudioCtx(); bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setTargetAtTime(Math.max(0.0001, bgmUserVolume), ctx.currentTime, 0.05); }
+        }
 
-        function speak(text, rate = 1.0, pitch = 0.7) {
+        function pickKoVoice() {
+            const voices = speechSynthesis.getVoices();
+            // 자연스러운 음성 우선순위: Google > Neural/Natural > 남성 > 아무 한국어
+            const ko = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('ko'));
+            return ko.find(v => /google/i.test(v.name))
+                || ko.find(v => /neural|natural|wavenet/i.test(v.name))
+                || ko.find(v => /male|남|InJoon|Gook/i.test(v.name))
+                || ko[0] || null;
+        }
+        function speak(text, rate = 1.0, pitch = 0.7, volume = 1.0) {
             if (!soundEnabled) return;
             try {
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = 'ko-KR'; u.rate = rate; u.pitch = pitch; u.volume = 1.0;
-                const voices = speechSynthesis.getVoices();
-                const maleKo = voices.find(v => v.lang.startsWith('ko') && (v.name.toLowerCase().includes('male') || v.name.includes('남')));
-                const koVoice = maleKo || voices.find(v => v.lang.startsWith('ko'));
-                if (koVoice) u.voice = koVoice;
+                u.lang = 'ko-KR'; u.rate = rate; u.pitch = pitch; u.volume = volume;
+                const v = pickKoVoice(); if (v) u.voice = v;
                 speechSynthesis.cancel(); speechSynthesis.speak(u);
             } catch(e) {}
         }
-        function shout(text) { speak(text, 1.1, 0.55); }
+        // 중계 캐스터: 문장을 끊어 강약을 주고 빠르게 몰아침
+        function caster(text, hype = 1) {
+            if (!soundEnabled) return;
+            try {
+                speechSynthesis.cancel();
+                const v = pickKoVoice();
+                // hype 0=차분 1=신남 2=폭발
+                const baseRate = [1.12, 1.32, 1.5][hype] || 1.3;
+                const basePitch = [0.85, 1.05, 1.25][hype] || 1.05;
+                // 느낌표/물음표 기준으로 조각내 각 조각마다 살짝 톤을 올림 → 고조되는 중계 억양
+                const parts = text.split(/(?<=[!?])\s*/).filter(s => s.trim());
+                (parts.length ? parts : [text]).forEach((seg, i) => {
+                    const u = new SpeechSynthesisUtterance(seg.trim());
+                    u.lang = 'ko-KR';
+                    u.rate = Math.min(1.7, baseRate + i * 0.06 + (Math.random()*0.06-0.03));
+                    u.pitch = Math.min(1.8, basePitch + i * 0.12 + (Math.random()*0.1-0.05));
+                    u.volume = 1.0;
+                    if (v) u.voice = v;
+                    speechSynthesis.speak(u); // 큐에 순차 재생
+                });
+            } catch(e) {}
+        }
+        function shout(text) { caster(text, 1); }
 
         function playKick(volume = 0.3) {
             if (!soundEnabled) return;
@@ -1075,7 +1155,7 @@
         function startBGM() {
             if (!soundEnabled || bgmPlaying) return;
             const ctx=getAudioCtx(); bgmPlaying=true; bgmStopped=false; bgmStep=0; bgmTension=0; bgmBus();
-            bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setValueAtTime(0.0001,ctx.currentTime); bgmMaster.gain.exponentialRampToValueAtTime(0.5,ctx.currentTime+1.4);
+            bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setValueAtTime(0.0001,ctx.currentTime); bgmMaster.gain.exponentialRampToValueAtTime(Math.max(0.0001,bgmUserVolume),ctx.currentTime+1.4);
             bgmNextTime=ctx.currentTime+0.06; bgmScheduler=setInterval(bgmSchedule,40);
         }
         function stopBGM() { bgmStopped=true; bgmPlaying=false; if(bgmScheduler){clearInterval(bgmScheduler);bgmScheduler=null;} if(bgmTimeout){clearTimeout(bgmTimeout);bgmTimeout=null;} if(bgmMaster){const ctx=getAudioCtx(); bgmMaster.gain.cancelScheduledValues(ctx.currentTime); bgmMaster.gain.setTargetAtTime(0.0001,ctx.currentTime,0.12);} }
@@ -1104,7 +1184,7 @@
         const STORAGE_KEY = 'teamBuilder_kr_v3';
         let roleEditSource = null; 
 
-        function init() { loadTemplates(); updateTemplateButtons(); loadCurrentTemplate(); updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners(); setupSpectatorsDragDrop(); updateTeamPoints(); setupScreenshotFeature(); }
+        function init() { loadTemplates(); updateTemplateButtons(); loadCurrentTemplate(); updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners(); setupSpectatorsDragDrop(); updateTeamPoints(); setupScreenshotFeature(); const _sl=document.getElementById('bgmVolSlider'); if(_sl){ _sl.value=Math.round(bgmUserVolume*100); setBgmVolume(_sl.value); } }
         function loadTemplates() { try { templates = JSON.parse(localStorage.getItem(STORAGE_KEY+'_templates')) || []; } catch(e) { templates = []; } while(templates.length < MAX_TEMPLATES) templates.push({name:`템플릿 ${templates.length+1}`,players:[],nextId:1}); currentTemplateIndex = parseInt(localStorage.getItem(STORAGE_KEY+'_current')) || 0; }
         function saveTemplates() { localStorage.setItem(STORAGE_KEY+'_templates', JSON.stringify(templates)); localStorage.setItem(STORAGE_KEY+'_current', currentTemplateIndex.toString()); }
         function loadCurrentTemplate() { const t = templates[currentTemplateIndex]; savedPlayers = t.players || []; nextPlayerId = t.nextId || 1; }
@@ -1188,10 +1268,10 @@
         function updateBidHistory() { const l=document.getElementById('bidHistoryList');l.innerHTML='';bidHistory.slice(-5).reverse().forEach(b=>{const d=document.createElement('div');d.className='bid-history-item team-'+b.team;d.textContent=b.team+'팀: '+b.amount+'P';l.appendChild(d);}); }
         function quickBid(team,inc) { const inp=document.getElementById('team'+team+'BidInput');const min=currentBid.amount+1;inp.value=Math.max(min,(parseInt(inp.value)||min)+inc);playClickSound(); }
         function allInBid(team) { document.getElementById('team'+team+'BidInput').value=team===1?team1Points:team2Points;playAllInSound(); }
-        function placeBid(team) { const amt=parseInt(document.getElementById('team'+team+'BidInput').value);const pts=team===1?team1Points:team2Points;if(isNaN(amt)||amt<0)return alert('올바른 입찰가를 입력하세요!');if(amt>pts)return alert('포인트가 부족합니다!');if(amt<=currentBid.amount)return alert(currentBid.amount+'P 보다 높아야 합니다!');playBidSound();const isAllIn=amt===pts;if(isAllIn){playAllInSound();showSpecialEffect('올인!');setTimeout(()=>shout(`${team}팀! 올인! ${amt}포인트!`),200);}else if(currentBid.amount>0&&amt===currentBid.amount+1){showSpecialEffect('퍼펙트 입찰!');shout(`${team}팀! ${amt}!`);}else if(auctionTimeLeft<=2){showSpecialEffect('막판 입찰!');shout(`막판 뒤집기! ${team}팀! ${amt}!`);}else{speak(`${team}팀, ${amt}!`,1.3,0.6);}currentBid={team,amount:amt};bidHistory.push({team,amount:amt});const _now=Date.now();bidCombo=(_now-lastBidTime<4000)?bidCombo+1:1;lastBidTime=_now;if(isAllIn){shakeAuction();}if(bidCombo>=3&&bidCombo%2===1){showSubEffect('🔥 입찰 경쟁 과열! x'+bidCombo);shakeAuction();if(bidCombo>=5)shout('불붙었다!');}updateCurrentBidDisplay();updateLeadingTeam();updateBidHistory();resetAuctionTimer();const opp=team===1?'team2BidInput':'team1BidInput';const targetInput=document.getElementById(opp);targetInput.focus();targetInput.select(); }
+        function placeBid(team) { const amt=parseInt(document.getElementById('team'+team+'BidInput').value);const pts=team===1?team1Points:team2Points;if(isNaN(amt)||amt<0)return alert('올바른 입찰가를 입력하세요!');if(amt>pts)return alert('포인트가 부족합니다!');if(amt<=currentBid.amount)return alert(currentBid.amount+'P 보다 높아야 합니다!');playBidSound();const isAllIn=amt===pts;if(isAllIn){playAllInSound();showSpecialEffect('올인!');setTimeout(()=>caster(`${team}팀! 올~인! ${amt}포인트 전부 걸었습니다!`,2),200);}else if(currentBid.amount>0&&amt===currentBid.amount+1){showSpecialEffect('퍼펙트 입찰!');shout(`${team}팀! ${amt}!`);}else if(auctionTimeLeft<=2){showSpecialEffect('막판 입찰!');caster(`막판 뒤집기! ${team}팀! ${amt}!`,2);}else{speak(`${team}팀, ${amt}!`,1.3,0.6);}currentBid={team,amount:amt};bidHistory.push({team,amount:amt});const _now=Date.now();bidCombo=(_now-lastBidTime<4000)?bidCombo+1:1;lastBidTime=_now;if(isAllIn){shakeAuction();}if(bidCombo>=3&&bidCombo%2===1){showSubEffect('🔥 입찰 경쟁 과열! x'+bidCombo);shakeAuction();if(bidCombo>=5)caster('경쟁에 불이 붙었습니다!',2);}updateCurrentBidDisplay();updateLeadingTeam();updateBidHistory();resetAuctionTimer();const opp=team===1?'team2BidInput':'team1BidInput';const targetInput=document.getElementById(opp);targetInput.focus();targetInput.select(); }
         function passAuction() { if(currentBid.team!==null)return alert('입찰이 있어서 유찰할 수 없습니다!');playPassSound();const passed=auctionPlayers[currentAuctionIndex];speak(`${passed.name}, 유찰!`,1.0,0.5);auctionPlayers.splice(currentAuctionIndex,1);auctionPlayers.push(passed);resetAuctionTimer();if(currentAuctionIndex<auctionPlayers.length){currentBid={team:null,amount:0};bidHistory=[];showAuctionModal();}else{alert('모든 경매가 끝났습니다!');closeAuction();} }
-        function nextAuctionPlayer() { if(currentBid.team===null){if(team1Points===0&&team2Points>0)currentBid={team:2,amount:0};else if(team2Points===0&&team1Points>0)currentBid={team:1,amount:0};else return alert('아직 입찰이 없습니다!');}playSuccessSound();const p=auctionPlayers[currentAuctionIndex];if(currentBid.amount>0){shout(`낙찰! ${p.name}! ${currentBid.team}팀! ${currentBid.amount}포인트!`);}else{shout(`${p.name}! ${currentBid.team}팀 배정!`);}if(currentBid.team===1)team1Points-=currentBid.amount;else team2Points-=currentBid.amount;updateTeamPoints();addPlayerToTeam(p,currentBid.team);removeFromSpectators(p);auctionResults[currentBid.team].push({name:p.name,role:p.role,tier:p.tier,price:currentBid.amount});renderAuctionRosters(currentBid.team);showSoldOverlay(p,currentBid.team,currentBid.amount);launchConfetti(currentBid.team);shakeAuction();stopAuctionTimer();currentAuctionIndex++;if(currentAuctionIndex<auctionPlayers.length){if(team1Points===0||team2Points===0){autoAssignRemaining();}else setTimeout(()=>showAuctionModal(),2300);}else{stopAuctionTimer();stopBGM();playCompleteSound();showSpecialEffect('경매 완료!');setTimeout(()=>shout('경매가 모두 끝났습니다! 좋은 경기 되세요!'),500);setTimeout(closeAuction,3000);} }
-        function autoAssignRemaining() { const remain=auctionPlayers.slice(currentAuctionIndex);const target=team1Points===0?2:1;remain.forEach(p=>{addPlayerToTeam(p,target);removeFromSpectators(p);auctionResults[target].push({name:p.name,role:p.role,tier:p.tier,price:0});});renderAuctionRosters(target);playCompleteSound();stopBGM();showSpecialEffect('남은 선수 → '+target+'팀');shout(`남은 선수 전원! ${target}팀 배정! 경매 종료!`);setTimeout(closeAuction,2000); }
+        function nextAuctionPlayer() { if(currentBid.team===null){if(team1Points===0&&team2Points>0)currentBid={team:2,amount:0};else if(team2Points===0&&team1Points>0)currentBid={team:1,amount:0};else return alert('아직 입찰이 없습니다!');}playSuccessSound();const p=auctionPlayers[currentAuctionIndex];if(currentBid.amount>0){caster(`낙~찰! ${p.name}! ${currentBid.team}팀이 ${currentBid.amount}포인트에 데려갑니다!`,2);}else{shout(`${p.name}! ${currentBid.team}팀 배정!`);}if(currentBid.team===1)team1Points-=currentBid.amount;else team2Points-=currentBid.amount;updateTeamPoints();addPlayerToTeam(p,currentBid.team);removeFromSpectators(p);auctionResults[currentBid.team].push({name:p.name,role:p.role,tier:p.tier,price:currentBid.amount});renderAuctionRosters(currentBid.team);showSoldOverlay(p,currentBid.team,currentBid.amount);launchConfetti(currentBid.team);shakeAuction();stopAuctionTimer();currentAuctionIndex++;if(currentAuctionIndex<auctionPlayers.length){if(team1Points===0||team2Points===0){autoAssignRemaining();}else setTimeout(()=>showAuctionModal(),2300);}else{stopAuctionTimer();stopBGM();playCompleteSound();showSpecialEffect('경매 완료!');setTimeout(()=>caster('경매가 모두 끝났습니다! 좋은 경기 되세요!',2),500);setTimeout(closeAuction,3000);} }
+        function autoAssignRemaining() { const remain=auctionPlayers.slice(currentAuctionIndex);const target=team1Points===0?2:1;remain.forEach(p=>{addPlayerToTeam(p,target);removeFromSpectators(p);auctionResults[target].push({name:p.name,role:p.role,tier:p.tier,price:0});});renderAuctionRosters(target);playCompleteSound();stopBGM();showSpecialEffect('남은 선수 → '+target+'팀');caster(`남은 선수 전원! ${target}팀 배정! 경매 종료!`,2);setTimeout(closeAuction,2000); }
         function addPlayerToTeam(p,team) { const slots=document.querySelectorAll('#team'+team+' .team-slot');let slotIndex=0;for(let s of slots){if(!s.querySelector('.player-card')){s.innerHTML='';s.classList.remove('empty');s.appendChild(createPlayerCard(p,slotIndex===0));break;}slotIndex++;}updateTeamScores();updateSavedPlayersUI(); }
         function closeAuction() { stopAuctionTimer();stopBGM();speechSynthesis.cancel();document.getElementById('auctionModal').classList.remove('active'); }
         function assignPlayersToTeams(players,size) { const t1=document.querySelectorAll('#team1 .team-slot');const t2=document.querySelectorAll('#team2 .team-slot');let idx=0;for(let i=0;i<size&&idx<players.length;i++){t1[i].innerHTML='';t1[i].classList.remove('empty');t1[i].appendChild(createPlayerCard(players[idx++],i===0));}for(let i=0;i<size&&idx<players.length;i++){t2[i].innerHTML='';t2[i].classList.remove('empty');t2[i].appendChild(createPlayerCard(players[idx++],i===0));}updateTeamScores(); }
