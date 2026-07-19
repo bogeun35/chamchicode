@@ -793,6 +793,7 @@
             <input type="range" id="bgmVolSlider" min="0" max="100" value="20" oninput="setBgmVolume(this.value)">
             <span id="bgmVolLabel">20</span>
         </div>
+        <div class="sound-toggle" id="ttsSettingBtn" onclick="openTtsModal()" title="TTS 목소리 설정">🎤 <span id="ttsStatusLabel">기본</span></div>
     </div>
     
     <div class="container">
@@ -923,6 +924,23 @@
             <div class="modal-buttons">
                 <button class="modal-btn cancel" id="roleModalCancel">취소</button>
                 <button class="modal-btn save" id="roleModalSave">확인</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="ttsModal">
+        <div class="modal-content" style="max-width:460px">
+            <div class="modal-title">🎤 중계 목소리 설정 (ElevenLabs)</div>
+            <div style="font-size:0.85em;color:#8CA0BC;line-height:1.6;margin-bottom:10px">
+                <b>elevenlabs.io</b> 가입(무료) → 우측상단 프로필 → <b>API Keys</b> → 키 생성 후 아래에 붙여넣기.<br>
+                키는 <b>이 브라우저에만 저장</b>되며 서버로 전송되지 않아요. 비워두면 기본 브라우저 목소리를 사용해요.
+            </div>
+            <input type="text" class="modal-input" id="elevenKeyInput" placeholder="ElevenLabs API 키 (sk_...)" autocomplete="off">
+            <input type="text" class="modal-input" id="elevenVoiceInput" placeholder="Voice ID (비우면 기본 남성 캐스터)" autocomplete="off" style="margin-top:8px">
+            <div style="font-size:0.75em;color:#5B6B84;margin:6px 0 10px">Voice ID는 elevenlabs.io Voice Library에서 원하는 목소리의 ID를 복사해 넣으면 바뀌어요.</div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="ttsModalTest">테스트 🔊</button>
+                <button class="modal-btn cancel" id="ttsModalCancel">닫기</button>
+                <button class="modal-btn save" id="ttsModalSave">저장</button>
             </div>
         </div>
     </div>
@@ -1083,9 +1101,35 @@
                 speechSynthesis.cancel(); speechSynthesis.speak(u);
             } catch(e) {}
         }
-        // 중계 캐스터: 한 명의 목소리로 일관되게, 하이프에 따라 속도/톤만 상승
-        function caster(text, hype = 1) {
-            if (!soundEnabled) return;
+        // ═══ ElevenLabs TTS (키 있으면 성우급, 없으면 브라우저 TTS 폴백) ═══
+        let elevenKey = localStorage.getItem('elevenKey') || '';
+        let elevenVoice = localStorage.getItem('elevenVoice') || '';
+        const ELEVEN_DEFAULT_VOICE = 'TxGEqnHWrfWFTfGW9XjX'; // Josh (에너지 있는 남성)
+        const ttsCache = new Map(); let casterAudio = null;
+        function updateTtsStatusLabel() { const e=document.getElementById('ttsStatusLabel'); if(e) e.textContent = elevenKey ? 'PRO' : '기본'; }
+        async function elevenSpeak(text, hype) {
+            try {
+                const vid = elevenVoice || ELEVEN_DEFAULT_VOICE;
+                const cacheKey = vid + '|' + text;
+                let url = ttsCache.get(cacheKey);
+                if (!url) {
+                    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}?output_format=mp3_44100_128`, {
+                        method: 'POST',
+                        headers: { 'xi-api-key': elevenKey, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, model_id: 'eleven_flash_v2_5', voice_settings: { stability: 0.3, similarity_boost: 0.8 } })
+                    });
+                    if (!r.ok) throw new Error('EL ' + r.status);
+                    url = URL.createObjectURL(await r.blob());
+                    ttsCache.set(cacheKey, url);
+                }
+                if (casterAudio) { try { casterAudio.pause(); } catch(e){} }
+                casterAudio = new Audio(url);
+                casterAudio.playbackRate = [1.0, 1.05, 1.12][hype] || 1.05;
+                casterAudio.play();
+                return true;
+            } catch(e) { console.warn('ElevenLabs 실패, 브라우저 TTS 폴백:', e.message); return false; }
+        }
+        function casterBrowser(text, hype = 1) {
             try {
                 speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
@@ -1096,6 +1140,24 @@
                 const v = pickKoVoice(); if (v) u.voice = v;
                 speechSynthesis.speak(u);
             } catch(e) {}
+        }
+        function caster(text, hype = 1) {
+            if (!soundEnabled) return;
+            if (elevenKey) { elevenSpeak(text, hype).then(ok => { if (!ok) casterBrowser(text, hype); }); }
+            else casterBrowser(text, hype);
+        }
+        function openTtsModal() {
+            document.getElementById('elevenKeyInput').value = elevenKey;
+            document.getElementById('elevenVoiceInput').value = elevenVoice;
+            document.getElementById('ttsModal').classList.add('active');
+        }
+        function saveTtsSettings() {
+            elevenKey = document.getElementById('elevenKeyInput').value.trim();
+            elevenVoice = document.getElementById('elevenVoiceInput').value.trim();
+            localStorage.setItem('elevenKey', elevenKey);
+            localStorage.setItem('elevenVoice', elevenVoice);
+            updateTtsStatusLabel();
+            document.getElementById('ttsModal').classList.remove('active');
         }
         function shout(text) { caster(text, 1); }
 
@@ -1193,7 +1255,7 @@
         const STORAGE_KEY = 'teamBuilder_kr_v3';
         let roleEditSource = null; 
 
-        function init() { loadTemplates(); updateTemplateButtons(); loadCurrentTemplate(); updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners(); setupSpectatorsDragDrop(); updateTeamPoints(); setupScreenshotFeature(); const _sl=document.getElementById('bgmVolSlider'); if(_sl){ _sl.value=Math.round(bgmUserVolume*100); setBgmVolume(_sl.value); } }
+        function init() { loadTemplates(); updateTemplateButtons(); loadCurrentTemplate(); updateTeamSlots(); updateSavedPlayersUI(); setupEventListeners(); setupSpectatorsDragDrop(); updateTeamPoints(); setupScreenshotFeature(); const _sl=document.getElementById('bgmVolSlider'); if(_sl){ _sl.value=Math.round(bgmUserVolume*100); setBgmVolume(_sl.value); } updateTtsStatusLabel(); document.getElementById('ttsModalSave').onclick=saveTtsSettings; document.getElementById('ttsModalCancel').onclick=()=>document.getElementById('ttsModal').classList.remove('active'); document.getElementById('ttsModalTest').onclick=()=>{ const k=document.getElementById('elevenKeyInput').value.trim(); const pv=elevenKey; elevenKey=k; caster('와우! 1팀 21점! 대박이네요! 낙찰입니다!',2); setTimeout(()=>{elevenKey=localStorage.getItem('elevenKey')||pv||'';},100); }; if(speechSynthesis&&speechSynthesis.onvoiceschanged!==undefined){speechSynthesis.onvoiceschanged=()=>{};speechSynthesis.getVoices();} }
         function loadTemplates() { try { templates = JSON.parse(localStorage.getItem(STORAGE_KEY+'_templates')) || []; } catch(e) { templates = []; } while(templates.length < MAX_TEMPLATES) templates.push({name:`템플릿 ${templates.length+1}`,players:[],nextId:1}); currentTemplateIndex = parseInt(localStorage.getItem(STORAGE_KEY+'_current')) || 0; }
         function saveTemplates() { localStorage.setItem(STORAGE_KEY+'_templates', JSON.stringify(templates)); localStorage.setItem(STORAGE_KEY+'_current', currentTemplateIndex.toString()); }
         function loadCurrentTemplate() { const t = templates[currentTemplateIndex]; savedPlayers = t.players || []; nextPlayerId = t.nextId || 1; }
