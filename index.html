@@ -353,6 +353,12 @@ body::after {
       <span>그림퀴즈</span>
       <span class="nav-badge">NEW</span>
     </div>
+
+    <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
+      <span class="nav-icon">🗺️</span>
+      <span>배그 맵</span>
+      <span class="nav-badge">NEW</span>
+    </div>
   </div>
 
   <div class="lnb-footer">
@@ -387,6 +393,11 @@ body::after {
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
+        <div class="landing-card" onclick="navigate('pubgmap')">
+          <div class="landing-card-icon">🗺️</div>
+          <div class="landing-card-title">배그 맵</div>
+          <div class="landing-card-desc">맵별 비밀창고 위치<br>확대해서 보기</div>
+        </div>
       </div>
     </div>
   </div>
@@ -405,6 +416,11 @@ body::after {
   <div class="page-frame" id="page-drawquiz">
     <iframe src="draw-quiz.html" id="iframe-drawquiz"></iframe>
   </div>
+
+  <!-- PUBG Map iframe -->
+  <div class="page-frame" id="page-pubgmap">
+    <iframe src="pubg-map.html" id="iframe-pubgmap"></iframe>
+  </div>
 </div>
 
 <script>
@@ -422,6 +438,9 @@ function navigate(page) {
     document.getElementById('page-home').style.display = 'flex';
   } else {
     document.getElementById(`page-${page}`).classList.add('active');
+    // iframe 안에서 키보드(←/→ 등)가 바로 먹도록 포커스를 넘겨준다
+    const fr = document.getElementById(`iframe-${page}`);
+    if (fr) setTimeout(() => { try { fr.contentWindow.focus(); } catch (e) {} }, 50);
   }
 
   // Update nav
