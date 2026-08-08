@@ -45,6 +45,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .dot.heat{border:0;opacity:1;background:linear-gradient(90deg,#5abe5a,#f0f000,#ff9500,#ff1e00)}
 .ly .ct{margin-left:auto;font-size:.74rem;color:#5c6875;font-variant-numeric:tabular-nums}
 .ly.off{opacity:.4;cursor:not-allowed}
+#lootleg{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.lgt{font-size:.66rem;color:#6b7885;margin-bottom:5px}
+.lgr{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--dim);padding:1.5px 0}
+.lgr i{width:11px;height:11px;border-radius:3px;flex:0 0 11px}
+.lgr span{margin-left:auto;font-weight:600;font-size:.66rem;color:#6b7885}
 #note{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
   font-size:.68rem;line-height:1.45;color:#7b8794;max-width:180px}
 #note b{color:#aab4c0}
@@ -115,6 +120,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 </div>
 
 <div id="layers"><h4>레이어</h4><div id="lyList"></div>
+  <div id="lootleg" style="display:none">
+    <div class="lgt">한 자리에 놓인 아이템 수</div>
+    <div class="lgr"><i style="background:#78b48c"></i>1–3 <span>흔한 민가</span></div>
+    <div class="lgr"><i style="background:#5ae15a"></i>4–8 <span>조금 더</span></div>
+    <div class="lgr"><i style="background:#ebeb3c"></i>9–15 <span>쏠쏠</span></div>
+    <div class="lgr"><i style="background:#ff961e"></i>16–30 <span>좋음</span></div>
+    <div class="lgr"><i style="background:#ff2d19"></i>31+ <span>대형 건물</span></div>
+  </div>
   <div id="note">숫자는 <b>배치된 스폰 자리</b> 수입니다. 매 판 이 중 일부만 실제로 뽑힙니다.</div>
   <div id="unver" style="display:none">⚠ 이 맵은 차량 좌표가 미검증입니다</div>
 </div>
@@ -158,8 +171,8 @@ const LDEF=[
  {k:'boats',       ko:'보트',          c:'#22d3ee', r:3.2, on:false},
 ];
 /* 루팅 밀도는 점이 아니라 격자라서 별도 레이어로 다룬다 */
-const LOOT_LAYER={k:'loot', ko:'아이템 밀도', on:false,
-  tip:'붉을수록 아이템이 많은 곳입니다. 배치된 아이템 자리 기준.'};
+const LOOT_LAYER={k:'loot', ko:'아이템 수', on:false,
+  tip:'건물 자리마다 놓인 아이템 개수. 색 기준은 맵 최대값이 아니라 절대 개수라, 외딴집끼리도 비교됩니다.'};
 const ORDER=['erangel','miramar','taego','vikendi','deston','rondo','sanhok','paramo','karakin'];
 
 const $=id=>document.getElementById(id);
@@ -178,19 +191,19 @@ function heatCanvas(key){
   if(!L) return null;
   const g=L.g, c=document.createElement('canvas'); c.width=g; c.height=g;
   const cx2=c.getContext('2d'), img=cx2.createImageData(g,g), px=img.data;
-  const mx=L.max;
   let idx=0;
   for(let n=0;n<L.v.length;n++){
     idx+=L.i[n];
-    const t=Math.min(1, Math.pow(L.v[n]/mx, 0.55));
-    // 초록 -> 노랑 -> 주황 -> 빨강. 파랑을 피해 차량 마커·바다와 안 겹치게.
-    let r,gg,b;
-    if(t<0.4){ const u=t/0.4;              r=90*u;      gg=190+50*u;  b=90-60*u; }
-    else if(t<0.72){ const u=(t-0.4)/0.32; r=90+165*u;  gg=240-30*u;  b=30-30*u; }
-    else { const u=(t-0.72)/0.28;          r=255;       gg=210-180*u; b=0; }
-    const o=idx*4;
-    // 낮은 밀도는 거의 투명하게 빼서 지도가 가려지지 않도록
-    px[o]=r; px[o+1]=gg; px[o+2]=b; px[o+3]=Math.round(18+220*t*t);
+    // 맵 최대값 대비가 아니라 '이 자리에 몇 개' 절대 기준으로 칠한다.
+    // 최대값 기준으로 하면 아파트만 빨갛고 나머지가 다 뭉개진다.
+    const v=L.v[n], o=idx*4;
+    let r,gg,b,al;
+    if(v<=3)       { r=120; gg=180; b=140; al=55; }   // 흔한 민가
+    else if(v<=8)  { r=90;  gg=225; b=90;  al=110; }  // 조금 더
+    else if(v<=15) { r=235; gg=235; b=60;  al=160; }  // 쏠쏠
+    else if(v<=30) { r=255; gg=150; b=30;  al=200; }  // 좋음
+    else           { r=255; gg=45;  b=25;  al=235; }  // 대형 건물
+    px[o]=r; px[o+1]=gg; px[o+2]=b; px[o+3]=al;
   }
   cx2.putImageData(img,0,0);
   heatCache[key]=c; return c;
@@ -233,8 +246,8 @@ function draw(){
   // 히트맵을 마커보다 먼저 (아래에) 깐다
   if(active.loot){
     const hc=heatCanvas(cur.key);
-    if(hc){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-            ctx.drawImage(hc, tx, ty, W, H); }
+    // 보간을 끈다. 부드럽게 뭉개면 건물 하나하나가 안 보이고 '밀도 덩어리'가 된다.
+    if(hc){ ctx.imageSmoothingEnabled=false; ctx.drawImage(hc, tx, ty, W, H); }
   }
 
   for(const L of LDEF){
@@ -275,6 +288,7 @@ function renderLayers(){
   }).join('');
   // 차량 좌표가 검증되지 않은 맵은 표시해준다
   $('unver').style.display=(D&&D.L.cars&&!D.vv)?'':'none';
+  $('lootleg').style.display=active.loot?'':'none';
   $('lyList').querySelectorAll('.ly').forEach(e=>{
     if(e.classList.contains('off')) return;
     e.onclick=()=>{ active[e.dataset.k]=!active[e.dataset.k]; renderLayers(); draw(); };
