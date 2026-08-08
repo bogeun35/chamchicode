@@ -44,8 +44,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .ly.on .dot{opacity:1;background:currentColor}
 .ly .ct{margin-left:auto;font-size:.74rem;color:#5c6875;font-variant-numeric:tabular-nums}
 .ly.off{opacity:.4;cursor:not-allowed}
-#unver{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
-  font-size:.7rem;line-height:1.4;color:#d9a441}
+#note{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
+  font-size:.68rem;line-height:1.45;color:#7b8794;max-width:180px}
+#note b{color:#aab4c0}
+#unver{margin-top:6px;font-size:.7rem;line-height:1.4;color:#d9a441}
 
 /* ── mode + maps ── */
 #modes{position:fixed;left:16px;top:14px;z-index:12;display:flex;gap:5px}
@@ -112,6 +114,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 </div>
 
 <div id="layers"><h4>레이어</h4><div id="lyList"></div>
+  <div id="note">숫자는 <b>배치된 스폰 자리</b> 수입니다. 매 판 이 중 일부만 실제로 뽑힙니다.</div>
   <div id="unver" style="display:none">⚠ 이 맵은 차량 좌표가 미검증입니다</div>
 </div>
 
@@ -151,9 +154,13 @@ const LDEF=[
  {k:'secretRooms', ko:'비밀의 방',     c:'#ef4444', r:7,   on:true, ring:true, feat:true},
  {k:'gliders',     ko:'모터글라이더',  c:'#fbbf24', r:4.5, on:false},
  {k:'boats',       ko:'보트',          c:'#22d3ee', r:3.2, on:false},
- {k:'esports',     ko:'이스포츠 스폰', c:'#a78bfa', r:3.2, on:false},
- {k:'esportsBoat', ko:'이스포츠 보트', c:'#c084fc', r:3.2, on:false},
- {k:'special',     ko:'특수 스폰',     c:'#34d399', r:5,   on:false},
+ {k:'esports',     ko:'확정 스폰',      c:'#a78bfa', r:3.2, on:false,
+  tip:'대회(이스포츠)용 확정 차량 스폰. 100% 나오지만 일반 매치에는 적용되지 않습니다.'},
+ {k:'esportsBoat', ko:'확정 보트',      c:'#c084fc', r:3.2, on:false,
+  tip:'대회(이스포츠)용 확정 보트 스폰. 일반 매치에는 적용되지 않습니다.'},
+ // 원 사이트가 공개하지 않는 데이터 키. 무엇인지 확인되지 않아 이름을 단정하지 않는다.
+ {k:'special',     ko:'미확인 스폰 ⚠', c:'#34d399', r:5,   on:false,
+  tip:'원본 데이터에는 있으나 출처가 의미를 공개하지 않은 항목입니다. 무엇인지 확인되지 않았습니다.'},
 ];
 const ORDER=['erangel','miramar','taego','vikendi','deston','rondo','sanhok','paramo','karakin'];
 
@@ -220,7 +227,8 @@ function renderLayers(){
     const n=D&&D.L[L.k]?D.L[L.k].length:0;
     // 맵마다 이 항목의 의미가 다르다 (데스턴은 비밀의 방이 아니라 기둥 보급 트럭)
     const label=(L.feat&&D&&D.feat)?D.feat:L.ko;
-    return `<div class="ly ${n?'':'off'} ${active[L.k]&&n?'on':''}" data-k="${L.k}" style="color:${active[L.k]&&n?L.c:''}">
+    const tip=L.tip?` title="${L.tip}"`:'';
+    return `<div class="ly ${n?'':'off'} ${active[L.k]&&n?'on':''}" data-k="${L.k}"${tip} style="color:${active[L.k]&&n?L.c:''}">
       <span class="dot" style="color:${L.c}"></span><span>${label}</span><span class="ct">${n||'-'}</span></div>`;
   }).join('');
   // 차량 좌표가 검증되지 않은 맵은 표시해준다
