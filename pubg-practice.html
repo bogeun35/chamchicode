@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배그 연습</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0F14; --surface:#121820; --surface2:#182029; --border:rgba(255,255,255,.11);
+  --fg:#EAF0F7; --dim:#93A1B3; --dim2:#6B7885;
+  --accent:#F59E0B; --cyan:#06B6D4; --good:#10B981; --warn:#F43F5E;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Rajdhani',-apple-system,'Malgun Gothic',sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.55;padding-bottom:60px}
+h1,h2,h3{font-family:'Orbitron',sans-serif;letter-spacing:.01em}
+a{color:var(--cyan)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ── tabs ── */
+header{position:sticky;top:0;z-index:50;background:rgba(11,15,20,.93);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border)}
+.hrow{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:14px 0}
+.brand{font-family:'Orbitron',sans-serif;font-size:1.15rem;font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.tb{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--dim);
+  padding:8px 15px;border-radius:9px;font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;transition:.13s}
+.tb:hover{color:var(--fg);border-color:rgba(255,255,255,.3)}
+.tb.on{background:linear-gradient(135deg,var(--accent),#f7b955);border-color:var(--accent);color:#1a1205}
+
+section{display:none;padding:26px 0}
+section.on{display:block}
+h2{font-size:1.5rem;margin-bottom:6px}
+.sub{color:var(--dim);font-size:.95rem;margin-bottom:22px}
+
+/* ── controls ── */
+.ctl{display:flex;gap:18px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:.78rem;font-weight:700;color:var(--dim2);text-transform:uppercase;letter-spacing:.08em}
+select,input[type=number]{background:var(--surface2);color:var(--fg);border:1px solid var(--border);
+  border-radius:8px;padding:8px 11px;font-family:'Rajdhani',sans-serif;font-size:.98rem;font-weight:600;min-width:130px}
+.seg{display:flex;gap:4px}
+.seg button{background:var(--surface2);color:var(--dim);border:1px solid var(--border);border-radius:7px;
+  padding:8px 13px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.92rem;font-weight:700;transition:.12s}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--cyan);border-color:var(--cyan);color:#04222a}
+
+/* ── tables ── */
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.94rem;min-width:660px}
+th,td{padding:9px 13px;text-align:right;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+th{background:var(--surface2);color:var(--dim);font-size:.76rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;position:sticky;top:0;cursor:pointer;user-select:none}
+th:hover{color:var(--fg)}
+th.l,td.l{text-align:left}
+tbody tr:hover{background:rgba(255,255,255,.035)}
+td.n{font-weight:700;font-variant-numeric:tabular-nums}
+.cls{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:4px;
+  background:var(--surface2);color:var(--dim);margin-left:7px;vertical-align:1px}
+.k1{color:var(--good)} .k2{color:#a3e635} .k3{color:var(--accent)} .k4{color:#fb923c} .k5{color:var(--warn)}
+.na{color:var(--dim2)}
+
+/* ── cards / notes ── */
+.note{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.3);border-left-width:3px;
+  border-radius:9px;padding:13px 16px;margin:18px 0;font-size:.92rem;color:#c9d6e2}
+.note b{color:#fff}
+.warnbox{background:rgba(244,63,94,.07);border-color:rgba(244,63,94,.32)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:18px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.card h3{font-size:1rem;margin-bottom:10px;color:var(--accent)}
+.card ol,.card ul{margin-left:18px;font-size:.94rem;color:#c9d6e2}
+.card li{margin-bottom:7px}
+.card li b{color:#fff}
+.big{font-family:'Orbitron',sans-serif;font-size:1.9rem;font-weight:900;line-height:1.1}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.94rem}
+.kv:last-child{border:0}
+.kv span:first-child{color:var(--dim)}
+.kv span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+footer{color:var(--dim2);font-size:.78rem;padding:26px 0;border-top:1px solid var(--border);margin-top:36px}
+@media(max-width:768px){
+  .hrow{gap:10px;padding-left:56px}   /* 허브의 햄버거 버튼 자리 확보 */
+  nav{margin-left:0;width:100%}
+  .big{font-size:1.5rem}
+  .ctl{gap:14px;padding:14px}
+  select,input[type=number]{min-width:110px}
+}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hrow">
+  <div class="brand">배그 연습</div>
+  <nav>
+    <button class="tb on" data-s="ttk">TTK 계산기</button>
+    <button class="tb" data-s="bal">탄도 · 영점</button>
+    <button class="tb" data-s="att">부착물 우선순위</button>
+    <button class="tb" data-s="drill">연습 루틴</button>
+  </nav>
+</div></header>
+
+<div class="wrap">
+
+<!-- ══════════ TTK ══════════ -->
+<section id="ttk" class="on">
+  <h2>TTK 계산기</h2>
+  <div class="sub">"저놈 3렙인데 지금 교전 걸어도 되나"를 판단하는 표. 방어구 레벨과 거리를 넣으면 <b>몇 발 필요한지(HTK)</b>와 <b>죽이는 데 걸리는 시간(TTK)</b>이 나옵니다.</div>
+
+  <div class="ctl">
+    <div class="fld"><label>헬멧</label>
+      <div class="seg" id="segH">
+        <button data-v="0">없음</button><button data-v="1">Lv1</button>
+        <button data-v="2" class="on">Lv2</button><button data-v="3">Lv3</button>
+      </div>
+    </div>
+    <div class="fld"><label>조끼</label>
+      <div class="seg" id="segV">
+        <button data-v="0">없음</button><button data-v="1">Lv1</button>
+        <button data-v="2" class="on">Lv2</button><button data-v="3">Lv3</button>
+      </div>
+    </div>
+    <div class="fld"><label>거리 (m)</label>
+      <input type="number" id="dist" value="50" min="0" max="800" step="10">
+    </div>
+    <div class="fld"><label>분류</label>
+      <select id="filt">
+        <option value="">전체</option><option>AR</option><option>DMR</option><option>SR</option>
+        <option>SMG</option><option>LMG</option><option>HANDGUN</option><option>SHOTGUN</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="tw"><table id="ttkT">
+    <thead><tr>
+      <th class="l" data-k="n">무기</th><th data-k="d">기본DMG</th><th data-k="rpm">RPM</th>
+      <th data-k="hd">머리 DMG</th><th data-k="hh">머리 HTK</th>
+      <th data-k="cd">가슴 DMG</th><th data-k="ch">가슴 HTK</th>
+      <th data-k="ttk">가슴 TTK</th><th data-k="ttkh">머리 TTK</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <div class="note">
+    <b>계산식</b> — 실제 데미지 = 기본DMG × 거리감쇠 × 부위계수 × 무기클래스계수 × (1 − 방어구감소).
+    부위계수·클래스계수는 pubgstatistics.com이 공개한 결합배율표를 역산해 검증했고, 7개 클래스 전부 일치합니다
+    (AWM만 3렙 헬멧을 원샷하고 Kar98k는 못 하는 것까지 재현).
+    <b>TTK는 (필요탄수 − 1) × 발사간격</b>이라 1발이면 0초입니다.
+  </div>
+  <div class="note warnbox">
+    <b>주의</b> — 반자동(DMR·SR·권총)의 RPM은 "실제 매치에서 측정된 평균 연사"입니다. 손가락이 빠르면 더 짧고 느리면 더 깁니다.
+    연사 무기(AR·SMG·LMG)의 TTK는 <b>모든 탄이 명중했을 때</b>의 이론값이라, 실전에서는 반동 때문에 이보다 깁니다.
+  </div>
+</section>
+
+<!-- ══════════ 탄도 ══════════ -->
+<section id="bal">
+  <h2>탄도 · 영점</h2>
+  <div class="sub">300m 넘어가면 감으로 쏘게 되는 구간을 숫자로 바꿔주는 표입니다.</div>
+
+  <div class="ctl">
+    <div class="fld"><label>무기</label><select id="bw"></select></div>
+    <div class="fld"><label>영점 (m)</label><select id="bz"></select></div>
+    <div class="fld"><label>목표 이동속도 (m/s)</label>
+      <select id="bs">
+        <option value="1.4">1.4 — 걷기</option>
+        <option value="4.7">4.7 — 달리기</option>
+        <option value="6.3" selected>6.3 — 전력질주</option>
+        <option value="15">15 — 차량 (54km/h)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid" id="bcards"></div>
+
+  <div class="tw"><table id="balT">
+    <thead><tr>
+      <th>거리</th><th>비행시간</th><th>낙차 (영점 미보정)</th><th>영점 보정 후 조준 보정</th><th>리드 (횡이동)</th>
+    </tr></thead><tbody></tbody>
+  </table></div>
+
+  <div class="note warnbox">
+    <b>이 숫자의 한계를 먼저 읽어주세요.</b> 낙차·비행시간은 <b>공기저항을 뺀 근사치</b>라서 <b>실제보다 작게 나옵니다</b>.
+    배그 탄환은 날아가면서 감속하는데, 그 감속 상수는 공개된 검증 자료가 없어서 넣지 않았습니다.
+    같은 이유로 다른 공개 계산기들(pubgplanet 등)도 전부 저항 없는 t = 거리 ÷ 탄속을 씁니다 — 제가 직접 확인했습니다.
+    <b>200m 안쪽은 거의 정확하고, 400m 넘어가면 표보다 더 많이 떨어진다고 보시면 됩니다.</b>
+    아래 항력계수가 클수록 그 오차가 커집니다.
+  </div>
+  <div class="note">
+    <b>영점이 실전에서 더 중요합니다.</b> 낙차를 외우는 것보다, 교전할 거리에 영점을 미리 맞춰두는 게 훨씬 빠릅니다.
+    영점을 맞추면 그 거리에서는 십자선 정중앙에 맞습니다. <b>PageUp / PageDown</b>으로 조절합니다.
+    무기마다 조절 가능 범위가 달라서(위 카드에 표시) AWM·M24처럼 100m 고정인 총은 전부 손으로 올려 쏴야 합니다.
+  </div>
+</section>
+
+<!-- ══════════ 부착물 ══════════ -->
+<section id="att">
+  <h2>부착물 우선순위</h2>
+  <div class="sub">파밍 중에 "이거 먼저 낄까 저거 먼저 낄까" 고민하는 시간을 없애기 위한 순서입니다. 데이터가 아니라 <b>일반적인 통념 기준</b>이라는 점 감안해주세요.</div>
+
+  <div class="grid">
+    <div class="card"><h3>AR (M416 · 베릴 · AKM)</h3>
+      <ol>
+        <li><b>총열 (보정기 &gt; 소염기)</b> — 반동 감소폭이 가장 큽니다. 근거리 위주면 소음기도 좋습니다.</li>
+        <li><b>손잡이 (수직 &gt; 앵글)</b> — 수직손잡이가 수직반동을 잡아줍니다. 베릴처럼 반동 센 총에 특히.</li>
+        <li><b>개머리판 (전술 개머리판)</b> — M416 계열만. 반동 회복이 빨라집니다.</li>
+        <li><b>탄창 (속사 확장)</b> — 30→40발. 교전 중 재장전 횟수가 줄어듭니다.</li>
+        <li><b>조준경 (4배율)</b> — 1~2배율은 근거리, 4배율이 가장 범용적입니다.</li>
+      </ol>
+    </div>
+    <div class="card"><h3>DMR (SLR · SKS · Mk14)</h3>
+      <ol>
+        <li><b>조준경 (6배율)</b> — DMR은 조준경이 곧 성능입니다. 6배율 먼저 챙기세요.</li>
+        <li><b>총열 (보정기)</b> — 연사 시 튐을 잡아줍니다.</li>
+        <li><b>개머리판 (치크패드)</b> — 조준 흔들림이 줄어 연사 정확도가 올라갑니다.</li>
+        <li><b>탄창 (속사 확장)</b> — SKS·SLR은 10발이라 체감이 큽니다.</li>
+        <li><b>손잡이 (앵글)</b> — DMR은 수직보다 앵글이 낫습니다.</li>
+      </ol>
+    </div>
+    <div class="card"><h3>SR (Kar98k · M24 · AWM)</h3>
+      <ol>
+        <li><b>조준경 (8배율)</b> — 8배율 없으면 저격총의 의미가 절반입니다.</li>
+        <li><b>총구 (소음기)</b> — 저격은 위치 노출이 곧 죽음입니다. 보정기보다 소음기.</li>
+        <li><b>탄띠 (총알 고리)</b> — 재장전이 눈에 띄게 빨라집니다. Kar98k에 특히 좋습니다.</li>
+        <li><b>치크패드</b> — 조준 흔들림 감소.</li>
+      </ol>
+    </div>
+    <div class="card"><h3>SMG (UMP · 벡터)</h3>
+      <ol>
+        <li><b>탄창</b> — 벡터는 기본 탄창이 너무 작아서 확장탄창이 사실상 필수입니다.</li>
+        <li><b>총구 (보정기)</b></li>
+        <li><b>손잡이 (수직)</b></li>
+        <li><b>개머리판 / 조준경 (레드닷)</b> — SMG는 근거리라 배율보다 시야가 중요합니다.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>공통 원칙 3가지.</b>
+    ① <b>총구 &gt; 손잡이 &gt; 탄창</b> 순서가 대부분 맞습니다 — 반동을 먼저 잡으세요.
+    ② <b>조준경은 총에 맞춰서</b> — AR은 4배율, DMR은 6배율, SR은 8배율이 기준입니다.
+    ③ <b>소음기는 반동 부착물이 아닙니다</b> — 위치를 숨기는 용도라, 안전한 상황이면 보정기가 낫습니다.
+  </div>
+</section>
+
+<!-- ══════════ 연습 ══════════ -->
+<section id="drill">
+  <h2>연습 루틴</h2>
+  <div class="sub">배그는 에임보다 <b>정보와 습관</b>에서 갈립니다. 효과 순으로 정리했습니다.</div>
+
+  <div class="grid">
+    <div class="card"><h3>① 훈련장 반동 암기 — 하루 10분</h3>
+      <ol>
+        <li>무기는 <b>3정만</b> 고정하세요. M416 · AKM · 베릴 추천.</li>
+        <li>총마다 <b>부착물 없이 100발</b> → <b>풀부착 100발</b>을 벽에 갈깁니다.</li>
+        <li>탄착군을 보면서 손이 반대로 움직이게 만드는 게 목적입니다. 머리로 외우는 게 아닙니다.</li>
+        <li>배그는 반동 패턴이 <b>고정</b>이라 순수 암기 영역입니다. 에임 트레이너보다 직결됩니다.</li>
+      </ol>
+    </div>
+    <div class="card"><h3>② 리플레이 복기 — 죽은 판마다</h3>
+      <ol>
+        <li>죽고 나서 <b>상대 시점</b>으로 돌려봅니다.</li>
+        <li>볼 것은 딱 하나: <b>내가 언제 노출됐나.</b></li>
+        <li>대부분 죽는 이유는 에임이 아니라 <b>그 전 30초의 위치 선정</b>입니다.</li>
+        <li>"핵 아니냐"로 넘기면 그 판에서 배우는 게 0이 됩니다.</li>
+      </ol>
+    </div>
+    <div class="card"><h3>③ 사운드 세팅 — 한 번만 하면 끝</h3>
+      <ul>
+        <li>배그는 발소리가 정보의 절반입니다. <b>반드시 헤드폰</b>.</li>
+        <li><b>윈도우 공간 음향은 끄세요.</b> 배그 자체 HRTF가 더 정확합니다.</li>
+        <li>이퀄라이저로 저음을 과하게 올리면 발소리 방향이 뭉갭니다.</li>
+      </ul>
+    </div>
+    <div class="card"><h3>④ 감도 — 배율 간 일치시키기</h3>
+      <ul>
+        <li>배율 바꿀 때마다 손이 헷갈리는 건 <b>감도가 배율마다 따로 놀아서</b>입니다.</li>
+        <li>1배율 감도를 정한 뒤, 나머지 배율을 <b>같은 화면 이동량</b>이 되도록 맞추세요.</li>
+        <li>한 번 맞춰두면 4배율에서 8배율로 넘어가도 손이 같은 거리를 움직입니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note warnbox">
+    <b>절대 하지 말 것 — 노반동 매크로.</b> 배틀아이에 걸리면 영구정지입니다.
+    마우스 드라이버(로지텍·레이저 등)에 넣는 매크로도 <b>예외가 아닙니다</b>.
+    반면 이 페이지처럼 <b>게임에 전혀 손대지 않고 다른 화면에 참고자료를 띄우는 건 완전히 안전합니다.</b>
+    오버레이 프로그램처럼 게임에 후킹하는 방식만 피하면 됩니다.
+  </div>
+</section>
+
+<footer class="wrap">
+  데미지·RPM·방어구 감소율·부위 배율: <a href="https://pubgstatistics.com/weapons" target="_blank" rel="noopener">pubgstatistics.com</a> (PUBG 42.2, 2026-06-18 기준) ·
+  탄속·항력계수·영점 범위: <a href="https://pubgmap.io/weapons.html" target="_blank" rel="noopener">pubgmap.io</a> (데이터마이닝, 구버전 클라이언트 기준이라 최신 패치와 다를 수 있음) ·
+  부착물 우선순위와 연습 루틴은 통념 기반의 <b>의견</b>입니다.<br>
+  PUBG는 KRAFTON의 상표이며 이 페이지는 비영리 팬 페이지입니다.
+</footer>
+</div>
+
+<script>
+const WEAPONS=[{"n":"Mk47 Mutant","c":"AR","d":49,"rpm":930,"v":780,"cd":0.75,"zero":"100 - 1,000","ammo":"7.62mm","refD":380,"rm":0.95},{"n":"AKM","c":"AR","d":48,"rpm":600,"v":715,"cd":null,"zero":"100 - 1,000","ammo":"7.62mm","refD":380,"rm":0.95},{"n":"Groza","c":"AR","d":47,"rpm":740,"v":715,"cd":0.76,"zero":"100 - 300","ammo":"7.62mm","refD":380,"rm":0.95},{"n":"Beryl","c":"AR","d":44,"rpm":700,"v":715,"cd":null,"zero":"100 - 1,000","ammo":"7.62mm","refD":380,"rm":0.95},{"n":"ACE32","c":"AR","d":43,"rpm":680,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"M16A4","c":"AR","d":43,"rpm":770,"v":900,"cd":0.78,"zero":"100 - 500","ammo":"5.56mm","refD":400,"rm":0.94},{"n":"QBZ","c":"AR","d":42,"rpm":650,"v":870,"cd":0.75,"zero":"100 - 500","ammo":"5.56mm","refD":350,"rm":0.94},{"n":"SCAR-L","c":"AR","d":42,"rpm":650,"v":870,"cd":0.75,"zero":"100 - 500","ammo":"5.56mm","refD":350,"rm":0.94},{"n":"G36C","c":"AR","d":41,"rpm":700,"v":870,"cd":0.75,"zero":"100 - 400","ammo":"5.56mm","refD":350,"rm":0.94},{"n":"K2","c":"AR","d":41,"rpm":700,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"AUG","c":"AR","d":40,"rpm":720,"v":940,"cd":0.8,"zero":"100 - 500","ammo":"5.56mm","refD":350,"rm":0.94},{"n":"M416","c":"AR","d":40,"rpm":700,"v":880,"cd":0.76,"zero":"100 - 400","ammo":"5.56mm","refD":360,"rm":0.94},{"n":"Famas","c":"AR","d":39,"rpm":900,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"MG3","c":"LMG","d":42,"rpm":990,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"M249","c":"LMG","d":41,"rpm":800,"v":915,"cd":0.75,"zero":"100 - 500","ammo":"5.56mm","refD":450,"rm":0.94},{"n":"UMP","c":"SMG","d":42,"rpm":670,"v":400,"cd":0.68,"zero":"100","ammo":"9mm","refD":200,"rm":0.89},{"n":"Tommy Gun","c":"SMG","d":40,"rpm":750,"v":280,"cd":0.65,"zero":"100","ammo":".45 ACP","refD":250,"rm":0.92},{"n":"P90","c":"SMG","d":35,"rpm":1000,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"JS9","c":"SMG","d":32,"rpm":900,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"MP5K","c":"SMG","d":32,"rpm":900,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"MP9","c":"SMG","d":31,"rpm":1000,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"Vector","c":"SMG","d":31,"rpm":1110,"v":300,"cd":0.65,"zero":"100","ammo":".45 ACP","refD":150,"rm":0.8},{"n":"Micro Uzi","c":"SMG","d":26,"rpm":1260,"v":350,"cd":0.65,"zero":"100","ammo":"9mm","refD":150,"rm":0.88},{"n":"Mk14","c":"DMR","d":54,"rpm":400,"v":853,"cd":0.72,"zero":"100 - 500","ammo":"7.62mm","refD":500,"rm":0.96},{"n":"Dragunov","c":"DMR","d":53,"rpm":180,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"SLR","c":"DMR","d":49,"rpm":320,"v":840,"cd":0.72,"zero":"100 - 500","ammo":"7.62mm","refD":500,"rm":0.96},{"n":"SKS","c":"DMR","d":47,"rpm":350,"v":800,"cd":0.71,"zero":"100 - 300","ammo":"7.62mm","refD":400,"rm":0.96},{"n":"VSS","c":"DMR","d":45,"rpm":700,"v":330,"cd":1,"zero":"100 - 200","ammo":"9mm","refD":250,"rm":null},{"n":"Mk12","c":"DMR","d":43,"rpm":330,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"Mini 14","c":"DMR","d":42,"rpm":330,"v":990,"cd":0.81,"zero":"100 - 200","ammo":"5.56mm","refD":400,"rm":0.95},{"n":"Lynx AMR","c":"SR","d":118,"rpm":80,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"AWM","c":"SR","d":105,"rpm":20,"v":945,"cd":0.79,"zero":"100","ammo":".300 Magnum","refD":650,"rm":0.98},{"n":"Kar98k","c":"SR","d":79,"rpm":30,"v":760,"cd":0.9,"zero":"100 - 500","ammo":"7.62mm","refD":500,"rm":0.95},{"n":"M24","c":"SR","d":75,"rpm":30,"v":790,"cd":0.75,"zero":"100","ammo":"7.62mm","refD":600,"rm":0.96},{"n":"Win94","c":"SR","d":66,"rpm":40,"v":760,"cd":0.8,"zero":"100 - 500","ammo":".45 ACP","refD":500,"rm":0.95},{"n":"O12","c":"SHOTGUN","d":99,"rpm":480,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"R1895","c":"HANDGUN","d":64,"rpm":280,"v":330,"cd":null,"zero":"50","ammo":"7.62mm","refD":200,"rm":0.93},{"n":"Deagle","c":"HANDGUN","d":62,"rpm":310,"v":null,"cd":null,"zero":null,"ammo":null,"refD":null,"rm":null},{"n":"P92","c":"HANDGUN","d":34,"rpm":570,"v":380,"cd":null,"zero":"50","ammo":"9mm","refD":100,"rm":0.88},{"n":"P18C","c":"HANDGUN","d":23,"rpm":1000,"v":375,"cd":null,"zero":"50","ammo":"9mm","refD":75,"rm":0.83},{"n":"Skorpion","c":"HANDGUN","d":22,"rpm":860,"v":350,"cd":0.65,"zero":"100","ammo":"9mm","refD":150,"rm":0.88}];
+
+/* 무기 클래스별 배율 [몸통, 팔, 다리, 머리] — pubgstatistics 결합배율표에서 역산·검증 */
+const CLS={SR:[130,95,95,250],DMR:[105,95,95,235],AR:[100,90,90,235],LMG:[105,90,90,230],
+           SMG:[105,130,130,210],HANDGUN:[100,105,105,210],SHOTGUN:[90,105,105,150]};
+/* 부위별 고정 배율 */
+const AREA={head:[100,3,1],chest:[110,0,1],torso:[100,0,1],arm:[60,1,0],leg:[60,2,0]}; // [면적%, CLS인덱스, 방어구적용]
+const RED=[0,.30,.40,.55];
+const G=9.8;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+function dmgAt(w,part,lvl,dist){
+  const [area,ci,prot]=AREA[part];
+  const mult=CLS[w.c][ci];
+  let fall=1;
+  if(w.rm&&w.refD) fall=1-(1-w.rm)*Math.min(dist/w.refD,1);
+  return w.d*fall*(area/100)*(mult/100)*(1-RED[lvl]*prot);
+}
+const htk=d=>d<=0?99:Math.ceil(100/d);
+const ttk=(h,rpm)=>(h-1)*(60/rpm);
+
+/* ─── 탭 ─── */
+$$('.tb').forEach(b=>b.onclick=()=>{
+  $$('.tb').forEach(x=>x.classList.toggle('on',x===b));
+  $$('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.s));
+});
+
+/* ─── TTK ─── */
+let hLv=2,vLv=2,sortK='ch',sortDir=1;
+function segWire(id,set){ $$(`#${id} button`).forEach(b=>b.onclick=()=>{
+  $$(`#${id} button`).forEach(x=>x.classList.toggle('on',x===b)); set(+b.dataset.v); renderTTK(); });}
+segWire('segH',v=>hLv=v); segWire('segV',v=>vLv=v);
+$('#dist').oninput=renderTTK; $('#filt').onchange=renderTTK;
+$$('#ttkT th').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k; sortDir=(sortK===k)?-sortDir:1; sortK=k; renderTTK();});
+
+function renderTTK(){
+  const dist=+$('#dist').value||0, f=$('#filt').value;
+  const rows=WEAPONS.filter(w=>!f||w.c===f).map(w=>{
+    const hd=dmgAt(w,'head',hLv,dist), cd=dmgAt(w,'chest',vLv,dist);
+    const hh=htk(hd), ch=htk(cd);
+    return {...w,hd,cd,hh,ch,ttk:ttk(ch,w.rpm),ttkh:ttk(hh,w.rpm)};
+  });
+  rows.sort((a,b)=>{const x=a[sortK],y=b[sortK];
+    return (typeof x==='string'? x.localeCompare(y) : x-y)*sortDir;});
+  const kc=n=>'k'+Math.min(n,5);
+  $('#ttkT tbody').innerHTML=rows.map(r=>`<tr>
+    <td class="l"><b>${r.n}</b><span class="cls">${r.c}</span></td>
+    <td class="n">${r.d}</td><td class="n">${r.rpm}</td>
+    <td class="n">${r.hd.toFixed(1)}</td><td class="n ${kc(r.hh)}">${r.hh}</td>
+    <td class="n">${r.cd.toFixed(1)}</td><td class="n ${kc(r.ch)}">${r.ch}</td>
+    <td class="n">${r.ttk.toFixed(2)}s</td><td class="n">${r.ttkh.toFixed(2)}s</td></tr>`).join('');
+}
+
+/* ─── 탄도 ─── */
+const BW=WEAPONS.filter(w=>w.v);
+$('#bw').innerHTML=BW.map((w,i)=>`<option value="${i}">${w.n} (${w.c})</option>`).join('');
+$('#bw').value=BW.findIndex(w=>w.n==='Kar98k');
+function zeroOpts(){
+  const w=BW[+$('#bw').value], z=(w.zero||'100').replace(/,/g,'');
+  const m=z.match(/(\d+)\s*-\s*(\d+)/);
+  let opts=[];
+  if(m){ for(let d=+m[1]; d<=Math.min(+m[2],800); d+=100) opts.push(d); }
+  else opts=[+z];
+  $('#bz').innerHTML=opts.map(d=>`<option value="${d}">${d}m</option>`).join('');
+}
+$('#bw').onchange=()=>{zeroOpts();renderBal();};
+$('#bz').onchange=renderBal; $('#bs').onchange=renderBal;
+
+function renderBal(){
+  const w=BW[+$('#bw').value], z=+$('#bz').value, sp=+$('#bs').value;
+  const drop=d=>{const t=d/w.v; return .5*G*t*t;};
+  $('#bcards').innerHTML=`
+    <div class="card"><h3>${w.n}</h3>
+      <div class="kv"><span>탄약</span><span>${w.ammo||'-'}</span></div>
+      <div class="kv"><span>초기 탄속</span><span>${w.v} m/s</span></div>
+      <div class="kv"><span>영점 조절 범위</span><span>${w.zero||'-'} m</span></div>
+      <div class="kv"><span>항력계수</span><span>${w.cd??'자료 없음'}</span></div>
+    </div>
+    <div class="card"><h3>현재 영점 ${z}m</h3>
+      <div class="kv"><span>300m 비행시간</span><span>${(300/w.v*1000).toFixed(0)} ms</span></div>
+      <div class="kv"><span>300m 리드 (${sp}m/s)</span><span>${(300/w.v*sp).toFixed(2)} m</span></div>
+      <div class="kv"><span>500m 비행시간</span><span>${(500/w.v*1000).toFixed(0)} ms</span></div>
+      <div class="kv"><span>500m 리드</span><span>${(500/w.v*sp).toFixed(2)} m</span></div>
+    </div>`;
+  const ds=[50,100,150,200,250,300,400,500,600,800];
+  $('#balT tbody').innerHTML=ds.map(d=>{
+    const t=d/w.v, dr=drop(d), adj=dr-(d/z)*drop(z), lead=t*sp;
+    const sign=adj>=0?'위로':'아래로';
+    return `<tr><td class="n">${d}m</td><td class="n">${(t*1000).toFixed(0)} ms</td>
+      <td class="n">${(dr*100).toFixed(0)} cm</td>
+      <td class="n ${Math.abs(adj)<0.05?'na':''}">${Math.abs(adj*100)<1?'거의 정중앙':(Math.abs(adj)*100).toFixed(0)+' cm '+sign}</td>
+      <td class="n">${lead.toFixed(2)} m</td></tr>`;
+  }).join('');
+}
+
+zeroOpts(); renderBal(); renderTTK();
+</script>
+</body>
+</html>

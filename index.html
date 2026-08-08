@@ -359,6 +359,12 @@ body::after {
       <span>배그 맵</span>
       <span class="nav-badge">NEW</span>
     </div>
+
+    <div class="nav-item" data-page="pubgpractice" onclick="navigate('pubgpractice')">
+      <span class="nav-icon">🎯</span>
+      <span>배그 연습</span>
+      <span class="nav-badge">NEW</span>
+    </div>
   </div>
 
   <div class="lnb-footer">
@@ -398,6 +404,11 @@ body::after {
           <div class="landing-card-title">배그 맵</div>
           <div class="landing-card-desc">맵별 비밀창고 위치<br>확대해서 보기</div>
         </div>
+        <div class="landing-card" onclick="navigate('pubgpractice')">
+          <div class="landing-card-icon">🎯</div>
+          <div class="landing-card-title">배그 연습</div>
+          <div class="landing-card-desc">TTK 계산기 · 탄도표<br>부착물 · 연습 루틴</div>
+        </div>
       </div>
     </div>
   </div>
@@ -420,6 +431,11 @@ body::after {
   <!-- PUBG Map iframe -->
   <div class="page-frame" id="page-pubgmap">
     <iframe src="pubg-map.html" id="iframe-pubgmap"></iframe>
+  </div>
+
+  <!-- PUBG Practice iframe -->
+  <div class="page-frame" id="page-pubgpractice">
+    <iframe src="pubg-practice.html" id="iframe-pubgpractice"></iframe>
   </div>
 </div>
 
