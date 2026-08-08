@@ -42,6 +42,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .ly.on{color:var(--fg)}
 .dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px;border:2px solid currentColor;opacity:.35}
 .ly.on .dot{opacity:1;background:currentColor}
+.dot.heat{border:0;opacity:1;background:linear-gradient(90deg,#5abe5a,#f0f000,#ff9500,#ff1e00)}
 .ly .ct{margin-left:auto;font-size:.74rem;color:#5c6875;font-variant-numeric:tabular-nums}
 .ly.off{opacity:.4;cursor:not-allowed}
 #note{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
@@ -139,6 +140,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 <div id="load">지도 불러오는 중…</div>
 
 <script src="pubg-spawns.js"></script>
+<script src="pubg-loot.js"></script>
 <script>
 /* 커뮤니티 정적 지도 (마커가 이미지에 박혀 있음) */
 const STATIC=[
@@ -154,21 +156,45 @@ const LDEF=[
  {k:'secretRooms', ko:'비밀의 방',     c:'#ef4444', r:7,   on:true, ring:true, feat:true},
  {k:'gliders',     ko:'모터글라이더',  c:'#fbbf24', r:4.5, on:false},
  {k:'boats',       ko:'보트',          c:'#22d3ee', r:3.2, on:false},
- {k:'esports',     ko:'확정 스폰',      c:'#a78bfa', r:3.2, on:false,
-  tip:'대회(이스포츠)용 확정 차량 스폰. 100% 나오지만 일반 매치에는 적용되지 않습니다.'},
- {k:'esportsBoat', ko:'확정 보트',      c:'#c084fc', r:3.2, on:false,
-  tip:'대회(이스포츠)용 확정 보트 스폰. 일반 매치에는 적용되지 않습니다.'},
- // 원 사이트가 공개하지 않는 데이터 키. 무엇인지 확인되지 않아 이름을 단정하지 않는다.
- {k:'special',     ko:'미확인 스폰 ⚠', c:'#34d399', r:5,   on:false,
-  tip:'원본 데이터에는 있으나 출처가 의미를 공개하지 않은 항목입니다. 무엇인지 확인되지 않았습니다.'},
 ];
+/* 루팅 밀도는 점이 아니라 격자라서 별도 레이어로 다룬다 */
+const LOOT_LAYER={k:'loot', ko:'아이템 밀도', on:false,
+  tip:'붉을수록 아이템이 많은 곳입니다. 배치된 아이템 자리 기준.'};
 const ORDER=['erangel','miramar','taego','vikendi','deston','rondo','sanhok','paramo','karakin'];
 
 const $=id=>document.getElementById(id);
 const stage=$('stage'),canvas=$('canvas'),ov=$('ov'),ctx=ov.getContext('2d');
 let mode='live', idx=0, s=1, tx=0, ty=0, cur=null;
-const active={}; LDEF.forEach(l=>active[l.k]=l.on);
+const active={}; LDEF.forEach(l=>active[l.k]=l.on); active[LOOT_LAYER.k]=LOOT_LAYER.on;
 const imgCache={};
+
+/* ── 아이템 밀도 히트맵 ──
+   격자(200x200)를 작은 오프스크린 캔버스에 색으로 찍고, 지도 크기로 늘리면서
+   보간시킨다. 칸마다 사각형을 그리는 것보다 훨씬 빠르고 부드럽다. */
+const heatCache={};
+function heatCanvas(key){
+  if(heatCache[key]) return heatCache[key];
+  const L=(typeof LOOT!=='undefined')?LOOT[key]:null;
+  if(!L) return null;
+  const g=L.g, c=document.createElement('canvas'); c.width=g; c.height=g;
+  const cx2=c.getContext('2d'), img=cx2.createImageData(g,g), px=img.data;
+  const mx=L.max;
+  let idx=0;
+  for(let n=0;n<L.v.length;n++){
+    idx+=L.i[n];
+    const t=Math.min(1, Math.pow(L.v[n]/mx, 0.55));
+    // 초록 -> 노랑 -> 주황 -> 빨강. 파랑을 피해 차량 마커·바다와 안 겹치게.
+    let r,gg,b;
+    if(t<0.4){ const u=t/0.4;              r=90*u;      gg=190+50*u;  b=90-60*u; }
+    else if(t<0.72){ const u=(t-0.4)/0.32; r=90+165*u;  gg=240-30*u;  b=30-30*u; }
+    else { const u=(t-0.72)/0.28;          r=255;       gg=210-180*u; b=0; }
+    const o=idx*4;
+    // 낮은 밀도는 거의 투명하게 빼서 지도가 가려지지 않도록
+    px[o]=r; px[o+1]=gg; px[o+2]=b; px[o+3]=Math.round(18+220*t*t);
+  }
+  cx2.putImageData(img,0,0);
+  heatCache[key]=c; return c;
+}
 
 function list(){ return mode==='live'
   ? ORDER.filter(k=>SPAWNS[k]).map(k=>({key:k,ko:SPAWNS[k].ko,en:SPAWNS[k].en,
@@ -203,6 +229,14 @@ function draw(){
   if(mode!=='live') return;
   const D=SPAWNS[cur.key]; if(!D) return;
   const W=cur.w*s, H=cur.h*s;
+
+  // 히트맵을 마커보다 먼저 (아래에) 깐다
+  if(active.loot){
+    const hc=heatCanvas(cur.key);
+    if(hc){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+            ctx.drawImage(hc, tx, ty, W, H); }
+  }
+
   for(const L of LDEF){
     if(!active[L.k]) continue;
     const pts=D.L[L.k]; if(!pts) continue;
@@ -223,7 +257,15 @@ function draw(){
 function renderLayers(){
   const D=mode==='live'?SPAWNS[cur.key]:null;
   $('layers').style.display = mode==='live' ? '' : 'none';
-  $('lyList').innerHTML=LDEF.map(L=>{
+  const rows=[...LDEF];
+  if(mode==='live' && typeof LOOT!=='undefined' && LOOT[cur.key]) rows.push(LOOT_LAYER);
+  $('lyList').innerHTML=rows.map(L=>{
+    if(L.k==='loot'){
+      const t=LOOT[cur.key].total.toLocaleString();
+      return `<div class="ly ${active.loot?'on':''}" data-k="loot" title="${L.tip}"
+        style="color:${active.loot?'#fb923c':''}">
+        <span class="dot heat"></span><span>${L.ko}</span><span class="ct">${t}</span></div>`;
+    }
     const n=D&&D.L[L.k]?D.L[L.k].length:0;
     // 맵마다 이 항목의 의미가 다르다 (데스턴은 비밀의 방이 아니라 기둥 보급 트럭)
     const label=(L.feat&&D&&D.feat)?D.feat:L.ko;
