@@ -94,7 +94,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
   color:var(--dim);font-weight:600;transition:opacity .35s}
 
 @media(max-width:820px){
-  #layers{top:auto;bottom:118px;left:12px;padding:9px;min-width:0}
+  /* 아이템 범례가 붙으면서 패널이 길어져 탭 바를 침범했다.
+     탭 위로 띄우고, 넘치면 패널 안에서 스크롤되게 한다. */
+  #layers{top:auto;bottom:160px;left:12px;padding:9px;min-width:0;
+    max-height:calc(100vh - 230px);overflow-y:auto}
+  #note{display:none}
+  .lgr span{display:none}
   .ly{font-size:.82rem;padding:4px 5px} .ly .ct{display:none} #layers h4{display:none}
   #top{padding-left:60px} #modes{left:60px}
   #credit{position:static;display:none}
