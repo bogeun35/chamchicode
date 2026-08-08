@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>배그 비밀창고 지도</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0F14; --panel:rgba(14,19,26,.86); --border:rgba(255,255,255,.12);
+  --fg:#EAF0F7; --dim:#93A1B3; --accent:#F59E0B; --accent2:#06B6D4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+  font-family:'Rajdhani',-apple-system,'Malgun Gothic',sans-serif;-webkit-font-smoothing:antialiased}
+
+#stage{position:fixed;inset:0;cursor:grab;touch-action:none;overscroll-behavior:none}
+#stage.drag{cursor:grabbing}
+#canvas{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+#canvas img{display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+
+/* ── top bar ── */
+#top{position:fixed;top:0;left:0;right:0;z-index:10;padding:14px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.78),rgba(0,0,0,0))}
+#title{font-family:'Orbitron',sans-serif;font-size:1.25rem;font-weight:900;letter-spacing:.02em;
+  text-shadow:0 2px 12px #000}
+#title small{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;color:var(--dim);margin-left:8px}
+#desc{font-size:.92rem;font-weight:600;color:var(--dim);text-shadow:0 1px 8px #000}
+#meta{margin-left:auto;font-size:.78rem;font-weight:600;color:var(--dim);
+  background:var(--panel);border:1px solid var(--border);padding:5px 10px;border-radius:7px;
+  font-variant-numeric:tabular-nums;backdrop-filter:blur(8px)}
+
+/* ── arrows ── */
+.arrow{position:fixed;top:50%;transform:translateY(-50%);z-index:12;
+  width:52px;height:72px;border:1px solid var(--border);background:var(--panel);
+  color:var(--fg);border-radius:12px;cursor:pointer;font-size:1.6rem;line-height:1;
+  display:grid;place-items:center;backdrop-filter:blur(10px);transition:.15s}
+.arrow:hover{background:var(--accent);color:#1a1205;border-color:var(--accent)}
+#prev{left:16px} #next{right:16px}
+
+/* ── tabs ── */
+#tabs{position:fixed;bottom:0;left:0;right:0;z-index:11;
+  display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:14px 16px 16px;background:linear-gradient(0deg,rgba(0,0,0,.8),rgba(0,0,0,0))}
+.tab{cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--dim);
+  padding:8px 14px;border-radius:9px;font-family:'Rajdhani',sans-serif;
+  font-size:.92rem;font-weight:700;transition:.13s;backdrop-filter:blur(8px)}
+.tab:hover{color:var(--fg);border-color:rgba(255,255,255,.34)}
+.tab.on{background:linear-gradient(135deg,var(--accent),#f7b955);border-color:var(--accent);color:#1a1205}
+.tab .n{font-size:.72rem;opacity:.6;margin-right:5px}
+
+/* ── side widgets ── */
+#zoombox{position:fixed;left:16px;bottom:74px;z-index:10;display:flex;gap:6px;align-items:center}
+.zbtn{width:32px;height:32px;border:1px solid var(--border);background:var(--panel);color:var(--fg);
+  border-radius:8px;cursor:pointer;font-size:1.05rem;font-weight:700;backdrop-filter:blur(8px);
+  display:grid;place-items:center;transition:.13s}
+.zbtn:hover{background:var(--accent);color:#1a1205;border-color:var(--accent)}
+#zoom{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 10px;
+  font-size:.8rem;font-weight:700;color:var(--dim);min-width:56px;text-align:center;
+  font-variant-numeric:tabular-nums;backdrop-filter:blur(8px)}
+
+#help{position:fixed;right:16px;bottom:74px;z-index:10;background:var(--panel);
+  border:1px solid var(--border);border-radius:10px;padding:10px 13px;
+  font-size:.8rem;font-weight:600;line-height:1.9;color:var(--dim);backdrop-filter:blur(8px);
+  transition:opacity .4s;max-width:min(300px,45vw)}
+#help b{color:var(--fg)}
+kbd{background:#20262f;border:1px solid #38404c;border-bottom-width:2px;border-radius:4px;
+  padding:1px 5px;font:700 .72rem/1.6 ui-monospace,Consolas,monospace;color:#e6e9ee}
+.hidden{opacity:0!important;pointer-events:none}
+
+/* 출처: 우상단(메타 배지 아래). 하단은 탭 바가 차지하므로 겹치지 않게 배치 */
+#credit{position:fixed;right:20px;top:52px;z-index:9;max-width:min(330px,42vw);
+  font-size:.68rem;line-height:1.55;font-weight:500;color:#6b7885;text-align:right;
+  text-shadow:0 1px 6px #000}
+#credit a{color:#8c97a5}
+
+#load{position:fixed;inset:0;display:grid;place-items:center;z-index:20;background:var(--bg);
+  transition:opacity .35s}
+#load .inner{text-align:center;color:var(--dim);font-weight:600}
+#bar{width:220px;height:4px;border-radius:3px;background:#1b2530;margin:14px auto 0;overflow:hidden}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .25s}
+
+@media (max-width:700px){
+  #desc{display:none}
+  #help{display:none}
+  #zoombox{display:none}          /* 터치는 핀치/더블탭으로 확대 */
+  .arrow{width:42px;height:60px;font-size:1.3rem}
+  #title{font-size:1rem}
+  #top{padding-left:66px}         /* 허브의 햄버거 버튼 자리 확보 */
+  .tab{padding:7px 11px;font-size:.85rem}
+  /* 출처를 탭 아래 한 줄로 흘린다 */
+  #credit{position:static;flex:0 0 100%;max-width:100%;text-align:center;
+    margin-top:8px;font-size:.62rem;line-height:1.5}
+}
+</style>
+</head>
+<body>
+
+<div id="stage"><div id="canvas"></div></div>
+
+<div id="top">
+  <div id="title"></div>
+  <div id="desc"></div>
+  <div id="meta"></div>
+</div>
+
+<button class="arrow" id="prev" title="이전 맵 (←)">‹</button>
+<button class="arrow" id="next" title="다음 맵 (→)">›</button>
+
+<div id="zoombox">
+  <button class="zbtn" id="zout" title="축소">−</button>
+  <div id="zoom">100%</div>
+  <button class="zbtn" id="zin" title="확대">+</button>
+  <button class="zbtn" id="zfit" title="전체보기 (0)">⤢</button>
+</div>
+
+<div id="help">
+  <div><b>← →</b> 맵 넘기기 · <b>1–6</b> 바로가기</div>
+  <div><b>휠</b> 확대 · <b>드래그</b> 이동</div>
+  <div><kbd>0</kbd> 전체보기 &nbsp;<kbd>H</kbd> UI 숨김</div>
+</div>
+
+<div id="tabs">
+  <!-- 출처는 탭 바의 자식. 데스크톱에선 fixed로 빼내 우상단에, 모바일에선 탭 아래 줄로 흐른다 -->
+  <div id="credit">
+    지도 출처: 커뮤니티 제작 (ErikVN, Ochkodrive 외) ·
+    <a href="https://pubgsecretroom.com/" target="_blank" rel="noopener">pubgsecretroom.com</a> ·
+    PUBG는 KRAFTON의 상표입니다. 비영리 팬 페이지.
+  </div>
+</div>
+
+<div id="load"><div class="inner">지도 불러오는 중…<div id="bar"><i></i></div></div></div>
+
+<script>
+const MAPS=[
+ {key:"erangel",ko:"에란겔",en:"Erangel",file:"pubg-maps/erangel.webp",w:5334,h:5328,
+  desc:"비밀 지하실 15곳 · 열쇠 주 스폰 = 로조크 School"},
+ {key:"taego",ko:"테이고",en:"Taego",file:"pubg-maps/taego.webp",w:1440,h:1440,
+  desc:"비밀의 방 · 파란 함석지붕 건물 안 바닥 해치"},
+ {key:"vikendi",ko:"비켄디",en:"Vikendi",file:"pubg-maps/vikendi.jpg",w:1437,h:1440,
+  desc:"비밀창고 + 보안키 창고"},
+ {key:"deston",ko:"데스턴",en:"Deston",file:"pubg-maps/deston.png",w:2048,h:2048,
+  desc:"빨강 = 보안 키카드 · 파랑 = 보안실/트럭"},
+ {key:"rondo",ko:"론도",en:"Rondo",file:"pubg-maps/rondo.webp",w:2000,h:2000,
+  desc:"빨강 점선 원 = 비밀방 (범례 우하단)"},
+ {key:"paramo",ko:"파라모",en:"Paramo",file:"pubg-maps/paramo.jpg",w:2400,h:2400,
+  desc:"빨강 삼각형 = 비밀창고"},
+];
+
+const $=id=>document.getElementById(id);
+const stage=$('stage'),canvas=$('canvas'),elTabs=$('tabs'),elLoad=$('load'),elBar=$('bar').firstElementChild;
+let idx=0,s=1,tx=0,ty=0,cur=null;
+const imgs={};
+
+MAPS.forEach((m,i)=>{
+  const b=document.createElement('button');
+  b.className='tab'; b.innerHTML=`<span class="n">${i+1}</span>${m.ko}`;
+  b.onclick=()=>{show(i);focusSelf();};
+  elTabs.insertBefore(b, $('credit'));   // 출처 줄보다 앞에 넣는다
+});
+
+let done=0;
+MAPS.forEach(m=>{
+  const im=new Image();
+  im.onload=im.onerror=()=>{
+    elBar.style.width=(++done/MAPS.length*100)+'%';
+    if(done===MAPS.length){elLoad.style.opacity=0;setTimeout(()=>elLoad.remove(),380);}
+  };
+  im.src=m.file; im.alt=m.ko+' 비밀창고 위치 지도'; imgs[m.key]=im;
+});
+
+const fitScale=()=>Math.min(innerWidth/cur.w,innerHeight/cur.h);
+function fit(){s=fitScale()*0.97;tx=(innerWidth-cur.w*s)/2;ty=(innerHeight-cur.h*s)/2;apply();}
+function apply(){canvas.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;$('zoom').textContent=Math.round(s*100)+'%';}
+const clampScale=v=>Math.max(fitScale()*0.5,Math.min(4,v));
+function zoomAt(cx,cy,f){const ns=clampScale(s*f),k=ns/s;tx=cx-(cx-tx)*k;ty=cy-(cy-ty)*k;s=ns;apply();}
+
+function show(i){
+  idx=(i+MAPS.length)%MAPS.length; cur=MAPS[idx];
+  canvas.replaceChildren(imgs[cur.key]);
+  $('title').innerHTML=`${cur.ko}<small>${cur.en}</small>`;
+  $('desc').textContent=cur.desc;
+  $('meta').textContent=`${idx+1} / ${MAPS.length}  ·  ${cur.w}×${cur.h}`;
+  elTabs.querySelectorAll('.tab').forEach((b,j)=>b.classList.toggle('on',j===idx));
+  fit();
+}
+
+$('prev').onclick=()=>{show(idx-1);focusSelf();};
+$('next').onclick=()=>{show(idx+1);focusSelf();};
+$('zin').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,1.35);
+$('zout').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,1/1.35);
+$('zfit').onclick=()=>fit();
+function focusSelf(){try{window.focus();}catch(e){}}
+
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.16:1/1.16);},{passive:false});
+stage.addEventListener('dblclick',e=>zoomAt(e.clientX,e.clientY,2));
+
+/* pointer drag + pinch */
+const pts=new Map(); let pinch=0;
+stage.addEventListener('pointerdown',e=>{
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  stage.setPointerCapture(e.pointerId); stage.classList.add('drag'); focusSelf();
+});
+stage.addEventListener('pointermove',e=>{
+  const p=pts.get(e.pointerId); if(!p) return;
+  if(pts.size===1){ tx+=e.clientX-p.x; ty+=e.clientY-p.y; apply(); }
+  p.x=e.clientX; p.y=e.clientY;
+  if(pts.size===2){
+    const [a,b]=[...pts.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(pinch) zoomAt((a.x+b.x)/2,(a.y+b.y)/2,d/pinch);
+    pinch=d;
+  }
+});
+const release=e=>{pts.delete(e.pointerId); if(pts.size<2) pinch=0; if(!pts.size) stage.classList.remove('drag');};
+stage.addEventListener('pointerup',release);
+stage.addEventListener('pointercancel',release);
+
+addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowRight'||k==='d'||k==='D'){e.preventDefault();show(idx+1);}
+  else if(k==='ArrowLeft'||k==='a'||k==='A'){e.preventDefault();show(idx-1);}
+  else if(k>='1'&&k<='6'){show(+k-1);}
+  else if(k==='0'||k==='Home'){fit();}
+  else if(k==='h'||k==='H'){document.querySelectorAll('#top,#tabs,#help,#zoombox,.arrow,#credit').forEach(n=>n.classList.toggle('hidden'));}
+  else if(k==='+'||k==='='){zoomAt(innerWidth/2,innerHeight/2,1.3);}
+  else if(k==='-'||k==='_'){zoomAt(innerWidth/2,innerHeight/2,1/1.3);}
+});
+
+addEventListener('resize',()=>fit());
+setTimeout(()=>$('help')?.classList.add('hidden'),9000);
+addEventListener('mousemove',()=>$('help')?.classList.remove('hidden'),{once:true});
+
+show(0);
+</script>
+</body>
+</html>
