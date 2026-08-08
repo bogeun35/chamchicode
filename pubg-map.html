@@ -18,7 +18,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 #stage.drag{cursor:grabbing}
 #canvas{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
 #canvas img{display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
-#ov{position:fixed;inset:0;pointer-events:none;z-index:5}
+/* canvas 는 width/height 속성(버퍼)이 고유크기라 inset:0 만으로는 화면에 안 맞는다.
+   배율(devicePixelRatio)이 1이 아닌 모니터에서 마커가 지도 밖으로 퍼지므로 CSS 크기를 못박는다. */
+#ov{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:5}
 
 /* ── top ── */
 #top{position:fixed;top:0;left:0;right:0;z-index:10;padding:13px 20px;
@@ -182,8 +184,13 @@ function apply(){
 function zoomAt(cx,cy,f){const ns=clampScale(s*f),k=ns/s;tx=cx-(cx-tx)*k;ty=cy-(cy-ty)*k;s=ns;apply();}
 
 /* ── 마커 오버레이 (화면 좌표로 매 프레임 다시 그림 → 줌해도 크기 일정) ── */
-function sizeOv(){ const d=devicePixelRatio||1;
-  ov.width=innerWidth*d; ov.height=innerHeight*d; ctx.setTransform(d,0,0,d,0,0); }
+function sizeOv(){
+  const d=devicePixelRatio||1;
+  ov.width=Math.round(innerWidth*d); ov.height=Math.round(innerHeight*d);
+  // 버퍼는 배율만큼 크게, 화면 크기는 CSS 픽셀로 못박는다 (안 하면 마커가 지도 밖으로 퍼짐)
+  ov.style.width=innerWidth+'px'; ov.style.height=innerHeight+'px';
+  ctx.setTransform(d,0,0,d,0,0);
+}
 function draw(){
   ctx.clearRect(0,0,innerWidth,innerHeight);
   if(mode!=='live') return;
