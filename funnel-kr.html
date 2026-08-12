@@ -8,9 +8,8 @@
 <style>
 :root{
   --bg:#EFF6FF; --surface:#fff; --border:rgba(148,187,233,.35);
-  --blue:#2563EB; --cyan:#06B6D4; --amber:#F59E0B; --rose:#F43F5E; --green:#10B981;
-  --tx:#0F172A; --tx2:#475569; --tx3:#94A3B8;
-  --radius:14px;
+  --blue:#2563EB; --amber:#F59E0B; --rose:#F43F5E; --green:#10B981;
+  --tx:#0F172A; --tx2:#475569; --tx3:#94A3B8; --radius:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--tx);
@@ -27,20 +26,17 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--tx);
 .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
        border-radius:999px;padding:3px 12px;font-size:.9rem;color:#E2E8F0}
 
-.dl{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
+.dl{margin-bottom:26px}
 .btn{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
      padding:14px 22px;border-radius:var(--radius);font-weight:700;font-size:1.05rem;
-     transition:transform .12s ease, box-shadow .12s ease}
+     background:var(--blue);color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.32);
+     transition:transform .12s ease}
 .btn:hover{transform:translateY(-2px)}
-.btn-main{background:var(--blue);color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.32)}
-.btn-sub{background:var(--surface);color:var(--tx);border:1px solid var(--border);
-         box-shadow:0 2px 10px rgba(15,23,42,.06)}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
       padding:24px 26px;margin-bottom:18px;box-shadow:0 4px 16px rgba(15,23,42,.06)}
 .card h2{font-size:1.25rem;font-weight:700;margin-bottom:14px;
          display:flex;align-items:center;gap:9px}
-.card h2 .ic{font-size:1.3rem}
 ol,ul{padding-left:22px}
 li{margin-bottom:7px}
 code{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;
@@ -54,22 +50,21 @@ code{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;
 .faq{border-top:1px solid #E2E8F0;padding-top:13px;margin-top:13px}
 .faq:first-of-type{border-top:0;padding-top:0;margin-top:0}
 .faq b{display:block;margin-bottom:3px}
+kbd{background:#0F172A;color:#fff;border-radius:5px;padding:1px 8px;
+    font-family:ui-monospace,Consolas,monospace;font-size:.88em}
+footer{text-align:center;color:var(--tx3);font-size:.9rem;margin-top:34px}
 
-/* 적용 전/후 스크린샷 */
 .shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .shots figure{position:relative;margin:0;border-radius:10px;overflow:hidden;
-              border:1px solid var(--border);background:#0F172A;
-              box-shadow:0 2px 10px rgba(15,23,42,.10)}
+              border:1px solid var(--border);background:#0F172A}
 .shots img{display:block;width:100%;height:auto}
-.tag{position:absolute;top:9px;left:9px;z-index:1;
-     font-size:.85rem;font-weight:700;letter-spacing:.3px;
+.tag{position:absolute;top:9px;left:9px;font-size:.85rem;font-weight:700;
      padding:3px 11px;border-radius:999px;color:#fff;
      box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .tag-before{background:#64748B}
 .tag-after{background:var(--green)}
-@media(max-width:640px){.shots{grid-template-columns:1fr}}
-footer{text-align:center;color:var(--tx3);font-size:.9rem;margin-top:34px}
-@media(max-width:640px){.hero h1{font-size:1.35rem}.btn{width:100%;justify-content:center}}
+@media(max-width:640px){.shots{grid-template-columns:1fr}.hero h1{font-size:1.35rem}
+  .btn{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
@@ -79,21 +74,21 @@ footer{text-align:center;color:var(--tx3);font-size:.9rem;margin-top:34px}
     <h1>Funnel Runners 한글패치</h1>
     <p>언어 설정 자체가 없는 게임에 한국어를 넣습니다. 퀘스트와 안내문을 읽으면서 할 수 있습니다.</p>
     <div class="badges">
-      <span class="badge">문구 2,935개</span>
-      <span class="badge">v3.0</span>
-      <span class="badge">게임 v0.36.12 전용</span>
+      <span class="badge">번역 1,422개</span>
+      <span class="badge">v4.0</span>
+      <span class="badge">게임 원본 수정 없음</span>
       <span class="badge">멀티 지장 없음</span>
     </div>
   </div>
 
   <div class="dl">
-    <a class="btn btn-main" href="downloads/FunnelRunners-KR-Patch-v3.0.zip">
-      ⬇ 한글패치 받기 <span style="opacity:.7;font-weight:500">(82MB)</span>
+    <a class="btn" href="downloads/FunnelRunners-KR-Patch-v4.0.zip">
+      ⬇ 한글패치 받기 <span style="opacity:.7;font-weight:500">(30MB)</span>
     </a>
   </div>
 
   <div class="card">
-    <h2><span class="ic">🖼️</span>이렇게 바뀝니다</h2>
+    <h2>🖼️ 이렇게 바뀝니다</h2>
     <div class="shots">
       <figure>
         <span class="tag tag-before">적용 전</span>
@@ -105,71 +100,77 @@ footer{text-align:center;color:var(--tx3);font-size:.9rem;margin-top:34px}
       </figure>
     </div>
     <p class="muted" style="margin-top:12px">
-      메뉴·안내서·정비 항목이 전부 한글로 바뀝니다.
-      퀘스트 안내문과 회사 컴퓨터의 문서까지 포함해 <b>문구 2,935개</b>를 번역했습니다.
+      메뉴·설정·정비 안내·아이템·튜토리얼·임무·업적은 물론,
+      회사 컴퓨터에 들어 있는 신문과 사내 문서까지 번역했습니다.
     </p>
   </div>
 
   <div class="card">
-    <h2><span class="ic">📦</span>설치</h2>
+    <h2>📦 설치</h2>
     <ol>
-      <li><b>게임과 스팀을 완전히 종료합니다.</b> (중요)</li>
-      <li>압축을 풉니다. 압축 안에서 바로 실행하면 안 됩니다.</li>
-      <li><code>설치.bat</code> 을 더블클릭합니다.</li>
-      <li>게임을 못 찾으면 경로를 물어봅니다. 아래를 참고해 붙여넣으세요.</li>
+      <li>게임을 종료합니다.</li>
+      <li>압축을 풉니다. 안에 <code>StormEscape</code> 폴더가 나옵니다.</li>
+      <li>그 폴더를 <b>게임 폴더에 그대로 덮어씁니다.</b></li>
     </ol>
+    <p class="muted" style="margin-top:10px">덮어쓸 위치:</p>
+    <p><code>...\steamapps\common\Funnel Runners\</code></p>
     <div class="note">
       <b>게임 폴더 찾기</b><br>
-      스팀 → 라이브러리 → Funnel Runners 우클릭 → 관리 → 로컬 파일 보기<br>
-      → <code>StormEscape</code> → <code>Content</code> → <code>Paks</code> 로 들어가서 주소창 경로를 복사
+      스팀 → 라이브러리 → Funnel Runners 우클릭 → 관리 → 로컬 파일 보기
     </div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">↩️</span>제거</h2>
-    <p class="muted">게임과 스팀을 끄고 <code>제거.bat</code> 을 실행하면 원래대로 돌아갑니다.
-    2.6GB를 다시 받을 필요 없이 몇 초면 끝납니다.</p>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🔄</span>게임이 업데이트되면</h2>
-    <p class="muted">스팀이 패치된 파일을 원본으로 덮어써서 <b>패치가 지워지고 영어로 돌아갑니다.</b>
-    게임 자체는 멀쩡합니다. 새 버전 패치를 받아 다시 설치하면 됩니다.</p>
     <div class="note ok">
-      이 패치는 만들어질 당시의 게임 버전에만 맞습니다. 버전이 다르면
-      <code>설치.bat</code> 이 스스로 확인하고 멈추므로 게임이 깨질 일은 없습니다.
+      게임 원본 파일은 하나도 건드리지 않습니다. 파일을 추가하기만 하므로
+      2.6GB 백업도, 무결성 검사도 필요 없습니다.
     </div>
   </div>
 
   <div class="card">
-    <h2><span class="ic">❓</span>문제가 생기면</h2>
-    <div class="faq"><b>글자가 네모나 ◆ 로 깨져요</b>
-      <span class="muted">폰트가 안 들어간 것입니다. 게임을 끄고 제거 → 설치를 다시 하세요.</span></div>
-    <div class="faq"><b>게임이 안 켜져요</b>
-      <span class="muted">제거.bat 을 실행하세요. 그래도 안 되면 스팀 →
-      속성 → 설치된 파일 → 게임 파일 무결성 확인.</span></div>
-    <div class="faq"><b>설치가 실패해요</b>
-      <span class="muted">게임이나 스팀이 켜져 있는 경우가 대부분입니다. 완전히 끄고,
-      그래도 안 되면 설치.bat 을 관리자 권한으로 실행하세요.</span></div>
-    <div class="faq"><b>같이 하는 사람도 한글로 보이나요?</b>
-      <span class="muted">아니요. 내 화면에만 적용되고 상대 화면은 영어 그대로입니다.
-      멀티에 지장 없습니다.</span></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">📝</span>참고</h2>
+    <h2>↩️ 제거</h2>
+    <p class="muted">아래 것들만 지우면 원래대로 돌아갑니다.</p>
     <ul class="muted">
-      <li>메뉴·설정·정비 안내·아이템·튜토리얼·임무·업적, 회사 컴퓨터의 문서까지 번역했습니다.</li>
-      <li>사람 이름, 상표(APEX 등), 제3자 라이선스 고지는 일부러 영어로 뒀습니다.</li>
-      <li>게임 폰트에 한글 글리프가 없어 나눔고딕(오픈 라이선스)으로 함께 교체합니다.</li>
+      <li><code>StormEscape\Binaries\Win64\dwmapi.dll</code></li>
+      <li><code>StormEscape\Binaries\Win64\ue4ss\</code> (폴더 통째로)</li>
+      <li><code>StormEscape\Content\Paks\StormEscape-Windows_P.pak</code> (및 같은 이름의 .ucas, .utoc)</li>
     </ul>
+  </div>
+
+  <div class="card">
+    <h2>⌨️ 게임 안에서</h2>
+    <p class="muted">
+      <kbd>F7</kbd> 화면 글자를 다시 훑어 번역 적용 &nbsp;·&nbsp;
+      <kbd>F8</kbd> 번역 파일 다시 읽기
+    </p>
+    <p class="muted" style="margin-top:8px">번역이 안 된 곳이 보이면 F7 을 눌러 보세요.</p>
+  </div>
+
+  <div class="card">
+    <h2>❓ 문제가 생기면</h2>
+    <div class="faq"><b>한글이 안 나와요</b>
+      <span class="muted">덮어쓴 위치가 맞는지 확인하세요.
+      <code>Funnel Runners</code> 폴더 안에 <code>StormEscape</code> 가 이미 있어야 정상입니다.</span></div>
+    <div class="faq"><b>일부만 한글이에요</b>
+      <span class="muted">게임 안에서 F7 을 눌러 보세요. 그래도 남으면 아직 번역이 안 된 문구입니다.</span></div>
+    <div class="faq"><b>같이 하는 사람도 한글로 보이나요?</b>
+      <span class="muted">아니요. 내 화면에만 적용되고 상대 화면은 영어 그대로입니다.</span></div>
+    <div class="faq"><b>게임이 업데이트되면요?</b>
+      <span class="muted">게임 원본을 고치는 방식이 아니라서 대체로 그대로 동작합니다.
+      혹시 안 되면 다시 받아 덮어쓰세요.</span></div>
+  </div>
+
+  <div class="card">
+    <h2>🙏 만든 사람</h2>
+    <p class="muted">
+      원본 한글패치와 UE4SS 적용은 <b>Eueeeeeeeek</b> 님 작업입니다 —
+      <a href="http://eueeeeeeeek.kr">eueeeeeeeek.kr</a><br>
+      참스코드는 거기에 번역 1,101개를 더했습니다.
+      게임 안 글자를 실행 중에 바꿔치기하는 방식(UE4SS 후킹)은 전부 그분이 만든 틀입니다.
+    </p>
     <div class="note warn">
-      공식 패치가 아닙니다. 게임 파일을 직접 고치는 방식이라, 쓰실지는 각자 판단하시면 됩니다.
-      원본은 <code>제거.bat</code> 으로 언제든 되돌릴 수 있습니다.
+      공식 패치가 아닙니다. 사람 이름과 상표(APEX 등)는 일부러 영어로 두었습니다.
     </div>
   </div>
 
-  <footer>참스코드 · Funnel Runners 한글패치 v3.0</footer>
+  <footer>참스코드 · Funnel Runners 한글패치 v4.0</footer>
 </div>
 </body>
 </html>
