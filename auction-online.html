@@ -629,7 +629,8 @@ const ADMIN_TAP_COUNT = 10;        // 🔨 아이콘을 이만큼 연타하면 �
 const AUCTION_TIME = 6;            // 입찰 제한시간(초)
 const RPS_TIME = 5;                // 가위바위보 제한시간(초)
 const START_POINTS = 100;          // 팀당 시작 포인트
-const ROOM_TTL = 60 * 60 * 1000;   // 방 유효시간 1시간
+const ROOM_TTL = 60 * 60 * 1000;   // 방 유효시간 1시간 (마지막 동작 기준)
+const IDLE_WARN = 5 * 60 * 1000;   // 닫히기 5분 전에 미리 알린다
 const MAX_TEMPLATES = 5;
 
 firebase.initializeApp({
@@ -734,6 +735,7 @@ function roleSlotOpen(team, role){
   if(lim === undefined) return false;
   return teamRoleCount(team, role) < lim;
 }
+let lastSig = null, lastTouchWrite = 0, idleWarned = false;   // 무동작 감시
 let openRoom = null;      // 지금 열려 있는 방 (색인에서 찾은 것)
 let openRoomLeaders = {}; // 그 방의 팀장 자리 상황
 let homeWatchers = [];    // 홈 화면 리스너
@@ -1242,7 +1244,8 @@ function createRoom(){
     points:{ 1:START_POINTS, 2:START_POINTS },
     deadline:0, bid:null, hist:[], passes:{},
     rps:{ round:1, hands:{}, winner:0 },
-    turn:0, heroPick:{}, heroDone:{}, seq:0
+    turn:0, heroPick:{}, heroDone:{}, seq:0,
+    touchedAt:Date.now()
   };
 
   const asSpec = setup.seat === 'spectator';
@@ -1278,7 +1281,12 @@ function watchOpenRoom(){
     // 만료된 찌꺼기는 지나가는 김에 치운다
     Object.keys(all).forEach(k=>{
       const r = all[k];
-      if(r && r.expiresAt && r.expiresAt <= now) db.ref(ROOM_INDEX+'/'+k).remove();
+      if(r && r.expiresAt && r.expiresAt <= now){
+        db.ref(ROOM_INDEX+'/'+k).remove();
+        db.ref('rooms/'+k).remove();
+        db.ref(STATE_PATH+'/'+k).remove();
+        db.ref('members/'+k).remove();
+      }
     });
     setOpenRoom(live[0] || null, live.length);
   }, ()=>{ $('openRoomBox').innerHTML = '<div class="empty">방 목록을 불러오지 못했습니다 — 코드로 입장해 주세요</div>'; });
@@ -1443,6 +1451,7 @@ function normalizeState(s){
   s.rps = s.rps || { round:1, hands:{}, winner:0 };
   s.rps.hands = s.rps.hands || {};
   s.heroPick = s.heroPick || {}; s.heroDone = s.heroDone || {};
+  s.touchedAt = s.touchedAt || 0;
   return s;
 }
 
@@ -1464,6 +1473,7 @@ function leaveRoom(silent){
   stopBGM(); lastAuctionPid = null; bidCombo = 0;
   roomCode = null; state = null; myTeam = null; isHost = false; specCount = 0;
   lastPhase = null; lastBidKey = ''; seenEvent = -1; gotFirstState = false;
+  lastSig = null; lastTouchWrite = 0; idleWarned = false;
   $('leaveBtn').style.display = 'none';
   $('statusChip').style.display = 'none';
   showScreen('home');
@@ -1473,6 +1483,7 @@ function leaveRoom(silent){
 let lastLeaders = {};
 function renderLobbyLeaders(room){
   const L = room.leaders || {};
+  if(isHost && JSON.stringify(L) !== JSON.stringify(lastLeaders)){ idleWarned = false; touchRoom(); }
   lastLeaders = L;
   [1,2].forEach(t=>{
     const slot = $('lslot'+t), nm = $('lname'+t);
@@ -2059,8 +2070,54 @@ function nextPhaseAfterDraft(){
 /* ============================================================
    방장 전용 진행 로직 (심판)
    ============================================================ */
+/* 활동 신호 — 이 값이 바뀌면 「뭔가 일어났다」 로 본다.
+   단계 전환, 입찰·지명(seq), 참가자 선택, 영웅 지정까지 모두 잡힌다. */
+function activitySig(s){
+  return [s.phase, s.seq, (s.picked||[]).length, JSON.stringify(s.heroPick||{})].join('|');
+}
+function touchRoom(){
+  const now = srvNow();
+  if(now - lastTouchWrite < 30000) return;   // 30초에 한 번만 기록한다
+  lastTouchWrite = now;
+  db.ref(STATE_PATH+'/'+roomCode+'/touchedAt').set(now);
+  db.ref('rooms/'+roomCode+'/expiresAt').set(now + ROOM_TTL);
+  db.ref(ROOM_INDEX+'/'+roomCode+'/expiresAt').set(now + ROOM_TTL);
+}
+function checkIdle(){
+  const base = state.touchedAt || 0;
+  if(!base) return touchRoom();
+  const idle = srvNow() - base;
+  if(idle >= ROOM_TTL){
+    toast('1시간 동안 아무 동작이 없어 방을 닫았습니다');
+    say('방을 닫습니다');
+    closeRoomForAll();
+    return true;
+  }
+  if(idle >= ROOM_TTL - IDLE_WARN && !idleWarned){
+    idleWarned = true;
+    toast('5분 안에 아무 동작이 없으면 방이 닫힙니다');
+  }
+  return false;
+}
+function closeRoomForAll(){
+  const code = roomCode;
+  if(code){
+    db.ref('rooms/'+code).remove();
+    db.ref(STATE_PATH+'/'+code).remove();
+    db.ref('members/'+code).remove();
+    db.ref(ROOM_INDEX+'/'+code).remove();
+  }
+  leaveRoom(true);
+}
+
 function hostTick(){
   if(!isHost || !state || !roomCode) return;
+
+  // 무동작 감시 — 방장만 판정한다
+  const sig = activitySig(state);
+  if(sig !== lastSig){ lastSig = sig; idleWarned = false; touchRoom(); }
+  if(checkIdle()) return;
+
   const ph = state.phase;
 
   if(ph === 'rps'){
