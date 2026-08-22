@@ -416,6 +416,215 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   .addrow .tierpick{grid-column:1/-1;order:3}
   .sold-stamp{font-size:2.8em}
 }
+
+/* ===== 등급 시그니처 플레이트 (시안에서 이식) ===== */
+/* ═════════════════════════════════════════════════════════════
+   앱 다크 팔레트
+   ═════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0A1020; --card:#141E33; --surface:#1B2842; --line:#2B3D5C;
+  --ink:#E6EDF8; --muted:#7C8FAE; --dim:#AEBFD8;
+  --blue:#3B82F6; --orange:#F59E0B; --ok:#34D399; --bad:#F87171;
+}
+*{box-sizing:border-box}
+.wrap{max-width:1420px;margin:0 auto}
+.cap-txt{font-size:13.5px;color:var(--muted);margin:0 0 20px;max-width:1000px;line-height:1.65}
+.cap-txt b{color:var(--dim)}
+.rowwrap{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.zoominner{transform:scale(2.6);transform-origin:0 50%;position:absolute;top:50%;left:24px;translate:0 -50%}
+/* ═════════════════════════════════════════════════════════════
+   (A) 네임플레이트 — 오버워치 "COMPETITIVE SIGNATURES" 방식
+   해부:  [ 인시그니아 칩 48px ][ 기울어진 솔리드 플레이트 ][ 파티클 존 84px ]
+   · 바깥 높이 62px 고정 · 좌측 48px / 우측 84px 장식 존 고정
+     → 등급이 달라도 리스트 폭·높이가 예측 가능하고 이름 시작점이 안 흔들림
+   · 좌우 대칭은 더 이상 강제하지 않는다 (레퍼런스가 비대칭)
+   · 이름은 채워진 플레이트 '안'에 흰색으로 놓이고,
+     어떤 장식도 이름 상자를 덮지 않는다 (버스트는 DOM 상 플레이트보다 앞 = 뒤에 깔림)
+   ═════════════════════════════════════════════════════════════ */
+.np{
+  position:relative;
+  display:inline-flex;align-items:center;
+  height:62px;                /* 전 등급 동일 */
+  padding-left:48px;          /* 인시그니아 존 (고정) */
+  padding-right:84px;         /* 파티클 존 (고정) */
+  vertical-align:middle;
+  --lean:10px;
+}
+/* 1) 번개 버스트 — DOM 첫 자식이라 뒤에 깔린다 (음수 z-index 불필요) */
+.np .burst{position:absolute;right:84px;margin-right:-118px;top:0;
+  width:214px;height:62px;pointer-events:none}
+.np .burst svg{display:block;overflow:visible}
+/* 2) 인시그니아 칩 */
+.np .insig{position:absolute;left:0;top:11px;width:44px;height:40px;pointer-events:none}
+/* 3) 메인 플레이트 — 12° 기운 평행사변형, 솔리드 채움 */
+.np-plate{
+  position:relative;height:40px;display:flex;align-items:center;
+  padding:0 24px 0 27px;
+  clip-path:polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%);
+  background:linear-gradient(180deg,var(--pTop) 0%,var(--pMid) 52%,var(--pBot) 100%);
+}
+/* 위쪽 하이라이트 한 줄 — 금속 느낌 */
+.np-plate::before{content:'';position:absolute;left:0;right:0;top:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),rgba(255,255,255,.15));}
+.np-name{
+  font-size:21px;font-weight:700;line-height:1;color:#fff;white-space:nowrap;
+  letter-spacing:.055em;transform:skewX(-10deg);display:inline-block;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+/* 4) 언더바 — 플레이트 아래로 살짝 삐져나오는 두 번째 층 */
+.np .ubar{position:absolute;left:62px;right:66px;top:49px;height:6px;pointer-events:none;
+  background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 55%,transparent));
+  transform:skewX(-12deg)}
+/* 5) 파티클 존 */
+.np .parts{position:absolute;right:0;top:0;width:84px;height:62px;pointer-events:none}
+.pt{position:absolute;display:block}
+/* ── 글로우 사다리 ───────────────────────────────────────── */
+.np.o5 .np-plate{box-shadow:0 0 0 0 transparent}
+.np.o6 .np-plate{box-shadow:0 2px 14px -2px var(--glow)}
+.np.o7 .np-plate{box-shadow:0 2px 20px -2px var(--glow),0 0 34px -8px var(--glow)}
+.np.o7 .ubar,.np.o8 .ubar,.np.o9 .ubar{box-shadow:0 0 10px var(--acc),0 0 22px color-mix(in srgb,var(--acc) 55%,transparent)}
+.np.o8 .np-plate{box-shadow:0 2px 22px -2px var(--glow),0 0 40px -6px var(--glow)}
+.np.o9 .np-plate{animation:plGlow 1.5s ease-in-out infinite}
+@keyframes plGlow{
+  0%,100%{box-shadow:0 2px 22px -2px var(--glow),0 0 40px -6px var(--glow)}
+  50%    {box-shadow:0 2px 30px 0 var(--glow),0 0 62px -2px var(--glow),0 0 12px -2px var(--acc)}
+}
+/* ── 플레이트 면을 훑는 셰이머 (마스터+) ───────────────────
+   ::after 로 하면 이름보다 위에 그려져서 흰 글자를 씻어버린다.
+   실제 span 을 이름 '앞'에 넣어 항상 글자 아래 레이어로 둔다. */
+.np .shine{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,
+    rgba(255,255,255,0) 43%,rgba(255,255,255,.22) 49%,
+    rgba(255,255,255,.42) 51%,rgba(255,255,255,0) 58%);
+  background-size:260% 100%;background-repeat:repeat;
+  animation:shimmer 3.4s linear infinite}
+.np.o9 .shine{animation-duration:2.1s}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-140% 0}}
+/* ── 파티클 움직임 (마스터+) ─────────────────────────────── */
+.np.o8 .pt,.np.o9 .pt{animation:drift 3.2s ease-in-out infinite alternate}
+.np.o9 .pt{animation-duration:2.1s}
+@keyframes drift{
+  from{transform:translate(0,0) rotate(var(--r,0deg))}
+  to  {transform:translate(var(--dx,4px),var(--dy,-5px)) rotate(calc(var(--r,0deg) + 25deg))}
+}
+/* ── 챌린저 전용 구조물 — 다른 등급엔 아예 없는 것들 ───────
+   전부 이름 상자 '바깥'(위쪽 아크 / 아래쪽 언더바 / 상자 모서리)에만 산다. */
+.np .scan{position:absolute;left:40px;right:60px;top:6px;height:2px;pointer-events:none;
+  transform:skewX(-12deg);box-shadow:0 0 8px var(--acc);
+  background:linear-gradient(90deg,transparent,var(--acc) 16%,#fff 50%,var(--acc) 84%,transparent);
+  background-size:220% 100%;animation:shimmer 1.9s linear infinite}
+.np .ubar2{position:absolute;left:80px;right:46px;top:56px;height:3px;pointer-events:none;
+  transform:skewX(-12deg);box-shadow:0 0 8px var(--hue);
+  background:linear-gradient(90deg,var(--hue),color-mix(in srgb,var(--hue) 20%,transparent))}
+.np .brk{position:absolute;width:15px;height:13px;pointer-events:none;
+  border:2px solid var(--acc);opacity:.9;box-shadow:0 0 7px var(--glow)}
+.np .brk-tl{left:44px;top:3px;border-right:0;border-bottom:0}
+.np .brk-br{right:80px;bottom:3px;border-left:0;border-top:0}
+/* ── 번개 크래클 ─────────────────────────────────────────── */
+.blt g{transform-box:fill-box;transform-origin:0% 50%}
+.blt .g1{animation:crk1 1.35s steps(1,end) infinite}
+.blt .g2{animation:crk2 1.05s steps(1,end) infinite}
+.blt .g3{animation:crk3 1.75s steps(1,end) infinite}
+@keyframes crk1{0%,42%{opacity:1;transform:scaleX(1)}43%,100%{opacity:.18;transform:scaleX(.9)}}
+@keyframes crk2{0%,28%{opacity:.25;transform:scaleX(.92)}29%,72%{opacity:1;transform:scaleX(1.04)}73%,100%{opacity:.4}}
+@keyframes crk3{0%,55%{opacity:.9;transform:scaleX(1.02)}56%,100%{opacity:.12;transform:scaleX(.88)}}
+.np.o9 .blt .g1{animation-duration:.82s}
+.np.o9 .blt .g2{animation-duration:.62s}
+.np.o9 .blt .g3{animation-duration:1.02s}
+/* 챌린저 전용 — 아무 등급도 안 가진 것: 플레이트를 훑고 지나가는 전기 스캔 + 잔상 */
+.np.o9 .burst{animation:burstBreathe 2.6s ease-in-out infinite}
+@keyframes burstBreathe{0%,100%{filter:drop-shadow(0 0 5px #F0489C)}50%{filter:drop-shadow(0 0 16px #FF5FB4) drop-shadow(0 0 30px rgba(240,72,156,.55))}}
+/* ═════════════════════════════════════════════════════════════
+   (B) 빅 카드 — 320 × 236 고정
+   ═════════════════════════════════════════════════════════════ */
+.bc{position:relative;width:320px;height:236px;--lean:15px}
+.bc .bcburst{position:absolute;left:-20px;top:-16px;width:360px;height:268px;pointer-events:none}
+.bc .bcinsig{position:absolute;left:6px;top:80px;width:64px;height:56px}
+.bc .bcplate{
+  position:absolute;left:76px;right:8px;top:80px;height:56px;
+  display:flex;align-items:center;padding:0 22px 0 30px;
+  clip-path:polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%);
+  background:linear-gradient(180deg,var(--pTop) 0%,var(--pMid) 52%,var(--pBot) 100%);
+}
+.bc .bcplate::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),rgba(255,255,255,.12))}
+.bc .bcname{font-size:31px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.07em;
+  transform:skewX(-9deg);display:inline-block;line-height:1;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+.bc .bcubar{position:absolute;left:100px;right:-4px;top:136px;height:8px;transform:skewX(-12deg);
+  background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 40%,transparent))}
+.bc .bcparts{position:absolute;right:-14px;top:34px;width:132px;height:170px;pointer-events:none}
+.bc .bcen{position:absolute;left:80px;top:44px;font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:12px;letter-spacing:.32em;color:var(--acc,var(--hue));text-indent:.32em}
+.bc .bcmeta{position:absolute;left:82px;top:158px;display:flex;align-items:baseline;gap:12px}
+.bc .bcko{font-size:16px;font-weight:700;color:var(--dim);letter-spacing:.1em;transform:skewX(-9deg);
+  text-shadow:0 1px 4px #0A1020,0 0 8px #0A1020}
+.bc .bcpw{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;
+  color:var(--muted);text-shadow:0 1px 4px #0A1020,0 0 8px #0A1020}
+.bc .bcpips{position:absolute;left:82px;top:188px;display:flex;gap:5px}
+.bc .bcpips i{width:16px;height:5px;display:block;background:#28374F;transform:skewX(-24deg)}
+.bc .bcpips i.on{background:var(--hue);box-shadow:0 0 8px var(--glow)}
+.bc.o6{filter:drop-shadow(0 4px 18px var(--glow))}
+.bc.o7{filter:drop-shadow(0 4px 26px var(--glow))}
+.bc.o8{filter:drop-shadow(0 4px 30px var(--glow))}
+.bc.o9{animation:bcGlow 1.6s ease-in-out infinite}
+@keyframes bcGlow{
+  0%,100%{filter:drop-shadow(0 4px 30px var(--glow))}
+  50%    {filter:drop-shadow(0 4px 52px var(--glow)) drop-shadow(0 0 16px rgba(240,72,156,.55))}
+}
+.bc .shine{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,rgba(255,255,255,0) 43%,rgba(255,255,255,.20) 49%,
+             rgba(255,255,255,.40) 51%,rgba(255,255,255,0) 58%);
+  background-size:260% 100%;animation:shimmer 3.4s linear infinite}
+.bc.o9 .shine{animation-duration:2.1s}
+.bc.o8 .pt,.bc.o9 .pt{animation:drift 3.4s ease-in-out infinite alternate}
+.bc.o9 .pt{animation-duration:2.2s}
+/* 빅 카드의 챌린저 전용 구조물 */
+.bc .bcscan{position:absolute;left:68px;right:12px;top:70px;height:3px;transform:skewX(-12deg);
+  box-shadow:0 0 10px var(--acc);background-size:220% 100%;animation:shimmer 1.9s linear infinite;
+  background:linear-gradient(90deg,transparent,var(--acc) 16%,#fff 50%,var(--acc) 84%,transparent)}
+.bc .bcubar2{position:absolute;left:126px;right:-18px;top:147px;height:4px;transform:skewX(-12deg);
+  box-shadow:0 0 10px var(--hue);
+  background:linear-gradient(90deg,var(--hue),color-mix(in srgb,var(--hue) 15%,transparent))}
+.bc .bcbrk{position:absolute;width:28px;height:24px;border:3px solid var(--acc);opacity:.9;
+  box-shadow:0 0 10px var(--glow)}
+/* 브래킷은 카드 모서리가 아니라 '플레이트 모서리'를 문다 */
+.bc .bcbrk-tl{left:74px;top:70px;border-right:0;border-bottom:0}
+.bc .bcbrk-br{right:0;bottom:100px;border-left:0;border-top:0}
+/* eWipe 는 clip-path/opacity, shimmer 는 background-position — 속성이 겹치지 않아
+   둘을 같이 걸어야 등장 후에도 스캔 빛이 계속 흐른다 */
+.bc.enter .bcscan{animation:eWipe .45s .42s cubic-bezier(.16,1,.3,1) both,
+                            shimmer 1.9s linear infinite}
+.bc.enter .bcubar2{animation:eWipe .45s .42s cubic-bezier(.16,1,.3,1) both}
+.bc.enter .bcbrk{animation:eSnap .4s .5s cubic-bezier(.2,1.7,.4,1) both}
+/* ── 빅 카드 등장 연출 ────────────────────────────────────── */
+.bc.enter .bcplate {animation:eSlam  .5s cubic-bezier(.16,1.4,.35,1) both}
+.bc.enter .bcinsig {animation:eSnap  .42s .3s cubic-bezier(.2,1.7,.4,1) both}
+.bc.enter .bcubar  {animation:eWipe  .45s .34s cubic-bezier(.16,1,.3,1) both}
+.bc.enter .bcname  {animation:eName  .4s .16s ease-out both}
+.bc.enter .bcen    {animation:eSlideL .4s .38s ease-out both}
+.bc.enter .bcmeta,
+.bc.enter .bcpips  {animation:eSlideL .4s .46s ease-out both}
+.bc.enter .bcburst {animation:eFlash .7s .18s ease-out both}
+.bc.enter .bcparts {animation:ePop   .6s .34s cubic-bezier(.16,1,.3,1) both}
+@keyframes eSlam {0%{opacity:0;transform:translateX(-46px) skewX(10deg) scaleX(1.12)}
+                  100%{opacity:1;transform:translateX(0) skewX(0) scaleX(1)}}
+@keyframes eName {0%{opacity:0;transform:skewX(-9deg) translateX(26px)}
+                  100%{opacity:1;transform:skewX(-9deg) translateX(0)}}
+@keyframes eSnap {0%{opacity:0;transform:translateX(-30px) scale(.7)}100%{opacity:1;transform:none}}
+@keyframes eWipe {0%{opacity:0;clip-path:inset(0 100% 0 0)}100%{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes eSlideL{0%{opacity:0;transform:translateX(-16px)}100%{opacity:1;transform:none}}
+@keyframes eFlash{0%{opacity:0;transform:scale(.55)}
+                  35%{opacity:1;transform:scale(1.14)}
+                  100%{opacity:1;transform:scale(1)}}
+@keyframes ePop  {0%{opacity:0;transform:translateX(-34px) scale(.6)}100%{opacity:1;transform:none}}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+/* 앱에서 쓰는 껍데기 */
+.npwrap{display:inline-block;cursor:default;line-height:0}
+.npwrap.click{cursor:pointer}
+.npwrap.click:hover{filter:brightness(1.15)}
+.npwrap.sel{outline:2px solid var(--ok);outline-offset:3px;border-radius:6px}
+.npwrap.dimmed{opacity:.45}
+.npwrap.locked{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -521,9 +730,10 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <!-- 경매 패널 -->
     <div class="card mt" id="panelAuction" style="display:none">
       <div class="now">
-        <div class="nicon" id="aIcon">🎲</div>
-        <div class="nname" id="aName">-</div>
-        <div class="nmeta"><span id="aTier">0점</span><span id="aRole">-</span><span id="aOrder">-</span></div>
+        <div id="aBigCard"></div>
+        <div class="nicon" id="aIcon" style="display:none"></div>
+        <div class="nname" id="aName" style="display:none">-</div>
+        <div class="nmeta"><span id="aTier" style="display:none"></span><span id="aRole" style="display:none">-</span><span id="aOrder">-</span></div>
       </div>
       <div class="center">
         <div class="timer" id="aTimer">6</div>
@@ -831,17 +1041,9 @@ const OW_HEROES = {
 };
 
 /* 등급 — 화면에는 이름으로, 계산에는 전투력(숫자)으로 */
-const TIERS = [
-  { v:1, name:'브론즈',   key:'bronze', power:1  },
-  { v:2, name:'실버',     key:'silver', power:3  },
-  { v:3, name:'골드',     key:'gold',   power:6  },
-  { v:4, name:'플래티넘', key:'plat',   power:8  },
-  { v:5, name:'다이아',   key:'dia',    power:10 },
-  { v:6, name:'마스터',   key:'master', power:13 },
-  { v:7, name:'챌린저',   key:'chall',  power:20 }
-];
-const MAX_TIER = TIERS.length;
-function tierInfo(v){ const p = parseInt(v); const i = Math.max(1, Math.min(MAX_TIER, isNaN(p) ? 3 : p)); return TIERS[i-1]; }
+/* 등급표는 시그니처 플레이트 쪽 TIERS 를 단일 출처로 쓴다 (아래 정의) */
+function tierInfo(v){ const p = parseInt(v); const i = Math.max(1, Math.min(MAX_TIER, isNaN(p) ? 3 : p));
+  const t = TIERS[i-1]; return { v:t.lvl, name:t.ko, key:t.k, power:t.pw }; }
 function tierBadge(v){ const t = tierInfo(v); return '<span class="tb '+t.key+'" title="전투력 '+t.power+'">'+t.name+'</span>'; }
 /* 등급 차이는 선형이 아니다 — 밸런스 계산은 전부 이 전투력으로 한다 */
 function tierPower(v){ return tierInfo(v).power; }
@@ -872,6 +1074,208 @@ function iAmLeader(){ return myTeam === 1 || myTeam === 2; }
 
 /* 오버워치 역할 고정: 팀당 탱커1 · 딜러2 · 힐러2 */
 /* 팀 구성 — 팀이 정해진 뒤 이 순서대로 자리를 만들고 끌어다 놓는다 */
+/* ===== 등급 시그니처 플레이트 ===== */
+const TIERS = [
+  {k:'bronze',lvl:1,orn:3,ko:'브론즈',en:'BRONZE',pw:1,pips:0,
+   hue:'#D08A4A',pTop:'#C4813F',pMid:'#8E5626',pBot:'#4E2C13',acc:'#D08A4A',
+   glow:'rgba(208,138,74,.45)',note:'플레이트만. 칩도 파티클도 없음.'},
+  {k:'silver',lvl:2,orn:4,ko:'실버',en:'SILVER',pw:3,pips:1,
+   hue:'#A6B8CE',pTop:'#8DA1BB',pMid:'#5D7089',pBot:'#31405A',acc:'#A6B8CE',
+   glow:'rgba(166,184,206,.4)',note:'+ 인시그니아 칩, 핍 1개.'},
+  {k:'gold',lvl:3,orn:5,ko:'골드',en:'GOLD',pw:6,pips:2,
+   hue:'#F0B429',pTop:'#DFA317',pMid:'#A2740F',pBot:'#5B4106',acc:'#F0B429',
+   glow:'rgba(240,180,41,.45)',note:'+ 핍 2개, 트레일 사각 파티클 몇 개.'},
+  {k:'plat',lvl:4,orn:6,ko:'플래티넘',en:'PLATINUM',pw:8,pips:3,
+   hue:'#2DD4BF',pTop:'#20B5A3',pMid:'#137A70',pBot:'#08453F',acc:'#FDE047',
+   glow:'rgba(45,212,191,.45)',note:'+ 핍 3개, 파티클 산개, 언더바 액센트(노랑).'},
+  {k:'dia',lvl:5,orn:7,ko:'다이아',en:'DIAMOND',pw:10,pips:3,
+   hue:'#60A5FA',pTop:'#4A8FE8',pMid:'#2E5FA8',pBot:'#16386F',acc:'#22D3EE',
+   glow:'rgba(96,165,250,.5)',note:'+ 파티클 조밀, 바깥 글로우, 빛나는 언더바(시안).'},
+  {k:'master',lvl:6,orn:8,ko:'마스터',en:'MASTER',pw:13,pips:3,
+   hue:'#C084FC',pTop:'#A660E8',pMid:'#7634B0',pBot:'#431776',acc:'#22D3EE',
+   glow:'rgba(192,132,252,.5)',note:'+ 뒤에서 번쩍이는 번개, 플레이트 면을 훑는 셰이머, 떠다니는 파티클.'},
+  {k:'chall',lvl:7,orn:9,ko:'챌린저',en:'CHALLENGER',pw:20,pips:3,
+   hue:'#FB7A3C',pTop:'#F2681F',pMid:'#AF3E12',pBot:'#631F07',acc:'#FDE047',
+   glow:'rgba(251,122,60,.55)',note:'천장. 굵고 빠른 크래클 번개 + 전기 스캔라인 + 이중 언더바 + 프레임 브래킷. 챌린저만 가진 구조.'},
+];
+const MAX_TIER = TIERS.length;
+
+const T={}; TIERS.forEach(t=>T[t.k]=t);
+const BOLT_A = '#FF5FB4', BOLT_B = '#F0489C', BOLT_C = '#C026A9';
+const SQUASH = 0.40;
+
+/* 결정적 난수 — 새로고침해도 같은 배치가 나오도록 */
+function rng(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
+
+/* ══════════════════════════════════════════════════════════════
+   인시그니아 칩 — 육각/쉐브론. 밝은 메탈 톤이라 채도 높은 플레이트와 분리돼 보인다.
+   viewBox 0 0 40 34. 왼쪽 끝이 '<' 로 뾰족하고, 오른쪽 변은 플레이트와 같은 12° 기울기.
+   ══════════════════════════════════════════════════════════════ */
+function insignia(t,w,h){
+  const n = t.pips;
+  const sx = w/40, sy = h/34;
+  let pips = '';
+  if (n > 0){
+    const pitch = 6, ph = 3.4, y0 = 17 - (n*pitch - (pitch-ph))/2;
+    for(let i=0;i<n;i++){
+      const y = y0 + i*pitch;
+      const x = 14.6 + (17 - (y+ph/2))*0.235;   /* 칩 기울기를 따라 살짝 밀어준다 */
+      pips += `<path d="M${x.toFixed(2)} ${y.toFixed(2)} h11.4 l-${(ph*0.235).toFixed(2)} ${ph} h-11.4 Z"
+                 fill="${t.hue}" opacity=".95"/>`;
+    }
+  }
+  return `<svg class="insig-svg" width="${w}" height="${h}" viewBox="0 0 40 34" aria-hidden="true">
+    <defs>
+      <linearGradient id="chip-${t.k}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#A9BBD4"/><stop offset=".55" stop-color="#6C7F9B"/>
+        <stop offset="1" stop-color="#3B4A63"/>
+      </linearGradient>
+    </defs>
+    <path d="M8 0 H40 L32 34 H6 L0 17 Z" fill="url(#chip-${t.k})"
+          stroke="${t.hue}" stroke-width="1.1" stroke-linejoin="round" opacity=".98"/>
+    <path d="M8 0 H40 L38.8 5 H9.6 Z" fill="#FFFFFF" opacity=".22"/>
+    <path d="M6.6 29 H31.2 L30.5 34 H6 Z" fill="#0A1020" opacity=".28"/>
+    ${pips}
+  </svg>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   파티클 — 복셀 색종이. 플레이트에 가까울수록 촘촘하고 멀수록 성기다.
+   존 크기는 고정이라 개수가 늘어도 레이아웃은 그대로.
+   ══════════════════════════════════════════════════════════════ */
+function particles(t,W,H,count,seed,big){
+  if (!count) return '';
+  const r = rng(seed);
+  let out = '';
+  for(let i=0;i<count;i++){
+    /* x 는 제곱 분포 → 왼쪽(플레이트 쪽)에 몰린다 */
+    const f = Math.pow(r(),1.9);
+    const x = f*(W-6);
+    const y = (0.5 + (r()-0.5)*(0.55 + f*0.75)) * H;
+    const s = (big?3:2) + Math.round(r()* (big?5:4)) * (1 - f*0.45);
+    const solid = r() > 0.42;
+    const col = r() > 0.55 ? t.acc : t.hue;
+    const rot = r()>0.7 ? 45 : 0;
+    const op  = (0.95 - f*0.55).toFixed(2);
+    const dx  = (r()*7-2).toFixed(1), dy = (-2 - r()*7).toFixed(1);
+    const dur = (1.6 + r()*2.4).toFixed(2), del = (r()*2.2).toFixed(2);
+    const sz  = Math.max(2, s).toFixed(1);
+    const style = `left:${x.toFixed(1)}px;top:${(y - s/2).toFixed(1)}px;`
+      + `width:${sz}px;height:${sz}px;opacity:${op};`
+      + `--r:${rot}deg;--dx:${dx}px;--dy:${dy}px;`
+      + `animation-duration:${dur}s;animation-delay:-${del}s;transform:rotate(${rot}deg);`
+      + (solid ? `background:${col};box-shadow:0 0 5px ${col};`
+               : `border:1px solid ${col};`);
+    out += `<i class="pt" style="${style}"></i>`;
+  }
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   번개 버스트 — 플레이트 뒤에서 터져 나오는 자홍/핑크 조각.
+   한 조각 = 방향을 따라 지그재그로 걸어가며 끝으로 갈수록 가늘어지는 스파이크.
+   ══════════════════════════════════════════════════════════════ */
+function shard(cx,cy,ang,len,w,rand){
+  const dx=Math.cos(ang), dy=Math.sin(ang), px=-dy, py=dx, n=4, pts=[];
+  for(let i=0;i<=n;i++){
+    const f=i/n, L=len*(f + (i&&i<n ? (rand()-0.5)*0.16 : 0));
+    const off = i===n ? 0 : w*(1-f)*(0.35+rand()*1.05);
+    pts.push([cx+dx*L+px*off, cy+dy*L+py*off]);
+  }
+  for(let i=n-1;i>=0;i--){
+    const f=i/n, L=len*(f + (i ? (rand()-0.5)*0.16 : 0));
+    const off = w*(1-f)*(0.35+rand()*1.05);
+    pts.push([cx+dx*L-px*off, cy+dy*L-py*off]);
+  }
+  return 'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')+' Z';
+}
+function bolts(t,W,H,seed,scale,cxf,cyf,squash){
+  const o=t.orn;
+  if (o < 8) return '';
+  const r = rng(seed);
+  const cx = W*(cxf||0.30), cy = H*(cyf||0.5);
+  const heavy = o>=9;
+  const N = heavy ? 20 : 13;
+  const groups = [[],[],[]], cores = [];
+  for(let i=0;i<N;i++){
+    /* 오른쪽 위·아래로 부채꼴, 뒤쪽으로도 몇 개 */
+    const back = i%5===4;
+    const ang  = back ? Math.PI + (r()-0.5)*1.1 : (r()-0.5)*2.5;
+    const len  = (heavy? 78:56)*scale*(0.45+r()*1.05)*(back?0.5:1);
+    const w    = (heavy? 5.0:3.6)*scale*(0.5+r()*0.75);
+    groups[i%3].push(shard(cx,cy,ang,len,w,r));
+    /* 안쪽 핫코어 — 같은 방향으로 더 짧고 가늘게, 거의 흰색 */
+    if (i%2===0 && !back) cores.push(shard(cx,cy,ang,len*0.62,w*0.42,r));
+  }
+  const col=[BOLT_A,BOLT_B,BOLT_C];
+  const g = groups.map((paths,i)=>
+    `<g class="g${i+1}" fill="${col[i]}" opacity="${[1,.9,.8][i]}">${paths.map(d=>`<path d="${d}"/>`).join('')}</g>`
+  ).join('')
+  + `<g class="g2" fill="#FFD9EE" opacity=".95">${cores.map(d=>`<path d="${d}"/>`).join('')}</g>`;
+  /* 세로로 눌러준다 — 레퍼런스처럼 납작하게 옆으로 퍼지고,
+     리스트에서 위아래 행을 침범하지 않는다 */
+  const sq = `translate(0 ${cy}) scale(1 ${squash||SQUASH}) translate(0 ${-cy})`;
+  return `<svg class="blt" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"
+            style="filter:drop-shadow(0 0 ${heavy?7:5}px ${BOLT_B}) drop-shadow(0 0 ${heavy?18:11}px rgba(240,72,156,.75))">
+            <g transform="${sq}">${g}</g></svg>`;
+}
+
+/* 챌린저 전용 구조물 — 다른 등급엔 아예 없다 */
+function challOnly(){
+  return `<span class="scan"></span>
+          <span class="ubar2"></span>
+          <span class="brk brk-tl"></span><span class="brk brk-br"></span>`;
+}
+
+function vars(t){
+  return `--hue:${t.hue};--pTop:${t.pTop};--pMid:${t.pMid};--pBot:${t.pBot};`
+       + `--acc:${t.acc};--glow:${t.glow}`;
+}
+
+function nameplate(k,name,seed){
+  const t=T[k], o=t.orn;
+  const pcount = o>=9?26 : o>=8?21 : o>=7?16 : o>=6?11 : o>=5?6 : 0;
+  return `<span class="np t-${t.k} o${o}" style="${vars(t)}">
+    ${o>=8 ? `<span class="burst">${bolts(t,214,62,(seed||7)*31,1,.30)}</span>` : ''}
+    ${t.pips>0 || o>=4 ? `<span class="insig">${insignia(t,44,40)}</span>` : ''}
+    <span class="np-plate">${o>=8?'<span class="shine"></span>':''}<span class="np-name">${name}</span></span>
+    ${o>=6 ? `<span class="ubar"></span>` : ''}
+    ${o>=9 ? challOnly() : ''}
+    <span class="parts">${particles(t,84,62,pcount,(seed||3)*17,false)}</span>
+  </span>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   (B) 빅 카드
+   ══════════════════════════════════════════════════════════════ */
+function bigcard(k,name,seed){
+  const t=T[k], o=t.orn;
+  const pcount = o>=9?40 : o>=8?32 : o>=7?24 : o>=6?16 : o>=5?9 : 0;
+  const pips = [1,2,3].map(i=>`<i class="${i<=t.pips?'on':''}"></i>`).join('');
+  return `<div class="bc t-${t.k} o${o} enter" style="${vars(t)}">
+    ${o>=8 ? `<span class="bcburst">${bolts(t,360,268,(seed||5)*53,1.5,.75,.44,.62)}</span>` : ''}
+    <span class="bcen">${t.en}</span>
+    ${t.pips>0 || o>=4 ? `<span class="bcinsig">${insignia(t,64,56)}</span>` : ''}
+    <div class="bcplate">${o>=8?'<span class="shine"></span>':''}<span class="bcname">${name}</span></div>
+    ${o>=6 ? `<span class="bcubar"></span>` : ''}
+    ${o>=9 ? `<span class="bcscan"></span><span class="bcubar2"></span>
+              <span class="bcbrk bcbrk-tl"></span><span class="bcbrk bcbrk-br"></span>` : ''}
+    <span class="bcparts">${particles(t,132,170,pcount,(seed||9)*23,true)}</span>
+    <div class="bcmeta"><span class="bcko">${t.ko}</span><span class="bcpw">전투력 ${t.pw}</span></div>
+    <div class="bcpips">${pips}</div>
+  </div>`;
+}
+
+/* 등급 번호(1~7) → 플레이트 HTML */
+function plateHTML(tierV, name, seed){
+  const k = tierInfo(tierV).key;
+  return nameplate(k, esc(name), seed || (String(name).length + 3));
+}
+function bigCardHTML(tierV, name, seed){
+  const k = tierInfo(tierV).key;
+  return bigcard(k, esc(name), seed || (String(name).length + 5));
+}
+
 const ROLE_EMOJI = { '탱커':'🛡️', '딜러':'⚔️', '힐러':'❤️' };
 const COMPS = {
   free:   { label:'자유',            slots:null },
@@ -1345,10 +1749,9 @@ function renderWhoList(){
     box.innerHTML = '<div class="empty">명단이 비어 있습니다. 🔨 아이콘을 ' + ADMIN_TAP_COUNT + '번 눌러 등록하세요.</div>';
   }
   list.forEach(m=>{
-    const t = tierInfo(m.tier);
     const d = document.createElement('div');
-    d.className = 'pp tog tier ' + t.key + (myMemberId === m.id ? ' sel' : '');
-    d.innerHTML = '<span class="nm">' + esc(m.name) + '</span><span class="tn">' + t.name + '</span>';
+    d.className = 'npwrap click' + (myMemberId === m.id ? ' sel' : '');
+    d.innerHTML = plateHTML(m.tier, m.name, m.id);
     d.onclick = ()=>{
       myMemberId = (myMemberId === m.id) ? null : m.id;
       if(myMemberId){ myNick = m.name; localStorage.setItem(NICK_KEY, m.name); }
@@ -1878,10 +2281,9 @@ function renderPicker(){
     const t = tierInfo(p.tier);
     const fixedTeam = leaderTeamOf(p.id);
     const d = document.createElement('div');
-    d.className = 'pp tog tier ' + t.key + (isPicked(p.id) ? ' sel' : '') + (fixedTeam ? ' fixed' : '');
-    d.title = '전투력 ' + t.power;
-    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>'
-      + (fixedTeam ? '<span class="fx">'+fixedTeam+'팀 고정</span>' : '');
+    d.className = 'npwrap click' + (isPicked(p.id) ? ' sel' : '') + (fixedTeam ? ' fixed' : '');
+    d.title = '전투력 ' + t.power + (fixedTeam ? ' · ' + fixedTeam + '팀 고정' : '');
+    d.innerHTML = plateHTML(p.tier, p.name + (fixedTeam ? ' ★' : ''), p.id);
     if(iAmLeader() || isHost) d.onclick = ()=>togglePick(p.id);
     else d.classList.add('locked');
     box.appendChild(d);
@@ -1990,10 +2392,8 @@ function renderRemain(){
   const pool = $('remainPool'); pool.innerHTML = '';
   if(!rest.length){ pool.innerHTML = '<div class="empty">없음</div>'; return; }
   rest.forEach(p=>{
-    const t = tierInfo(p.tier);
-    const d = document.createElement('div'); d.className='pp tier ' + t.key;
-    d.style.opacity = '.72';
-    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>';
+    const d = document.createElement('div'); d.className = 'npwrap dimmed';
+    d.innerHTML = plateHTML(p.tier, p.name, p.id);
     pool.appendChild(d);
   });
 }
@@ -2010,7 +2410,11 @@ function renderAuction(){
     const ordinal = state.teams[1].length + state.teams[2].length + 1;
     setTimeout(()=>caster(ordinal + '번째 선수! ' + p.name + '! ' + tierInfo(p.tier).name + '! 입찰 시작!', 1), 450);
   }
-  $('aIcon').textContent = '⚔️';
+  const bc = $('aBigCard');
+  if(bc && bc.dataset.pid !== String(p.id)){
+    bc.dataset.pid = String(p.id);
+    bc.innerHTML = bigCardHTML(p.tier, p.name, p.id);
+  }
   $('aName').textContent = p.name;
   $('aTier').innerHTML = tierBadge(p.tier);
   $('aRole').textContent = isNormal() ? '참가자' : p.role;
@@ -2277,9 +2681,8 @@ function renderPick(){
   state.queue.forEach(p=>{
     const blocked = myTurn && roleLocked() && !roleSlotOpen(myTeam, p.role);
     const d = document.createElement('div');
-    const t = tierInfo(p.tier);
-    d.className = 'pp tier ' + t.key + (myTurn && !blocked ? ' pick' : ' dimmed') + (blocked ? ' locked' : '');
-    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>';
+    d.className = 'npwrap' + (myTurn && !blocked ? ' click' : ' dimmed') + (blocked ? ' locked' : '');
+    d.innerHTML = plateHTML(p.tier, p.name, p.id);
     if(blocked) d.title = myTeam + '팀 ' + p.role + ' 자리가 찼습니다';
     if(myTurn && !blocked) d.onclick = ()=>pickPlayer(p.id);
     pool.appendChild(d);
@@ -2771,10 +3174,9 @@ function renderSlots(){
     bench.className = 'bench';
     if(!rest.length) bench.innerHTML = '<span class="empty-s">모두 자리를 받았습니다</span>';
     rest.forEach(function(p){
-      const ti = tierInfo(p.tier);
       const c = document.createElement('div');
-      c.className = 'pp tier ' + ti.key;
-      c.innerHTML = '<span class="nm">' + esc(p.name) + '</span><span class="tn">' + ti.name + '</span>';
+      c.className = 'npwrap click';
+      c.innerHTML = plateHTML(p.tier, p.name, p.id);
       if(mine) makeDraggable(c, p.id, t);
       bench.appendChild(c);
     });
