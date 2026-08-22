@@ -105,6 +105,48 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .opt.on .od{color:rgba(255,255,255,.72)}
 .opt.dis{opacity:.35;pointer-events:none}
 
+/* 영웅 목록 역할 소제목 */
+.hero-sub{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+  font-family:'Orbitron',sans-serif;font-weight:800;font-size:.76em;letter-spacing:.06em;
+  color:var(--dim);border-bottom:1px solid var(--line);padding:10px 2px 5px;margin-top:4px}
+.hero-sub:first-child{margin-top:0}
+.hero-sub .cnt{color:var(--muted);font-size:.9em}
+
+/* 역할 자리 (팀 확정 뒤 드래그로 배치) */
+.slots{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.slot{display:flex;align-items:center;gap:9px;border:1.5px dashed var(--line);border-radius:9px;
+  padding:8px 11px;min-height:44px;background:var(--surface);transition:all .15s}
+.slot.over{border-color:var(--blue);background:rgba(59,130,246,.18)}
+.slot .sr{font-family:'Orbitron',sans-serif;font-size:.68em;font-weight:800;letter-spacing:.05em;
+  color:var(--dim);flex-shrink:0;min-width:52px}
+.slot .empty-s{color:var(--muted);font-size:.86em}
+.slot .chipx{display:flex;align-items:center;gap:7px;flex:1;cursor:grab}
+.slot .chipx:active{cursor:grabbing}
+.slot.filled{border-style:solid}
+.bench{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:40px;
+  border:1.5px dashed var(--line);border-radius:9px;padding:8px}
+.bench.over{border-color:var(--blue);background:rgba(59,130,246,.14)}
+.drag-src{opacity:.4}
+
+/* 헤더 방 코드 칩 */
+.code-chip{cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 11px}
+.code-chip .cl{font-size:.8em;color:var(--muted)}
+.code-chip b{font-family:'Orbitron',sans-serif;font-weight:800;letter-spacing:.12em;color:var(--ink)}
+.code-chip:hover{border-color:var(--blue)}
+
+/* 가위바위보 판정 문구 */
+.rps-verdict{font-family:'Orbitron',sans-serif;font-weight:800;font-size:1.05em;margin:10px 0 2px;min-height:1.3em}
+.rps-verdict .w1{color:var(--t1)} .rps-verdict .w2{color:var(--t2)}
+.rps-verdict .tie{color:var(--muted)}
+
+/* 지명 목록 — 누를 수 있는 것과 아닌 것을 확실히 */
+.pickpool .pp{padding:11px 15px;font-size:1em}
+.pickpool .pp.pick{cursor:pointer;border-color:var(--blue);background:rgba(59,130,246,.12);color:var(--ink)}
+.pickpool .pp.pick:hover{background:var(--blue);color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(59,130,246,.4)}
+.pickpool .pp.dimmed{opacity:.45}
+.turn-badge{font-family:'Orbitron',sans-serif;font-weight:800;font-size:.9em}
+.turn-badge.mine{color:var(--blue)}
+
 /* 방 코드 */
 .code-box{text-align:center;padding:14px}
 .code-lbl{font-size:.74em;color:var(--muted);letter-spacing:.2em;font-weight:700}
@@ -232,10 +274,10 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .tpl-tabs button{background:var(--surface);border:1.5px solid var(--line);border-radius:7px;padding:6px 11px;font-weight:700;font-size:.82em;cursor:pointer;color:var(--dim);font-family:inherit}
 .tpl-tabs button.on{background:var(--solid);border-color:var(--solid);color:var(--solid-fg)}
 .rlist{display:flex;flex-direction:column;gap:5px;max-height:400px;overflow-y:auto}
-.rrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 104px 30px;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 7px}
+.rrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 30px;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 7px}
 .rrow input,.rrow select{padding:6px 8px;font-size:.9em;background:var(--card)}
 .rrow .del{background:transparent;border:none;color:var(--bad);font-size:1.05em;cursor:pointer;font-weight:700;padding:0}
-.addrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 104px 74px;gap:6px;margin-top:9px}
+.addrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 74px;gap:6px;margin-top:9px}
 
 /* 모달 */
 .modal{position:fixed;inset:0;background:rgba(3,7,18,.78);display:none;align-items:center;justify-content:center;z-index:200;padding:16px;backdrop-filter:blur(3px)}
@@ -368,9 +410,9 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   .vsx{padding-top:0}
   .res{grid-template-columns:1fr}
   .opts.c3{grid-template-columns:1fr}
-  .rrow{grid-template-columns:1fr 94px 28px}
+  .rrow{grid-template-columns:1fr 28px}
   .rrow .tierpick{grid-column:1/-1;order:3}
-  .addrow{grid-template-columns:1fr 94px 64px}
+  .addrow{grid-template-columns:1fr 64px}
   .addrow .tierpick{grid-column:1/-1;order:3}
   .sold-stamp{font-size:2.8em}
 }
@@ -388,6 +430,8 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       </div>
     </div>
     <div class="topbar-right">
+      <span class="chip code-chip" id="codeChip" style="display:none" title="누르면 복사됩니다"><span class="cl">방</span><b id="roomCode">------</b></span>
+      <button class="icon-btn" id="copyCodeBtn" style="display:none">복사</button>
       <span class="chip" id="statusChip" style="display:none"></span>
       <span class="chip" id="specChip" style="display:none" title="관전자 수">👀 0</span>
       <span class="chip" id="bgmWrap" title="BGM 볼륨"><span id="bgmVolIcon">🔉</span><input type="range" id="bgmVolSlider" min="0" max="100"></span>
@@ -432,12 +476,6 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 
   <!-- ============ 대기실 ============ -->
   <div class="screen" id="screen-lobby">
-    <div class="card code-box">
-      <div class="code-lbl">방 코드</div>
-      <div class="code-val" id="roomCode">------</div>
-      <button class="icon-btn mt" id="copyCodeBtn">코드 복사</button>
-    </div>
-
     <div class="card">
       <div class="card-title">팀장</div>
       <div class="leaders">
@@ -505,6 +543,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <div class="card mt" id="panelRps" style="display:none">
       <div class="center">
         <div class="card-title center" style="justify-content:center" id="rpsTitle">가위바위보</div>
+        <div class="rps-verdict" id="rpsVerdict"></div>
         <div class="rps-vs">
           <div><div class="rps-hand pending" id="rpsHand1">❔</div><div class="rps-who" id="rpsWho1">1팀</div></div>
           <div class="vs" style="font-family:'Orbitron';font-weight:900;color:var(--muted)">VS</div>
@@ -524,7 +563,8 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <!-- 지명 패널 -->
     <div class="card mt" id="panelPick" style="display:none">
       <div class="card-title"><span id="pickTitle">지명</span><span id="pickTurn"></span></div>
-      <div class="pool" id="pickPool"></div>
+      <div class="muted" id="pickHint"></div>
+      <div class="pool pickpool mt" id="pickPool"></div>
     </div>
 
     <!-- 자동 분배 패널 -->
@@ -536,9 +576,13 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       </div>
     </div>
 
+    <div class="row mt" id="draftTools" style="display:none">
+      <button class="btn ghost sm" id="draftResetBtn">⟲ 취소하고 대기실로</button>
+    </div>
+
     <!-- 남은 선수 -->
     <div class="card mt" id="remainCard">
-      <div class="card-title">남은 선수 <span id="remainCount"></span></div>
+      <div class="card-title"><span>아직 안 뽑힌 선수</span><span id="remainCount"></span></div>
       <div class="pool" id="remainPool"></div>
     </div>
   </div>
@@ -551,16 +595,18 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <div class="muted" id="resultNote"></div>
     </div>
     <div class="res">
-      <div class="team t1"><div class="team-head"><span id="rh1">1팀</span><span class="stats"><b id="rs1">0점</b></span></div><div class="team-body" id="rteam1"></div></div>
-      <div class="team t2"><div class="team-head"><span id="rh2">2팀</span><span class="stats"><b id="rs2">0점</b></span></div><div class="team-body" id="rteam2"></div></div>
+      <div class="team t1"><div class="team-head"><span id="rh1">1팀</span><span class="stats"><b id="rs1">0점</b></span></div>
+        <div class="team-body" id="rteam1"></div>
+        <div class="slots" id="slots1" style="display:none"></div></div>
+      <div class="team t2"><div class="team-head"><span id="rh2">2팀</span><span class="stats"><b id="rs2">0점</b></span></div>
+        <div class="team-body" id="rteam2"></div>
+        <div class="slots" id="slots2" style="display:none"></div></div>
     </div>
     <div class="row mt">
       <button class="btn ghost" id="resCopyBtn">결과 복사</button>
       <button class="btn" id="resAgainBtn" style="flex:2">🔄 이 방에서 다시</button>
     </div>
-    <div class="row mt">
-      <button class="btn ghost" id="resHomeBtn">나가기</button>
-    </div>
+
   </div>
 
   <!-- ============ 관리자: 명단 ============ -->
@@ -573,7 +619,6 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <div class="addrow">
         <input id="admAddName" placeholder="이름" maxlength="12">
         <div id="admAddTier"></div>
-        <select id="admAddRole"></select>
         <button class="btn sm" id="admAddBtn">추가</button>
       </div>
       <div class="muted mt">괄호 안이 전투력입니다 — 브론즈 1 · 실버 3 · 골드 6 · 플래티넘 8 · 다이아 10 · 챌린저 13 · 마스터 20. 등급 차이가 선형이 아니라서 자동 분배와 밸런스는 이 값으로 계산합니다. 목록은 가나다순입니다.</div>
@@ -616,11 +661,16 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       </div>
 
       <div class="card" id="roleLockCard" style="display:none">
-        <div class="card-title">역할 고정</div>
-        <div class="opts" id="roleLockOpts">
-          <div class="opt" data-lock="1"><span class="oi">🎯</span><b>탱1 · 딜2 · 힐2</b><span class="od">정확히 10명</span></div>
-          <div class="opt" data-lock="0"><span class="oi">🎲</span><b>자유 구성</b><span class="od">인원만 반씩</span></div>
+        <div class="card-title">팀 구성</div>
+        <div class="opts" id="compOpts">
+          <div class="opt" data-comp="free"><span class="oi">🎲</span><b>자유</b><span class="od">역할 없음</span></div>
+          <div class="opt" data-comp="t1d2h2"><span class="oi">🛡️</span><b>탱1 · 딜2 · 힐2</b><span class="od">정석</span></div>
+          <div class="opt" data-comp="t1d1h3"><span class="oi">❤️</span><b>탱1 · 딜1 · 힐3</b><span class="od">힐 중심</span></div>
+          <div class="opt" data-comp="t2d2h1"><span class="oi">🛡️</span><b>탱2 · 딜2 · 힐1</b><span class="od">몸빵</span></div>
+          <div class="opt" data-comp="d5"><span class="oi">⚔️</span><b>딜 5</b><span class="od">전원 딜러</span></div>
+          <div class="opt" data-comp="h5"><span class="oi">❤️</span><b>힐 5</b><span class="od">전원 힐러</span></div>
         </div>
+        <div class="muted mt">팀이 정해진 뒤 결과 화면에서 자리를 끌어다 놓습니다.</div>
       </div>
 
       <div class="card">
@@ -663,6 +713,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <input id="heroSearch" placeholder="이름으로 검색..." autocomplete="off">
     <div class="hero-grid mt" id="heroGrid"></div>
     <div class="modal-btns">
+      <button class="btn ghost" id="heroRandomBtn">🎲 랜덤</button>
       <button class="btn ghost" id="heroClearBtn">선택 해제</button>
       <button class="btn" id="heroCloseBtn">닫기</button>
     </div>
@@ -815,21 +866,29 @@ let localTick = null;
 let soundOn = true;
 let isAdmin = false;
 let tapCount = 0, tapTimer = null;
-let setup = { game:'ow', mode:'auction', hero:'none', roleLock:false, seat:'leader' };
+let setup = { game:'ow', mode:'auction', hero:'none', comp:'free', seat:'leader' };
 let specCount = 0;
 function iAmLeader(){ return myTeam === 1 || myTeam === 2; }
 
 /* 오버워치 역할 고정: 팀당 탱커1 · 딜러2 · 힐러2 */
-const OW_ROLE_LIMIT = { '탱커':1, '딜러':2, '힐러':2 };
+/* 팀 구성 — 팀이 정해진 뒤 이 순서대로 자리를 만들고 끌어다 놓는다 */
+const ROLE_EMOJI = { '탱커':'🛡️', '딜러':'⚔️', '힐러':'❤️' };
+const COMPS = {
+  free:   { label:'자유',            slots:null },
+  t1d2h2: { label:'탱1 · 딜2 · 힐2', slots:['탱커','딜러','딜러','힐러','힐러'] },
+  t1d1h3: { label:'탱1 · 딜1 · 힐3', slots:['탱커','딜러','힐러','힐러','힐러'] },
+  t2d2h1: { label:'탱2 · 딜2 · 힐1', slots:['탱커','탱커','딜러','딜러','힐러'] },
+  d5:     { label:'딜 5',            slots:['딜러','딜러','딜러','딜러','딜러'] },
+  h5:     { label:'힐 5',            slots:['힐러','힐러','힐러','힐러','힐러'] }
+};
+function compOf(){ return COMPS[(state && state.comp) || 'free'] || COMPS.free; }
+/* 옛 역할 고정 잔재 — 항상 꺼진 상태로만 평가된다 */
+const OW_ROLE_LIMIT = {};
 const ROLE_LOCK_TEAM_SIZE = 5;
-function roleLocked(){ return !!(state && state.roleLock); }
+function compSlots(){ const c = compOf(); return c.slots ? c.slots.slice() : null; }
+function roleLocked(){ return false; }   /* 드래프트 중에는 역할을 따지지 않는다 */
 function teamRoleCount(team, role){ return (state.teams[team]||[]).filter(x=>x.role === role).length; }
-function roleSlotOpen(team, role){
-  if(!roleLocked()) return (state.teams[team]||[]).length < state.cap;
-  const lim = OW_ROLE_LIMIT[role];
-  if(lim === undefined) return false;
-  return teamRoleCount(team, role) < lim;
-}
+function roleSlotOpen(team){ return (state.teams[team]||[]).length < state.cap; }
 let lastTouchWrite = 0;      // 방장 생존 신호를 마지막으로 쓴 시각
 let lastRoom = null;         // rooms/{code} 최신 스냅샷
 let openRoom = null;      // 지금 열려 있는 방 (색인에서 찾은 것)
@@ -1179,10 +1238,8 @@ function renderAdmin(){
   $('admTplName').value = templates[curTpl].name;
   $('admTplName').oninput = e=>{ templates[curTpl].name = e.target.value; };
 
-  const roleSel = $('admAddRole'); roleSel.innerHTML = '';
+  // (역할은 명단에서 관리하지 않는다 — 판마다 바뀌므로 팀이 정해진 뒤 배정한다)
   // 역할 옵션은 오버워치/롤 역할을 모두 담는다 (게임 바꿔도 명단은 유지)
-  const allRoles = ['랜덤','탱커','딜러','힐러','탑','정글','미드','원딜','서폿'];
-  allRoles.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; roleSel.appendChild(o); });
 
   buildTierPicker($('admAddTier'), admAddTier, v=>{ admAddTier = v; renderAdmin(); });
 
@@ -1195,19 +1252,16 @@ function renderAdmin(){
     n.oninput = e=>{ p.name = e.target.value; };
     const t = document.createElement('div');
     buildTierPicker(t, tierInfo(p.tier).v, v=>{ p.tier = v; renderAdmin(); });
-    const r = document.createElement('select');
-    allRoles.forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent=x; if(x===p.role) o.selected=true; r.appendChild(o); });
-    r.onchange = e=>{ p.role = e.target.value; };
     const d = document.createElement('button'); d.className='del'; d.textContent='✕';
     d.onclick = ()=>{ roster.splice(idx,1); renderAdmin(); };
-    row.append(n,t,r,d); list.appendChild(row);
+    row.append(n,t,d); list.appendChild(row);
   });
 }
 function admAdd(){
   const name = $('admAddName').value.trim();
   if(!name) return toast('이름을 입력하세요');
   if(roster.some(p=>p.name === name)) return toast('이미 있는 이름입니다');
-  roster.push({ id:nextPid(), name, tier:admAddTier, role:$('admAddRole').value });
+  roster.push({ id:nextPid(), name, tier:admAddTier });
   $('admAddName').value = ''; $('admAddName').focus();
   playClickSound(); renderAdmin();
 }
@@ -1217,7 +1271,7 @@ function admBulk(){
   let added = 0;
   lines.forEach(name=>{
     if(roster.some(p=>p.name === name)) return;
-    roster.push({ id:nextPid(), name, tier:3, role:'랜덤' }); added++;
+    roster.push({ id:nextPid(), name, tier:3 }); added++;
   });
   $('admBulk').value = '';
   renderAdmin(); toast(added + '명 추가');
@@ -1265,7 +1319,7 @@ function heroPool(role){
   if(g === GAMES.ow){
     const list = OW_LIST.length ? OW_LIST
       : Object.keys(OW_HEROES).flatMap(r=>OW_HEROES[r].map(nm=>({ name:nm, role:r, img:null })));
-    const filtered = (role && role !== '랜덤') ? list.filter(h=>h.role === role) : list;
+    const filtered = (role && ROLE_EMOJI[role]) ? list.filter(h=>h.role === role) : list;
     return (filtered.length ? filtered : list).map(h=>({ name:h.name, img:h.img, emoji:roleIcon(h.role), role:h.role }));
   }
   return [];
@@ -1323,7 +1377,7 @@ function optEditable(){ return isHost && state && state.phase === 'lobby'; }
 function renderOptPanel(){
   const inRoom = !!state;
   const cfg = inRoom
-    ? { game:state.game, seat:(myTeam===0?'spectator':'leader'), roleLock:!!state.roleLock, mode:state.mode, hero:state.heroMode }
+    ? { game:state.game, seat:(myTeam===0?'spectator':'leader'), comp:(state.comp||'free'), mode:state.mode, hero:state.heroMode }
     : setup;
   const editable = optEditable();
 
@@ -1333,7 +1387,7 @@ function renderOptPanel(){
 
   const owOnly = cfg.game === 'ow';
   $('roleLockCard').style.display = owOnly ? '' : 'none';
-  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.classList.toggle('on', (o.dataset.lock === '1') === !!cfg.roleLock));
+  document.querySelectorAll('#compOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.comp === (cfg.comp||'free')));
 
   const normal = GAMES[cfg.game].hasHeroes === false;
   document.querySelectorAll('#heroOpts .opt').forEach(o=>{
@@ -1373,24 +1427,19 @@ function setOption(key, val){
     if(key === 'game'){
       upd.game = val;
       const g = GAMES[val];
-      upd.members = (state.members||[]).map(m=>Object.assign({}, m, {
-        role: g.hasHeroes === false ? '-' : normalizeRole(m.role, val)
-      }));
+      upd.members = (state.members||[]).map(m=>({ id:m.id, name:m.name, tier:m.tier }));
       if(g.hasHeroes === false) upd.heroMode = 'none';
-      if(val !== 'ow') upd.roleLock = false;
+      if(val !== 'ow') upd.comp = 'free';
     }
     else if(key === 'mode') upd.mode = val;
     else if(key === 'hero') upd.heroMode = val;
-    else if(key === 'roleLock'){
-      upd.roleLock = val;
-      upd.cap = val ? ROLE_LOCK_TEAM_SIZE : Math.ceil((state.picked||[]).length/2);
-    }
+    else if(key === 'comp') upd.comp = val;
     db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>playClickSound());
   } else {
     setup[key] = val;
     if(key === 'game'){
       if(GAMES[val].hasHeroes === false) setup.hero = 'none';
-      if(val !== 'ow') setup.roleLock = false;
+      if(val !== 'ow') setup.comp = 'free';
     }
     renderOptPanel();
   }
@@ -1400,10 +1449,7 @@ function setOption(key, val){
 function applyTemplate(i){
   curTpl = i; roster = templates[i].players;
   const g = GAMES[state.game];
-  const members = roster.map(x=>({
-    id:x.id, name:x.name, tier:tierInfo(x.tier).v,
-    role: g.hasHeroes === false ? '-' : normalizeRole(x.role, state.game)
-  })).sort(byName);
+  const members = roster.map(x=>({ id:x.id, name:x.name, tier:tierInfo(x.tier).v })).sort(byName);
   db.ref(STATE_PATH+'/'+roomCode).update({
     members, picked:[], cap:0, seq:(state.seq||0)+1
   }).then(()=>{ playClickSound(); toast(templates[i].name + ' 적용'); });
@@ -1451,13 +1497,10 @@ function createRoom(){
   const heroMode = normal ? 'none' : setup.hero;
 
   // 전체 멤버를 방에 싣고, 오늘 실제로 뛸 사람은 대기실에서 고른다
-  const members = roster.map(p=>({
-    id:p.id, name:p.name, tier:tierInfo(p.tier).v,
-    role: normal ? '-' : normalizeRole(p.role, setup.game)
-  })).sort(byName);
+  const members = roster.map(p=>({ id:p.id, name:p.name, tier:tierInfo(p.tier).v })).sort(byName);
 
   const init = {
-    game:setup.game, mode:setup.mode, heroMode, roleLock:!!setup.roleLock,
+    game:setup.game, mode:setup.mode, heroMode, comp:(setup.comp||'free'),
     phase:'lobby', cap:0,
     members, picked:[], queue:[], teams:{ 1:[], 2:[] },
     points:{ 1:START_POINTS, 2:START_POINTS },
@@ -1610,6 +1653,7 @@ function joinRoom(asSpectator){
 function enterRoom(){
   $('leaveBtn').style.display = '';
   $('statusChip').style.display = '';
+  $('codeChip').style.display = '';
   playAuctionStartSound();
 
   // 방장이 끊겨도 방은 그대로 둔다. 생존 신호가 끊기면 남은 팀장이 물려받는다.
@@ -1657,13 +1701,15 @@ function enterRoom(){
 // Firebase는 빈 배열/객체를 지워버리므로 항상 채워서 쓴다
 function normalizeState(s){
   s.queue = s.queue || []; s.members = s.members || []; s.picked = s.picked || [];
-  s.roleLock = !!s.roleLock;
+  s.comp = s.comp || 'free';
   s.teams = s.teams || {}; s.teams[1] = s.teams[1] || []; s.teams[2] = s.teams[2] || [];
   s.points = s.points || { 1:START_POINTS, 2:START_POINTS };
   s.hist = s.hist || []; s.passes = s.passes || {};
   s.rps = s.rps || { round:1, hands:{}, winner:0 };
   s.rps.hands = s.rps.hands || {};
   s.heroPick = s.heroPick || {}; s.heroDone = s.heroDone || {};
+  s.rpsPicked = s.rpsPicked || {};
+  s.roleAssign = s.roleAssign || {};
   s.touchedAt = s.touchedAt || 0;
   return s;
 }
@@ -1710,6 +1756,7 @@ function leaveRoom(silent){
   lastTouchWrite = 0; lastRoom = null;
   $('leaveBtn').style.display = 'none';
   $('statusChip').style.display = 'none';
+  $('codeChip').style.display = 'none';
   showScreen('home');
   watchOpenRoom();
   try{ renderWhoList(); }catch(e){}
@@ -1801,7 +1848,7 @@ function renderLobbySettings(){
   const modeLabel = { auction:'💰 경매', rps:'✌️ 가위바위보', auto:'⚖️ 자동 분배' }[state.mode];
   const heroLabel = { none:'영웅 지정 없음', self:'🙋 영웅 직접 고르기', opponent:'😈 상대가 영웅 지정' }[state.heroMode];
   const picked = state.picked.length;
-  const sizeLabel = state.roleLock ? '🎯 탱1·딜2·힐2'
+  const sizeLabel = (state.comp && state.comp !== 'free') ? ('🎯 ' + compOf().label)
     : (picked ? '팀당 '+Math.ceil(picked/2)+'명' : '참가자 미정');
   [g.label, modeLabel, heroLabel, sizeLabel].forEach(txt=>{
     const d = document.createElement('div'); d.className='pp'; d.textContent = txt; box.appendChild(d);
@@ -1843,32 +1890,10 @@ function renderPicker(){
   $('lobbyRosterCount').textContent = c + ' / ' + members.length + '명';
 
   const tally = $('roleTally');
-  if(state.roleLock){
-    const cnt = pickedRoleCount();
-    tally.style.display = '';
-    tally.innerHTML = '';
-    Object.keys(OW_ROLE_LIMIT).forEach(r=>{
-      const need = OW_ROLE_LIMIT[r] * 2, has = cnt[r] || 0;
-      const d = document.createElement('span');
-      d.className = 'rt' + (has === need ? ' ok' : (has > need ? ' over' : ''));
-      d.innerHTML = roleIcon(r) + ' ' + r + ' ' + has + '/' + need;
-      tally.appendChild(d);
-    });
-    if(cnt['랜덤']){
-      const d = document.createElement('span');
-      d.className = 'rt over';
-      d.textContent = '🎲 역할미정 ' + cnt['랜덤'] + '명';
-      tally.appendChild(d);
-    }
-    $('pickerHint').textContent = roleLockReady()
-      ? '구성이 맞았습니다. 팀당 탱커1 · 딜러2 · 힐러2 로 나뉩니다.'
-      : '역할 고정: 탱커 2 · 딜러 4 · 힐러 4, 정확히 10명을 고르세요. 역할은 관리자 화면에서 정합니다.';
-  } else {
-    tally.style.display = 'none';
-    $('pickerHint').textContent = c < 4
-      ? '전체 멤버 중 오늘 온 사람만 눌러서 고르세요 (최소 4명).'
-      : c + '명 → 팀당 ' + Math.ceil(c/2) + '명으로 나뉩니다.';
-  }
+  $('roleTally').style.display = 'none';
+  $('pickerHint').textContent = c < 4
+    ? '전체 명단에서 오늘 온 사람만 눌러서 고르세요 (최소 4명).'
+    : c + '명 → 팀당 ' + Math.ceil(c/2) + '명으로 나뉩니다.';
   updateStartBtn();
 }
 function pickedMembers(){ return state.members.filter(p=>state.picked.indexOf(p.id) >= 0); }
@@ -1877,12 +1902,7 @@ function pickedRoleCount(){
   pickedMembers().forEach(p=>{ c[p.role] = (c[p.role]||0) + 1; });
   return c;
 }
-function roleLockReady(){
-  const c = pickedRoleCount();
-  if(c['랜덤']) return false;
-  return Object.keys(OW_ROLE_LIMIT).every(r=>(c[r]||0) === OW_ROLE_LIMIT[r]*2)
-    && state.picked.length === ROLE_LOCK_TEAM_SIZE*2;
-}
+function roleLockReady(){ return true; }
 function togglePick(id){
   db.ref(STATE_PATH+'/'+roomCode).transaction(cur=>{
     if(!cur || cur.phase !== 'lobby') return;
@@ -1907,12 +1927,11 @@ function setAllPicked(on){
 function updateStartBtn(){
   const both = !!(lastLeaders[1] && lastLeaders[2]);
   const picked = state ? state.picked.length : 0;
-  const lock = state && state.roleLock;
-  const ready = lock ? roleLockReady() : picked >= 4;
+  const ready = picked >= 4;
   const btn = $('startBtn');
   btn.disabled = !(both && ready && isHost);
   btn.textContent = !both ? '상대 팀장 대기 중...'
-    : !ready ? (lock ? '역할 구성이 맞지 않습니다 (탱2·딜4·힐4)' : '참가자를 4명 이상 고르세요')
+    : !ready ? '참가자를 4명 이상 고르세요'
     : (isHost ? '시작 (' + picked + '명)' : '방장이 시작하기를 기다리는 중');
 }
 
@@ -1929,20 +1948,13 @@ function renderBoard(){
     list.forEach((p,i)=>{
       const d = document.createElement('div');
       d.className = 'pc' + (i===list.length-1 && state.seq !== lastIndex ? ' new' : '');
-      d.innerHTML = '<span class="pic">'+roleIcon(p.role)+'</span><span class="pnm">'+esc(p.name)+'</span>'
+      d.innerHTML = '<span class="pnm">'+esc(p.name)+'</span>'
         + tierBadge(p.tier)
         + (p.price>0 ? '<span class="ptg">'+p.price+'P</span>' : '');
       body.appendChild(d);
     });
     if(roleLocked()){
-      Object.keys(OW_ROLE_LIMIT).forEach(r=>{
-        const missing = OW_ROLE_LIMIT[r] - list.filter(x=>x.role === r).length;
-        for(let i=0;i<missing;i++){
-          const d = document.createElement('div'); d.className='pc slot-empty';
-          d.innerHTML = '<span class="rq">'+roleIcon(r)+' '+r+' 자리</span>';
-          body.appendChild(d);
-        }
-      });
+      /* 역할은 팀이 정해진 뒤에 배정하므로 여기서는 전투력만 맞춘다 */
     } else {
       for(let i=list.length; i<state.cap; i++){
         const d = document.createElement('div'); d.className='pc slot-empty'; d.textContent='빈 자리';
@@ -1961,7 +1973,8 @@ function renderPanels(){
   $('panelRps').style.display     = state.phase==='rps'     ? '' : 'none';
   $('panelPick').style.display    = state.phase==='pick'    ? '' : 'none';
   $('panelAuto').style.display    = state.phase==='auto'    ? '' : 'none';
-  $('remainCard').style.display   = state.phase==='auto'    ? 'none' : '';
+  $('remainCard').style.display   = (state.phase==='auto' || state.phase==='pick') ? 'none' : '';
+  $('draftTools').style.display   = isHost ? '' : 'none';
 
   if(state.phase === 'auction') renderAuction();
   if(state.phase === 'rps') renderRps();
@@ -1997,7 +2010,7 @@ function renderAuction(){
     const ordinal = state.teams[1].length + state.teams[2].length + 1;
     setTimeout(()=>caster(ordinal + '번째 선수! ' + p.name + '! ' + tierInfo(p.tier).name + '! 입찰 시작!', 1), 450);
   }
-  $('aIcon').textContent = roleIcon(p.role);
+  $('aIcon').textContent = '⚔️';
   $('aName').textContent = p.name;
   $('aTier').innerHTML = tierBadge(p.tier);
   $('aRole').textContent = isNormal() ? '참가자' : p.role;
@@ -2188,6 +2201,14 @@ function renderRps(){
     } else { el.textContent = '❔'; el.classList.add('pending'); el.classList.remove('reveal'); }
     $('rpsWho'+t).textContent = t + '팀' + (myTeam===t?' (나)':'');
   });
+  const vd = $('rpsVerdict');
+  if(!revealed) vd.innerHTML = r.hands[myTeam] ? '<span class="tie">상대가 낼 때까지 기다리는 중...</span>' : '';
+  else {
+    const w = rpsWinner(r.hands[1], r.hands[2]);
+    vd.innerHTML = w === 0
+      ? '<span class="tie">비겼습니다 — 다시!</span>'
+      : '<span class="w'+w+'">' + w + '팀 승리!</span> <span class="tie">' + w + '팀이 먼저 고릅니다</span>';
+  }
 
   $('rpsTitle').textContent = r.round > 1 ? '가위바위보 — ' + r.round + '라운드 (비김)' : '가위바위보';
   const done = !!(myTeam && r.hands[myTeam]);
@@ -2241,17 +2262,24 @@ function rpsWinner(h1, h2){
 /* ---------- 지명 ---------- */
 function renderPick(){
   const myTurn = state.turn === myTeam;
+  const w = (state.rps && state.rps.winner) || 0;
+  const first = !state.rpsPicked[1] && !state.rpsPicked[2];
   $('pickTitle').textContent = '선수 지명';
   $('pickTurn').innerHTML = myTurn
-    ? '<span style="color:var(--blue);font-weight:800">내 차례!</span>'
-    : '<span class="muted">' + state.turn + '팀이 고르는 중...</span>';
+    ? '<span class="turn-badge mine">내 차례 — 한 명 고르세요</span>'
+    : '<span class="turn-badge">' + state.turn + '팀이 고르는 중...</span>';
+  $('pickHint').textContent = w
+    ? (w + '팀이 가위바위보에서 이겨 먼저 골랐습니다. '
+       + (first ? w + '팀 차례입니다.' : (state.turn + '팀까지 고르면 다시 가위바위보입니다.')))
+    : '';
   const pool = $('pickPool'); pool.innerHTML = '';
   if(!state.queue.length){ pool.innerHTML = '<div class="empty">모두 배정됐습니다</div>'; return; }
   state.queue.forEach(p=>{
     const blocked = myTurn && roleLocked() && !roleSlotOpen(myTeam, p.role);
     const d = document.createElement('div');
-    d.className = 'pp' + (myTurn && !blocked ? ' pick' : ' dimmed') + (blocked ? ' locked' : '');
-    d.innerHTML = '<span>'+roleIcon(p.role)+'</span><span>'+esc(p.name)+'</span>'+tierBadge(p.tier);
+    const t = tierInfo(p.tier);
+    d.className = 'pp tier ' + t.key + (myTurn && !blocked ? ' pick' : ' dimmed') + (blocked ? ' locked' : '');
+    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>';
     if(blocked) d.title = myTeam + '팀 ' + p.role + ' 자리가 찼습니다';
     if(myTurn && !blocked) d.onclick = ()=>pickPlayer(p.id);
     pool.appendChild(d);
@@ -2280,17 +2308,22 @@ function pickPlayer(pid){
     const canPick = t => (cur.teams[t]||[]).length < cur.cap && q.some(x=>!cur.roleLock
       || (OW_ROLE_LIMIT[x.role] !== undefined && (cur.teams[t]||[]).filter(y=>y.role === x.role).length < OW_ROLE_LIMIT[x.role]));
 
-    if(!q.length || (!canPick(other) && !canPick(myTeam))){ cur.turn = 0; return cur; }
+    // 이번 가위바위보 판에서 이 팀은 이미 골랐다
+    cur.rpsPicked = cur.rpsPicked || {};
+    cur.rpsPicked[myTeam] = true;
 
-    if(canPick(other) && canPick(myTeam)){
-      // 한 명 데려갈 때마다 가위바위보를 다시 한다
-      cur.phase = 'rps';
+    if(!q.length || (!canPick(1) && !canPick(2))){ cur.turn = 0; return cur; }
+
+    if(!cur.rpsPicked[other] && canPick(other)){
+      cur.turn = other;                       // 진 팀도 한 명 고른다
+    } else if(canPick(other) && canPick(myTeam)){
+      cur.phase = 'rps';                      // 양쪽 다 골랐으니 다시 가위바위보
       cur.turn = 0;
+      cur.rpsPicked = {};
       cur.rps = { round:((cur.rps && cur.rps.round) || 1) + 1, hands:{}, winner:0,
                   deadline: srvNow() + RPS_TIME*1000 + 900 };
     } else {
-      // 한쪽만 자리가 남았으면 가위바위보 없이 그쪽이 계속 데려간다
-      cur.turn = canPick(other) ? other : myTeam;
+      cur.turn = canPick(other) ? other : myTeam;   // 한쪽만 자리가 남았으면 계속
     }
     return cur;
   }).then(res=>{
@@ -2450,6 +2483,7 @@ function resolveRps(){
       cur.rps.winner = w;
       cur.turn = w;
       cur.phase = 'pick';
+      cur.rpsPicked = {};        // 이긴 팀부터, 두 팀 다 한 명씩 고르면 다시 가위바위보
     }
     cur.seq = (cur.seq||0)+1;
     cur.event = { type:'rps', winner:w, hands:{ 1:h[1], 2:h[2] }, seq:cur.seq };
@@ -2530,7 +2564,7 @@ function showSold(x){
   const o = $('soldOverlay');
   $('soldStamp').textContent = x.amount > 0 ? '낙찰!' : '배정!';
   $('soldStamp').style.color = x.team === 1 ? '#93C5FD' : '#FCD34D';
-  $('soldName').textContent = (isNormal() ? '' : roleIcon(x.role)+' ') + x.name;
+  $('soldName').textContent = x.name;
   $('soldDetail').textContent = (x.amount > 0 ? x.amount + 'P → ' : '') + x.team + '팀';
   o.classList.add('active');
   setTimeout(()=>o.classList.remove('active'), 1900);
@@ -2547,9 +2581,7 @@ function finishDraft(){
 function startGame(){
   if(!isHost) return;
   const picked = state.picked;
-  if(state.roleLock){
-    if(!roleLockReady()) return toast('탱커 2 · 딜러 4 · 힐러 4 로 정확히 10명을 골라주세요');
-  } else if(picked.length < 4) return toast('참가자를 4명 이상 골라주세요');
+  if(picked.length < 4) return toast('참가자를 4명 이상 골라주세요');
   const chosen = state.members.filter(p=>picked.indexOf(p.id) >= 0);
   // 팀장이 자기 이름을 골랐으면 경매에 올리지 않고 그 팀에 바로 넣는다
   const teams = { 1:[], 2:[] };
@@ -2562,10 +2594,10 @@ function startGame(){
   const queue = shuffle(rest);
   const upd = {
     seq:(state.seq||0)+1,
-    queue, cap: state.roleLock ? ROLE_LOCK_TEAM_SIZE : Math.ceil(chosen.length/2),
+    queue, cap: Math.ceil(chosen.length/2),
     teams, points:{ 1:START_POINTS, 2:START_POINTS },
     leaderNames:{ 1:(lastLeaders[1]||''), 2:(lastLeaders[2]||'') },
-    bid:null, hist:[], passes:{}, heroPick:{}
+    bid:null, hist:[], passes:{}, heroPick:{}, roleAssign:{}
   };
   if(!queue.length) return toast('경매에 올릴 사람이 없습니다');
   if(state.mode === 'auction'){ upd.phase = 'auction'; upd.deadline = srvNow() + AUCTION_TIME*1000 + 1500; }
@@ -2606,23 +2638,188 @@ function renderHeroGrid(){
   const picks = state.heroPick[heroEditTeam] || {};
   const taken = new Set(Object.keys(picks).filter(k=>String(k) !== String(heroEditPid)).map(k=>picks[k]));
   const kw = ($('heroSearch').value || '').trim().toLowerCase();
-  let pool = heroPool(me.role);
+  let pool = heroPool(assignedRole(heroEditTeam, heroEditPid) || me.role);
   if(kw) pool = pool.filter(h=>h.name.toLowerCase().includes(kw));
   if(!pool.length){ grid.innerHTML = '<div class="empty">결과 없음</div>'; return; }
   const cur = picks[heroEditPid];
-  pool.forEach(h=>{
+
+  const card = h => {
     const c = document.createElement('div');
     c.className = 'hcard' + (cur === h.name ? ' on' : '') + (taken.has(h.name) ? ' taken' : '');
     c.innerHTML = (h.img ? '<img src="'+h.img+'" alt="" loading="lazy">' : '<span class="he">'+(h.emoji||'🎮')+'</span>')
-      + '<span class="hn">'+esc(h.name)+'</span>'
-      + (h.role ? '<span class="hr">'+roleIcon(h.role)+' '+esc(h.role)+'</span>' : '');
+      + '<span class="hn">'+esc(h.name)+'</span>';
     c.onclick = ()=>setHero(h.name);
-    grid.appendChild(c);
-  });
+    return c;
+  };
+
+  // 오버워치는 탱 → 딜 → 힐 순서로 소제목을 달아 나눈다
+  const ORDER = ['탱커','딜러','힐러'];
+  const grouped = game() === GAMES.ow && pool.some(h=>h.role);
+  if(grouped){
+    ORDER.forEach(r=>{
+      const list = pool.filter(h=>h.role === r);
+      if(!list.length) return;
+      const head = document.createElement('div');
+      head.className = 'hero-sub';
+      head.innerHTML = '<span>'+ROLE_EMOJI[r]+' '+r+'</span><span class="cnt">'+list.length+'</span>';
+      grid.appendChild(head);
+      list.forEach(h=>grid.appendChild(card(h)));
+    });
+    const rest = pool.filter(h=>ORDER.indexOf(h.role) < 0);
+    if(rest.length){
+      const head = document.createElement('div');
+      head.className = 'hero-sub';
+      head.innerHTML = '<span>기타</span><span class="cnt">'+rest.length+'</span>';
+      grid.appendChild(head);
+      rest.forEach(h=>grid.appendChild(card(h)));
+    }
+  } else {
+    pool.forEach(h=>grid.appendChild(card(h)));
+  }
+}
+
+/* 14) 랜덤 영웅 — 이미 같은 팀에서 쓴 영웅은 빼고 뽑는다 */
+function randomHero(){
+  if(!state || heroEditPid == null) return;
+  const list = state.teams[heroEditTeam] || [];
+  const me = list.find(p=>p.id === heroEditPid);
+  if(!me) return;
+  const picks = state.heroPick[heroEditTeam] || {};
+  const taken = new Set(Object.keys(picks).filter(k=>String(k) !== String(heroEditPid)).map(k=>picks[k]));
+  const pool = heroPool(assignedRole(heroEditTeam, heroEditPid) || me.role).filter(h=>!taken.has(h.name));
+  if(!pool.length) return toast('뽑을 영웅이 없습니다');
+  const h = pool[Math.floor(Math.random()*pool.length)];
+  playSuccessSound();
+  showSpecialEffect('🎲 ' + h.name);
+  setHero(h.name);
 }
 function setHero(name){
   db.ref(STATE_PATH+'/'+roomCode+'/heroPick/'+heroEditTeam+'/'+heroEditPid).set(name || null)
     .then(()=>{ playClickSound(); $('heroModal').classList.remove('active'); });
+}
+
+/* ============================================================
+   역할 자리 — 팀이 정해진 뒤 구성표대로 자리를 만들고 끌어다 놓는다
+   ============================================================ */
+let dragPid = null, dragTeam = null;
+
+function roleAssign(team){ return (state.roleAssign && state.roleAssign[team]) || {}; }
+
+/* 자리 배정은 자기 팀만. 관전·진행자는 양쪽 다 만질 수 있다 */
+function canEditRoles(team){ return iAmLeader() ? team === myTeam : isHost; }
+
+function makeDraggable(el, pid, team){
+  el.draggable = true;
+  el.addEventListener('dragstart', function(e){
+    dragPid = pid; dragTeam = team; el.classList.add('drag-src');
+    if(e.dataTransfer) e.dataTransfer.setData('text/plain', String(pid));
+  });
+  el.addEventListener('dragend', function(){ el.classList.remove('drag-src'); dragPid = null; });
+}
+function makeDropZone(el, team, onDrop){
+  el.addEventListener('dragover', function(e){ if(dragTeam === team){ e.preventDefault(); el.classList.add('over'); } });
+  el.addEventListener('dragleave', function(){ el.classList.remove('over'); });
+  el.addEventListener('drop', function(e){ e.preventDefault(); el.classList.remove('over'); onDrop(); });
+}
+
+function renderSlots(){
+  const slots = compSlots();
+  [1,2].forEach(function(t){
+    const box = $('slots' + t);
+    if(!slots || game() !== GAMES.ow){ box.style.display = 'none'; return; }
+    box.style.display = '';
+    box.innerHTML = '';
+    const team = state.teams[t] || [];
+    const asg = roleAssign(t);
+    const placed = new Set(Object.keys(asg).map(function(k){ return String(asg[k]); }));
+    const mine = canEditRoles(t);
+
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.style.margin = '4px 0 0';
+    title.innerHTML = '<span>역할 자리 — ' + compOf().label + '</span>'
+      + '<span class="muted">' + Object.keys(asg).length + ' / ' + slots.length + '</span>';
+    box.appendChild(title);
+
+    slots.forEach(function(role, i){
+      const pid = asg[i];
+      const p = (pid !== undefined && pid !== null)
+        ? team.find(function(x){ return String(x.id) === String(pid); }) : null;
+      const d = document.createElement('div');
+      d.className = 'slot' + (p ? ' filled' : '');
+      d.innerHTML = '<span class="sr">' + ROLE_EMOJI[role] + ' ' + role + '</span>';
+      if(p){
+        const ti = tierInfo(p.tier);
+        const c = document.createElement('span');
+        c.className = 'chipx';
+        c.innerHTML = '<span class="pnm">' + esc(p.name) + '</span>'
+          + '<span class="tn" style="color:var(--muted);font-size:.72em">' + ti.name + '</span>';
+        if(mine) makeDraggable(c, p.id, t);
+        d.appendChild(c);
+      } else {
+        const e2 = document.createElement('span');
+        e2.className = 'empty-s';
+        e2.textContent = mine ? '여기로 끌어다 놓으세요' : '비어 있음';
+        d.appendChild(e2);
+      }
+      if(mine) makeDropZone(d, t, function(){ dropInSlot(t, i); });
+      box.appendChild(d);
+    });
+
+    const rest = team.filter(function(x){ return !placed.has(String(x.id)); });
+    const bench = document.createElement('div');
+    bench.className = 'bench';
+    if(!rest.length) bench.innerHTML = '<span class="empty-s">모두 자리를 받았습니다</span>';
+    rest.forEach(function(p){
+      const ti = tierInfo(p.tier);
+      const c = document.createElement('div');
+      c.className = 'pp tier ' + ti.key;
+      c.innerHTML = '<span class="nm">' + esc(p.name) + '</span><span class="tn">' + ti.name + '</span>';
+      if(mine) makeDraggable(c, p.id, t);
+      bench.appendChild(c);
+    });
+    if(mine) makeDropZone(bench, t, function(){ dropOnBench(t); });
+    box.appendChild(bench);
+  });
+}
+
+function moveAssign(team, mutate){
+  db.ref(STATE_PATH + '/' + roomCode).transaction(function(cur){
+    if(!cur) return;
+    cur.roleAssign = cur.roleAssign || {};
+    const a = Object.assign({}, cur.roleAssign[team] || {});
+    mutate(a);
+    cur.roleAssign[team] = a;
+    cur.seq = (cur.seq || 0) + 1;
+    return cur;
+  }).then(function(){ playClickSound(); });
+}
+function dropInSlot(team, idx){
+  if(dragPid === null || dragTeam !== team) return;
+  const pid = dragPid;
+  moveAssign(team, function(a){
+    Object.keys(a).forEach(function(k){ if(String(a[k]) === String(pid)) delete a[k]; });
+    a[idx] = pid;
+  });
+}
+function dropOnBench(team){
+  if(dragPid === null || dragTeam !== team) return;
+  const pid = dragPid;
+  moveAssign(team, function(a){
+    Object.keys(a).forEach(function(k){ if(String(a[k]) === String(pid)) delete a[k]; });
+  });
+}
+
+/* 배정된 역할 — 영웅 목록을 그 역할로 좁히는 데 쓴다 */
+function assignedRole(team, pid){
+  const slots = compSlots();
+  if(!slots) return null;
+  const a = roleAssign(team);
+  const keys = Object.keys(a);
+  for(let i = 0; i < keys.length; i++){
+    if(String(a[keys[i]]) === String(pid)) return slots[keys[i]] || null;
+  }
+  return null;
 }
 
 /* ============================================================
@@ -2634,6 +2831,7 @@ function heroOf(team, pid){
 }
 function renderResult(){
   if(state.heroMode && state.heroMode !== 'none') loadHeroes();
+  renderSlots();
   const note = $('resultNote');
   if(note) note.textContent = state.heroMode === 'opponent'
     ? '상대 팀 선수의 「+ 영웅」 을 눌러 영웅을 정해주세요. 고르는 즉시 상대 화면에도 뜹니다.'
@@ -2649,7 +2847,7 @@ function renderResult(){
       let heroCell = '';
       if(hero) heroCell = '<span class="phero'+(editable?' edit':'')+'">'+esc(hero)+'</span>';
       else if(editable) heroCell = '<span class="phero blank edit">+ 영웅</span>';
-      d.innerHTML = '<span class="pic">'+roleIcon(p.role)+'</span><span class="pnm">'+esc(p.name)+'</span>'
+      d.innerHTML = '<span class="pnm">'+esc(p.name)+'</span>'
         + tierBadge(p.tier)
         + (p.price>0 ? '<span class="ptg">'+p.price+'P</span>' : '')
         + heroCell;
@@ -2668,10 +2866,10 @@ function restartInSameRoom(){
     phase:'lobby',
     queue:[], teams:{ 1:[], 2:[] },
     points:{ 1:START_POINTS, 2:START_POINTS },
-    cap: state.roleLock ? ROLE_LOCK_TEAM_SIZE : Math.ceil((state.picked||[]).length/2),
+    cap: Math.ceil((state.picked||[]).length/2),
     bid:null, hist:[], passes:{}, deadline:0,
     rps:{ round:1, hands:{}, winner:0, deadline:0 },
-    turn:0, heroPick:{}, heroDone:{}, event:null, instant:null,
+    turn:0, heroPick:{}, heroDone:{}, event:null, instant:null, rpsPicked:{}, roleAssign:{},
     seq:(state.seq||0)+1
   }).then(()=>{
     lastAuctionPid = null; bidCombo = 0;
@@ -2722,6 +2920,7 @@ function init(){
   watchOpenRoom();
   $('leaveBtn').onclick = ()=>leaveRoom(false);
   $('startBtn').onclick = startGame;
+  $('codeChip').onclick = ()=>navigator.clipboard.writeText(roomCode).then(()=>toast('방 코드 '+roomCode+' 복사')).catch(()=>toast('복사 실패'));
   $('copyCodeBtn').onclick = ()=>navigator.clipboard.writeText(roomCode).then(()=>toast('복사했습니다')).catch(()=>toast('복사 실패'));
 
   document.querySelectorAll('#gameOpts .opt').forEach(o=>o.onclick = ()=>{
@@ -2729,19 +2928,25 @@ function init(){
     setOption('game', o.dataset.game);
   });
   document.querySelectorAll('#seatOpts .opt').forEach(o=>o.onclick = ()=>setOption('seat', o.dataset.seat));
-  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.onclick = ()=>setOption('roleLock', o.dataset.lock === '1'));
+  document.querySelectorAll('#compOpts .opt').forEach(o=>o.onclick = ()=>setOption('comp', o.dataset.comp));
   document.querySelectorAll('#modeOpts .opt').forEach(o=>o.onclick = ()=>setOption('mode', o.dataset.mode));
   document.querySelectorAll('#heroOpts .opt').forEach(o=>o.onclick = ()=>setOption('hero', o.dataset.hero));
   $('remoteBtn').onclick = ()=>openPanel(!$('optPanel').classList.contains('open'));
   $('optCloseBtn').onclick = ()=>openPanel(false);
   window.addEventListener('resize', ()=>{ try{ syncPanelVisibility(); }catch(e){} });
   $('resAgainBtn').onclick = restartInSameRoom;
+  $('draftResetBtn').onclick = ()=>{
+    if(!isHost) return toast('방장만 취소할 수 있습니다');
+    if(!confirm('지금까지 뽑은 팀을 버리고 대기실로 돌아갑니다. 계속할까요?')) return;
+    restartInSameRoom();
+  };
 
   $('aBidBtn').onclick = placeBid;
   $('aBidInput').addEventListener('keydown', e=>{ if(e.key==='Enter') placeBid(); });
   document.querySelectorAll('#rpsBtns button').forEach(b=>b.onclick = ()=>throwHand(b.dataset.hand));
   $('autoRunBtn').onclick = runAuto;
   $('heroSearch').addEventListener('input', renderHeroGrid);
+  $('heroRandomBtn').onclick = randomHero;
   $('heroCloseBtn').onclick = ()=>$('heroModal').classList.remove('active');
   $('heroClearBtn').onclick = ()=>setHero(null);
   $('pickAllBtn').onclick = ()=>setAllPicked(true);
@@ -2759,7 +2964,6 @@ function init(){
   setBgmVolume(Math.round(bgmUserVolume*100));
   updateTtsStatusLabel();
   $('resCopyBtn').onclick = copyResult;
-  $('resHomeBtn').onclick = ()=>leaveRoom(true);
 
   $('admAddBtn').onclick = admAdd;
   $('admAddName').addEventListener('keydown', e=>{ if(e.key==='Enter') admAdd(); });
