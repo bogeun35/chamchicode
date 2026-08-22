@@ -342,6 +342,12 @@ body::after {
       <span class="nav-badge">PRO</span>
     </div>
 
+    <div class="nav-item" data-page="online" onclick="navigate('online')">
+      <span class="nav-icon">🌐</span>
+      <span>온라인 팀짜기</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="roulette" onclick="navigate('roulette')">
       <span class="nav-icon">🎮</span>
       <span>게임 투표 룰렛</span>
@@ -395,6 +401,11 @@ body::after {
           <div class="landing-card-title">경매 시스템</div>
           <div class="landing-card-desc">밸런스 랜덤, 드래프트 경매로<br>공정한 팀 구성</div>
         </div>
+        <div class="landing-card" onclick="navigate('online')">
+          <div class="landing-card-icon">🌐</div>
+          <div class="landing-card-title">온라인 팀짜기</div>
+          <div class="landing-card-desc">둘이 각자 기기로 접속해<br>경매 · 가위바위보 · 자동분배</div>
+        </div>
         <div class="landing-card" onclick="navigate('roulette')">
           <div class="landing-card-icon">🎮</div>
           <div class="landing-card-title">게임 투표 룰렛</div>
@@ -427,6 +438,11 @@ body::after {
   <!-- Auction iframe -->
   <div class="page-frame" id="page-auction">
     <iframe src="auction.html" id="iframe-auction" allow="autoplay"></iframe>
+  </div>
+
+  <!-- 온라인 팀짜기 iframe -->
+  <div class="page-frame" id="page-online">
+    <iframe src="auction-online.html" id="iframe-online" allow="autoplay; clipboard-write"></iframe>
   </div>
 
   <!-- Roulette iframe -->
