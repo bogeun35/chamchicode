@@ -15,7 +15,24 @@
 body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;z-index:-1;
   background:linear-gradient(135deg,rgba(37,99,235,.05) 0%,transparent 50%),linear-gradient(225deg,rgba(217,119,6,.05) 0%,transparent 50%),var(--bg)}
-.wrap{max-width:1240px;margin:0 auto;padding:16px}
+.wrap{max-width:1500px;margin:0 auto;padding:16px}
+.stage{display:flex;gap:14px;align-items:flex-start}
+.stage-main{flex:1;min-width:0}
+.stage-side{width:310px;flex-shrink:0;position:sticky;top:16px;max-height:calc(100vh - 32px);
+  display:none;flex-direction:column;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;box-shadow:0 2px 12px rgba(15,23,42,.06);overflow:hidden}
+.stage-side.open{display:flex}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;
+  border-bottom:1px solid var(--line);font-family:'Orbitron',sans-serif;font-weight:800;font-size:.82em;letter-spacing:.06em}
+.side-head .icon-btn{display:none}
+.side-body{overflow-y:auto;padding:12px}
+.side-body .card{box-shadow:none;border:none;padding:0 0 14px;border-bottom:1px solid var(--line);border-radius:0}
+.side-body .card+.card{margin-top:14px}
+.side-body .card:last-of-type{border-bottom:none;padding-bottom:0}
+.remote-btn{position:fixed;right:16px;bottom:16px;z-index:150;width:52px;height:52px;border-radius:50%;
+  border:none;background:var(--ink);color:#fff;font-size:1.4em;cursor:pointer;
+  box-shadow:0 6px 20px rgba(15,23,42,.32)}
+.remote-btn:active{transform:scale(.92)}
 
 /* ---------- 공통 ---------- */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
@@ -68,13 +85,15 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .opts{display:grid;gap:8px}
 .opts.c2{grid-template-columns:repeat(2,1fr)}
 .opts.c3{grid-template-columns:repeat(3,1fr)}
-.opt{background:#F8FAFC;border:1.5px solid var(--line);border-radius:9px;padding:12px 8px;text-align:center;
-  cursor:pointer;transition:all .15s;font-weight:700;font-size:.9em;line-height:1.35}
-.opt .oi{display:block;font-size:1.5em;margin-bottom:3px}
-.opt .od{display:block;font-size:.72em;font-weight:600;color:var(--muted);margin-top:3px}
+.opt{background:#F8FAFC;border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;
+  display:flex;align-items:center;gap:9px;text-align:left;
+  cursor:pointer;transition:all .15s;font-weight:700;font-size:.9em;line-height:1.25}
+.opt .oi{font-size:1.15em;flex-shrink:0}
+.opt b{flex-shrink:0}
+.opt .od{font-size:.7em;font-weight:600;color:var(--muted);margin-left:auto;text-align:right}
 .opt:hover{border-color:var(--blue);background:rgba(37,99,235,.05)}
 .opt.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.opt.on .od{color:rgba(255,255,255,.75)}
+.opt.on .od{color:rgba(255,255,255,.72)}
 .opt.dis{opacity:.35;pointer-events:none}
 
 /* 방 코드 */
@@ -204,10 +223,10 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .tpl-tabs button{background:#F8FAFC;border:1.5px solid var(--line);border-radius:7px;padding:6px 11px;font-weight:700;font-size:.82em;cursor:pointer;color:var(--dim);font-family:inherit}
 .tpl-tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .rlist{display:flex;flex-direction:column;gap:5px;max-height:400px;overflow-y:auto}
-.rrow{display:grid;grid-template-columns:1fr 62px 108px 30px;gap:6px;align-items:center;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:5px 7px}
+.rrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 104px 30px;gap:6px;align-items:center;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:5px 7px}
 .rrow input,.rrow select{padding:6px 8px;font-size:.9em;background:#fff}
 .rrow .del{background:transparent;border:none;color:var(--bad);font-size:1.05em;cursor:pointer;font-weight:700;padding:0}
-.addrow{display:grid;grid-template-columns:1fr 62px 108px 74px;gap:6px;margin-top:9px}
+.addrow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(190px,2fr) 104px 74px;gap:6px;margin-top:9px}
 
 /* 모달 */
 .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:16px;backdrop-filter:blur(3px)}
@@ -233,6 +252,37 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .hero-grid .empty,.pool .empty{grid-column:1/-1;flex:1 0 100%}
+
+/* 등급 선택 버튼 */
+.tierpick{display:flex;flex-wrap:wrap;gap:3px}
+.tp{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:.74em;padding:5px 7px;border-radius:6px;
+  border:1.5px solid var(--line);background:#fff;color:var(--dim);cursor:pointer;line-height:1;white-space:nowrap}
+.tp:hover{border-color:var(--ink)}
+.tp.on{color:#fff;border-color:transparent;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.tp.on.bronze{background:linear-gradient(135deg,#C98B4B,#7C4A21)}
+.tp.on.silver{background:linear-gradient(135deg,#B9C4D2,#6B7A8D)}
+.tp.on.gold{background:linear-gradient(135deg,#F0C24B,#A9760A)}
+.tp.on.plat{background:linear-gradient(135deg,#5BD7C5,#0B7F75)}
+.tp.on.dia{background:linear-gradient(135deg,#6FC5F5,#1D4FD8)}
+.tp.on.master{background:linear-gradient(135deg,#DE7BF0,#6B1BB5)}
+.tp.on.chall{background:linear-gradient(120deg,#FBBF24,#F97316,#DC2626)}
+
+/* 등급 — 칩 전체가 등급 색을 갖는다 (작은 배지는 글자가 잘려서 없앰) */
+.pp.tier{border:none;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);padding:8px 12px}
+.pp.tier .tn{font-family:'Orbitron',sans-serif;font-weight:800;font-size:.66em;letter-spacing:.04em;
+  opacity:.92;margin-left:2px}
+.pp.tier .nm{font-weight:800}
+.pp.tier.bronze{background:linear-gradient(135deg,#C98B4B,#7C4A21)}
+.pp.tier.silver{background:linear-gradient(135deg,#B9C4D2,#6B7A8D)}
+.pp.tier.gold{background:linear-gradient(135deg,#F0C24B,#A9760A)}
+.pp.tier.plat{background:linear-gradient(135deg,#5BD7C5,#0B7F75)}
+.pp.tier.dia{background:linear-gradient(135deg,#6FC5F5,#1D4FD8)}
+.pp.tier.master{background:linear-gradient(135deg,#DE7BF0,#6B1BB5)}
+.pp.tier.chall{background:linear-gradient(120deg,#FBBF24,#F97316,#DC2626)}
+.pp.tier.sel{outline:3px solid var(--ink);outline-offset:1px}
+.pp.tier.fixed{outline:3px solid #059669;outline-offset:1px}
+.pp .fx{font-family:'Orbitron',sans-serif;font-size:.6em;font-weight:800;background:rgba(255,255,255,.25);
+  border-radius:4px;padding:2px 5px;margin-left:2px}
 
 /* 등급 배지 — 브론즈 ~ 챌린저 */
 .tb{display:inline-block;font-family:'Orbitron',sans-serif;font-weight:900;font-size:.64em;
@@ -290,13 +340,23 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   .icon-btn{padding:5px 8px;font-size:.8em}
 }
 
+@media(max-width:1080px){
+  .stage-side{position:fixed;inset:auto 0 0 0;width:100%;max-height:74vh;border-radius:14px 14px 0 0;
+    z-index:160;box-shadow:0 -10px 40px rgba(15,23,42,.28);top:auto}
+  .side-head .icon-btn{display:block}
+  .stage-side::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);
+    width:38px;height:4px;border-radius:2px;background:var(--line)}
+  .side-head{padding-top:16px}
+}
 @media(max-width:820px){
   .board{grid-template-columns:1fr;gap:8px}
   .vsx{padding-top:0}
   .res{grid-template-columns:1fr}
   .opts.c3{grid-template-columns:1fr}
-  .rrow{grid-template-columns:1fr 54px 94px 28px}
-  .addrow{grid-template-columns:1fr 54px 94px 64px}
+  .rrow{grid-template-columns:1fr 94px 28px}
+  .rrow .tierpick{grid-column:1/-1;order:3}
+  .addrow{grid-template-columns:1fr 94px 64px}
+  .addrow .tierpick{grid-column:1/-1;order:3}
   .sold-stamp{font-size:2.8em}
 }
 </style>
@@ -322,17 +382,27 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     </div>
   </div>
 
+  <div class="stage">
+  <div class="stage-main">
+
   <!-- ============ 홈 ============ -->
   <div class="screen active" id="screen-home">
     <div class="card">
+      <div class="card-title"><span>나는 누구?</span><span class="muted" id="whoCount"></span></div>
+      <div class="tpl-tabs" id="homeTplTabs"></div>
+      <div class="pool" id="whoList"><div class="empty">명단을 불러오는 중...</div></div>
+      <div class="muted mt" id="whoHint">명단에 없으면 관리자에게 등록을 요청하세요. 관전은 고르지 않아도 됩니다.</div>
+    </div>
+    <div class="card">
       <div class="card-title">방 만들기</div>
-      <label class="fld"><span>내 닉네임</span><input id="hostNick" placeholder="닉네임" maxlength="12"></label>
-      <button class="btn wide" id="goSetupBtn">방 만들기 →</button>
+      <div class="muted mb">아래에서 본인을 고른 뒤 눌러주세요.</div>
+      <button class="btn wide" id="goSetupBtn">방 만들기</button>
+      <div class="center mt muted">설정은 방 안에서 언제든 바꿀 수 있습니다.</div>
     </div>
     <div class="card">
       <div class="card-title"><span>참여하기</span><span class="muted" id="openRoomPoll"></span></div>
       <div id="openRoomBox"><div class="empty">열린 방을 찾는 중...</div></div>
-      <label class="fld mt"><span>내 닉네임</span><input id="joinNick" placeholder="닉네임" maxlength="12"></label>
+
       <div class="row">
         <button class="btn orange" id="joinBtn" style="flex:2" disabled>팀장으로 입장</button>
         <button class="btn ghost" id="joinSpecBtn" disabled>👀 관전</button>
@@ -342,66 +412,6 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     </div>
     <div class="center mt muted">
       방은 하나만 열어두면 됩니다. 다른 사람은 코드 없이 「참여하기」 로 바로 들어옵니다.
-    </div>
-  </div>
-
-  <!-- ============ 방 설정 (방장) ============ -->
-  <div class="screen" id="screen-setup">
-    <div class="card">
-      <div class="card-title">게임</div>
-      <div class="opts c3" id="gameOpts">
-        <div class="opt" data-game="ow"><span class="oi">🎯</span>오버워치<span class="od">탱/딜/힐 · 영웅</span></div>
-        <div class="opt" data-game="lol"><span class="oi">⚔️</span>리그 오브 레전드<span class="od">5라인 · 챔피언</span></div>
-        <div class="opt" data-game="normal"><span class="oi">🎲</span>일반<span class="od">역할·캐릭터 없음</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">내 자리</div>
-      <div class="opts c2" id="seatOpts">
-        <div class="opt" data-seat="leader"><span class="oi">🎮</span>1팀 팀장으로 참여<span class="od">직접 입찰합니다</span></div>
-        <div class="opt" data-seat="spectator"><span class="oi">👀</span>관전 · 진행만<span class="od">두 팀장을 따로 받습니다</span></div>
-      </div>
-      <div class="muted mt">디스코드 방송으로 보여줄 때는 관전을 고르면 화면에 입찰창이 안 뜹니다.</div>
-    </div>
-
-    <div class="card" id="roleLockCard" style="display:none">
-      <div class="card-title">역할 고정</div>
-      <div class="opts c2" id="roleLockOpts">
-        <div class="opt" data-lock="1"><span class="oi">🎯</span>탱1 · 딜2 · 힐2<span class="od">역할별 정원 고정 · 정확히 10명</span></div>
-        <div class="opt" data-lock="0"><span class="oi">🎲</span>자유 구성<span class="od">역할 상관없이 인원만 반씩</span></div>
-      </div>
-      <div class="muted mt" id="roleLockNote"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">팀 구성 방식</div>
-      <div class="opts c3" id="modeOpts">
-        <div class="opt" data-mode="auction"><span class="oi">💰</span>경매<span class="od">100P 입찰 · 6초</span></div>
-        <div class="opt" data-mode="rps"><span class="oi">✌️</span>가위바위보<span class="od">이긴 쪽부터 지명</span></div>
-        <div class="opt" data-mode="auto"><span class="oi">⚖️</span>자동 분배<span class="od">점수·역할 밸런스</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">팀 확정 후 영웅 지정</div>
-      <div class="opts c3" id="heroOpts">
-        <div class="opt" data-hero="none"><span class="oi">🚫</span>안 함<span class="od">팀만 짜고 끝</span></div>
-        <div class="opt" data-hero="self"><span class="oi">🙋</span>직접 고르기<span class="od">내 팀은 내가</span></div>
-        <div class="opt" data-hero="opponent"><span class="oi">😈</span>상대가 정해주기<span class="od">서로 상대팀 배정</span></div>
-      </div>
-      <div class="muted mt" id="heroNote"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">참가자 명단 <span class="muted" id="rosterInfo"></span></div>
-      <div class="tpl-tabs" id="setupTplTabs"></div>
-      <div class="pool" id="setupRosterPreview"></div>
-    </div>
-
-    <div class="row mt">
-      <button class="btn ghost" id="setupBackBtn">← 뒤로</button>
-      <button class="btn" id="createRoomBtn" style="flex:2">방 만들기</button>
     </div>
   </div>
 
@@ -531,7 +541,10 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     </div>
     <div class="row mt">
       <button class="btn ghost" id="resCopyBtn">결과 복사</button>
-      <button class="btn dark" id="resHomeBtn">처음으로</button>
+      <button class="btn" id="resAgainBtn" style="flex:2">🔄 이 방에서 다시</button>
+    </div>
+    <div class="row mt">
+      <button class="btn ghost" id="resHomeBtn">나가기</button>
     </div>
   </div>
 
@@ -544,7 +557,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <div class="rlist" id="admRoster"></div>
       <div class="addrow">
         <input id="admAddName" placeholder="이름" maxlength="12">
-        <select id="admAddTier"></select>
+        <div id="admAddTier"></div>
         <select id="admAddRole"></select>
         <button class="btn sm" id="admAddBtn">추가</button>
       </div>
@@ -560,6 +573,71 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <button class="btn" id="admSaveBtn" style="flex:2">저장</button>
     </div>
   </div>
+
+  </div><!-- /stage-main -->
+
+  <!-- ============ 설정 패널 (오른쪽 단 / 모바일은 리모콘) ============ -->
+  <aside class="stage-side" id="optPanel">
+    <div class="side-head">
+      <span>방 설정</span>
+      <button class="icon-btn" id="optCloseBtn">닫기</button>
+    </div>
+    <div class="side-body">
+      <div class="card">
+        <div class="card-title">게임</div>
+        <div class="opts" id="gameOpts">
+          <div class="opt" data-game="ow"><span class="oi">🎯</span><b>오버워치</b><span class="od">탱/딜/힐 · 영웅</span></div>
+          <div class="opt" data-game="lol"><span class="oi">⚔️</span><b>리그 오브 레전드</b><span class="od">5라인 · 챔피언</span></div>
+          <div class="opt" data-game="normal"><span class="oi">🎲</span><b>일반</b><span class="od">역할·캐릭터 없음</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">내 자리</div>
+        <div class="opts" id="seatOpts">
+          <div class="opt" data-seat="leader"><span class="oi">🎮</span><b>1팀 팀장</b><span class="od">직접 입찰</span></div>
+          <div class="opt" data-seat="spectator"><span class="oi">👀</span><b>관전 · 진행만</b><span class="od">팀장 둘을 따로 받음</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="roleLockCard" style="display:none">
+        <div class="card-title">역할 고정</div>
+        <div class="opts" id="roleLockOpts">
+          <div class="opt" data-lock="1"><span class="oi">🎯</span><b>탱1 · 딜2 · 힐2</b><span class="od">정확히 10명</span></div>
+          <div class="opt" data-lock="0"><span class="oi">🎲</span><b>자유 구성</b><span class="od">인원만 반씩</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">팀 구성 방식</div>
+        <div class="opts" id="modeOpts">
+          <div class="opt" data-mode="auction"><span class="oi">💰</span><b>경매</b><span class="od">100P 입찰 · 6초</span></div>
+          <div class="opt" data-mode="rps"><span class="oi">✌️</span><b>가위바위보</b><span class="od">매번 이긴 쪽이 1명씩</span></div>
+          <div class="opt" data-mode="auto"><span class="oi">⚖️</span><b>자동 분배</b><span class="od">전투력·역할 밸런스</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">팀 확정 후 영웅 지정</div>
+        <div class="opts" id="heroOpts">
+          <div class="opt" data-hero="none"><span class="oi">🚫</span><b>안 함</b><span class="od">팀만 짜고 끝</span></div>
+          <div class="opt" data-hero="self"><span class="oi">🙋</span><b>직접 고르기</b><span class="od">내 팀은 내가</span></div>
+          <div class="opt" data-hero="opponent"><span class="oi">😈</span><b>상대가 정해주기</b><span class="od">서로 상대팀 배정</span></div>
+        </div>
+        <div class="muted mt" id="heroNote"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">참가자 명단</div>
+        <div class="tpl-tabs" id="setupTplTabs"></div>
+      </div>
+
+      <div class="muted" id="optLockNote" style="display:none">경기가 시작되면 설정을 바꿀 수 없습니다.</div>
+    </div>
+  </aside>
+  </div><!-- /stage -->
+
+  <button class="remote-btn" id="remoteBtn" style="display:none" title="방 설정">⚙️</button>
 
 </div>
 
@@ -708,6 +786,7 @@ let LOL_VER = '';
 
 /* ---------- 전역 상태 ---------- */
 let myNick = '';
+let myMemberId = null;      // 명단에서 고른 '나'
 let roomCode = null;
 let myTeam = null;        // 1 | 2
 let isHost = false;       // 방을 만든 쪽 = 1팀장 = 심판 역할
@@ -763,6 +842,7 @@ function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('screen-'+name).classList.add('active');
   window.scrollTo(0,0);
+  try{ syncPanelVisibility(); }catch(e){}
 }
 function game(){ return GAMES[(state && state.game) || setup.game] || GAMES.ow; }
 function roleIcon(r){ const g = game(); const f = g.roles.find(x=>x.key===r); return f ? f.icon : '🎲'; }
@@ -1053,6 +1133,23 @@ function checkPin(){
 function openAdmin(){
   loadRoster().then(()=>{ renderAdmin(); showScreen('admin'); });
 }
+let admAddTier = 3;
+/* 등급 선택 — 드롭다운 대신 낮은 등급부터 늘어놓은 단일 선택 버튼 */
+function buildTierPicker(box, cur, onPick){
+  if(!box) return;
+  box.className = 'tierpick';
+  box.innerHTML = '';
+  TIERS.forEach(t=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tp ' + t.key + (t.v === cur ? ' on' : '');
+    b.textContent = t.name;
+    b.title = t.name + ' · 전투력 ' + t.power;
+    b.onclick = ()=>{ onPick(t.v); playClickSound(); };
+    box.appendChild(b);
+  });
+}
+
 function renderAdmin(){
   const tabs = $('admTplTabs'); tabs.innerHTML = '';
   templates.forEach((t,i)=>{
@@ -1070,10 +1167,7 @@ function renderAdmin(){
   const allRoles = ['랜덤','탱커','딜러','힐러','탑','정글','미드','원딜','서폿'];
   allRoles.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; roleSel.appendChild(o); });
 
-  const tierSel = $('admAddTier');
-  if(tierSel && !tierSel.options.length){
-    TIERS.forEach(t=>{ const o=document.createElement('option'); o.value=t.v; o.textContent=t.name+' ('+t.power+')'; if(t.v===3) o.selected=true; tierSel.appendChild(o); });
-  }
+  buildTierPicker($('admAddTier'), admAddTier, v=>{ admAddTier = v; renderAdmin(); });
 
   roster.sort(byName);
   const list = $('admRoster'); list.innerHTML = '';
@@ -1082,9 +1176,8 @@ function renderAdmin(){
     const row = document.createElement('div'); row.className = 'rrow';
     const n = document.createElement('input'); n.value = p.name; n.maxLength = 12;
     n.oninput = e=>{ p.name = e.target.value; };
-    const t = document.createElement('select');
-    TIERS.forEach(x=>{ const o=document.createElement('option'); o.value=x.v; o.textContent=x.name+' ('+x.power+')'; if(x.v===tierInfo(p.tier).v) o.selected=true; t.appendChild(o); });
-    t.onchange = e=>{ p.tier = parseInt(e.target.value)||3; };
+    const t = document.createElement('div');
+    buildTierPicker(t, tierInfo(p.tier).v, v=>{ p.tier = v; renderAdmin(); });
     const r = document.createElement('select');
     allRoles.forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent=x; if(x===p.role) o.selected=true; r.appendChild(o); });
     r.onchange = e=>{ p.role = e.target.value; };
@@ -1097,7 +1190,7 @@ function admAdd(){
   const name = $('admAddName').value.trim();
   if(!name) return toast('이름을 입력하세요');
   if(roster.some(p=>p.name === name)) return toast('이미 있는 이름입니다');
-  roster.push({ id:nextPid(), name, tier:tierInfo($('admAddTier').value).v, role:$('admAddRole').value });
+  roster.push({ id:nextPid(), name, tier:admAddTier, role:$('admAddRole').value });
   $('admAddName').value = ''; $('admAddName').focus();
   playClickSound(); renderAdmin();
 }
@@ -1164,65 +1257,174 @@ function heroPool(role){
 /* ============================================================
    방 만들기 / 입장
    ============================================================ */
-function goSetup(){
-  if(openRoom && !confirm(openRoom.host + ' 님의 방이 이미 열려 있습니다.\n새로 만들면 그 방 대신 이 방이 「참여하기」 에 뜹니다.\n\n계속할까요?')) return;
-  const nick = $('hostNick').value.trim();
-  if(!nick) return toast('닉네임을 입력해주세요');
-  myNick = nick; localStorage.setItem(NICK_KEY, nick);
-  loadRoster().then(()=>{ renderSetup(); showScreen('setup'); });
-}
-function renderSetup(){
-  document.querySelectorAll('#gameOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.game===setup.game));
-  document.querySelectorAll('#seatOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.seat===setup.seat));
-
-  // 역할 고정은 오버워치에서만
-  const owOnly = setup.game === 'ow';
-  $('roleLockCard').style.display = owOnly ? '' : 'none';
-  if(!owOnly) setup.roleLock = false;
-  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.classList.toggle('on', (o.dataset.lock === '1') === setup.roleLock));
-  if(owOnly){
-    const tally = { '탱커':0, '딜러':0, '힐러':0, '랜덤':0 };
-    roster.forEach(x=>{ const r = normalizeRole(x.role, 'ow'); tally[r] = (tally[r]||0) + 1; });
-    $('roleLockNote').textContent = setup.roleLock
-      ? '두 팀 합쳐 탱커 2명 · 딜러 4명 · 힐러 4명, 정확히 10명을 골라야 시작됩니다. '
-        + '(명단: 탱커 '+tally['탱커']+' · 딜러 '+tally['딜러']+' · 힐러 '+tally['힐러']
-        + (tally['랜덤'] ? ' · 역할미정 '+tally['랜덤'] : '') + ')'
-      : '인원만 반으로 나눕니다. 역할은 밸런스 참고용으로만 씁니다.';
-  }
-  document.querySelectorAll('#modeOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.mode===setup.mode));
-
-  const normal = GAMES[setup.game].hasHeroes === false;
-  document.querySelectorAll('#heroOpts .opt').forEach(o=>{
-    const isNone = o.dataset.hero === 'none';
-    o.classList.toggle('dis', normal && !isNone);
-    o.classList.toggle('on', o.dataset.hero === setup.hero);
-  });
-  $('heroNote').textContent = normal
-    ? '일반 게임은 캐릭터가 없어서 영웅 지정을 쓰지 않습니다.'
-    : (setup.hero === 'opponent' ? '1팀장이 2팀 선수들의 영웅을, 2팀장이 1팀 선수들의 영웅을 하나씩 정합니다. 둘 다 끝내면 동시에 공개됩니다.'
-      : setup.hero === 'self' ? '각자 자기 팀 선수들의 영웅을 고릅니다.' : '');
-
-  const tabs = $('setupTplTabs'); tabs.innerHTML = '';
+/* 홈에서 명단을 띄우고 본인을 고르게 한다 — 명단 밖 사람은 어차피 못 뛴다 */
+function renderWhoList(){
+  const tabs = $('homeTplTabs'); tabs.innerHTML = '';
   templates.forEach((t,i)=>{
     const b = document.createElement('button');
     b.className = i===curTpl ? 'on' : '';
     b.textContent = t.name + ' (' + t.players.length + ')';
-    b.onclick = ()=>{ curTpl = i; roster = templates[i].players; renderSetup(); };
+    b.onclick = ()=>{ curTpl = i; roster = templates[i].players; myMemberId = null; renderWhoList(); };
     tabs.appendChild(b);
   });
 
-  const prev = $('setupRosterPreview'); prev.innerHTML = '';
-  if(!roster.length){
-    prev.innerHTML = '<div class="empty">명단이 비어 있습니다. 🔨 아이콘을 ' + ADMIN_TAP_COUNT + '번 눌러 관리자 모드에서 등록하세요.</div>';
-  } else {
-    roster.forEach(p=>{
-      const d = document.createElement('div'); d.className = 'pp';
-      d.innerHTML = (normal ? '' : '<span>'+roleIcon(p.role)+'</span>') + '<span>'+esc(p.name)+'</span>'+tierBadge(p.tier);
-      prev.appendChild(d);
-    });
+  const box = $('whoList'); box.innerHTML = '';
+  const list = roster.slice().sort(byName);
+  if(!list.length){
+    box.innerHTML = '<div class="empty">명단이 비어 있습니다. 🔨 아이콘을 ' + ADMIN_TAP_COUNT + '번 눌러 등록하세요.</div>';
   }
-  $('rosterInfo').textContent = roster.length + '명';
-  $('createRoomBtn').disabled = roster.length < 4;
+  list.forEach(m=>{
+    const t = tierInfo(m.tier);
+    const d = document.createElement('div');
+    d.className = 'pp tog tier ' + t.key + (myMemberId === m.id ? ' sel' : '');
+    d.innerHTML = '<span class="nm">' + esc(m.name) + '</span><span class="tn">' + t.name + '</span>';
+    d.onclick = ()=>{
+      myMemberId = (myMemberId === m.id) ? null : m.id;
+      if(myMemberId){ myNick = m.name; localStorage.setItem(NICK_KEY, m.name); }
+      playClickSound(); renderWhoList(); renderOpenRoom();
+    };
+    box.appendChild(d);
+  });
+  $('whoCount').textContent = myMemberId ? ('나: ' + myNick) : (list.length + '명');
+}
+
+function meSelected(){
+  if(myMemberId != null) return true;
+  toast('먼저 명단에서 본인을 골라주세요');
+  return false;
+}
+
+function goSetup(){
+  if(openRoom && !confirm(openRoom.host + ' 님의 방이 이미 열려 있습니다. 새로 만들면 그 방 대신 이 방이 「참여하기」 에 뜹니다. 계속할까요?')) return;
+  if(!meSelected()) return;
+  if(!roster.length) return toast('명단이 비어 있습니다. 관리자 모드에서 먼저 등록하세요');
+  createRoom();            // 설정 화면 없이 바로 만든다 — 설정은 방 안 오른쪽 단에서
+}
+/* 방 안에서 쓰는 설정 패널. 방장만, 대기실에서만 고칠 수 있다. */
+function optEditable(){ return isHost && state && state.phase === 'lobby'; }
+
+function renderOptPanel(){
+  const inRoom = !!state;
+  const cfg = inRoom
+    ? { game:state.game, seat:(myTeam===0?'spectator':'leader'), roleLock:!!state.roleLock, mode:state.mode, hero:state.heroMode }
+    : setup;
+  const editable = optEditable();
+
+  document.querySelectorAll('#gameOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.game===cfg.game));
+  document.querySelectorAll('#seatOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.seat===cfg.seat));
+  document.querySelectorAll('#modeOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.mode===cfg.mode));
+
+  const owOnly = cfg.game === 'ow';
+  $('roleLockCard').style.display = owOnly ? '' : 'none';
+  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.classList.toggle('on', (o.dataset.lock === '1') === !!cfg.roleLock));
+
+  const normal = GAMES[cfg.game].hasHeroes === false;
+  document.querySelectorAll('#heroOpts .opt').forEach(o=>{
+    const isNone = o.dataset.hero === 'none';
+    o.classList.toggle('dis', normal && !isNone);
+    o.classList.toggle('on', o.dataset.hero === cfg.hero);
+  });
+  $('heroNote').textContent = normal
+    ? '일반 게임은 캐릭터가 없어서 영웅 지정을 쓰지 않습니다.'
+    : (cfg.hero === 'opponent' ? '1팀장이 2팀 선수의 영웅을, 2팀장이 1팀 선수의 영웅을 정합니다.'
+      : cfg.hero === 'self' ? '각자 자기 팀 선수의 영웅을 고릅니다.' : '');
+
+  const tabs = $('setupTplTabs'); tabs.innerHTML = '';
+  templates.forEach((t,i)=>{
+    const bt = document.createElement('button');
+    bt.className = i===curTpl ? 'on' : '';
+    bt.textContent = t.name + ' (' + t.players.length + ')';
+    bt.onclick = ()=>{ if(editable) applyTemplate(i); else toast('대기실에서 방장만 바꿀 수 있습니다'); };
+    tabs.appendChild(bt);
+  });
+
+  $('optLockNote').style.display = (inRoom && !editable) ? '' : 'none';
+  $('optLockNote').textContent = !isHost ? '방장만 설정을 바꿀 수 있습니다.' : '경기 중에는 설정을 바꿀 수 없습니다.';
+  document.querySelectorAll('#optPanel .opt').forEach(o=>{
+    const lock = inRoom && !editable && o.dataset.seat === undefined;
+    o.style.opacity = lock ? '.55' : '';
+    o.style.pointerEvents = lock ? 'none' : '';
+  });
+}
+
+/* 설정 한 항목을 바꾼다 — 방 안이면 DB 로, 방 밖이면 로컬로 */
+function setOption(key, val){
+  if(state){
+    if(key === 'seat') return changeSeat(val);
+    if(!optEditable()) return toast(isHost ? '경기 중에는 못 바꿉니다' : '방장만 바꿀 수 있습니다');
+    const upd = { seq:(state.seq||0)+1 };
+    if(key === 'game'){
+      upd.game = val;
+      const g = GAMES[val];
+      upd.members = (state.members||[]).map(m=>Object.assign({}, m, {
+        role: g.hasHeroes === false ? '-' : normalizeRole(m.role, val)
+      }));
+      if(g.hasHeroes === false) upd.heroMode = 'none';
+      if(val !== 'ow') upd.roleLock = false;
+    }
+    else if(key === 'mode') upd.mode = val;
+    else if(key === 'hero') upd.heroMode = val;
+    else if(key === 'roleLock'){
+      upd.roleLock = val;
+      upd.cap = val ? ROLE_LOCK_TEAM_SIZE : Math.ceil((state.picked||[]).length/2);
+    }
+    db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>playClickSound());
+  } else {
+    setup[key] = val;
+    if(key === 'game'){
+      if(GAMES[val].hasHeroes === false) setup.hero = 'none';
+      if(val !== 'ow') setup.roleLock = false;
+    }
+    renderOptPanel();
+  }
+}
+
+/* 명단 템플릿 교체 — 고른 사람은 초기화된다 */
+function applyTemplate(i){
+  curTpl = i; roster = templates[i].players;
+  const g = GAMES[state.game];
+  const members = roster.map(x=>({
+    id:x.id, name:x.name, tier:tierInfo(x.tier).v,
+    role: g.hasHeroes === false ? '-' : normalizeRole(x.role, state.game)
+  })).sort(byName);
+  db.ref(STATE_PATH+'/'+roomCode).update({
+    members, picked:[], cap:0, seq:(state.seq||0)+1
+  }).then(()=>{ playClickSound(); toast(templates[i].name + ' 적용'); });
+}
+
+/* 팀장 <-> 관전 자리 바꾸기 */
+function changeSeat(seat){
+  if(!roomCode) return;
+  if(seat === 'spectator'){
+    if(myTeam){ db.ref('rooms/'+roomCode+'/leaders/'+myTeam).remove(); db.ref('rooms/'+roomCode+'/leaderIds/'+myTeam).remove(); }
+    myTeam = 0; toast('관전으로 바꿨습니다');
+  } else {
+    const L = lastLeaders || {};
+    const slot = L[1] === myNick ? 1 : L[2] === myNick ? 2 : (!L[1] ? 1 : (!L[2] ? 2 : 0));
+    if(!slot) return toast('팀장 자리가 모두 찼습니다');
+    db.ref('rooms/'+roomCode+'/leaderIds/'+slot).set(myMemberId == null ? null : myMemberId);
+    db.ref('rooms/'+roomCode+'/leaders/'+slot).set(myNick);
+    myTeam = slot; toast(slot + '팀 팀장이 되었습니다');
+  }
+  renderOptPanel(); if(state) render();
+}
+
+function openPanel(on){
+  $('optPanel').classList.toggle('open', on);
+  $('remoteBtn').textContent = on ? '✕' : '⚙️';
+}
+/* 방 안이면 오른쪽 단을 띄운다 (좁은 화면에서는 리모콘으로 여닫는다) */
+let wasNarrow = null;
+function syncPanelVisibility(){
+  const scr = document.querySelector('.screen.active');
+  const show = !!state && scr && (scr.id === 'screen-lobby' || scr.id === 'screen-draft');
+  const narrow = window.innerWidth <= 1080;
+  $('remoteBtn').style.display = show && narrow ? '' : 'none';
+  if(!show){ openPanel(false); wasNarrow = narrow; return; }
+  if(!narrow) openPanel(true);
+  else if(wasNarrow === false) openPanel(false);   // 넓다가 좁아지면 화면을 가리지 않게 접는다
+  wasNarrow = narrow;
+  renderOptPanel();
 }
 
 function createRoom(){
@@ -1253,7 +1455,8 @@ function createRoom(){
     app:'auction',                                   // rooms/ 를 룰렛과 공유하므로 앱을 표시해둔다
     host:myNick, hostSpectates:asSpec,
     createdAt:Date.now(), expiresAt:Date.now()+ROOM_TTL,
-    leaders: asSpec ? {} : { 1:myNick }
+    leaders: asSpec ? {} : { 1:myNick },
+    leaderIds: asSpec ? {} : { 1:myMemberId }
   }).then(()=> db.ref(STATE_PATH+'/'+code).set(init))
     .then(()=> db.ref(ROOM_INDEX+'/'+code).set({
       code, host:myNick, game:setup.game, mode:setup.mode, heroMode,
@@ -1359,7 +1562,8 @@ function shuffle(arr){
 function joinRoom(asSpectator){
   const typed = $('joinCode').value.trim().toUpperCase();
   const code = typed || (openRoom && openRoom.code) || '';
-  const nick = $('joinNick').value.trim();
+  if(!asSpectator && !meSelected()) return;
+  const nick = myNick || ('관전자' + Math.floor(Math.random()*90+10));
   if(code.length !== 6) return toast(typed ? '방 코드 6자리를 입력해주세요' : '열려 있는 방이 없습니다');
   if(!nick) return toast('닉네임을 입력해주세요');
   myNick = nick; localStorage.setItem(NICK_KEY, nick);
@@ -1379,6 +1583,7 @@ function joinRoom(asSpectator){
     if(L[2] === nick){ roomCode = code; myTeam = 2; isHost = amHost; return enterRoom(); }
     const slot = !L[1] ? 1 : (!L[2] ? 2 : 0);
     if(!slot) return toast('두 팀장 자리가 모두 찼습니다 — 관전으로 들어오세요');
+    db.ref('rooms/'+code+'/leaderIds/'+slot).set(myMemberId == null ? null : myMemberId);
     db.ref('rooms/'+code+'/leaders/'+slot).set(nick).then(()=>{
       roomCode = code; myTeam = slot; isHost = amHost; enterRoom();
     });
@@ -1478,11 +1683,13 @@ function leaveRoom(silent){
   $('statusChip').style.display = 'none';
   showScreen('home');
   watchOpenRoom();
+  try{ renderWhoList(); }catch(e){}
 }
 
 let lastLeaders = {};
 function renderLobbyLeaders(room){
   const L = room.leaders || {};
+  lastLeaderIds = room.leaderIds || {};
   if(isHost && JSON.stringify(L) !== JSON.stringify(lastLeaders)){ idleWarned = false; touchRoom(); }
   lastLeaders = L;
   [1,2].forEach(t=>{
@@ -1546,7 +1753,7 @@ function playEvent(){
   else if(ev.type === 'pass'){ playPassSound(); caster(ev.name + ', 유찰!', 1); toast(ev.name + ' 유찰 — 뒤로 미뤘습니다'); }
   else if(ev.type === 'rps'){
     if(ev.winner === 0){ playPassSound(); caster('비겼습니다! 다시!', 1); }
-    else { playSuccessSound(); showSpecialEffect(ev.winner + '팀 선픽!'); caster(ev.winner + '팀 승리! 먼저 지명하세요!', 2); }
+    else { playSuccessSound(); showSpecialEffect(ev.winner + '팀 지명!'); caster(ev.winner + '팀 승리! 한 명 지명하세요!', 2); }
   }
 }
 
@@ -1564,6 +1771,16 @@ function renderLobbySettings(){
   renderPicker();
 }
 
+/* 팀장 본인은 그 팀에 고정된다 — 경매·지명 대상에서 빠진다 */
+let lastLeaderIds = {};
+function leaderTeamOf(memberId){
+  const I = lastLeaderIds || {};
+  if(memberId == null) return 0;
+  if(I[1] != null && String(I[1]) === String(memberId)) return 1;
+  if(I[2] != null && String(I[2]) === String(memberId)) return 2;
+  return 0;
+}
+
 /* 전체 멤버(30~40명) 중 오늘 온 사람만 골라내는 화면 */
 function isPicked(id){ return state.picked.indexOf(id) >= 0; }
 function renderPicker(){
@@ -1573,9 +1790,13 @@ function renderPicker(){
     box.innerHTML = '<div class="empty">명단이 비어 있습니다. 🔨 아이콘을 '+ADMIN_TAP_COUNT+'번 눌러 등록하세요.</div>';
   }
   members.forEach(p=>{
+    const t = tierInfo(p.tier);
+    const fixedTeam = leaderTeamOf(p.id);
     const d = document.createElement('div');
-    d.className = 'pp tog' + (isPicked(p.id) ? ' sel' : '');
-    d.innerHTML = (isNormal() ? '' : '<span>'+roleIcon(p.role)+'</span>') + '<span>'+esc(p.name)+'</span>' + tierBadge(p.tier);
+    d.className = 'pp tog tier ' + t.key + (isPicked(p.id) ? ' sel' : '') + (fixedTeam ? ' fixed' : '');
+    d.title = '전투력 ' + t.power;
+    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>'
+      + (fixedTeam ? '<span class="fx">'+fixedTeam+'팀 고정</span>' : '');
     if(iAmLeader() || isHost) d.onclick = ()=>togglePick(p.id);
     else d.classList.add('locked');
     box.appendChild(d);
@@ -1718,8 +1939,10 @@ function renderRemain(){
   const pool = $('remainPool'); pool.innerHTML = '';
   if(!rest.length){ pool.innerHTML = '<div class="empty">없음</div>'; return; }
   rest.forEach(p=>{
-    const d = document.createElement('div'); d.className='pp dimmed';
-    d.innerHTML = '<span>'+roleIcon(p.role)+'</span><span>'+esc(p.name)+'</span>'+tierBadge(p.tier);
+    const t = tierInfo(p.tier);
+    const d = document.createElement('div'); d.className='pp tier ' + t.key;
+    d.style.opacity = '.72';
+    d.innerHTML = '<span class="nm">'+esc(p.name)+'</span><span class="tn">'+t.name+'</span>';
     pool.appendChild(d);
   });
 }
@@ -1801,6 +2024,7 @@ function renderAuction(){
     lastBidKey = key;
   }
   startTimerLoop();
+  keepBidFocus();
 }
 
 let timerRaf = null;
@@ -1829,6 +2053,18 @@ function focusBid(){
   if(document.querySelector('.modal.active')) return;
   el.focus(); el.select();
 }
+/* 상대가 입찰해서 화면이 다시 그려져도 입력창을 놓지 않는다.
+   이미 어딘가에 입력 중이면 건드리지 않는다. */
+function keepBidFocus(){
+  if(!iAmLeader()) return;
+  const el = $('aBidInput');
+  if(!el || el.disabled) return;
+  if(document.querySelector('.modal.active')) return;
+  const ae = document.activeElement;
+  if(ae === el) return;
+  if(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+  el.focus();
+}
 function placeBid(){
   const amt = parseInt($('aBidInput').value);
   if(isNaN(amt) || amt < 1) return toast('입찰가를 입력하세요');
@@ -1849,7 +2085,13 @@ function placeBid(){
     if(cur.bid && cur.bid.team === myTeam) return;     // 내가 최고가인데 또 올리기 금지
     cur.bid = { team:myTeam, amount:amt };
     cur.hist = (cur.hist||[]).concat([{ team:myTeam, amount:amt }]).slice(-20);
-    cur.deadline = srvNow() + AUCTION_TIME*1000;
+    // 상대가 남은 포인트로 못 이기거나 자리가 없으면 6초를 기다릴 이유가 없다
+    const other = myTeam === 1 ? 2 : 1;
+    const otherPts = (cur.points||{})[other] || 0;
+    const otherFull = ((cur.teams||{})[other] || []).length >= cur.cap;
+    const hopeless = otherPts <= amt || otherFull;
+    cur.deadline = hopeless ? srvNow() - 1 : srvNow() + AUCTION_TIME*1000;
+    cur.instant = hopeless ? true : null;
     cur.seq = (cur.seq||0) + 1;
     return cur;
   }).then(res=>{
@@ -1995,11 +2237,23 @@ function pickPlayer(pid){
     cur.teams[myTeam].push(p);
     cur.queue = q;
     cur.seq = (cur.seq||0)+1;
-    // 다음 차례: 상대 팀이 아직 고를 수 있으면 넘긴다
+
     const other = myTeam === 1 ? 2 : 1;
     const canPick = t => (cur.teams[t]||[]).length < cur.cap && q.some(x=>!cur.roleLock
       || (OW_ROLE_LIMIT[x.role] !== undefined && (cur.teams[t]||[]).filter(y=>y.role === x.role).length < OW_ROLE_LIMIT[x.role]));
-    cur.turn = canPick(other) ? other : (canPick(myTeam) ? myTeam : other);
+
+    if(!q.length || (!canPick(other) && !canPick(myTeam))){ cur.turn = 0; return cur; }
+
+    if(canPick(other) && canPick(myTeam)){
+      // 한 명 데려갈 때마다 가위바위보를 다시 한다
+      cur.phase = 'rps';
+      cur.turn = 0;
+      cur.rps = { round:((cur.rps && cur.rps.round) || 1) + 1, hands:{}, winner:0,
+                  deadline: srvNow() + RPS_TIME*1000 + 900 };
+    } else {
+      // 한쪽만 자리가 남았으면 가위바위보 없이 그쪽이 계속 데려간다
+      cur.turn = canPick(other) ? other : myTeam;
+    }
     return cur;
   }).then(res=>{
     if(!res.committed) return toast('지명하지 못했습니다');
@@ -2269,20 +2523,31 @@ function startGame(){
   if(state.roleLock){
     if(!roleLockReady()) return toast('탱커 2 · 딜러 4 · 힐러 4 로 정확히 10명을 골라주세요');
   } else if(picked.length < 4) return toast('참가자를 4명 이상 골라주세요');
-  const queue = shuffle(state.members.filter(p=>picked.indexOf(p.id) >= 0));
+  const chosen = state.members.filter(p=>picked.indexOf(p.id) >= 0);
+  // 팀장이 자기 이름을 골랐으면 경매에 올리지 않고 그 팀에 바로 넣는다
+  const teams = { 1:[], 2:[] };
+  const rest = [];
+  chosen.forEach(p=>{
+    const t = leaderTeamOf(p.id);
+    if(t && teams[t].length === 0) teams[t].push(Object.assign({}, p, { price:0, fixed:true }));
+    else rest.push(p);
+  });
+  const queue = shuffle(rest);
   const upd = {
     seq:(state.seq||0)+1,
-    queue, cap: state.roleLock ? ROLE_LOCK_TEAM_SIZE : Math.ceil(queue.length/2),
-    teams:{ 1:[], 2:[] }, points:{ 1:START_POINTS, 2:START_POINTS },
+    queue, cap: state.roleLock ? ROLE_LOCK_TEAM_SIZE : Math.ceil(chosen.length/2),
+    teams, points:{ 1:START_POINTS, 2:START_POINTS },
+    leaderNames:{ 1:(lastLeaders[1]||''), 2:(lastLeaders[2]||'') },
     bid:null, hist:[], passes:{}, heroPick:{}
   };
+  if(!queue.length) return toast('경매에 올릴 사람이 없습니다');
   if(state.mode === 'auction'){ upd.phase = 'auction'; upd.deadline = srvNow() + AUCTION_TIME*1000 + 1500; }
   else if(state.mode === 'rps'){ upd.phase = 'rps'; upd.rps = { round:1, hands:{}, winner:0, deadline:srvNow() + RPS_TIME*1000 + 1200 }; }
   else { upd.phase = 'auto'; }
   db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>{
     playAuctionStartSound();
     if(state.mode === 'auction') setTimeout(startBGM, 900);
-    caster(state.mode==='auction' ? '경매를 시작합니다!' : state.mode==='rps' ? '가위바위보로 선픽을 정합니다!' : '자동 분배를 시작합니다!', 2);
+    caster(state.mode==='auction' ? '경매를 시작합니다!' : state.mode==='rps' ? '가위바위보! 이긴 쪽이 한 명씩 데려갑니다!' : '자동 분배를 시작합니다!', 2);
   });
 }
 
@@ -2369,6 +2634,25 @@ function renderResult(){
     });
   });
 }
+/* 결과 화면에서 방을 유지한 채 대기실로 되돌린다 */
+function restartInSameRoom(){
+  if(!isHost) return toast('방장만 다시 시작할 수 있습니다');
+  db.ref(STATE_PATH+'/'+roomCode).update({
+    phase:'lobby',
+    queue:[], teams:{ 1:[], 2:[] },
+    points:{ 1:START_POINTS, 2:START_POINTS },
+    cap: state.roleLock ? ROLE_LOCK_TEAM_SIZE : Math.ceil((state.picked||[]).length/2),
+    bid:null, hist:[], passes:{}, deadline:0,
+    rps:{ round:1, hands:{}, winner:0, deadline:0 },
+    turn:0, heroPick:{}, heroDone:{}, event:null, instant:null,
+    seq:(state.seq||0)+1
+  }).then(()=>{
+    lastAuctionPid = null; bidCombo = 0;
+    playClickSound();
+    toast('대기실로 돌아왔습니다 — 참가자를 다시 고르면 됩니다');
+  }).catch(()=>toast('다시 시작하지 못했습니다'));
+}
+
 function copyResult(){
   let txt = '[' + GAMES[state.game].label + ' 팀짜기]\n';
   [1,2].forEach(t=>{
@@ -2386,7 +2670,13 @@ function copyResult(){
    ============================================================ */
 function init(){
   const saved = localStorage.getItem(NICK_KEY) || '';
-  $('hostNick').value = saved; $('joinNick').value = saved;
+  myNick = saved;
+  loadRoster().then(()=>{
+    // 지난번에 고른 사람이 명단에 그대로 있으면 되살린다
+    const me = roster.find(m=>m.name === saved);
+    if(me) myMemberId = me.id;
+    renderWhoList(); renderOpenRoom(); renderOptPanel();
+  });
   isAdmin = localStorage.getItem(ADMIN_KEY) === '1';
 
   setupAdminTap();
@@ -2394,7 +2684,6 @@ function init(){
   $('goSetupBtn').onclick = goSetup;
   $('joinBtn').onclick = ()=>joinRoom(false);
   $('joinSpecBtn').onclick = ()=>joinRoom(true);
-  document.querySelectorAll('#seatOpts .opt').forEach(o=>o.onclick = ()=>{ setup.seat = o.dataset.seat; playClickSound(); renderSetup(); });
   $('joinCode').addEventListener('input', e=>{ e.target.value = e.target.value.toUpperCase(); renderOpenRoom(); });
   $('codeToggle').onclick = ()=>{
     const f = $('codeFld');
@@ -2404,21 +2693,22 @@ function init(){
     if(on) $('joinCode').focus(); else { $('joinCode').value = ''; renderOpenRoom(); }
   };
   watchOpenRoom();
-  $('setupBackBtn').onclick = ()=>showScreen('home');
-  $('createRoomBtn').onclick = createRoom;
   $('leaveBtn').onclick = ()=>leaveRoom(false);
   $('startBtn').onclick = startGame;
   $('copyCodeBtn').onclick = ()=>navigator.clipboard.writeText(roomCode).then(()=>toast('복사했습니다')).catch(()=>toast('복사 실패'));
 
   document.querySelectorAll('#gameOpts .opt').forEach(o=>o.onclick = ()=>{
-    setup.game = o.dataset.game;
-    if(GAMES[setup.game].hasHeroes === false) setup.hero = 'none';
-    if(setup.game === 'lol') loadLolChamps();
-    playClickSound(); renderSetup();
+    if(o.dataset.game === 'lol') loadLolChamps();
+    setOption('game', o.dataset.game);
   });
-  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.onclick = ()=>{ setup.roleLock = o.dataset.lock === '1'; playClickSound(); renderSetup(); });
-  document.querySelectorAll('#modeOpts .opt').forEach(o=>o.onclick = ()=>{ setup.mode = o.dataset.mode; playClickSound(); renderSetup(); });
-  document.querySelectorAll('#heroOpts .opt').forEach(o=>o.onclick = ()=>{ setup.hero = o.dataset.hero; playClickSound(); renderSetup(); });
+  document.querySelectorAll('#seatOpts .opt').forEach(o=>o.onclick = ()=>setOption('seat', o.dataset.seat));
+  document.querySelectorAll('#roleLockOpts .opt').forEach(o=>o.onclick = ()=>setOption('roleLock', o.dataset.lock === '1'));
+  document.querySelectorAll('#modeOpts .opt').forEach(o=>o.onclick = ()=>setOption('mode', o.dataset.mode));
+  document.querySelectorAll('#heroOpts .opt').forEach(o=>o.onclick = ()=>setOption('hero', o.dataset.hero));
+  $('remoteBtn').onclick = ()=>openPanel(!$('optPanel').classList.contains('open'));
+  $('optCloseBtn').onclick = ()=>openPanel(false);
+  window.addEventListener('resize', ()=>{ try{ syncPanelVisibility(); }catch(e){} });
+  $('resAgainBtn').onclick = restartInSameRoom;
 
   $('aBidBtn').onclick = placeBid;
   $('aBidInput').addEventListener('keydown', e=>{ if(e.key==='Enter') placeBid(); });
