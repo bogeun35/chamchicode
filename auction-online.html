@@ -973,6 +973,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
           <div class="opt" data-hero="none"><span class="oi"><svg class="ico"><use href="#ic-ban"/></svg></span><b>안 함</b><span class="od">팀만 짜고 끝</span></div>
           <div class="opt" data-hero="self"><span class="oi"><svg class="ico"><use href="#ic-user"/></svg></span><b>직접 고르기</b><span class="od">내 팀은 내가</span></div>
           <div class="opt" data-hero="opponent"><span class="oi"><svg class="ico"><use href="#ic-mask"/></svg></span><b>상대가 정해주기</b><span class="od">서로 상대팀 배정</span></div>
+          <div class="opt" data-hero="random"><span class="oi"><svg class="ico"><use href="#ic-dice"/></svg></span><b>전원 랜덤</b><span class="od">뽑기 없이 자동</span></div>
         </div>
         <div class="muted mt" id="heroNote"></div>
       </div>
@@ -1923,7 +1924,8 @@ function renderOptPanel(){
   $('heroNote').textContent = normal
     ? '일반 게임은 캐릭터가 없어서 영웅 지정을 쓰지 않습니다.'
     : (cfg.hero === 'opponent' ? '1팀장이 2팀 선수의 영웅을, 2팀장이 1팀 선수의 영웅을 정합니다.'
-      : cfg.hero === 'self' ? '각자 자기 팀 선수의 영웅을 고릅니다.' : '');
+      : cfg.hero === 'self' ? '각자 자기 팀 선수의 영웅을 고릅니다.'
+      : cfg.hero === 'random' ? '팀이 정해지면 양 팀 전원에게 영웅이 자동으로 뽑힙니다. 역할 자리를 정해두면 그 역할 영웅으로만 뽑습니다.' : '');
 
   const tabs = $('setupTplTabs'); tabs.innerHTML = '';
   templates.forEach((t,i)=>{
@@ -2170,7 +2172,7 @@ function renderOpenRoom(){
   }
   const g = GAMES[openRoom.game] || GAMES.ow;
   const modeLabel = { auction:'💰 경매', rps:'✌️ 가위바위보', auto:'⚖️ 자동 분배' }[openRoom.mode] || openRoom.mode;
-  const heroLabel = { self:'🙋 영웅 직접', opponent:'😈 상대가 영웅 지정' }[openRoom.heroMode] || '';
+  const heroLabel = { self:'영웅 직접', opponent:'상대가 영웅 지정', random:'영웅 전원 랜덤' }[openRoom.heroMode] || '';
   const L = openRoomLeaders || {};
   const free = (!L[1] ? 1 : 0) + (!L[2] ? 1 : 0);
   const seatTxt = free ? ('팀장 자리 ' + free + '칸 남음') : '팀장 자리 참 — 관전만 가능';
@@ -2471,7 +2473,8 @@ function renderLobbySettings(){
   const g = GAMES[state.game];
   if(box){ box.innerHTML = '';
   const modeLabel = { auction:'💰 경매', rps:'✌️ 가위바위보', auto:'⚖️ 자동 분배' }[state.mode];
-  const heroLabel = { none:'영웅 지정 없음', self:'🙋 영웅 직접 고르기', opponent:'😈 상대가 영웅 지정' }[state.heroMode];
+  const heroLabel = { none:'영웅 지정 없음', self:'영웅 직접 고르기', opponent:'상대가 영웅 지정',
+    random:'영웅 전원 랜덤' }[state.heroMode] || '';
   const picked = state.picked.length;
   const sizeLabel = (state.comp && state.comp !== 'free') ? ('🎯 ' + compOf().label)
     : (picked ? '팀당 '+Math.ceil(picked/2)+'명' : '참가자 미정');
@@ -3240,9 +3243,11 @@ function startGame(){
    영웅 선택 — 결과화면에서 바로, 고르는 즉시 상대 화면에도 반영
    ============================================================ */
 let heroEditTeam = null, heroEditPid = null;
+let heroAutoRunning = false;
 
 function canEditHero(team){
   if(!state || !state.heroMode || state.heroMode === 'none') return false;
+  if(state.heroMode === 'random') return isHost || iAmLeader();   // 전원 랜덤은 아무나 다시 돌릴 수 있다
   if(!iAmLeader()) return false;
   return state.heroMode === 'self' ? team === myTeam : team !== myTeam;
 }
@@ -3457,11 +3462,26 @@ function heroOf(team, pid){
 function renderResult(){
   if(state.heroMode && state.heroMode !== 'none') loadHeroes();
   renderSlots();
+  // 전원 랜덤은 팀이 정해지는 순간 알아서 뽑는다 (방장이 한 번만)
+  if(state.heroMode === 'random' && isHost){
+    const picked = Object.keys(state.heroPick[1] || {}).length
+                 + Object.keys(state.heroPick[2] || {}).length;
+    const total = (state.teams[1]||[]).length + (state.teams[2]||[]).length;
+    if(total && picked < total && !heroAutoRunning){
+      heroAutoRunning = true;
+      loadHeroes().then(()=>setTimeout(()=>{ autoAssignHeroes({silent:true}); heroAutoRunning = false; }, 700));
+    }
+  }
   const ah = $('resAutoHeroBtn');
-  if(ah) ah.style.display = (state.heroMode && state.heroMode !== 'none'
-    && [1,2].some(canEditHero)) ? '' : 'none';
+  if(ah){
+    ah.style.display = (state.heroMode && state.heroMode !== 'none'
+      && [1,2].some(canEditHero)) ? '' : 'none';
+    ah.textContent = state.heroMode === 'random' ? '🎲 전원 다시 뽑기' : '🎲 영웅 자동 지정';
+  }
   const note = $('resultNote');
-  if(note) note.textContent = state.heroMode === 'opponent'
+  if(note && state.heroMode === 'random'){
+    note.textContent = '전원 랜덤입니다. 마음에 안 들면 「전원 다시 뽑기」 로 다시 돌리세요.';
+  } else if(note) note.textContent = state.heroMode === 'opponent'
     ? '상대 팀 선수의 「+ 영웅」 을 눌러 영웅을 정해주세요. 고르는 즉시 상대 화면에도 뜹니다.'
     : state.heroMode === 'self' ? '내 팀 선수의 「+ 영웅」 을 눌러 영웅을 고르세요.' : '';
   [1,2].forEach(t=>{
@@ -3501,7 +3521,7 @@ function restartInSameRoom(){
     turn:0, heroPick:{}, heroDone:{}, event:null, instant:null, rpsPicked:{}, roleAssign:{},
     seq:(state.seq||0)+1
   }).then(()=>{
-    lastAuctionPid = null; bidCombo = 0;
+    lastAuctionPid = null; bidCombo = 0; heroAutoRunning = false;
     playClickSound();
     toast('대기실로 돌아왔습니다 — 참가자를 다시 고르면 됩니다');
   }).catch(()=>toast('다시 시작하지 못했습니다'));
@@ -3509,10 +3529,11 @@ function restartInSameRoom(){
 
 /* 6·7) 내가 정해줄 팀 전원에게 랜덤 영웅을 한 번에 배정한다.
    자리를 배정받은 선수는 그 역할 영웅으로만 뽑는다. */
-function autoAssignHeroes(){
+function autoAssignHeroes(opts){
+  const silent = !!(opts && opts.silent);
   if(!state || !state.heroMode || state.heroMode === 'none') return;
-  const targets = [1,2].filter(canEditHero);
-  if(!targets.length) return toast('지정할 팀이 없습니다');
+  const targets = state.heroMode === 'random' ? [1,2] : [1,2].filter(canEditHero);
+  if(!targets.length) return silent || toast('지정할 팀이 없습니다');
   const upd = {};
   let n = 0;
   targets.forEach(t=>{
@@ -3528,10 +3549,10 @@ function autoAssignHeroes(){
       n++;
     });
   });
-  if(!n) return toast('뽑을 영웅이 없습니다');
+  if(!n) return silent || toast('뽑을 영웅이 없습니다');
   upd['seq'] = (state.seq||0)+1;
   db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>{
-    playSuccessSound(); showSpecialEffect('🎲 영웅 배정!');
+    playSuccessSound(); showSpecialEffect('영웅 배정!');
     caster('영웅이 정해졌습니다!', 1);
     toast(n + '명 영웅 배정 완료');
   });
