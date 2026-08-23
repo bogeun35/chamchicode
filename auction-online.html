@@ -622,8 +622,32 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .npwrap{display:inline-block;cursor:default;line-height:0}
 .npwrap.click{cursor:pointer}
 .npwrap.click:hover{filter:brightness(1.15)}
-.npwrap.sel{outline:2px solid var(--ok);outline-offset:3px;border-radius:6px}
+.npwrap{position:relative;transition:filter .15s,opacity .15s,transform .12s}
+.npwrap.sel{outline:3px solid var(--ok);outline-offset:3px;border-radius:8px;
+  box-shadow:0 0 0 6px rgba(52,211,153,.18),0 0 22px rgba(52,211,153,.35)}
+.npwrap.sel::after{content:'✓';position:absolute;top:-9px;right:-9px;z-index:5;
+  width:22px;height:22px;border-radius:50%;background:var(--ok);color:#06251A;
+  font-weight:900;font-size:.82em;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.npwrap.unsel{opacity:.42;filter:grayscale(.75)}
+.npwrap.click:hover{opacity:1;filter:none;transform:translateY(-2px)}
 .npwrap.dimmed{opacity:.45}
+
+/* 팀 구성 직접 설정 스테퍼 */
+.stepper{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.strow{display:flex;align-items:center;gap:8px;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:9px;padding:6px 10px}
+.strow .sl{flex:1;font-weight:700;font-size:.9em}
+.strow b{font-family:'Orbitron',sans-serif;font-size:1.05em;min-width:22px;text-align:center}
+.stbtn{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink);font-size:1.1em;font-weight:800;cursor:pointer;line-height:1}
+.stbtn:hover{border-color:var(--blue);color:var(--blue)}
+.opt.warn{border-color:var(--bad)}
+
+/* 밖에서 보이는 참가자 */
+.orl{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.orl .npwrap{transform:scale(.82);transform-origin:left center;margin:-4px -14px -4px 0}
+.ormore{align-self:center;font-weight:700;color:var(--muted);font-size:.9em}
 .npwrap.locked{opacity:.4;cursor:not-allowed}
 </style>
 </head>
@@ -692,11 +716,6 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
         <div class="lslot t2" id="lslot2"><div class="lt">2팀 팀장</div><div class="ln wait" id="lname2">대기 중...</div></div>
       </div>
       <div class="center mt muted" id="lobbyHint">상대 팀장이 입장하면 시작할 수 있습니다.</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">설정</div>
-      <div class="pool" id="lobbySettings"></div>
     </div>
 
     <div class="card">
@@ -814,6 +833,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     </div>
     <div class="row mt">
       <button class="btn ghost" id="resCopyBtn">결과 복사</button>
+      <button class="btn orange" id="resAutoHeroBtn" style="display:none">🎲 영웅 자동 지정</button>
       <button class="btn" id="resAgainBtn" style="flex:2">🔄 이 방에서 다시</button>
     </div>
 
@@ -879,6 +899,11 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
           <div class="opt" data-comp="t2d2h1"><span class="oi">🛡️</span><b>탱2 · 딜2 · 힐1</b><span class="od">몸빵</span></div>
           <div class="opt" data-comp="d5"><span class="oi">⚔️</span><b>딜 5</b><span class="od">전원 딜러</span></div>
           <div class="opt" data-comp="h5"><span class="oi">❤️</span><b>힐 5</b><span class="od">전원 힐러</span></div>
+          <div class="opt" data-comp="custom"><span class="oi">🛠️</span><b>직접 설정</b><span class="od">인원에 맞게</span></div>
+        </div>
+        <div id="compCustomBox" style="display:none">
+          <div class="stepper" id="compStep"></div>
+          <div class="muted mt" id="compCustomNote"></div>
         </div>
         <div class="muted mt">팀이 정해진 뒤 결과 화면에서 자리를 끌어다 놓습니다.</div>
       </div>
@@ -1285,11 +1310,36 @@ const COMPS = {
   d5:     { label:'딜 5',            slots:['딜러','딜러','딜러','딜러','딜러'] },
   h5:     { label:'힐 5',            slots:['힐러','힐러','힐러','힐러','힐러'] }
 };
-function compOf(){ return COMPS[(state && state.comp) || 'free'] || COMPS.free; }
+function compOf(){
+  const k = (state && state.comp) || 'free';
+  if(k === 'custom'){
+    const c = customCounts();
+    return { label:'탱' + c['탱커'] + ' · 딜' + c['딜러'] + ' · 힐' + c['힐러'], slots:customSlots() };
+  }
+  return COMPS[k] || COMPS.free;
+}
+/* 직접 설정한 역할 수 */
+function customCounts(){
+  const c = (state && state.compCustom) || {};
+  return { '탱커': c['탱커'] || 0, '딜러': c['딜러'] || 0, '힐러': c['힐러'] || 0 };
+}
+function customSlots(){
+  const c = customCounts();
+  const out = [];
+  ['탱커','딜러','힐러'].forEach(r=>{ for(let i=0;i<c[r];i++) out.push(r); });
+  return out.length ? out : null;
+}
+function customTotal(){ const c = customCounts(); return c['탱커'] + c['딜러'] + c['힐러']; }
 /* 옛 역할 고정 잔재 — 항상 꺼진 상태로만 평가된다 */
 const OW_ROLE_LIMIT = {};
 const ROLE_LOCK_TEAM_SIZE = 5;
-function compSlots(){ const c = compOf(); return c.slots ? c.slots.slice() : null; }
+function compSlots(){
+  const c = compOf();
+  if(!c.slots) return null;
+  const cap = (state && state.cap) || 0;
+  if(cap && c.slots.length !== cap) return null;    // 인원과 안 맞으면 자리를 안 깐다
+  return c.slots.slice();
+}
 function roleLocked(){ return false; }   /* 드래프트 중에는 역할을 따지지 않는다 */
 function teamRoleCount(team, role){ return (state.teams[team]||[]).filter(x=>x.role === role).length; }
 function roleSlotOpen(team){ return (state.teams[team]||[]).length < state.cap; }
@@ -1750,7 +1800,7 @@ function renderWhoList(){
   }
   list.forEach(m=>{
     const d = document.createElement('div');
-    d.className = 'npwrap click' + (myMemberId === m.id ? ' sel' : '');
+    d.className = 'npwrap click' + (myMemberId === m.id ? ' sel' : ' unsel');
     d.innerHTML = plateHTML(m.tier, m.name, m.id);
     d.onclick = ()=>{
       myMemberId = (myMemberId === m.id) ? null : m.id;
@@ -1790,7 +1840,16 @@ function renderOptPanel(){
 
   const owOnly = cfg.game === 'ow';
   $('roleLockCard').style.display = owOnly ? '' : 'none';
-  document.querySelectorAll('#compOpts .opt').forEach(o=>o.classList.toggle('on', o.dataset.comp === (cfg.comp||'free')));
+  const curComp = cfg.comp || 'free';
+  const cap = (state && state.cap) || 0;
+  document.querySelectorAll('#compOpts .opt').forEach(o=>{
+    o.classList.toggle('on', o.dataset.comp === curComp);
+    const preset = COMPS[o.dataset.comp];
+    const bad = !!(cap && preset && preset.slots && preset.slots.length !== cap);
+    o.classList.toggle('warn', bad);
+    o.title = bad ? ('지금 팀당 ' + cap + '명이라 이 구성은 안 맞습니다') : '';
+  });
+  renderCompStepper(curComp, cap);
 
   const normal = GAMES[cfg.game].hasHeroes === false;
   document.querySelectorAll('#heroOpts .opt').forEach(o=>{
@@ -1821,6 +1880,38 @@ function renderOptPanel(){
   });
 }
 
+/* 직접 설정 스테퍼 — 팀당 인원에 맞춰 탱/딜/힐 수를 정한다 */
+function renderCompStepper(curComp, cap){
+  const box = $('compCustomBox');
+  if(curComp !== 'custom'){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  const c = customCounts();
+  const total = customTotal();
+  const wrap = $('compStep'); wrap.innerHTML = '';
+  ['탱커','딜러','힐러'].forEach(r=>{
+    const row = document.createElement('div');
+    row.className = 'strow';
+    row.innerHTML = '<span class="sl">' + ROLE_EMOJI[r] + ' ' + r + '</span>';
+    const minus = document.createElement('button'); minus.className = 'stbtn'; minus.textContent = '−';
+    const val = document.createElement('b'); val.textContent = c[r];
+    const plus = document.createElement('button'); plus.className = 'stbtn'; plus.textContent = '+';
+    minus.onclick = ()=>bumpComp(r, -1);
+    plus.onclick  = ()=>bumpComp(r, +1);
+    row.append(minus, val, plus);
+    wrap.appendChild(row);
+  });
+  const note = $('compCustomNote');
+  if(!cap) note.textContent = '참가자를 고르면 팀당 인원이 정해집니다.';
+  else if(total === cap) note.innerHTML = '<span style="color:var(--ok)">팀당 ' + cap + '명과 딱 맞습니다.</span>';
+  else note.innerHTML = '<span style="color:var(--bad)">합계 ' + total + '명 / 팀당 ' + cap + '명 — 맞아야 자리가 생깁니다.</span>';
+}
+function bumpComp(role, dir){
+  if(!optEditable()) return toast(isHost ? '경기 중에는 못 바꿉니다' : '방장만 바꿀 수 있습니다');
+  const c = customCounts();
+  c[role] = Math.max(0, Math.min(9, (c[role]||0) + dir));
+  db.ref(STATE_PATH+'/'+roomCode).update({ compCustom:c, seq:(state.seq||0)+1 }).then(()=>playClickSound());
+}
+
 /* 설정 한 항목을 바꾼다 — 방 안이면 DB 로, 방 밖이면 로컬로 */
 function setOption(key, val){
   if(state){
@@ -1836,7 +1927,16 @@ function setOption(key, val){
     }
     else if(key === 'mode') upd.mode = val;
     else if(key === 'hero') upd.heroMode = val;
-    else if(key === 'comp') upd.comp = val;
+    else if(key === 'comp'){
+      upd.comp = val;
+      if(val === 'custom' && !state.compCustom){
+        // 팀당 인원에 맞춰 그럴듯한 기본값을 깐다
+        const cap = state.cap || 5;
+        const t = cap >= 5 ? 1 : (cap >= 3 ? 1 : 0);
+        const h = Math.min(cap - t, Math.max(1, Math.round((cap - t) / 2)));
+        upd.compCustom = { '탱커':t, '힐러':h, '딜러':Math.max(0, cap - t - h) };
+      }
+    }
     db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>playClickSound());
   } else {
     setup[key] = val;
@@ -1959,6 +2059,16 @@ function watchOpenRoom(){
   homeWatchers.push(()=>ref.off('value', cb));
 }
 
+let openRoomState = null;
+function openRoomRoster(){
+  const st = openRoomState;
+  if(!st) return { list:[], total:0 };
+  const members = st.members || [];
+  const picked = st.picked || [];
+  const chosen = picked.length ? members.filter(m=>picked.indexOf(m.id) >= 0) : members;
+  return { list: chosen.slice(0, 12), total: chosen.length };
+}
+
 let leaderWatchOff = null;
 function setOpenRoom(room, count){
   const changed = !openRoom || !room || openRoom.code !== room.code;
@@ -1966,7 +2076,7 @@ function setOpenRoom(room, count){
   $('openRoomPoll').textContent = count > 1 ? ('방 ' + count + '개 — 가장 최근 것') : '';
   if(changed){
     if(leaderWatchOff){ leaderWatchOff(); leaderWatchOff = null; }
-    openRoomLeaders = {};
+    openRoomLeaders = {}; openRoomState = null;
     if(room){
       const lref = db.ref('rooms/'+room.code);
       const lcb = lref.on('value', s=>{
@@ -1977,6 +2087,10 @@ function setOpenRoom(room, count){
       }, ()=>{});
       leaderWatchOff = ()=>lref.off('value', lcb);
       homeWatchers.push(leaderWatchOff);
+      // 방 밖에서도 오늘 참가자를 볼 수 있게 상태를 같이 본다
+      const gref = db.ref(STATE_PATH+'/'+room.code);
+      const gcb = gref.on('value', gs=>{ openRoomState = gs.val(); renderOpenRoom(); }, ()=>{});
+      homeWatchers.push(()=>gref.off('value', gcb));
     }
   }
   renderOpenRoom();
@@ -1997,6 +2111,7 @@ function renderOpenRoom(){
   const L = openRoomLeaders || {};
   const free = (!L[1] ? 1 : 0) + (!L[2] ? 1 : 0);
   const seatTxt = free ? ('팀장 자리 ' + free + '칸 남음') : '팀장 자리 참 — 관전만 가능';
+  const roster = openRoomRoster();
   box.innerHTML =
     '<div class="pp cur" style="width:100%;justify-content:flex-start;gap:10px;padding:12px">'
     + '<span style="font-size:1.5em">' + (g === GAMES.lol ? '⚔️' : g === GAMES.normal ? '🎲' : '🎯') + '</span>'
@@ -2006,7 +2121,25 @@ function renderOpenRoom(){
     + '</span>'
     + '<span class="ptg">' + esc(openRoom.code) + '</span>'
     + '</div>'
-    + '<div class="muted mt">' + seatTxt + '</div>';
+    + '<div class="muted mt">' + seatTxt
+      + (roster.list.length ? ' · 참가자 ' + roster.total + '명' : '') + '</div>';
+  if(roster.list.length){
+    const rl = document.createElement('div');
+    rl.className = 'orl';
+    roster.list.forEach(m=>{
+      const d = document.createElement('div');
+      d.className = 'npwrap';
+      d.innerHTML = plateHTML(m.tier, m.name, m.id);
+      rl.appendChild(d);
+    });
+    if(roster.total > roster.list.length){
+      const more = document.createElement('span');
+      more.className = 'ormore';
+      more.textContent = '+' + (roster.total - roster.list.length);
+      rl.appendChild(more);
+    }
+    box.appendChild(rl);
+  }
   $('joinBtn').disabled = !free;
   $('joinSpecBtn').disabled = false;
   $('joinBtn').textContent = free ? '팀장으로 입장' : '자리 참';
@@ -2041,14 +2174,29 @@ function joinRoom(asSpectator){
     }
     const L = d.leaders || {};
     const amHost = d.host === nick;          // 심판은 방을 만든 사람
-    if(asSpectator){ roomCode = code; myTeam = 0; isHost = amHost; return enterRoom(); }
-    if(L[1] === nick){ roomCode = code; myTeam = 1; isHost = amHost; return enterRoom(); }
-    if(L[2] === nick){ roomCode = code; myTeam = 2; isHost = amHost; return enterRoom(); }
+    const already = () => db.ref('members/'+code+'/uid_'+myMemberId).once('value')
+      .then(sn=>sn.exists());
+    const go = (team)=>{ roomCode = code; myTeam = team; isHost = amHost; enterRoom(); };
+    const guard = (team)=>{
+      if(myMemberId == null) return go(team);
+      already().then(dup=>{
+        if(dup) return toast(myNick + ' 님은 이미 접속해 있습니다 (다른 창을 닫아주세요)');
+        go(team);
+      });
+    };
+    if(asSpectator){ return guard(0); }
+    if(L[1] === nick){ return guard(1); }
+    if(L[2] === nick){ return guard(2); }
     const slot = !L[1] ? 1 : (!L[2] ? 2 : 0);
     if(!slot) return toast('두 팀장 자리가 모두 찼습니다 — 관전으로 들어오세요');
-    db.ref('rooms/'+code+'/leaderIds/'+slot).set(myMemberId == null ? null : myMemberId);
-    db.ref('rooms/'+code+'/leaders/'+slot).set(nick).then(()=>{
-      roomCode = code; myTeam = slot; isHost = amHost; enterRoom();
+    const take = ()=>{
+      db.ref('rooms/'+code+'/leaderIds/'+slot).set(myMemberId == null ? null : myMemberId);
+      db.ref('rooms/'+code+'/leaders/'+slot).set(nick).then(()=>go(slot));
+    };
+    if(myMemberId == null) return take();
+    already().then(dup=>{
+      if(dup) return toast(myNick + ' 님은 이미 접속해 있습니다 (다른 창을 닫아주세요)');
+      take();
     });
   }).catch(()=>toast('입장 실패'));
 }
@@ -2064,6 +2212,14 @@ function enterRoom(){
     const ref = db.ref('rooms/'+roomCode+'/leaders/'+myTeam);
     ref.onDisconnect().remove();
     listeners.push(()=>{ ref.onDisconnect().cancel(); ref.remove(); });
+  }
+
+  // 접속 도장 — 같은 사람이 두 곳에서 들어오는 걸 막는다
+  if(myMemberId != null){
+    const seat = db.ref('members/'+roomCode+'/uid_'+myMemberId);
+    seat.set({ nick:myNick, at:Date.now(), team:myTeam });
+    seat.onDisconnect().remove();
+    listeners.push(()=>{ seat.onDisconnect().cancel(); seat.remove(); });
   }
 
   // 관전자 수 (방장이 관전자여도 집계)
@@ -2105,6 +2261,7 @@ function enterRoom(){
 function normalizeState(s){
   s.queue = s.queue || []; s.members = s.members || []; s.picked = s.picked || [];
   s.comp = s.comp || 'free';
+  s.compCustom = s.compCustom || null;
   s.teams = s.teams || {}; s.teams[1] = s.teams[1] || []; s.teams[2] = s.teams[2] || [];
   s.points = s.points || { 1:START_POINTS, 2:START_POINTS };
   s.hist = s.hist || []; s.passes = s.passes || {};
@@ -2246,16 +2403,18 @@ function playEvent(){
 }
 
 function renderLobbySettings(){
-  const box = $('lobbySettings'); box.innerHTML = '';
+  const box = $('lobbySettings');
   const g = GAMES[state.game];
+  if(box){ box.innerHTML = '';
   const modeLabel = { auction:'💰 경매', rps:'✌️ 가위바위보', auto:'⚖️ 자동 분배' }[state.mode];
   const heroLabel = { none:'영웅 지정 없음', self:'🙋 영웅 직접 고르기', opponent:'😈 상대가 영웅 지정' }[state.heroMode];
   const picked = state.picked.length;
   const sizeLabel = (state.comp && state.comp !== 'free') ? ('🎯 ' + compOf().label)
     : (picked ? '팀당 '+Math.ceil(picked/2)+'명' : '참가자 미정');
   [g.label, modeLabel, heroLabel, sizeLabel].forEach(txt=>{
-    const d = document.createElement('div'); d.className='pp'; d.textContent = txt; box.appendChild(d);
-  });
+      const d = document.createElement('div'); d.className='pp'; d.textContent = txt; box.appendChild(d);
+    });
+  }
   renderPicker();
 }
 
@@ -2281,7 +2440,7 @@ function renderPicker(){
     const t = tierInfo(p.tier);
     const fixedTeam = leaderTeamOf(p.id);
     const d = document.createElement('div');
-    d.className = 'npwrap click' + (isPicked(p.id) ? ' sel' : '') + (fixedTeam ? ' fixed' : '');
+    d.className = 'npwrap click' + (isPicked(p.id) ? ' sel' : ' unsel') + (fixedTeam ? ' fixed' : '');
     d.title = '전투력 ' + t.power + (fixedTeam ? ' · ' + fixedTeam + '팀 고정' : '');
     d.innerHTML = plateHTML(p.tier, p.name + (fixedTeam ? ' ★' : ''), p.id);
     if(iAmLeader() || isHost) d.onclick = ()=>togglePick(p.id);
@@ -3234,6 +3393,9 @@ function heroOf(team, pid){
 function renderResult(){
   if(state.heroMode && state.heroMode !== 'none') loadHeroes();
   renderSlots();
+  const ah = $('resAutoHeroBtn');
+  if(ah) ah.style.display = (state.heroMode && state.heroMode !== 'none'
+    && [1,2].some(canEditHero)) ? '' : 'none';
   const note = $('resultNote');
   if(note) note.textContent = state.heroMode === 'opponent'
     ? '상대 팀 선수의 「+ 영웅」 을 눌러 영웅을 정해주세요. 고르는 즉시 상대 화면에도 뜹니다.'
@@ -3278,6 +3440,36 @@ function restartInSameRoom(){
     playClickSound();
     toast('대기실로 돌아왔습니다 — 참가자를 다시 고르면 됩니다');
   }).catch(()=>toast('다시 시작하지 못했습니다'));
+}
+
+/* 6·7) 내가 정해줄 팀 전원에게 랜덤 영웅을 한 번에 배정한다.
+   자리를 배정받은 선수는 그 역할 영웅으로만 뽑는다. */
+function autoAssignHeroes(){
+  if(!state || !state.heroMode || state.heroMode === 'none') return;
+  const targets = [1,2].filter(canEditHero);
+  if(!targets.length) return toast('지정할 팀이 없습니다');
+  const upd = {};
+  let n = 0;
+  targets.forEach(t=>{
+    const list = state.teams[t] || [];
+    const used = new Set();
+    list.forEach(pl=>{
+      const role = assignedRole(t, pl.id);
+      const pool = heroPool(role || pl.role).filter(h=>!used.has(h.name));
+      if(!pool.length) return;
+      const h = pool[Math.floor(Math.random()*pool.length)];
+      used.add(h.name);
+      upd['heroPick/'+t+'/'+pl.id] = h.name;
+      n++;
+    });
+  });
+  if(!n) return toast('뽑을 영웅이 없습니다');
+  upd['seq'] = (state.seq||0)+1;
+  db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>{
+    playSuccessSound(); showSpecialEffect('🎲 영웅 배정!');
+    caster('영웅이 정해졌습니다!', 1);
+    toast(n + '명 영웅 배정 완료');
+  });
 }
 
 function copyResult(){
@@ -3337,6 +3529,7 @@ function init(){
   $('optCloseBtn').onclick = ()=>openPanel(false);
   window.addEventListener('resize', ()=>{ try{ syncPanelVisibility(); }catch(e){} });
   $('resAgainBtn').onclick = restartInSameRoom;
+  $('resAutoHeroBtn').onclick = autoAssignHeroes;
   $('draftResetBtn').onclick = ()=>{
     if(!isHost) return toast('방장만 취소할 수 있습니다');
     if(!confirm('지금까지 뽑은 팀을 버리고 대기실로 돌아갑니다. 계속할까요?')) return;
