@@ -128,6 +128,38 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .bench.over{border-color:var(--blue);background:rgba(59,130,246,.14)}
 .drag-src{opacity:.4}
 
+/* 영웅 초상화 */
+.hpic{width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;
+  border:1.5px solid var(--line);background:var(--surface)}
+.hpic.sm{width:26px;height:26px;border-radius:6px}
+.hpic.lg{width:52px;height:52px;border-radius:10px}
+.pc .phero{display:inline-flex;align-items:center;gap:6px}
+
+/* 직접 그린 아이콘 — 이모지 대신 */
+.ico{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex-shrink:0}
+.ico.lg{width:1.75em;height:1.75em;stroke-width:1.6}
+.opt .ico{width:19px;height:19px}
+.aw .ico{stroke-width:1.7}
+
+/* 시상식 */
+.awards-box{max-width:520px}
+.aw-head{font-family:'Orbitron',sans-serif;font-size:1.4em;font-weight:900;text-align:center;
+  margin-bottom:16px;background:linear-gradient(135deg,#FDE68A,#F97316,#DC2626);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.aw-list{display:flex;flex-direction:column;gap:9px}
+.aw{display:flex;align-items:center;gap:12px;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:11px;padding:11px 14px;
+  opacity:0;transform:translateY(14px)}
+.aw.show{animation:awIn .5s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes awIn{to{opacity:1;transform:translateY(0)}}
+.aw .ai{font-size:1.7em;flex-shrink:0}
+.aw .ab{flex:1;min-width:0}
+.aw .at{font-family:'Orbitron',sans-serif;font-size:.68em;font-weight:800;letter-spacing:.08em;color:var(--muted)}
+.aw .an{font-weight:800;font-size:1.06em;margin-top:2px}
+.aw .ad{font-size:.84em;color:var(--dim);margin-top:1px}
+.aw.gold{border-color:#F0B429;box-shadow:0 0 18px rgba(240,180,41,.22)}
+
 /* 헤더 방 코드 칩 */
 .code-chip{cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 11px}
 .code-chip .cl{font-size:.8em;color:var(--muted)}
@@ -461,8 +493,24 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   position:relative;height:40px;display:flex;align-items:center;
   padding:0 24px 0 27px;
   clip-path:polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%);
-  background:linear-gradient(180deg,var(--pTop) 0%,var(--pMid) 52%,var(--pBot) 100%);
+  /* 금속처럼 보이려면 단조로운 3단이 아니라 밝은 띠와 어두운 골이 있어야 한다 */
+  background:
+    linear-gradient(102deg,
+      transparent 30%,
+      rgba(255,255,255,.20) 38%,
+      rgba(255,255,255,.04) 43%,
+      transparent 52%),
+    linear-gradient(180deg,
+      var(--pTop) 0%,
+      color-mix(in srgb, var(--pTop) 55%, var(--pMid)) 16%,
+      var(--pMid) 46%,
+      color-mix(in srgb, var(--pMid) 45%, var(--pBot)) 72%,
+      var(--pBot) 100%);
 }
+/* 브론즈·실버는 빛나면 안 된다. 금속은 스스로 빛나지 않는다 */
+.np.t-bronze .np-plate,.np.t-silver .np-plate{box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.np.t-bronze,.np.t-silver{filter:none}
+
 /* 위쪽 하이라이트 한 줄 — 금속 느낌 */
 .np-plate::before{content:'';position:absolute;left:0;right:0;top:0;height:1.5px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),rgba(255,255,255,.15));}
@@ -629,7 +677,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   width:22px;height:22px;border-radius:50%;background:var(--ok);color:#06251A;
   font-weight:900;font-size:.82em;display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.npwrap.unsel{opacity:.42;filter:grayscale(.75)}
+.npwrap.unsel{opacity:.78;filter:saturate(.9) brightness(.9)}
 .npwrap.click:hover{opacity:1;filter:none;transform:translateY(-2px)}
 .npwrap.dimmed{opacity:.45}
 
@@ -834,6 +882,8 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <div class="row mt">
       <button class="btn ghost" id="resCopyBtn">결과 복사</button>
       <button class="btn orange" id="resAutoHeroBtn" style="display:none">🎲 영웅 자동 지정</button>
+      <button class="btn ghost" id="resAwardsBtn">🏆 시상식</button>
+      <button class="btn ghost" id="resImageBtn">🖼️ 이미지로</button>
       <button class="btn" id="resAgainBtn" style="flex:2">🔄 이 방에서 다시</button>
     </div>
 
@@ -876,30 +926,30 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <div class="card">
         <div class="card-title">게임</div>
         <div class="opts" id="gameOpts">
-          <div class="opt" data-game="ow"><span class="oi">🎯</span><b>오버워치</b><span class="od">탱/딜/힐 · 영웅</span></div>
-          <div class="opt" data-game="lol"><span class="oi">⚔️</span><b>리그 오브 레전드</b><span class="od">5라인 · 챔피언</span></div>
-          <div class="opt" data-game="normal"><span class="oi">🎲</span><b>일반</b><span class="od">역할·캐릭터 없음</span></div>
+          <div class="opt" data-game="ow"><span class="oi"><svg class="ico"><use href="#ic-target"/></svg></span><b>오버워치</b><span class="od">탱/딜/힐 · 영웅</span></div>
+          <div class="opt" data-game="lol"><span class="oi"><svg class="ico"><use href="#ic-swords"/></svg></span><b>리그 오브 레전드</b><span class="od">5라인 · 챔피언</span></div>
+          <div class="opt" data-game="normal"><span class="oi"><svg class="ico"><use href="#ic-dice"/></svg></span><b>일반</b><span class="od">역할·캐릭터 없음</span></div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">내 자리</div>
         <div class="opts" id="seatOpts">
-          <div class="opt" data-seat="leader"><span class="oi">🎮</span><b>1팀 팀장</b><span class="od">직접 입찰</span></div>
-          <div class="opt" data-seat="spectator"><span class="oi">👀</span><b>관전 · 진행만</b><span class="od">팀장 둘을 따로 받음</span></div>
+          <div class="opt" data-seat="leader"><span class="oi"><svg class="ico"><use href="#ic-pad"/></svg></span><b>1팀 팀장</b><span class="od">직접 입찰</span></div>
+          <div class="opt" data-seat="spectator"><span class="oi"><svg class="ico"><use href="#ic-eye"/></svg></span><b>관전 · 진행만</b><span class="od">팀장 둘을 따로 받음</span></div>
         </div>
       </div>
 
       <div class="card" id="roleLockCard" style="display:none">
         <div class="card-title">팀 구성</div>
         <div class="opts" id="compOpts">
-          <div class="opt" data-comp="free"><span class="oi">🎲</span><b>자유</b><span class="od">역할 없음</span></div>
-          <div class="opt" data-comp="t1d2h2"><span class="oi">🛡️</span><b>탱1 · 딜2 · 힐2</b><span class="od">정석</span></div>
-          <div class="opt" data-comp="t1d1h3"><span class="oi">❤️</span><b>탱1 · 딜1 · 힐3</b><span class="od">힐 중심</span></div>
-          <div class="opt" data-comp="t2d2h1"><span class="oi">🛡️</span><b>탱2 · 딜2 · 힐1</b><span class="od">몸빵</span></div>
-          <div class="opt" data-comp="d5"><span class="oi">⚔️</span><b>딜 5</b><span class="od">전원 딜러</span></div>
-          <div class="opt" data-comp="h5"><span class="oi">❤️</span><b>힐 5</b><span class="od">전원 힐러</span></div>
-          <div class="opt" data-comp="custom"><span class="oi">🛠️</span><b>직접 설정</b><span class="od">인원에 맞게</span></div>
+          <div class="opt" data-comp="free"><span class="oi"><svg class="ico"><use href="#ic-dice"/></svg></span><b>자유</b><span class="od">역할 없음</span></div>
+          <div class="opt" data-comp="t1d2h2"><span class="oi"><svg class="ico"><use href="#ic-shield"/></svg></span><b>탱1 · 딜2 · 힐2</b><span class="od">정석</span></div>
+          <div class="opt" data-comp="t1d1h3"><span class="oi"><svg class="ico"><use href="#ic-heart"/></svg></span><b>탱1 · 딜1 · 힐3</b><span class="od">힐 중심</span></div>
+          <div class="opt" data-comp="t2d2h1"><span class="oi"><svg class="ico"><use href="#ic-shield"/></svg></span><b>탱2 · 딜2 · 힐1</b><span class="od">몸빵</span></div>
+          <div class="opt" data-comp="d5"><span class="oi"><svg class="ico"><use href="#ic-sword"/></svg></span><b>딜 5</b><span class="od">전원 딜러</span></div>
+          <div class="opt" data-comp="h5"><span class="oi"><svg class="ico"><use href="#ic-heart"/></svg></span><b>힐 5</b><span class="od">전원 힐러</span></div>
+          <div class="opt" data-comp="custom"><span class="oi"><svg class="ico"><use href="#ic-wrench"/></svg></span><b>직접 설정</b><span class="od">인원에 맞게</span></div>
         </div>
         <div id="compCustomBox" style="display:none">
           <div class="stepper" id="compStep"></div>
@@ -911,18 +961,18 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
       <div class="card">
         <div class="card-title">팀 구성 방식</div>
         <div class="opts" id="modeOpts">
-          <div class="opt" data-mode="auction"><span class="oi">💰</span><b>경매</b><span class="od">100P 입찰 · 6초</span></div>
-          <div class="opt" data-mode="rps"><span class="oi">✌️</span><b>가위바위보</b><span class="od">매번 이긴 쪽이 1명씩</span></div>
-          <div class="opt" data-mode="auto"><span class="oi">⚖️</span><b>자동 분배</b><span class="od">전투력·역할 밸런스</span></div>
+          <div class="opt" data-mode="auction"><span class="oi"><svg class="ico"><use href="#ic-gavel"/></svg></span><b>경매</b><span class="od">100P 입찰 · 6초</span></div>
+          <div class="opt" data-mode="rps"><span class="oi"><svg class="ico"><use href="#ic-hand"/></svg></span><b>가위바위보</b><span class="od">매번 이긴 쪽이 1명씩</span></div>
+          <div class="opt" data-mode="auto"><span class="oi"><svg class="ico"><use href="#ic-scale"/></svg></span><b>자동 분배</b><span class="od">전투력·역할 밸런스</span></div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">팀 확정 후 영웅 지정</div>
         <div class="opts" id="heroOpts">
-          <div class="opt" data-hero="none"><span class="oi">🚫</span><b>안 함</b><span class="od">팀만 짜고 끝</span></div>
-          <div class="opt" data-hero="self"><span class="oi">🙋</span><b>직접 고르기</b><span class="od">내 팀은 내가</span></div>
-          <div class="opt" data-hero="opponent"><span class="oi">😈</span><b>상대가 정해주기</b><span class="od">서로 상대팀 배정</span></div>
+          <div class="opt" data-hero="none"><span class="oi"><svg class="ico"><use href="#ic-ban"/></svg></span><b>안 함</b><span class="od">팀만 짜고 끝</span></div>
+          <div class="opt" data-hero="self"><span class="oi"><svg class="ico"><use href="#ic-user"/></svg></span><b>직접 고르기</b><span class="od">내 팀은 내가</span></div>
+          <div class="opt" data-hero="opponent"><span class="oi"><svg class="ico"><use href="#ic-mask"/></svg></span><b>상대가 정해주기</b><span class="od">서로 상대팀 배정</span></div>
         </div>
         <div class="muted mt" id="heroNote"></div>
       </div>
@@ -980,6 +1030,18 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
     <div class="modal-btns">
       <button class="btn ghost" id="pinCancel">취소</button>
       <button class="btn" id="pinOk">확인</button>
+    </div>
+  </div>
+</div>
+
+<svg id="icoSprite" width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ic-crown" viewBox="0 0 24 24"><path d="M3 19h18M4.5 19 3 8l5.2 3.6L12 4l3.8 7.6L21 8l-1.5 11"/></symbol><symbol id="ic-gem" viewBox="0 0 24 24"><path d="M12 21 3 9.2 6.2 3h11.6L21 9.2zM3 9.2h18M8.4 3 6 9.2 12 21l6-11.8L15.6 3"/></symbol><symbol id="ic-bomb" viewBox="0 0 24 24"><path d="M10.5 20.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.4 8.4 18 5.8M18 5.8h3M18 5.8V3"/></symbol><symbol id="ic-coin" viewBox="0 0 24 24"><path d="M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19zM12 6.5v11M15 9.2A2.7 2.7 0 0 0 12.3 7h-.8a2.4 2.4 0 0 0 0 4.9h1.2a2.5 2.5 0 0 1 0 5h-.9A2.8 2.8 0 0 1 9 14.6"/></symbol><symbol id="ic-scale" viewBox="0 0 24 24"><path d="M12 3.5v17M7.5 20.5h9M12 6.5 4.5 9m7.5-2.5 7.5 2.5M4.5 9 2 14.6a2.6 2.6 0 0 0 5 0zM19.5 9 17 14.6a2.6 2.6 0 0 0 5 0z"/></symbol><symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 2.8 4.8 5.9v5.4c0 4.6 3 8.3 7.2 10.3 4.2-2 7.2-5.7 7.2-10.3V5.9z"/></symbol><symbol id="ic-sword" viewBox="0 0 24 24"><path d="M14.6 4.2 20.5 2.5l-1.7 5.9-8.6 8.6M3.5 21l3-3M6.2 18.2 3.5 21l-1-4.2 3.6-1.4M9.9 17l-3.4-3.4"/></symbol><symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 21C12 21 3.5 16 3.5 10.3A4.8 4.8 0 0 1 12 7.2a4.8 4.8 0 0 1 8.5 3.1C20.5 16 12 21 12 21z"/></symbol><symbol id="ic-target" viewBox="0 0 24 24"><path d="M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19zM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 13.8a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z"/></symbol><symbol id="ic-swords" viewBox="0 0 24 24"><path d="M14.6 4.2 20.5 2.5l-1.7 5.9-8.6 8.6M3.5 21l3-3M9.4 4.2 3.5 2.5l1.7 5.9 8.6 8.6M20.5 21l-3-3"/></symbol><symbol id="ic-dice" viewBox="0 0 24 24"><path d="M4 4.5h16v15H4zM8.6 9.1h.02M15.4 9.1h.02M12 12h.02M8.6 14.9h.02M15.4 14.9h.02"/></symbol><symbol id="ic-pad" viewBox="0 0 24 24"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2.6 2.6 0 0 1-4.6.8L14.4 16H9.6l-1.5 2a2.6 2.6 0 0 1-4.6-.8l-.8-2.8A5 5 0 0 1 7.5 8zM7 11v3M5.5 12.5h3M15.5 11.5h.02M17.5 13.5h.02"/></symbol><symbol id="ic-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7zM12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/></symbol><symbol id="ic-gavel" viewBox="0 0 24 24"><path d="M8.6 12.4 3 18l3 3 5.6-5.6M11.6 9.4l3 3M9.6 7.4l8 8 3-3-8-8zM13 21h8"/></symbol><symbol id="ic-hand" viewBox="0 0 24 24"><path d="M9 11.5V5.2a1.7 1.7 0 1 1 3.4 0v5.1m0-1.3a1.7 1.7 0 1 1 3.4 0v1.3m0-.4a1.7 1.7 0 1 1 3.4 0v5.7c0 3.4-2.7 5.9-6 5.9-2 0-3.7-.8-4.9-2.3L4.6 15a1.7 1.7 0 0 1 2.6-2.2z"/></symbol><symbol id="ic-ban" viewBox="0 0 24 24"><path d="M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19zM5.3 5.3l13.4 13.4"/></symbol><symbol id="ic-user" viewBox="0 0 24 24"><path d="M12 12a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4zM4 21c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"/></symbol><symbol id="ic-mask" viewBox="0 0 24 24"><path d="M4 6.5c0-1 .8-1.7 1.8-1.5C7.5 5.3 9.6 5.7 12 5.7s4.5-.4 6.2-.7c1-.2 1.8.5 1.8 1.5v4.6c0 4.6-3.4 8.4-8 8.4s-8-3.8-8-8.4zM8 10.5l2.4 1.2M16 10.5l-2.4 1.2M9.5 15.5c1.6 1 3.4 1 5 0"/></symbol><symbol id="ic-wrench" viewBox="0 0 24 24"><path d="M14.5 6.5a4.5 4.5 0 0 1 6 6l-2.2-2.2-1.8.6-.6 1.8zM14.5 12.5 5 22l-3-3 9.5-9.5"/></symbol></defs></svg>
+
+<div class="modal" id="awardsModal">
+  <div class="modal-box awards-box">
+    <div class="aw-head">🏆 시상식</div>
+    <div class="aw-list" id="awList"></div>
+    <div class="modal-btns">
+      <button class="btn" id="awCloseBtn">결과 보기 →</button>
     </div>
   </div>
 </div>
@@ -1102,26 +1164,26 @@ function iAmLeader(){ return myTeam === 1 || myTeam === 2; }
 /* ===== 등급 시그니처 플레이트 ===== */
 const TIERS = [
   {k:'bronze',lvl:1,orn:3,ko:'브론즈',en:'BRONZE',pw:1,pips:0,
-   hue:'#D08A4A',pTop:'#C4813F',pMid:'#8E5626',pBot:'#4E2C13',acc:'#D08A4A',
-   glow:'rgba(208,138,74,.45)',note:'플레이트만. 칩도 파티클도 없음.'},
+   hue:'#E09B58',pTop:'#C9803C',pMid:'#7E4318',pBot:'#331705',acc:'#FFD9A8',
+   glow:'rgba(200,120,60,.30)',note:'플레이트만. 칩도 파티클도 없음.'},
   {k:'silver',lvl:2,orn:4,ko:'실버',en:'SILVER',pw:3,pips:1,
-   hue:'#A6B8CE',pTop:'#8DA1BB',pMid:'#5D7089',pBot:'#31405A',acc:'#A6B8CE',
-   glow:'rgba(166,184,206,.4)',note:'+ 인시그니아 칩, 핍 1개.'},
+   hue:'#D7E1EC',pTop:'#C6D3E2',pMid:'#74849A',pBot:'#2C3644',acc:'#FFFFFF',
+   glow:'rgba(190,205,225,.30)',note:'+ 인시그니아 칩, 핍 1개.'},
   {k:'gold',lvl:3,orn:5,ko:'골드',en:'GOLD',pw:6,pips:2,
-   hue:'#F0B429',pTop:'#DFA317',pMid:'#A2740F',pBot:'#5B4106',acc:'#F0B429',
-   glow:'rgba(240,180,41,.45)',note:'+ 핍 2개, 트레일 사각 파티클 몇 개.'},
+   hue:'#F5C542',pTop:'#F2C64B',pMid:'#B07E0C',pBot:'#483102',acc:'#FFF0B0',
+   glow:'rgba(230,175,50,.38)',note:'+ 핍 2개, 트레일 사각 파티클 몇 개.'},
   {k:'plat',lvl:4,orn:6,ko:'플래티넘',en:'PLATINUM',pw:8,pips:3,
-   hue:'#2DD4BF',pTop:'#20B5A3',pMid:'#137A70',pBot:'#08453F',acc:'#FDE047',
-   glow:'rgba(45,212,191,.45)',note:'+ 핍 3개, 파티클 산개, 언더바 액센트(노랑).'},
+   hue:'#7FE9DA',pTop:'#5FD8C6',pMid:'#1B8E80',pBot:'#063733',acc:'#FDE047',
+   glow:'rgba(60,200,180,.40)',note:'+ 핍 3개, 파티클 산개, 언더바 액센트(노랑).'},
   {k:'dia',lvl:5,orn:7,ko:'다이아',en:'DIAMOND',pw:10,pips:3,
-   hue:'#60A5FA',pTop:'#4A8FE8',pMid:'#2E5FA8',pBot:'#16386F',acc:'#22D3EE',
-   glow:'rgba(96,165,250,.5)',note:'+ 파티클 조밀, 바깥 글로우, 빛나는 언더바(시안).'},
+   hue:'#8FC4FF',pTop:'#7FB2FF',pMid:'#2F6FD8',pBot:'#0C2455',acc:'#67E8F9',
+   glow:'rgba(80,150,250,.48)',note:'+ 파티클 조밀, 바깥 글로우, 빛나는 언더바(시안).'},
   {k:'master',lvl:6,orn:8,ko:'마스터',en:'MASTER',pw:13,pips:3,
-   hue:'#C084FC',pTop:'#A660E8',pMid:'#7634B0',pBot:'#431776',acc:'#22D3EE',
-   glow:'rgba(192,132,252,.5)',note:'+ 뒤에서 번쩍이는 번개, 플레이트 면을 훑는 셰이머, 떠다니는 파티클.'},
+   hue:'#D5A2FF',pTop:'#C98CF5',pMid:'#8B37D8',pBot:'#310D5C',acc:'#67E8F9',
+   glow:'rgba(170,90,247,.55)',note:'+ 뒤에서 번쩍이는 번개, 플레이트 면을 훑는 셰이머, 떠다니는 파티클.'},
   {k:'chall',lvl:7,orn:9,ko:'챌린저',en:'CHALLENGER',pw:20,pips:3,
-   hue:'#FB7A3C',pTop:'#F2681F',pMid:'#AF3E12',pBot:'#631F07',acc:'#FDE047',
-   glow:'rgba(251,122,60,.55)',note:'천장. 굵고 빠른 크래클 번개 + 전기 스캔라인 + 이중 언더바 + 프레임 브래킷. 챌린저만 가진 구조.'},
+   hue:'#FFB765',pTop:'#FFA85C',pMid:'#E2650F',pBot:'#551903',acc:'#FDE047',
+   glow:'rgba(250,130,40,.62)',note:'천장. 굵고 빠른 크래클 번개 + 전기 스캔라인 + 이중 언더바 + 프레임 브래킷. 챌린저만 가진 구조.'},
 ];
 const MAX_TIER = TIERS.length;
 
@@ -1152,7 +1214,7 @@ function insignia(t,w,h){
   return `<svg class="insig-svg" width="${w}" height="${h}" viewBox="0 0 40 34" aria-hidden="true">
     <defs>
       <linearGradient id="chip-${t.k}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#A9BBD4"/><stop offset=".55" stop-color="#6C7F9B"/>
+        <stop offset="0" stop-color="${t.pTop}"/><stop offset=".55" stop-color="${t.pMid}"/>
         <stop offset="1" stop-color="#3B4A63"/>
       </linearGradient>
     </defs>
@@ -1301,7 +1363,8 @@ function bigCardHTML(tierV, name, seed){
   return bigcard(k, esc(name), seed || (String(name).length + 5));
 }
 
-const ROLE_EMOJI = { '탱커':'🛡️', '딜러':'⚔️', '힐러':'❤️' };
+const ROLE_ICON = { '탱커':'shield', '딜러':'sword', '힐러':'heart' };
+const ROLE_EMOJI = new Proxy({}, { get:(_,r)=> ROLE_ICON[r] ? ico(ROLE_ICON[r]) : '' });
 const COMPS = {
   free:   { label:'자유',            slots:null },
   t1d2h2: { label:'탱1 · 딜2 · 힐2', slots:['탱커','딜러','딜러','힐러','힐러'] },
@@ -2372,6 +2435,7 @@ function render(){
     showScreen('lobby');
   } else if(ph === 'done'){
     renderResult();
+    if(lastPhase !== 'done' && lastPhase !== null) setTimeout(showAwards, 900);
     if(lastPhase !== 'done'){
       stopBGM(); playCompleteSound(); showSpecialEffect('팀 완성!');
       launchConfetti(1); setTimeout(()=>launchConfetti(2), 250);
@@ -3409,7 +3473,8 @@ function renderResult(){
       const editable = canEditHero(t);
       const d = document.createElement('div'); d.className = 'pc';
       let heroCell = '';
-      if(hero) heroCell = '<span class="phero'+(editable?' edit':'')+'">'+esc(hero)+'</span>';
+      if(hero) heroCell = '<span class="phero'+(editable?' edit':'')+'">'
+        + heroPicHTML(hero,'sm') + '<span>'+esc(hero)+'</span></span>';
       else if(editable) heroCell = '<span class="phero blank edit">+ 영웅</span>';
       d.innerHTML = '<span class="pnm">'+esc(p.name)+'</span>'
         + tierBadge(p.tier)
@@ -3472,6 +3537,254 @@ function autoAssignHeroes(){
   });
 }
 
+/* ============================================================
+   시상식 — 판이 끝나면 한 장 끼운다
+   ============================================================ */
+/* 영웅 초상화 — 오버워치는 OverFast, 롤은 Data Dragon */
+function heroImgUrl(name){
+  if(!name) return null;
+  const o = OW_LIST.find(h=>h.name === name);
+  if(o && o.img) return o.img;
+  const l = LOL_CHAMPS.find(c=>c.name === name);
+  if(l && LOL_VER) return 'https://ddragon.leagueoflegends.com/cdn/'+LOL_VER+'/img/champion/'+l.id+'.png';
+  return null;
+}
+function heroPicHTML(name, cls){
+  const u = heroImgUrl(name);
+  return u ? '<img class="hpic ' + (cls||'') + '" src="' + u + '" alt="" loading="lazy">' : '';
+}
+
+function ico(name, cls){
+  return '<svg class="ico ' + (cls||'') + '"><use href="#ic-' + name + '"/></svg>';
+}
+
+function buildAwards(){
+  const all = [];
+  [1,2].forEach(t=>(state.teams[t]||[]).forEach(p=>all.push(Object.assign({}, p, { team:t }))));
+  if(!all.length) return [];
+  const out = [];
+  const priced = all.filter(p=>(p.price||0) > 0);
+
+  if(priced.length){
+    const top = priced.slice().sort((a,b)=>b.price - a.price)[0];
+    out.push({ ic:'crown', t:'MOST EXPENSIVE', n:top.name, img:heroOf(top.team, top.id),
+      d:top.team + '팀 · ' + top.price + 'P · ' + tierInfo(top.tier).name, gold:true });
+
+    const value = priced.slice().sort((a,b)=>(tierPower(b.tier)/b.price) - (tierPower(a.tier)/a.price))[0];
+    out.push({ ic:'gem', t:'BEST VALUE', n:value.name, img:heroOf(value.team, value.id),
+      d:value.team + '팀 · ' + value.price + 'P 에 전투력 ' + tierPower(value.tier) });
+
+    const bomb = priced.slice().sort((a,b)=>(b.price/tierPower(b.tier)) - (a.price/tierPower(a.tier)))[0];
+    if(bomb.name !== value.name){
+      out.push({ ic:'bomb', t:'OVERPAID', n:bomb.name, img:heroOf(bomb.team, bomb.id),
+        d:bomb.team + '팀 · 전투력 ' + tierPower(bomb.tier) + ' 인데 ' + bomb.price + 'P' });
+    }
+    const left1 = state.points[1] || 0, left2 = state.points[2] || 0;
+    if(left1 !== left2){
+      const t = left1 > left2 ? 1 : 2;
+      out.push({ ic:'coin', t:'THRIFTY', n:t + '팀',
+        d:'포인트 ' + Math.max(left1,left2) + 'P 를 남겼습니다' });
+    }
+  }
+
+  const strong = all.slice().sort((a,b)=>tierPower(b.tier) - tierPower(a.tier))[0];
+  out.push({ ic:'sword', t:'TOP RANK', n:strong.name, img:heroOf(strong.team, strong.id),
+    d:strong.team + '팀 · ' + tierInfo(strong.tier).name + ' · 전투력 ' + tierPower(strong.tier) });
+
+  const diff = Math.abs(teamScore(1) - teamScore(2));
+  out.push({ ic:'scale', t:'BALANCE', n: diff === 0 ? '완벽한 균형' : ('전투력 차 ' + diff),
+    d:'1팀 ' + teamScore(1) + ' vs 2팀 ' + teamScore(2) });
+
+  return out;
+}
+
+function showAwards(){
+  const list = buildAwards();
+  if(!list.length) return;
+  const box = $('awList'); box.innerHTML = '';
+  list.forEach((a, i)=>{
+    const d = document.createElement('div');
+    d.className = 'aw' + (a.gold ? ' gold' : '');
+    const pic = a.img ? heroPicHTML(a.img, 'lg') : '';
+    d.innerHTML = '<span class="ai">' + (pic || ico(a.ic, 'lg')) + '</span>'
+      + '<span class="ab"><span class="at">' + a.t + '</span>'
+      + '<div class="an">' + esc(a.n) + '</div>'
+      + '<div class="ad">' + esc(a.d) + '</div></span>';
+    box.appendChild(d);
+    setTimeout(()=>{ d.classList.add('show'); playClickSound(); }, 260 * i);
+  });
+  $('awardsModal').classList.add('active');
+  setTimeout(()=>{ playCompleteSound(); }, 260 * list.length);
+}
+
+/* ============================================================
+   결과를 이미지로 (디스코드에 바로 붙이기)
+   ============================================================ */
+function resultCanvas(){
+  const rows = Math.max((state.teams[1]||[]).length, (state.teams[2]||[]).length);
+  const W = 1180, PAD = 34, HEAD = 118, ROW = 62;
+  const awards = buildAwards().slice(0, 3);
+  const AW = awards.length ? 96 : 0;
+  const H = HEAD + rows * ROW + 74 + AW;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+
+  // 바탕
+  c.fillStyle = '#0A1020'; c.fillRect(0,0,W,H);
+  const g = c.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'rgba(59,130,246,.16)'); g.addColorStop(.55,'rgba(0,0,0,0)');
+  g.addColorStop(1,'rgba(245,158,11,.12)');
+  c.fillStyle = g; c.fillRect(0,0,W,H);
+
+  // 제목
+  c.fillStyle = '#E6EDF8';
+  c.font = '900 34px Orbitron, sans-serif';
+  c.fillText('참스코드 팀짜기', PAD, 52);
+  c.fillStyle = '#7C8FAE';
+  c.font = '600 19px Rajdhani, sans-serif';
+  const gl = (GAMES[state.game] || {}).label || '';
+  const ml = { auction:'경매', rps:'가위바위보', auto:'자동 분배' }[state.mode] || '';
+  const dt = new Date();
+  c.fillText(gl + ' · ' + ml + '   ' + dt.getFullYear() + '.' + (dt.getMonth()+1) + '.' + dt.getDate(), PAD, 80);
+
+  const colW = (W - PAD*3) / 2;
+  [1,2].forEach(t=>{
+    const x = PAD + (t-1) * (colW + PAD);
+    // 팀 머리
+    c.fillStyle = t === 1 ? '#3B82F6' : '#F59E0B';
+    roundRect(c, x, HEAD - 44, colW, 38, 9); c.fill();
+    c.fillStyle = '#0A1020';
+    c.font = '800 20px Orbitron, sans-serif';
+    c.fillText(t + '팀', x + 14, HEAD - 18);
+    c.textAlign = 'right';
+    c.fillText('전투력 ' + teamScore(t), x + colW - 14, HEAD - 18);
+    c.textAlign = 'left';
+
+    (state.teams[t] || []).forEach((p, i)=>{
+      const y = HEAD + i * ROW;
+      const ti = TIERS[Math.max(0, Math.min(TIERS.length-1, tierInfo(p.tier).v - 1))];
+      // 등급 판
+      const pg = c.createLinearGradient(x, y, x, y + 46);
+      pg.addColorStop(0, ti.pTop); pg.addColorStop(.55, ti.pMid); pg.addColorStop(1, ti.pBot);
+      c.fillStyle = pg;
+      c.beginPath();
+      c.moveTo(x + 9, y); c.lineTo(x + 238, y); c.lineTo(x + 229, y + 46); c.lineTo(x, y + 46);
+      c.closePath(); c.fill();
+      c.fillStyle = '#fff';
+      c.font = '700 23px Rajdhani, sans-serif';
+      c.fillText(p.name, x + 18, y + 31);
+      // 영웅 초상화
+      const role = assignedRole(t, p.id);
+      const hero = heroOf(t, p.id);
+      const hu = heroImgUrl(hero);
+      const im = hu ? HERO_PIC_CACHE[hu] : null;
+      let tx = x + 250;
+      if(im){
+        const S = 44;
+        c.save();
+        roundRect(c, tx, y + 1, S, S, 8); c.clip();
+        c.drawImage(im, tx, y + 1, S, S);
+        c.restore();
+        c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 1.5;
+        roundRect(c, tx, y + 1, S, S, 8); c.stroke();
+        tx += S + 12;
+      }
+      c.fillStyle = ti.hue;
+      c.font = '800 14px Orbitron, sans-serif';
+      c.fillText(ti.ko, tx, y + 20);
+      c.fillStyle = '#AEBFD8';
+      c.font = '600 17px Rajdhani, sans-serif';
+      let meta = [];
+      if(role) meta.push(role);
+      if(hero) meta.push(hero);
+      if(p.price > 0) meta.push(p.price + 'P');
+      c.fillText(meta.join('  ·  '), tx, y + 41);
+    });
+  });
+
+  // 시상
+  if(awards.length){
+    const ay = HEAD + rows * ROW + 26;
+    c.fillStyle = '#7C8FAE';
+    c.font = '800 14px Orbitron, sans-serif';
+    c.fillText('AWARDS', PAD, ay);
+    awards.forEach((a, i)=>{
+      const ax = PAD + i * ((W - PAD*2) / awards.length);
+      c.fillStyle = '#7C8FAE';
+      c.font = '800 12px Orbitron, sans-serif';
+      c.fillText(a.t, ax, ay + 12);
+      c.fillStyle = '#E6EDF8';
+      c.font = '700 20px Rajdhani, sans-serif';
+      c.fillText(a.n, ax, ay + 30);
+      c.fillStyle = '#7C8FAE';
+      c.font = '600 15px Rajdhani, sans-serif';
+      c.fillText(a.d, ax, ay + 52);
+    });
+  }
+
+  c.fillStyle = '#4A5B78';
+  c.font = '600 15px Rajdhani, sans-serif';
+  c.fillText('bogeun35.github.io/chamchicode', PAD, H - 20);
+  return cv;
+}
+function roundRect(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x+r, y); c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath();
+}
+
+/* 캔버스에 넣을 초상화를 미리 받아둔다.
+   crossOrigin 을 걸어서, CORS 를 막는 서버면 그냥 실패하고 그림 없이 간다
+   (캔버스가 오염되면 저장 자체가 막히므로) */
+function preloadHeroPics(){
+  const urls = new Set();
+  [1,2].forEach(t=>(state.teams[t]||[]).forEach(pl=>{
+    const u = heroImgUrl(heroOf(t, pl.id));
+    if(u) urls.add(u);
+  }));
+  HERO_PIC_CACHE = {};
+  const jobs = [...urls].map(u=>new Promise(res=>{
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = ()=>{ HERO_PIC_CACHE[u] = im; res(); };
+    im.onerror = ()=>res();
+    im.src = u;
+    setTimeout(res, 4000);
+  }));
+  return Promise.all(jobs);
+}
+let HERO_PIC_CACHE = {};
+
+function exportResultImage(){
+  if(!state || !(state.teams[1]||[]).length) return toast('결과가 없습니다');
+  toast('이미지를 만드는 중...');
+  const done = ()=>{
+    const cv = resultCanvas();
+    cv.toBlob(blob=>{
+      if(!blob) return toast('이미지를 만들지 못했습니다');
+      // 클립보드에 바로 넣어 디스코드에 붙일 수 있게
+      let copied = false;
+      try{
+        if(navigator.clipboard && window.ClipboardItem){
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+            .then(()=>{ copied = true; toast('이미지를 복사했습니다 — 디스코드에 붙여넣기'); })
+            .catch(()=>{});
+        }
+      }catch(e){}
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '참스코드_팀짜기.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      if(!copied) setTimeout(()=>{ toast('이미지를 저장했습니다'); }, 300);
+      playSuccessSound();
+    }, 'image/png');
+  };
+  const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  Promise.all([fonts, preloadHeroPics()]).then(done).catch(done);
+}
+
 function copyResult(){
   let txt = '[' + GAMES[state.game].label + ' 팀짜기]\n';
   [1,2].forEach(t=>{
@@ -3530,6 +3843,9 @@ function init(){
   window.addEventListener('resize', ()=>{ try{ syncPanelVisibility(); }catch(e){} });
   $('resAgainBtn').onclick = restartInSameRoom;
   $('resAutoHeroBtn').onclick = autoAssignHeroes;
+  $('resAwardsBtn').onclick = showAwards;
+  $('resImageBtn').onclick = exportResultImage;
+  $('awCloseBtn').onclick = ()=>$('awardsModal').classList.remove('active');
   $('draftResetBtn').onclick = ()=>{
     if(!isHost) return toast('방장만 취소할 수 있습니다');
     if(!confirm('지금까지 뽑은 팀을 버리고 대기실로 돌아갑니다. 계속할까요?')) return;
