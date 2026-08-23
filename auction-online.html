@@ -901,7 +901,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
         <div id="admAddTier"></div>
         <button class="btn sm" id="admAddBtn">추가</button>
       </div>
-      <div class="muted mt">괄호 안이 전투력입니다 — 브론즈 1 · 실버 3 · 골드 6 · 플래티넘 8 · 다이아 10 · 챌린저 13 · 마스터 20. 등급 차이가 선형이 아니라서 자동 분배와 밸런스는 이 값으로 계산합니다. 목록은 가나다순입니다.</div>
+      <div class="muted mt" id="tierLegend"></div>
     </div>
     <div class="card">
       <div class="card-title">일괄 입력</div>
@@ -1733,7 +1733,8 @@ function buildTierPicker(box, cur, onPick){
   if(!box) return;
   box.className = 'tierpick';
   box.innerHTML = '';
-  TIERS.forEach(t=>{
+  TIERS.forEach((raw, i)=>{
+    const t = tierInfo(i + 1);          // {v, name, key, power}
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'tp ' + t.key + (t.v === cur ? ' on' : '');
@@ -1742,6 +1743,11 @@ function buildTierPicker(box, cur, onPick){
     b.onclick = ()=>{ onPick(t.v); playClickSound(); };
     box.appendChild(b);
   });
+}
+
+function tierLegendText(){
+  return TIERS.map((_, i)=>{ const t = tierInfo(i+1); return t.name + ' ' + t.power; }).join(' · ')
+    + '. 등급 차이가 선형이 아니라서 자동 분배와 밸런스는 이 전투력으로 계산합니다. 목록은 가나다순입니다.';
 }
 
 function renderAdmin(){
@@ -1760,6 +1766,7 @@ function renderAdmin(){
   // 역할 옵션은 오버워치/롤 역할을 모두 담는다 (게임 바꿔도 명단은 유지)
 
   buildTierPicker($('admAddTier'), admAddTier, v=>{ admAddTier = v; renderAdmin(); });
+  const lg = $('tierLegend'); if(lg) lg.textContent = tierLegendText();
 
   roster.sort(byName);
   const list = $('admRoster'); list.innerHTML = '';
