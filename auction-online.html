@@ -481,6 +481,7 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   padding-right:84px;         /* 파티클 존 (고정) */
   vertical-align:middle;
   --lean:10px;
+  --ph:40px;                  /* 플레이트 높이 — 모서리 깎기(clip)가 이 값에 비례한다 */
 }
 /* 1) 번개 버스트 — DOM 첫 자식이라 뒤에 깔린다 (음수 z-index 불필요) */
 .np .burst{position:absolute;right:84px;margin-right:-118px;top:0;
@@ -492,7 +493,8 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .np-plate{
   position:relative;height:40px;display:flex;align-items:center;
   padding:0 24px 0 27px;
-  clip-path:polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%);
+  /* 모서리 처리는 등급마다 다르다 — TIERS.cut 에서 만들어진 --clip 이 유일한 출처 */
+  clip-path:var(--clip,polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%));
   /* 금속처럼 보이려면 단조로운 3단이 아니라 밝은 띠와 어두운 골이 있어야 한다 */
   background:
     linear-gradient(102deg,
@@ -519,13 +521,57 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   letter-spacing:.055em;transform:skewX(-10deg);display:inline-block;
   text-shadow:0 1px 2px rgba(0,0,0,.5);
 }
-/* 4) 언더바 — 플레이트 아래로 살짝 삐져나오는 두 번째 층 */
-.np .ubar{position:absolute;left:62px;right:66px;top:49px;height:6px;pointer-events:none;
+/* 4) 언더바 — 플레이트 '아랫변'이 두꺼워진 층. 아랫변(51px)에 붙는다 */
+.np .ubar{position:absolute;left:60px;right:74px;top:51px;height:5px;pointer-events:none;
   background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 55%,transparent));
-  transform:skewX(-12deg)}
+  transform:skewX(-14deg)}
+/* 프레임이 있는 등급은 림(51→53.5) 바로 아래에 얹힌다 */
+.np.o7 .ubar,.np.o8 .ubar,.np.o9 .ubar{top:53.5px;height:3.5px}
 /* 5) 파티클 존 */
 .np .parts{position:absolute;right:0;top:0;width:84px;height:62px;pointer-events:none}
 .pt{position:absolute;display:block}
+
+/* ═════════════ 실루엣(형태) 사다리 ═════════════════════════
+   색·파티클은 '질감'이라 흑백으로 보면 전부 같아 보인다.
+   등급을 구분하는 건 형태여야 한다 — 아래 넷이 그 형태를 만든다.
+     ① 밑선(rul)  ② 프레임 림(frame)  ③ 받침대(ped)  ④ 단조 엠블럼(frg)
+   전부 이름 상자 '바깥'(위 11px 띠 / 아래 11px 띠 / 오른쪽 84px 존)에만 산다.
+   높이 62 · 좌 48 · 우 84 는 어떤 등급에서도 변하지 않는다. */
+
+/* ① 밑선 — 플레이트 '아랫변'이 그대로 아래로 한 겹씩 복제된 것.
+   그래서 y 는 아랫변(51px)에 붙어서 시작하고, 오른쪽으로는 끝을 지나 흘러나간다 */
+.np .rul{position:absolute;height:2px;pointer-events:none;transform:skewX(-14deg);
+  background:linear-gradient(90deg,transparent,var(--hue) 14%,var(--hue) 86%,transparent)}
+.np .rul.r1{left:56px;right:76px;top:51px;opacity:.95}
+.np .rul.r2{left:66px;right:70px;top:55px;opacity:.62}
+
+/* ② 프레임 림 — 외곽선 전체를 2.5px 바깥으로 민 것. 오른쪽 끝에서는 SVG 칼라와
+   두께가 같아 하나로 이어진다. --lean/--ph 를 자기 크기로 다시 잡아야 기울기가 같다 */
+.np .frame{position:absolute;left:45.5px;right:81.5px;top:8.5px;height:45px;pointer-events:none;
+  --lean:11.25px;--ph:45px;
+  clip-path:var(--clip,polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%));
+  background:linear-gradient(180deg,var(--hue),color-mix(in srgb,var(--hue) 20%,#0A1020))}
+
+/* ③ 받침대 — 언더바가 아래로 접히면서 단이 진다. 단마다 좌우로 넓어져
+   플레이트가 '떠 있는' 게 아니라 '받침 위에 올려진' 것으로 읽힌다 */
+.np .ped{position:absolute;pointer-events:none;transform:skewX(-14deg)}
+.np .ped.p1{left:52px;right:78px;top:56.5px;height:3px;
+  background:linear-gradient(180deg,var(--pTop),var(--pMid));box-shadow:0 1px 5px rgba(0,0,0,.65)}
+.np .ped.p2{left:44px;right:82px;top:59px;height:2.5px;
+  background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 30%,transparent));
+  box-shadow:0 0 8px var(--acc)}
+
+/* ④ 단조 엠블럼 — 오른쪽 존에 몸통, 위쪽 띠로 깃선이 흘러나간다.
+   플레이트보다 DOM 앞이라 이름 위로 절대 올라오지 않는다 */
+.np .frg{position:absolute;right:0;top:0;width:190px;height:62px;pointer-events:none;
+  overflow:visible;filter:drop-shadow(0 1px 2px rgba(0,0,0,.65))}
+.np.o7 .frg{filter:drop-shadow(0 0 6px var(--glow)) drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.np.o8 .frg{filter:drop-shadow(0 0 8px var(--glow)) drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.np.o9 .frg{animation:frgPulse 1.7s ease-in-out infinite}
+@keyframes frgPulse{
+  0%,100%{filter:drop-shadow(0 0 8px var(--glow)) drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+  50%    {filter:drop-shadow(0 0 15px var(--acc)) drop-shadow(0 0 30px var(--glow))}
+}
 /* ── 글로우 사다리 ───────────────────────────────────────── */
 .np.o5 .np-plate{box-shadow:0 0 0 0 transparent}
 .np.o6 .np-plate{box-shadow:0 2px 14px -2px var(--glow)}
@@ -555,19 +601,8 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
   from{transform:translate(0,0) rotate(var(--r,0deg))}
   to  {transform:translate(var(--dx,4px),var(--dy,-5px)) rotate(calc(var(--r,0deg) + 25deg))}
 }
-/* ── 챌린저 전용 구조물 — 다른 등급엔 아예 없는 것들 ───────
-   전부 이름 상자 '바깥'(위쪽 아크 / 아래쪽 언더바 / 상자 모서리)에만 산다. */
-.np .scan{position:absolute;left:40px;right:60px;top:6px;height:2px;pointer-events:none;
-  transform:skewX(-12deg);box-shadow:0 0 8px var(--acc);
-  background:linear-gradient(90deg,transparent,var(--acc) 16%,#fff 50%,var(--acc) 84%,transparent);
-  background-size:220% 100%;animation:shimmer 1.9s linear infinite}
-.np .ubar2{position:absolute;left:80px;right:46px;top:56px;height:3px;pointer-events:none;
-  transform:skewX(-12deg);box-shadow:0 0 8px var(--hue);
-  background:linear-gradient(90deg,var(--hue),color-mix(in srgb,var(--hue) 20%,transparent))}
-.np .brk{position:absolute;width:15px;height:13px;pointer-events:none;
-  border:2px solid var(--acc);opacity:.9;box-shadow:0 0 7px var(--glow)}
-.np .brk-tl{left:44px;top:3px;border-right:0;border-bottom:0}
-.np .brk-br{right:80px;bottom:3px;border-left:0;border-top:0}
+/* 모서리 브래킷은 CSS 사각형이 아니라 SVG 안에 있다 — 깎인 모서리의 궤적을
+   그대로 따라가야 '외곽선이 한 겹 밖으로 나온 것'으로 읽히기 때문 (offPoly) */
 /* ── 번개 크래클 ─────────────────────────────────────────── */
 .blt g{transform-box:fill-box;transform-origin:0% 50%}
 .blt .g1{animation:crk1 1.35s steps(1,end) infinite}
@@ -585,30 +620,53 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 /* ═════════════════════════════════════════════════════════════
    (B) 빅 카드 — 320 × 236 고정
    ═════════════════════════════════════════════════════════════ */
-.bc{position:relative;width:320px;height:236px;--lean:15px}
+/* --lean/--ph = 14/56 → 기울기 0.25. 네임플레이트(10/40)와 같아야
+   SVG 장식(로컬 좌표계가 40높이·10기울기)을 1.4배로 그대로 얹을 수 있다 */
+.bc{position:relative;width:320px;height:236px;--lean:14px;--ph:56px}
 .bc .bcburst{position:absolute;left:-20px;top:-16px;width:360px;height:268px;pointer-events:none}
-.bc .bcinsig{position:absolute;left:6px;top:80px;width:64px;height:56px}
+.bc .bcinsig{position:absolute;left:-2px;top:80px;width:64px;height:56px}
 .bc .bcplate{
-  position:absolute;left:76px;right:8px;top:80px;height:56px;
-  display:flex;align-items:center;padding:0 22px 0 30px;
-  clip-path:polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%);
+  position:absolute;left:64px;right:56px;top:80px;height:56px;
+  display:flex;align-items:center;padding:0 14px 0 22px;
+  clip-path:var(--clip,polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%));
   background:linear-gradient(180deg,var(--pTop) 0%,var(--pMid) 52%,var(--pBot) 100%);
 }
 .bc .bcplate::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),rgba(255,255,255,.12))}
-.bc .bcname{font-size:31px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.07em;
+.bc .bcname{font-size:29px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.05em;
   transform:skewX(-9deg);display:inline-block;line-height:1;text-shadow:0 2px 4px rgba(0,0,0,.5)}
-.bc .bcubar{position:absolute;left:100px;right:-4px;top:136px;height:8px;transform:skewX(-12deg);
+.bc .bcubar{position:absolute;left:86px;right:36px;top:136px;height:7px;transform:skewX(-14deg);
   background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 40%,transparent))}
-.bc .bcparts{position:absolute;right:-14px;top:34px;width:132px;height:170px;pointer-events:none}
-.bc .bcen{position:absolute;left:80px;top:44px;font-family:'Orbitron',sans-serif;font-weight:900;
+.bc.o7 .bcubar,.bc.o8 .bcubar,.bc.o9 .bcubar{top:140px;height:5px}
+.bc .bcparts{position:absolute;right:-24px;top:34px;width:118px;height:170px;pointer-events:none}
+.bc .bcen{position:absolute;left:68px;top:44px;font-family:'Orbitron',sans-serif;font-weight:900;
   font-size:12px;letter-spacing:.32em;color:var(--acc,var(--hue));text-indent:.32em}
-.bc .bcmeta{position:absolute;left:82px;top:158px;display:flex;align-items:baseline;gap:12px}
+/* ── 빅 카드 실루엣 사다리 — 네임플레이트와 같은 구조를 1.35배로 ── */
+.bc .bcrul{position:absolute;height:3px;pointer-events:none;transform:skewX(-14deg);
+  background:linear-gradient(90deg,transparent,var(--hue) 14%,var(--hue) 86%,transparent)}
+.bc .bcrul.b1{left:80px;right:40px;top:136px;opacity:.95}
+.bc .bcrul.b2{left:94px;right:32px;top:142px;opacity:.62}
+.bc .bcframe{position:absolute;left:60.5px;right:52.5px;top:76.5px;height:63px;pointer-events:none;
+  --lean:15.75px;--ph:63px;
+  clip-path:var(--clip,polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%));
+  background:linear-gradient(180deg,var(--hue),color-mix(in srgb,var(--hue) 20%,#0A1020))}
+.bc .bcped{position:absolute;pointer-events:none;transform:skewX(-14deg)}
+.bc .bcped.q1{left:75px;right:31px;top:145px;height:4.5px;
+  background:linear-gradient(180deg,var(--pTop),var(--pMid));box-shadow:0 2px 7px rgba(0,0,0,.65)}
+.bc .bcped.q2{left:64px;right:25px;top:149px;height:4px;
+  background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 30%,transparent));
+  box-shadow:0 0 10px var(--acc)}
+.bc .bcfrg{position:absolute;left:-30px;top:-12px;width:380px;height:260px;pointer-events:none;
+  overflow:visible;transform-origin:82% 50%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.65))}
+.bc.o7 .bcfrg{filter:drop-shadow(0 0 9px var(--glow)) drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.bc.o8 .bcfrg{filter:drop-shadow(0 0 12px var(--glow)) drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.bc.o9 .bcfrg{animation:frgPulse 1.7s ease-in-out infinite}
+.bc .bcmeta{position:absolute;left:70px;top:162px;display:flex;align-items:baseline;gap:12px}
 .bc .bcko{font-size:16px;font-weight:700;color:var(--dim);letter-spacing:.1em;transform:skewX(-9deg);
   text-shadow:0 1px 4px #0A1020,0 0 8px #0A1020}
 .bc .bcpw{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;
   color:var(--muted);text-shadow:0 1px 4px #0A1020,0 0 8px #0A1020}
-.bc .bcpips{position:absolute;left:82px;top:188px;display:flex;gap:5px}
+.bc .bcpips{position:absolute;left:70px;top:190px;display:flex;gap:5px}
 .bc .bcpips i{width:16px;height:5px;display:block;background:#28374F;transform:skewX(-24deg)}
 .bc .bcpips i.on{background:var(--hue);box-shadow:0 0 8px var(--glow)}
 .bc.o6{filter:drop-shadow(0 4px 18px var(--glow))}
@@ -626,24 +684,15 @@ label.fld>span{display:block;font-size:.78em;font-weight:700;color:var(--dim);ma
 .bc.o9 .shine{animation-duration:2.1s}
 .bc.o8 .pt,.bc.o9 .pt{animation:drift 3.4s ease-in-out infinite alternate}
 .bc.o9 .pt{animation-duration:2.2s}
-/* 빅 카드의 챌린저 전용 구조물 */
-.bc .bcscan{position:absolute;left:68px;right:12px;top:70px;height:3px;transform:skewX(-12deg);
-  box-shadow:0 0 10px var(--acc);background-size:220% 100%;animation:shimmer 1.9s linear infinite;
-  background:linear-gradient(90deg,transparent,var(--acc) 16%,#fff 50%,var(--acc) 84%,transparent)}
-.bc .bcubar2{position:absolute;left:126px;right:-18px;top:147px;height:4px;transform:skewX(-12deg);
-  box-shadow:0 0 10px var(--hue);
-  background:linear-gradient(90deg,var(--hue),color-mix(in srgb,var(--hue) 15%,transparent))}
-.bc .bcbrk{position:absolute;width:28px;height:24px;border:3px solid var(--acc);opacity:.9;
-  box-shadow:0 0 10px var(--glow)}
-/* 브래킷은 카드 모서리가 아니라 '플레이트 모서리'를 문다 */
-.bc .bcbrk-tl{left:74px;top:70px;border-right:0;border-bottom:0}
-.bc .bcbrk-br{right:0;bottom:100px;border-left:0;border-top:0}
-/* eWipe 는 clip-path/opacity, shimmer 는 background-position — 속성이 겹치지 않아
-   둘을 같이 걸어야 등장 후에도 스캔 빛이 계속 흐른다 */
-.bc.enter .bcscan{animation:eWipe .45s .42s cubic-bezier(.16,1,.3,1) both,
-                            shimmer 1.9s linear infinite}
-.bc.enter .bcubar2{animation:eWipe .45s .42s cubic-bezier(.16,1,.3,1) both}
-.bc.enter .bcbrk{animation:eSnap .4s .5s cubic-bezier(.2,1.7,.4,1) both}
+.bc.enter .bcframe{animation:eSlam .5s .04s cubic-bezier(.16,1.4,.35,1) both}
+.bc.enter .bcrul  {animation:eWipe .45s .4s cubic-bezier(.16,1,.3,1) both}
+.bc.enter .bcped  {animation:eWipe .45s .44s cubic-bezier(.16,1,.3,1) both}
+/* 엠블럼은 플레이트 오른쪽 끝에서 펼쳐진다 — 챌린저는 펼친 뒤에도 계속 맥동한다
+   (eFan 은 transform/opacity, frgPulse 는 filter — 속성이 안 겹쳐 같이 걸린다) */
+.bc.enter .bcfrg  {animation:eFan .55s .28s cubic-bezier(.16,1.5,.35,1) both}
+.bc.enter.o9 .bcfrg{animation:eFan .55s .28s cubic-bezier(.16,1.5,.35,1) both,
+                    frgPulse 1.7s .85s ease-in-out infinite}
+@keyframes eFan{0%{opacity:0;transform:translateX(-16px) scale(.7)}100%{opacity:1;transform:none}}
 /* ── 빅 카드 등장 연출 ────────────────────────────────────── */
 .bc.enter .bcplate {animation:eSlam  .5s cubic-bezier(.16,1.4,.35,1) both}
 .bc.enter .bcinsig {animation:eSnap  .42s .3s cubic-bezier(.2,1.7,.4,1) both}
@@ -1162,28 +1211,48 @@ function iAmLeader(){ return myTeam === 1 || myTeam === 2; }
 /* 오버워치 역할 고정: 팀당 탱커1 · 딜러2 · 힐러2 */
 /* 팀 구성 — 팀이 정해진 뒤 이 순서대로 자리를 만들고 끌어다 놓는다 */
 /* ===== 등급 시그니처 플레이트 ===== */
+/* 색·파티클은 질감이라 흑백으로 보면 다 같다. 등급을 가르는 건 형태다.
+   sil  : 오른쪽 존에 붙는 단조 엠블럼 (stud→tick→chev→spur→wing→crest→crown)
+   fea  : 깃 개수 (날개 계열만)
+   rule : 플레이트 아래 밑선 개수 (0/1/2)
+   cut  : 모서리 깎기 [오른위·왼아래, 왼위·오른아래] — 플레이트 높이 대비 비율
+   frm  : 프레임 림  ped : 받침대 단수  brk : 모서리 브래킷 */
 const TIERS = [
   {k:'bronze',lvl:1,orn:3,ko:'브론즈',en:'BRONZE',pw:1,pips:0,
    hue:'#E09B58',pTop:'#C9803C',pMid:'#7E4318',pBot:'#331705',acc:'#FFD9A8',
-   glow:'rgba(200,120,60,.30)',note:'플레이트만. 칩도 파티클도 없음.'},
+   glow:'rgba(200,120,60,.30)',
+   sil:'stud',fea:0,rule:0,cut:[0,0],frm:0,ped:0,brk:0,
+   note:'민무늬 슬래브. 끝에 뭉툭한 엔드캡 하나뿐 — 선도 테두리도 없다.'},
   {k:'silver',lvl:2,orn:4,ko:'실버',en:'SILVER',pw:3,pips:1,
    hue:'#D7E1EC',pTop:'#C6D3E2',pMid:'#74849A',pBot:'#2C3644',acc:'#FFFFFF',
-   glow:'rgba(190,205,225,.30)',note:'+ 인시그니아 칩, 핍 1개.'},
+   glow:'rgba(190,205,225,.30)',
+   sil:'tick',fea:0,rule:1,cut:[0,0],frm:0,ped:0,brk:0,
+   note:'+ 밑선 한 줄, 끝에서 오른쪽으로 뻗는 창(랜스). 칩·핍 1개.'},
   {k:'gold',lvl:3,orn:5,ko:'골드',en:'GOLD',pw:6,pips:2,
    hue:'#F5C542',pTop:'#F2C64B',pMid:'#B07E0C',pBot:'#483102',acc:'#FFF0B0',
-   glow:'rgba(230,175,50,.38)',note:'+ 핍 2개, 트레일 사각 파티클 몇 개.'},
+   glow:'rgba(230,175,50,.38)',
+   sil:'chev',fea:0,rule:2,cut:[.18,0],frm:0,ped:0,brk:0,
+   note:'+ 밑선 두 줄, 노치된 모서리, 쐐기(») 두 겹. 핍 2개.'},
   {k:'plat',lvl:4,orn:6,ko:'플래티넘',en:'PLATINUM',pw:8,pips:3,
    hue:'#7FE9DA',pTop:'#5FD8C6',pMid:'#1B8E80',pBot:'#063733',acc:'#FDE047',
-   glow:'rgba(60,200,180,.40)',note:'+ 핍 3개, 파티클 산개, 언더바 액센트(노랑).'},
+   glow:'rgba(60,200,180,.40)',
+   sil:'spur',fea:0,rule:0,cut:[.26,.12],frm:0,ped:0,brk:1,
+   note:'+ 네 모서리가 깎이고 브래킷이 문다. 척추 + 갈래(스퍼). 언더바.'},
   {k:'dia',lvl:5,orn:7,ko:'다이아',en:'DIAMOND',pw:10,pips:3,
    hue:'#8FC4FF',pTop:'#7FB2FF',pMid:'#2F6FD8',pBot:'#0C2455',acc:'#67E8F9',
-   glow:'rgba(80,150,250,.48)',note:'+ 파티클 조밀, 바깥 글로우, 빛나는 언더바(시안).'},
+   glow:'rgba(80,150,250,.48)',
+   sil:'wing',fea:3,rule:0,cut:[.26,.12],frm:1,ped:0,brk:0,
+   note:'+ 프레임 림으로 닫힌다. 날개 한 쌍 + 윗단을 따라 흐르는 깃선 3줄.'},
   {k:'master',lvl:6,orn:8,ko:'마스터',en:'MASTER',pw:13,pips:3,
    hue:'#D5A2FF',pTop:'#C98CF5',pMid:'#8B37D8',pBot:'#310D5C',acc:'#67E8F9',
-   glow:'rgba(170,90,247,.55)',note:'+ 뒤에서 번쩍이는 번개, 플레이트 면을 훑는 셰이머, 떠다니는 파티클.'},
+   glow:'rgba(170,90,247,.55)',
+   sil:'crest',fea:4,rule:0,cut:[.26,.12],frm:1,ped:1,brk:0,
+   note:'+ 날개 사이에 방패 크레스트, 받침대 1단 — 플레이트가 떠 있지 않고 올려져 있다. 번개.'},
   {k:'chall',lvl:7,orn:9,ko:'챌린저',en:'CHALLENGER',pw:20,pips:3,
    hue:'#FFB765',pTop:'#FFA85C',pMid:'#E2650F',pBot:'#551903',acc:'#FDE047',
-   glow:'rgba(250,130,40,.62)',note:'천장. 굵고 빠른 크래클 번개 + 전기 스캔라인 + 이중 언더바 + 프레임 브래킷. 챌린저만 가진 구조.'},
+   glow:'rgba(250,130,40,.62)',
+   sil:'crown',fea:5,rule:0,cut:[.34,.18],frm:1,ped:2,brk:0,
+   note:'천장. 크레스트 위에 왕관, 깃 5줄, 받침대 2단, 가장 깊게 깎인 모서리. 굵고 빠른 크래클 번개.'},
 ];
 const MAX_TIER = TIERS.length;
 
@@ -1307,27 +1376,207 @@ function bolts(t,W,H,seed,scale,cxf,cyf,squash){
             <g transform="${sq}">${g}</g></svg>`;
 }
 
-/* 챌린저 전용 구조물 — 다른 등급엔 아예 없다 */
-function challOnly(){
-  return `<span class="scan"></span>
-          <span class="ubar2"></span>
-          <span class="brk brk-tl"></span><span class="brk brk-br"></span>`;
+/* ══════════════════════════════════════════════════════════════
+   모서리 깎기 — 등급마다 다른 clip-path 를 만든다.
+   --lean(기울기)·--ph(플레이트 높이) 로만 쓰기 때문에 네임플레이트든
+   빅 카드든 프레임 림이든, 크기가 달라도 같은 비율로 깎인다.
+   f = 오른위·왼아래 깎기 / g = 왼위·오른아래 깎기 (플레이트 높이 대비)
+   ══════════════════════════════════════════════════════════════ */
+function clipOf(t){
+  const f = (t.cut && t.cut[0]) || 0, g = (t.cut && t.cut[1]) || 0;
+  if (!f && !g) return 'polygon(var(--lean) 0,100% 0,calc(100% - var(--lean)) 100%,0 100%)';
+  const P = n => `calc(var(--ph) * ${n.toFixed(3)})`;
+  const L = n => `calc(var(--lean) * ${n.toFixed(3)})`;
+  return 'polygon(' + [
+    `calc(var(--lean) + ${P(g)}) 0`,                       /* 윗변: 왼위 깎기 끝 */
+    `calc(100% - ${P(f)}) 0`,                              /* 윗변: 오른위 깎기 시작 */
+    `calc(100% - ${L(f)}) ${P(f)}`,                        /* 오른변 위 */
+    `calc(100% - ${L(1-g)}) calc(100% - ${P(g)})`,         /* 오른변 아래 */
+    `calc(100% - var(--lean) - ${P(g)}) 100%`,             /* 아랫변 오른쪽 */
+    `${P(f)} 100%`,                                        /* 아랫변 왼쪽 */
+    `${L(f)} calc(100% - ${P(f)})`,                        /* 왼변 아래 */
+    `${L(1-g)} ${P(g)}`                                    /* 왼변 위 */
+  ].join(',') + ')';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   단조 장식 — 등급의 '형태'. 흑백으로 봐도 구분되는 실루엣.
+
+   원칙: 장식은 플레이트 '옆에 놓인 다른 물건'이 아니다.
+         플레이트의 외곽선이 밖으로 계속 자라난 것이다.
+         · 모든 path 는 플레이트 외곽선 위의 점에서 출발한다 (틈 0)
+         · 선 굵기는 플레이트 베벨과 같다
+         · 같은 금속 램프 + 같은 광원(위가 밝고 아래가 어둡다)
+
+   로컬 좌표 — 원점 (0,0) = 플레이트의 오른쪽 '위' 모서리.
+     플레이트는 y 0..40 (PH_), 오른쪽 사선은 (0,0)→(-10,40) (LN_)
+     윗변 y=0 · 아랫변 y=40 · 둘 다 왼쪽으로 뻗어 있다
+     오른쪽 장식 존 = x 0..84, 세로로는 y -11..51 이 전부 비어 있다
+   ══════════════════════════════════════════════════════════════ */
+const PH_ = 40, LN_ = 10;
+const dgx = y => -(LN_/PH_) * y;        /* 오른쪽 사선 위의 x */
+const F2  = n => (+n).toFixed(2);
+const PT  = (x,y) => F2(x)+' '+F2(y);
+
+/* 깃 한 장 — 뿌리에서 넓고 끝으로 갈수록 뾰족해지는 날. 살짝 휘어 있다 */
+function blade(rx,ry,tx,ty,w,bow){
+  const dx=tx-rx, dy=ty-ry, L=Math.hypot(dx,dy)||1;
+  const px=-dy/L, py=dx/L, mx=(rx+tx)/2, my=(ry+ty)/2;
+  return `M${PT(rx+px*w/2, ry+py*w/2)}`
+       + ` Q${PT(mx+px*(w*0.8+bow), my+py*(w*0.8+bow))} ${PT(tx,ty)}`
+       + ` Q${PT(mx-px*w*0.12, my-py*w*0.12)} ${PT(rx-px*w/2, ry-py*w/2)} Z`;
+}
+
+/* 외곽선을 바깥으로 O 만큼 민 궤적 — 브래킷은 '깎인 모서리를 그대로 따라간 선'이다.
+   각 변을 법선 방향으로 민 뒤 이웃 변끼리 교점을 잡아 꺾임을 살린다 */
+function offPoly(pts,O){
+  const segs=[];
+  for(let i=0;i<pts.length-1;i++){
+    const [x0,y0]=pts[i], [x1,y1]=pts[i+1];
+    const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy)||1;
+    const nx=dy/L, ny=-dx/L;                      /* 시계방향 외곽선의 바깥 법선 */
+    segs.push([x0+nx*O,y0+ny*O,x1+nx*O,y1+ny*O]);
+  }
+  const o=[[segs[0][0],segs[0][1]]];
+  for(let i=0;i<segs.length-1;i++){
+    const A=segs[i], B=segs[i+1];
+    const ax=A[2]-A[0], ay=A[3]-A[1], bx=B[2]-B[0], by=B[3]-B[1];
+    const den=ax*by-ay*bx;
+    if(Math.abs(den)<1e-6){ o.push([A[2],A[3]]); continue; }
+    const s=((B[0]-A[0])*by-(B[1]-A[1])*bx)/den;
+    o.push([A[0]+ax*s, A[1]+ay*s]);
+  }
+  o.push([segs[segs.length-1][2],segs[segs.length-1][3]]);
+  return 'M'+o.map(p=>PT(p[0],p[1])).join(' L');
+}
+
+function forgePaths(t){
+  const s=t.sil, out=[], dark=[], acc=[], hi=[], line=[], soft=[];
+  const f=(t.cut&&t.cut[0])||0, g=(t.cut&&t.cut[1])||0;
+  const CD = {stud:15,tick:12,chev:11,spur:12,wing:12,crest:13,crown:14}[s] || 12;
+  const PR = 3;                          /* 위아래로 튀어나오는 양 = 프레임 림 두께 */
+
+  /* ① 칼라 — 모든 등급의 뿌리.
+        플레이트의 '오른쪽 사선'이 밖으로 한 겹 두꺼워진 것.
+        안쪽 변이 사선 그 자체라 틈이 없고, 모따기된 등급에서는
+        깎인 모서리 사이로 이 칼라가 드러난다. */
+  const c0=-PR, c1=PH_+PR;
+  out.push(`M${PT(dgx(c0),c0)} L${PT(dgx(c1),c1)} L${PT(dgx(c1)+CD,c1)} L${PT(dgx(c0)+CD,c0)} Z`);
+  hi.push(`M${PT(dgx(c0),c0)} L${PT(dgx(c0)+CD,c0)} L${PT(dgx(c0+1.8)+CD,c0+1.8)} L${PT(dgx(c0+1.8),c0+1.8)} Z`);
+
+  if(s==='stud'){
+    /* 브론즈 — 여기서 끝. 칼라 위에 리벳 하나. 선도 날개도 없다 */
+    const bx=dgx(20)+CD/2;
+    out.push(`M${PT(bx,16)} L${PT(bx+4,20)} L${PT(bx,24)} L${PT(bx-4,20)} Z`);
+  }
+  else if(s==='tick'){
+    /* 실버 — 윗변 베벨이 오른쪽 끝을 지나 그대로 뻗어 창이 된다.
+       뿌리는 플레이트의 오른쪽 위 모서리 (0,0) 바로 그 점이다 */
+    out.push(`M${PT(0,-1.7)} L${PT(CD+29,-1.7)} L${PT(CD+38,0)} L${PT(CD+29,1.7)} L${PT(0,1.7)} Z`);
+    acc.push(`M${PT(3,-0.55)} L${PT(CD+28,-0.55)} L${PT(CD+28,0.55)} L${PT(3,0.55)} Z`);
+  }
+  else if(s==='chev'){
+    /* 골드 — 윗변이 오른쪽 끝에서 접혀 아랫변으로 돌아온다.
+       한 획의 시작점 = 오른쪽 위 모서리, 끝점 = 오른쪽 아래 모서리.
+       그 획을 한 겹 더 밖으로 복제해 겹쳐 쓴 것이 두 겹 쐐기(»). */
+    const chev=(dx,th,ap)=>`M${PT(dx+th/2,0)} L${PT(dx+ap+th/2,PH_/2)} L${PT(dgx(PH_)+dx+th/2,PH_)}`
+      + ` L${PT(dgx(PH_)+dx-th/2,PH_)} L${PT(dx+ap-th/2,PH_/2)} L${PT(dx-th/2,0)} Z`;
+    out.push(chev(0,3.6,25), chev(13,3.2,25));
+  }
+  else if(s==='spur'){
+    /* 플래티넘 — 두 긴 변(윗변·아랫변)이 사선 끝을 지나 서로 벌어진다.
+       그리고 깎인 두 모서리를 그대로 따라간 브래킷이 한 겹 밖에 얹힌다 */
+    soft.push(blade(0,0, CD+34,-9.5, 5.0,-3.4));
+    soft.push(blade(dgx(PH_),PH_, dgx(PH_)+CD+34, PH_+9.5, 5.0, 3.4));
+    const bx=dgx(20)+CD/2;
+    out.push(`M${PT(bx,13)} L${PT(bx+6,20)} L${PT(bx,27)} L${PT(bx-6,20)} Z`);
+    dark.push(`M${PT(bx,17)} L${PT(bx+2.9,20)} L${PT(bx,23)} L${PT(bx-2.9,20)} Z`);
+    line.push(offPoly([[-30,0],[-PH_*f,0],[-LN_*f,PH_*f],[dgx(17),17]],3.6));
+    line.push(offPoly([[dgx(23),23],[-LN_*(1-g),PH_*(1-g)],[-LN_-PH_*g,PH_],[-LN_-PH_*g-24,PH_]],3.6));
+  }
+  else {
+    /* 다이아·마스터·챌린저 — 프레임 림의 위·아래 런이 사선 끝에서 만나
+       깃으로 갈라진다. 모든 깃의 뿌리는 사선 위의 점이다 (x = dgx(y)).
+       세로 여유가 62px 뿐이라 부채는 플레이트 한가운데(y=20)를 축으로 편다. */
+    const n=Math.max(2,t.fea||3), D=n-1;
+    for(let i=0;i<n;i++){
+      const ry = 16 - i*(10/D);                    /* 사선 위 뿌리 */
+      const a  = (8 + i*(56/D)) * Math.PI/180;
+      const tx = 54*Math.cos(a), ty = 20 - 30*Math.sin(a);
+      const w  = 5.0 - i*(1.9/D), bw = 2.4 + i*1.1;
+      soft.push(blade(dgx(ry),ry, tx,ty, w,-bw));                     /* 위쪽 깃 */
+      soft.push(blade(dgx(PH_-ry),PH_-ry, tx,PH_-ty, w, bw));         /* 아래쪽 깃 */
+    }
+    const cx = CD + 7;
+    const SH = (x,y) => PT(x - 0.25*y + cx, 20 + y);   /* 크레스트는 플레이트와 같은 기울기 */
+    if(s==='wing'){
+      /* 다이아 — 칼라가 그대로 좁은 용골(keel)로 솟는다. 아직 방패는 아니다 */
+      out.push(`M${SH(-8,-17)} L${SH(4,-17)} L${SH(6,0)} L${SH(0,17)} L${SH(-8,17)} Z`);
+      dark.push(`M${SH(-4.5,-12.5)} L${SH(1,-12.5)} L${SH(2,0)} L${SH(-1.5,12)} L${SH(-4.5,12)} Z`);
+    } else {
+      /* 마스터·챌린저 — 칼라의 바깥 변이 그대로 방패의 등이 된다.
+         SH(-12,-16) = 칼라 바깥 변 위의 점. 붙어 있지 옆에 놓인 게 아니다 */
+      out.push(`M${SH(-12,-16)} L${SH(12,-16)} L${SH(12,2)} Q${SH(12,12)} ${SH(0,18)}`
+             + ` Q${SH(-12,12)} ${SH(-12,2)} Z`);
+      dark.push(`M${SH(-8.5,-12)} L${SH(8.5,-12)} L${SH(8.5,1)} Q${SH(8.5,8)} ${SH(0,13)}`
+             + ` Q${SH(-8.5,8)} ${SH(-8.5,1)} Z`);
+      acc.push(`M${SH(0,-6)} L${SH(4.5,1)} L${SH(0,8)} L${SH(-4.5,1)} Z`);
+      hi.push(`M${SH(-12,-16)} L${SH(12,-16)} L${SH(12,-14)} L${SH(-12,-14)} Z`);
+    }
+    if(s==='crown'){
+      /* 챌린저 — 방패의 '윗변'이 그대로 왕관으로 솟는다 (y=-16 을 공유) */
+      out.push(`M${SH(-12,-16)} L${SH(12,-16)} L${SH(12,-21)} L${SH(7,-18)} L${SH(5,-29)}`
+             + ` L${SH(0,-21)} L${SH(-5,-29)} L${SH(-7,-18)} L${SH(-12,-21)} Z`);
+      acc.push(`M${SH(-11,-18.4)} L${SH(11,-18.4)} L${SH(11,-16.4)} L${SH(-11,-16.4)} Z`);
+    }
+  }
+  return {out,dark,acc,hi,line,soft};
+}
+
+function forgeSVG(t,cls,W,H,ax,ay,sc){
+  const p = forgePaths(t);
+  const id = 'frg-'+t.k;
+  const g = a => a.map(d=>`<path d="${d}"/>`).join('');
+  /* 광원은 플레이트와 하나여야 한다 — userSpaceOnUse 로 플레이트 높이에 램프를
+     고정하면 위로 솟은 조각은 밝게, 아래로 처진 조각은 어둡게 받는다.
+     다만 바닥을 pBot 까지 떨어뜨리면 작은 조각이 배경(#0A1020)에 먹힌다.
+     그래서 장식 램프는 pTop → hue → pMid 까지만 간다 (방향은 같고 폭만 좁다) */
+  return `<svg class="${cls}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">
+    <defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="-6" x2="0" y2="${PH_+6}">
+      <stop offset="0" stop-color="${t.pTop}"/>
+      <stop offset=".45" stop-color="${t.hue}"/>
+      <stop offset="1" stop-color="${t.pMid}"/></linearGradient></defs>
+    <g transform="translate(${ax} ${ay}) scale(${sc})" fill="url(#${id})">
+      <g>${g(p.soft)}</g>
+      <g stroke="${t.pBot}" stroke-width="1.1" stroke-linejoin="round">${g(p.out)}</g>
+      <g fill="none" stroke="url(#${id})" stroke-width="2"
+         stroke-linejoin="miter" stroke-linecap="butt">${g(p.line)}</g>
+      <g fill="#0A1020" opacity=".38">${g(p.dark)}</g>
+      <g fill="#FFFFFF" opacity=".42">${g(p.hi)}</g>
+      <g fill="${t.acc}" opacity=".95">${g(p.acc)}</g>
+    </g></svg>`;
 }
 
 function vars(t){
   return `--hue:${t.hue};--pTop:${t.pTop};--pMid:${t.pMid};--pBot:${t.pBot};`
-       + `--acc:${t.acc};--glow:${t.glow}`;
+       + `--acc:${t.acc};--glow:${t.glow};--clip:${clipOf(t)}`;
 }
 
 function nameplate(k,name,seed){
   const t=T[k], o=t.orn;
-  const pcount = o>=9?26 : o>=8?21 : o>=7?16 : o>=6?11 : o>=5?6 : 0;
+  /* 파티클은 형태를 가리지 않을 만큼만 — 실루엣이 먼저다 */
+  const pcount = o>=9?17 : o>=8?14 : o>=7?11 : o>=6?9 : o>=5?6 : 0;
   return `<span class="np t-${t.k} o${o}" style="${vars(t)}">
     ${o>=8 ? `<span class="burst">${bolts(t,214,62,(seed||7)*31,1,.30)}</span>` : ''}
+    ${t.frm ? `<span class="frame"></span>` : ''}
+    ${forgeSVG(t,'frg',190,62,106,11,1)}
     ${t.pips>0 || o>=4 ? `<span class="insig">${insignia(t,44,40)}</span>` : ''}
     <span class="np-plate">${o>=8?'<span class="shine"></span>':''}<span class="np-name">${name}</span></span>
+    ${t.rule>=1 ? `<span class="rul r1"></span>` : ''}
+    ${t.rule>=2 ? `<span class="rul r2"></span>` : ''}
     ${o>=6 ? `<span class="ubar"></span>` : ''}
-    ${o>=9 ? challOnly() : ''}
+    ${t.ped>=1 ? `<span class="ped p1"></span>` : ''}
+    ${t.ped>=2 ? `<span class="ped p2"></span>` : ''}
     <span class="parts">${particles(t,84,62,pcount,(seed||3)*17,false)}</span>
   </span>`;
 }
@@ -1337,17 +1586,21 @@ function nameplate(k,name,seed){
    ══════════════════════════════════════════════════════════════ */
 function bigcard(k,name,seed){
   const t=T[k], o=t.orn;
-  const pcount = o>=9?40 : o>=8?32 : o>=7?24 : o>=6?16 : o>=5?9 : 0;
+  const pcount = o>=9?26 : o>=8?21 : o>=7?16 : o>=6?12 : o>=5?8 : 0;
   const pips = [1,2,3].map(i=>`<i class="${i<=t.pips?'on':''}"></i>`).join('');
   return `<div class="bc t-${t.k} o${o} enter" style="${vars(t)}">
-    ${o>=8 ? `<span class="bcburst">${bolts(t,360,268,(seed||5)*53,1.5,.75,.44,.62)}</span>` : ''}
+    ${o>=8 ? `<span class="bcburst">${bolts(t,360,268,(seed||5)*53,1.5,.60,.44,.62)}</span>` : ''}
     <span class="bcen">${t.en}</span>
+    ${t.frm ? `<span class="bcframe"></span>` : ''}
+    ${forgeSVG(t,'bcfrg',380,260,294,92,1.4)}
     ${t.pips>0 || o>=4 ? `<span class="bcinsig">${insignia(t,64,56)}</span>` : ''}
     <div class="bcplate">${o>=8?'<span class="shine"></span>':''}<span class="bcname">${name}</span></div>
+    ${t.rule>=1 ? `<span class="bcrul b1"></span>` : ''}
+    ${t.rule>=2 ? `<span class="bcrul b2"></span>` : ''}
     ${o>=6 ? `<span class="bcubar"></span>` : ''}
-    ${o>=9 ? `<span class="bcscan"></span><span class="bcubar2"></span>
-              <span class="bcbrk bcbrk-tl"></span><span class="bcbrk bcbrk-br"></span>` : ''}
-    <span class="bcparts">${particles(t,132,170,pcount,(seed||9)*23,true)}</span>
+    ${t.ped>=1 ? `<span class="bcped q1"></span>` : ''}
+    ${t.ped>=2 ? `<span class="bcped q2"></span>` : ''}
+    <span class="bcparts">${particles(t,118,170,pcount,(seed||9)*23,true)}</span>
     <div class="bcmeta"><span class="bcko">${t.ko}</span><span class="bcpw">전투력 ${t.pw}</span></div>
     <div class="bcpips">${pips}</div>
   </div>`;
