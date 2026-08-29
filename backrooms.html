@@ -642,7 +642,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <tr><td class="name">Level 9</td><td class="mono d5">5</td><td class="mono">15:00</td><td class="mono">11개</td><td>허브 복귀</td><td>가장 긴 갈래</td></tr>
       <tr><td class="name">Level 922</td><td class="mono d0">0</td><td class="mono">1:30</td><td class="mono">1개</td><td>Level 94 로 합류</td><td>교외 엔딩</td></tr>
       <tr><td class="name">Level 974</td><td class="mono d3">3</td><td class="mono">6:00</td><td class="mono">1개</td><td>허브 복귀</td><td>핑크 하우스 엔딩</td></tr>
-      <tr><td class="name">Level 421</td><td class="mono d2">2</td><td class="mono">15:00</td><td class="mono">3개</td><td>허브 복귀</td><td>베이스 볼풀로 진입 · 빈 도시 엔딩</td></tr>
+      <tr><td class="name">Level 421</td><td class="mono d2">2</td><td class="mono">15:00</td><td class="mono">3개</td><td>허브 복귀</td><td>ID 카드 필요 · 빈 도시 엔딩</td></tr>
     </tbody>
   </table></div>
 
@@ -663,7 +663,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>처음이면</strong> Level 0. 튜토리얼 겸 메인 캠페인입니다.</li>
       <li><strong>짧게 한 판</strong> — Level 922(1분 30초, 위험도 0)나 Level 974(6분). 둘 다 엔딩이 딸려 옵니다.</li>
       <li><strong>길게 각 잡고</strong> — Level 9. 11개 레벨을 지나 허브로 돌아오는 가장 긴 코스입니다. 중간 스낵룸에서 보급을 채우세요.</li>
-      <li><strong>신규 컨텐츠</strong> — Level 421. <strong>베이스의 볼풀</strong>로 들어갑니다. 3개 레벨 코스에 빈 도시 엔딩까지 붙습니다.</li>
+      <li><strong>신규 컨텐츠</strong> — Level 421. <strong>메인 스토리를 끝내 ID 카드를 얻어야</strong> 갈 수 있습니다. Level 1 최하층 M.E.G. 문 → 벙커 → 볼풀 순서입니다.</li>
       <li><strong>트루 엔딩 노리면</strong> — 922 · 974 · 421(그래스룸 경유) · 55.1 네 갈래를 다 돌고 Level 3999로.</li>
     </ul>
   </div>
@@ -671,20 +671,25 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S421 ============ -->
 <section class="panel" id="s421">
-  <div class="panel-head"><h2>Level 421 — Plastic Mariana</h2><div class="meta">2026-08-27 · 4주년 기념 신규 레벨 · 위험도 2 · 목표 15:00</div></div>
+  <div class="panel-head"><h2>Level 421 — Plastic Mariana</h2><div class="meta">2026-08-27 · 4주년 기념 신규 레벨 · 위험도 2 · 목표 15:00 · 메인 스토리 클리어 필요</div></div>
 
   <div class="alert good">
     <h4>어디서 출발하나 — 결론부터</h4>
-    <p><strong>M.E.G. 베이스에 생긴 볼풀에 들어가면 됩니다.</strong> 메뉴에서 고르는 게 아니라 물리적인 입구예요.</p>
-    <p>베이스 맵(<code>Maps/Bunker</code>)을 열어보면 <code>BP_BallPit_Square</code> 볼풀 1개와 볼 클러스터 3개가 있고, 같은 맵이 <code>LP_LevelPlasticMariana</code>를 참조합니다. <strong>볼풀이 곧 421로 가는 문</strong>입니다. Plastic Mariana 자체가 끝없는 볼풀 레벨이니 연출도 맞아떨어집니다.</p>
-    <p><strong>진행하다 만나는 레벨은 아닙니다.</strong> 게임 데이터상 어떤 레벨도 421로 이어지지 않아요. 베이스로 돌아가서 볼풀을 찾으세요.</p>
+    <p><strong>선행 조건이 있습니다. 메인 스토리를 먼저 끝내야 해요.</strong> 세 단계입니다.</p>
+    <ol>
+      <li><strong>메인 스토리 클리어 → ID 카드 획득.</strong> Level 0부터 Level 55.1(터널)까지 정상 루트로 진행합니다. 55.1을 탈출하면 <strong>잘못된 문(Wrong Door) 엔딩</strong>이 재생되고 <strong>ID 카드</strong>를 얻습니다. 게임 데이터에서도 55.1의 목적지가 <code>Bunker</code>로 잡혀 있습니다.</li>
+      <li><strong>Level 1 주차장으로 돌아가 M.E.G. 문 열기.</strong> 주차장 최하층에 <strong>M.E.G. 문 + 카드 스캐너 + 벙커 문</strong>이 나란히 있습니다. ID 카드로 스캐너를 통과하면 <strong>확장된 M.E.G. 벙커</strong>가 열립니다.</li>
+      <li><strong>벙커 안에서 421 입구로.</strong> 벙커에는 벙커 문 5개, 카드 스캐너 2개, 전용 엘리베이터, 그리고 <strong>볼풀 1개</strong>가 있습니다. 그 볼풀이 Level 421로 넘어가는 지점입니다.</li>
+    </ol>
+    <p class="hint"><strong>파일로 확인한 근거</strong> — <code>Maps/Garage/BottomFloor</code>에 <code>BP_MEGDoor</code> · <code>BP_CardScanner</code> · <code>BP_BunkerDoor</code>가 각 1개씩 같이 있습니다. <code>Maps/Bunker</code>에는 카드 스캐너 2 · 벙커 문 5 · <code>BP_BallPit_Square</code> 1개와 <code>LP_LevelPlasticMariana</code> 참조가 있습니다.</p>
+    <p><strong>층수만 확인이 안 됩니다.</strong> "4층"으로 알려져 있는데 게임 파일의 주차장 맵은 <code>TopFloor · MiddleFloor · BottomFloor</code> 셋뿐이고, 장치는 <strong>BottomFloor</strong>에 있습니다. 게임 내 표기와 파일 이름이 다를 수 있으니 <strong>최하층부터 찾아보세요.</strong></p>
     <p>나가는 길은 정해져 있습니다: <strong>421 → 오버그로스 → 그래스룸 → M.E.G. 베이스.</strong> 그래서 이 코스 자체가 <strong>빈 도시 엔딩</strong>으로 이어집니다 — 신규 레벨 즐기면서 엔딩 하나 따는 셈입니다.</p>
   </div>
 
   <div class="card">
     <div class="card-id">구성 · 게임 파일 기준</div>
     <h3>세 구역으로 나뉩니다</h3>
-    <div class="taglist"><span class="tag rng">위험도 2</span><span class="tag danger">스크래처 순찰</span><span class="tag warn">목표 15:00</span><span class="tag safe">XP 300</span></div>
+    <div class="taglist"><span class="tag rng">위험도 2</span><span class="tag danger">스크래처 순찰</span><span class="tag rng">색깔 퍼즐</span><span class="tag warn">목표 15:00</span><span class="tag safe">XP 300</span></div>
     <ol>
       <li><strong>M.E.G. 전초기지 (Entrance)</strong> — 버려진 전초기지. 어두운 복도를 <strong>스크래처를 피해</strong> 통과합니다. The End에서 쓰던 요령 그대로 — <strong>뛰지 말고 앉아서</strong>.</li>
       <li><strong>브루스 디스커버리 센터 (ChildrensHospital)</strong> — 상어 마스코트 브루스가 있는 거대 어린이병원. <strong>여기가 본편</strong>이고 미로 구조입니다.</li>
@@ -698,6 +703,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
     <div class="card-id">Entity · 브루스</div>
     <h3>상어</h3>
     <p>게임 파일에 <code>Blueprints/Entity/L_SharkDeathScare</code>가 있습니다 — <strong>전용 사망 연출이 있는 개체</strong>라는 뜻입니다. 볼풀 구간에서 잡히면 그걸로 끝입니다.</p>
+    <p><strong>입구 구역에서 나올 것들</strong>(<code>L_PM_Entrance_Gameplay</code> 기준): <strong>볼풀 14개</strong>와 <strong>볼풀 이동 스플라인</strong> — 볼풀을 타고 흘러가는 구간이 있다는 뜻입니다. 카드 스캐너 3개, 벙커 문 3개, 그리고 <strong>색깔 퍼즐 문 1개</strong>가 있습니다.</p>
     <p class="hint">이 레벨은 나온 지 며칠 안 돼서 <strong>세부 공략이 아직 정립되지 않았습니다.</strong> 위 내용은 게임 파일 구조와 공식 설명에서 확인한 것까지입니다. 직접 해보시고 알려주시면 채워 넣겠습니다.</p>
   </div>
 
