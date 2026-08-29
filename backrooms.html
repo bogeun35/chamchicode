@@ -642,7 +642,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <tr><td class="name">Level 9</td><td class="mono d5">5</td><td class="mono">15:00</td><td class="mono">11개</td><td>허브 복귀</td><td>가장 긴 갈래</td></tr>
       <tr><td class="name">Level 922</td><td class="mono d0">0</td><td class="mono">1:30</td><td class="mono">1개</td><td>Level 94 로 합류</td><td>교외 엔딩</td></tr>
       <tr><td class="name">Level 974</td><td class="mono d3">3</td><td class="mono">6:00</td><td class="mono">1개</td><td>허브 복귀</td><td>핑크 하우스 엔딩</td></tr>
-      <tr><td class="name">Level 421</td><td class="mono d2">2</td><td class="mono">15:00</td><td class="mono">3개</td><td>허브 복귀</td><td>빈 도시 엔딩 · 신규</td></tr>
+      <tr><td class="name">Level 421</td><td class="mono d2">2</td><td class="mono">15:00</td><td class="mono">3개</td><td>허브 복귀</td><td>베이스 볼풀로 진입 · 빈 도시 엔딩</td></tr>
     </tbody>
   </table></div>
 
@@ -663,7 +663,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>처음이면</strong> Level 0. 튜토리얼 겸 메인 캠페인입니다.</li>
       <li><strong>짧게 한 판</strong> — Level 922(1분 30초, 위험도 0)나 Level 974(6분). 둘 다 엔딩이 딸려 옵니다.</li>
       <li><strong>길게 각 잡고</strong> — Level 9. 11개 레벨을 지나 허브로 돌아오는 가장 긴 코스입니다. 중간 스낵룸에서 보급을 채우세요.</li>
-      <li><strong>신규 컨텐츠</strong> — Level 421. 3개 레벨 코스에 빈 도시 엔딩까지 붙습니다.</li>
+      <li><strong>신규 컨텐츠</strong> — Level 421. <strong>베이스의 볼풀</strong>로 들어갑니다. 3개 레벨 코스에 빈 도시 엔딩까지 붙습니다.</li>
       <li><strong>트루 엔딩 노리면</strong> — 922 · 974 · 421(그래스룸 경유) · 55.1 네 갈래를 다 돌고 Level 3999로.</li>
     </ul>
   </div>
@@ -675,8 +675,9 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <div class="alert good">
     <h4>어디서 출발하나 — 결론부터</h4>
-    <p><strong>진행하다 만나는 레벨이 아닙니다.</strong> 게임 데이터를 분석해 보니 <strong>어떤 레벨도 421로 이어지지 않습니다.</strong> Level Fun · 0.11 · 9 · 922 · 974 · 그래스룸과 함께 <strong>허브에서 직접 들어가는 독립 진입 레벨</strong>입니다.</p>
-    <p><strong>→ 로비의 레벨 선택에서 Level 421을 직접 고르세요.</strong> 캠페인을 처음부터 다시 탈 필요 없습니다.</p>
+    <p><strong>M.E.G. 베이스에 생긴 볼풀에 들어가면 됩니다.</strong> 메뉴에서 고르는 게 아니라 물리적인 입구예요.</p>
+    <p>베이스 맵(<code>Maps/Bunker</code>)을 열어보면 <code>BP_BallPit_Square</code> 볼풀 1개와 볼 클러스터 3개가 있고, 같은 맵이 <code>LP_LevelPlasticMariana</code>를 참조합니다. <strong>볼풀이 곧 421로 가는 문</strong>입니다. Plastic Mariana 자체가 끝없는 볼풀 레벨이니 연출도 맞아떨어집니다.</p>
+    <p><strong>진행하다 만나는 레벨은 아닙니다.</strong> 게임 데이터상 어떤 레벨도 421로 이어지지 않아요. 베이스로 돌아가서 볼풀을 찾으세요.</p>
     <p>나가는 길은 정해져 있습니다: <strong>421 → 오버그로스 → 그래스룸 → M.E.G. 베이스.</strong> 그래서 이 코스 자체가 <strong>빈 도시 엔딩</strong>으로 이어집니다 — 신규 레벨 즐기면서 엔딩 하나 따는 셈입니다.</p>
   </div>
 
@@ -709,16 +710,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
     <img src="backrooms-maps/plan_421_hospital.svg" alt="Level 421 어린이병원 평면도" loading="lazy">
     <figcaption>브루스 디스커버리 센터 · 135 × 124 m · 액터 3,343개 — 복도 미로 구조가 보입니다</figcaption>
   </figure>
-
-  <figure>
-    <img src="backrooms-maps/plan_421_ballpit.svg" alt="Level 421 볼풀 평면도" loading="lazy">
-    <figcaption>끝없는 볼풀 · 129 × 119 m</figcaption>
-  </figure>
-
-  <figure>
-    <img src="backrooms-maps/plan_421_escape.svg" alt="Level 421 탈출 구간 평면도" loading="lazy">
-    <figcaption>패디드 이스케이프 · 71 × 102 m · 액터 5,436개로 가장 조밀한 구역</figcaption>
-  </figure>
 </section>
 
 <!-- ============ MAPS ============ -->
@@ -728,18 +719,14 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
   <div class="alert note">
     <h4>이 지도는 어디서 왔나</h4>
     <p>게임의 <code>.pak</code>에서 레벨 맵을 꺼내 <strong>액터 좌표를 위에서 내려다본 것</strong>입니다. 스크린샷이나 손으로 그린 게 아니라 실제 배치 데이터예요.</p>
-    <p><strong>점 = 오브젝트 위치</strong>입니다. 벽·기둥·가구가 모여 방 윤곽을 만듭니다. <span style="color:var(--accent-amber)">●</span> 조명 <span style="color:var(--accent-blue)">●</span> 트리거 <span style="color:var(--text-primary)">●</span> 구조물.</p>
-    <p>정확한 벽면이 아니라 <strong>배치 밀도로 읽는 지도</strong>라고 생각하세요. 방 개수와 대략적 동선을 파악하는 용도입니다.</p>
+    <p><strong>벽만 그렸습니다.</strong> 가구·소품·조명·바닥·천장은 전부 뺐어요. 그것들까지 찍으면 벽이 묻혀서 지도로 안 읽힙니다.</p>
+    <p>메시 이름에 길이가 들어있어서(<code>SM_Wall_4m</code> = 4 m) 점이 아니라 <strong>실제 길이와 방향을 가진 선분</strong>으로 그렸습니다. 회전값은 컴포넌트 로테이션에서, 인스턴스 벽은 변환 행렬에서 뽑았습니다.</p>
+    <p>단, <strong>모듈형 벽 키트로 지은 레벨에서만 잘 나옵니다.</strong> 아케이드나 볼풀처럼 통짜 아트 메시로 만든 레벨은 이름에 wall이 안 붙어서 걸러낼 수가 없어 뺐습니다.</p>
   </div>
 
   <figure>
     <img src="backrooms-maps/plan_level0.svg" alt="Level 0 평면도" loading="lazy">
     <figcaption>Level 0 · 211 × 216 m · 인스턴스 포함 8,802점</figcaption>
-  </figure>
-
-  <figure>
-    <img src="backrooms-maps/plan_3999.svg" alt="Level 3999 평면도" loading="lazy">
-    <figcaption>Level 3999 아케이드 · 114 × 45 m · 2,049점</figcaption>
   </figure>
 
   <figure>
