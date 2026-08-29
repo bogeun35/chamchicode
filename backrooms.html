@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백룸 탈출 공략</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #EFF6FF;
+  --bg-surface: #FFFFFF;
+  --bg-glass: rgba(255,255,255,0.72);
+  --border-glass: rgba(148,187,233,0.35);
+  --accent-blue: #2563EB;
+  --accent-cyan: #06B6D4;
+  --accent-amber: #B45309;
+  --accent-amber-soft: #F59E0B;
+  --accent-rose: #E11D48;
+  --accent-green: #059669;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-dim: #94A3B8;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-md: 0 4px 16px rgba(15,23,42,0.08);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.12);
+  --radius: 14px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  width: 520px; height: 520px;
+  top: -140px; right: -90px;
+  border-radius: 50%;
+  filter: blur(80px);
+  background: radial-gradient(circle, rgba(245,158,11,0.13), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shell { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ---------- HEADER ---------- */
+.hero { padding: 44px 0 26px; }
+.hero-eyebrow {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .64rem; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--accent-amber);
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.1rem; font-weight: 900; line-height: 1.18;
+  background: linear-gradient(135deg, var(--accent-amber), #D97706, var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 10px;
+}
+.hero p { font-size: 1.02rem; color: var(--text-secondary); max-width: 44rem; font-weight: 500; }
+
+/* ---------- TABS ---------- */
+.tabs {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(239,246,255,0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-glass);
+  margin: 0 -20px 30px; padding: 10px 20px;
+  overflow-x: auto;
+}
+.tabs-inner { display: flex; gap: 6px; min-width: max-content; }
+.tab {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .68rem; font-weight: 700; letter-spacing: .5px;
+  padding: 9px 14px; border-radius: 10px;
+  border: 1px solid transparent; background: transparent;
+  color: var(--text-secondary); cursor: pointer;
+  white-space: nowrap; transition: all .2s ease;
+}
+.tab:hover { background: rgba(37,99,235,.06); color: var(--accent-blue); }
+.tab.active {
+  background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(37,99,235,.08));
+  color: var(--accent-amber);
+  border-color: rgba(245,158,11,.28);
+  box-shadow: 0 2px 8px rgba(245,158,11,.1);
+}
+.tab:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+
+/* ---------- PANELS ---------- */
+.panel { display: none; animation: fadeUp .35s ease; }
+.panel.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+@media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
+
+.panel-head { margin-bottom: 22px; }
+.panel-head h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.35rem; font-weight: 800; margin-bottom: 4px;
+}
+.panel-head .meta {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .66rem; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-dim); font-weight: 600;
+}
+
+/* ---------- CARD ---------- */
+.card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.card-id {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .66rem; font-weight: 700; letter-spacing: 1.2px;
+  color: var(--accent-amber); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.card h3 { font-size: 1.12rem; font-weight: 700; margin-bottom: 12px; }
+.card p { color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+.card p:last-child, .card ul:last-child, .card ol:last-child { margin-bottom: 0; }
+.card strong { color: var(--text-primary); font-weight: 700; }
+.card ol, .card ul { margin: 0 0 12px; padding-left: 20px; }
+.card li { color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.card li strong { color: var(--text-primary); }
+
+/* ---------- ALERT ---------- */
+.alert {
+  border-radius: var(--radius);
+  padding: 18px 22px; margin-bottom: 18px;
+  border: 1px solid rgba(225,29,72,.22);
+  background: linear-gradient(135deg, rgba(225,29,72,.07), rgba(225,29,72,.02));
+}
+.alert.note {
+  border-color: rgba(245,158,11,.28);
+  background: linear-gradient(135deg, rgba(245,158,11,.09), rgba(245,158,11,.02));
+}
+.alert h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .66rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--accent-rose); margin-bottom: 8px;
+}
+.alert.note h4 { color: var(--accent-amber); }
+.alert p { color: var(--text-secondary); font-weight: 500; margin: 0; }
+.alert strong { color: var(--text-primary); font-weight: 700; }
+
+/* ---------- TAGS ---------- */
+.taglist { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .58rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 20px;
+  border: 1px solid currentColor;
+}
+.tag.danger { color: var(--accent-rose); background: rgba(225,29,72,.06); }
+.tag.safe   { color: var(--accent-green); background: rgba(5,150,105,.06); }
+.tag.rng    { color: var(--accent-amber); background: rgba(245,158,11,.08); }
+.tag.warn   { color: var(--text-dim); background: rgba(148,163,184,.08); }
+
+/* ---------- TABLE ---------- */
+.tablewrap {
+  overflow-x: auto; border-radius: var(--radius);
+  border: 1px solid var(--border-glass); background: var(--bg-surface);
+  margin-bottom: 16px; box-shadow: var(--shadow-sm);
+}
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid rgba(148,187,233,.22); vertical-align: top; }
+thead th {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-dim); background: rgba(239,246,255,.7);
+}
+tbody tr:last-child td { border-bottom: none; }
+td { color: var(--text-secondary); font-weight: 500; }
+td.name { font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+td.mono { font-family: 'Orbitron', sans-serif; font-size: .74rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-dim); }
+
+/* ---------- CHECKLIST ---------- */
+.checklist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.checklist li {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start;
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: var(--radius); padding: 14px 18px; box-shadow: var(--shadow-sm);
+}
+.checklist .box { width: 17px; height: 17px; border: 2px solid var(--accent-amber-soft); border-radius: 5px; margin-top: 4px; }
+.checklist .t { font-weight: 700; display: block; margin-bottom: 2px; }
+.checklist .d { font-size: .88rem; color: var(--text-secondary); font-weight: 500; }
+
+/* ---------- FIGURE ---------- */
+figure {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+  box-shadow: var(--shadow-sm); overflow-x: auto;
+}
+figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+figcaption {
+  font-size: .82rem; color: var(--text-dim); text-align: center;
+  margin-top: 12px; font-weight: 600;
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+  margin-top: 34px; padding-top: 20px;
+  border-top: 1px solid var(--border-glass);
+  font-size: .85rem; color: var(--text-dim); font-weight: 500;
+}
+footer h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .62rem; letter-spacing: 1.2px; text-transform: uppercase;
+  margin-bottom: 8px; color: var(--text-dim);
+}
+footer ul { padding-left: 18px; margin-bottom: 12px; }
+footer li { margin-bottom: 3px; }
+footer a { color: var(--accent-blue); }
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.55rem; }
+  .shell { padding: 0 14px 60px; }
+  .tabs { margin: 0 -14px 24px; padding: 10px 14px; }
+  .card { padding: 18px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="hero">
+    <div class="hero-eyebrow">
+      <span>M.E.G. Field Manual</span>
+      <span>Escape the Backrooms v1.0</span>
+      <span>Co-op 1&ndash;4</span>
+    </div>
+    <h1>백룸 탈출 공략</h1>
+    <p>세션 단위로 끊어 읽는 공략. 한 세션이 대략 한 번 앉아서 클리어하는 분량입니다. 위 탭으로 지금 구간을 고르세요.</p>
+  </header>
+
+  <nav class="tabs">
+    <div class="tabs-inner" id="tabs">
+      <button class="tab active" data-p="s0">00 · 브리핑</button>
+      <button class="tab" data-p="s1">01 · 로비~거주구역</button>
+      <button class="tab" data-p="s2">02 · 파이프~발전소</button>
+      <button class="tab" data-p="s3">03 · 사무실~호텔</button>
+      <button class="tab" data-p="s4">04 · 파티룸~추격</button>
+      <button class="tab" data-p="s5">05 · 도서관</button>
+      <button class="tab" data-p="s6">06 · 분기 엔딩</button>
+      <button class="tab" data-p="s7">07 · 트루 엔딩</button>
+      <button class="tab" data-p="ref">부록 · 대응표</button>
+    </div>
+  </nav>
+
+  <!-- ===================== S0 ===================== -->
+  <section class="panel active" id="s0">
+    <div class="panel-head">
+      <h2>시작 전 브리핑</h2>
+      <div class="meta">전 구간 공통</div>
+    </div>
+
+    <div class="alert">
+      <h4>먼저 읽을 것 — 코드는 외워지지 않습니다</h4>
+      <p>이 게임의 <strong>키패드 코드와 열쇠 위치는 판마다 랜덤으로 바뀝니다.</strong> 어디서 "코드는 4739" 같은 걸 봤다면 그건 그 사람 판에서만 맞는 숫자예요. 그래서 이 문서는 숫자를 알려주지 않고 <strong>숫자를 구하는 방법</strong>을 알려줍니다.</p>
+    </div>
+
+    <div class="alert note">
+      <h4>정확도에 대해</h4>
+      <p>커뮤니티 공략 여러 곳을 교차 확인해 정리했지만, 출처끼리 <strong>레벨 이름·순서·엔딩 경로가 서로 어긋나는 부분</strong>이 있었습니다. 그런 항목엔 <span class="tag warn">확인필요</span> 표시를 달아뒀습니다. 게임 패치로도 순서가 바뀌어 왔으니 표시된 부분은 실제 플레이로 확인해 주세요.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Sanity · 정신력</div>
+      <h3>정신력이 진짜 체력입니다</h3>
+      <p>시간이 지나면 서서히, 엔티티에게 쫓기면 급격히 닳습니다. 0이 되면 죽어요. <strong>아몬드 워터를 항상 한 병은 들고 다니세요.</strong> 보이면 무조건 줍는 게 맞습니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Co-op · 협동</div>
+      <h3>출구는 다 같이 밟아야 열립니다</h3>
+      <p>대부분의 레벨에서 <strong>팀원 전원이 출구에 도착해야</strong> 다음 레벨로 넘어갑니다. 한 명이 길을 잃으면 전원이 묶입니다. 갈라질 거면 시작 전에 역할을 정하세요.</p>
+      <p>반대로 이걸 이용할 수도 있습니다. 한 명이 엔티티를 끌고 도는 동안 나머지가 퍼즐을 푸는 식이요.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Light · 손전등</div>
+      <h3>손전등은 무기이자 자살 버튼입니다</h3>
+      <p>엔티티마다 빛에 대한 반응이 <strong>정반대</strong>라, 이게 이 게임에서 제일 많이 죽는 이유입니다. 헷갈리면 아래 표를 보세요.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 720 250" role="img" aria-label="손전등 판단 도해: 비춰야 하는 엔티티, 꺼야 하는 엔티티, 빛과 무관한 엔티티">
+        <defs>
+          <style>
+            .bx{fill:#FFFFFF;stroke-width:1.5}
+            .hd{font-family:Orbitron,sans-serif;font-size:12px;font-weight:700;letter-spacing:.6px}
+            .en{font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600;fill:#0F172A}
+            .sb{font-family:Rajdhani,sans-serif;font-size:12.5px;font-weight:500;fill:#475569}
+            .ic{font-family:Rajdhani,sans-serif;font-size:26px;font-weight:700}
+          </style>
+        </defs>
+
+        <rect class="bx" x="8" y="8" width="228" height="234" rx="12" stroke="#059669"/>
+        <rect x="8" y="8" width="228" height="234" rx="12" fill="#059669" opacity=".05"/>
+        <text class="ic" x="122" y="46" text-anchor="middle" fill="#059669">ON</text>
+        <text class="hd" x="122" y="68" text-anchor="middle" fill="#059669">비춰야 산다</text>
+        <line x1="34" y1="82" x2="210" y2="82" stroke="#059669" stroke-opacity=".3"/>
+        <text class="en" x="122" y="108" text-anchor="middle">스마일러</text>
+        <text class="sb" x="122" y="127" text-anchor="middle">빔 유지 → 물러남</text>
+        <text class="en" x="122" y="163" text-anchor="middle">하운드</text>
+        <text class="sb" x="122" y="182" text-anchor="middle">정면 조사 → 경직</text>
+        <text class="sb" x="122" y="215" text-anchor="middle">깜빡이는 구역은 피할 것</text>
+
+        <rect class="bx" x="246" y="8" width="228" height="234" rx="12" stroke="#E11D48"/>
+        <rect x="246" y="8" width="228" height="234" rx="12" fill="#E11D48" opacity=".05"/>
+        <text class="ic" x="360" y="46" text-anchor="middle" fill="#E11D48">OFF</text>
+        <text class="hd" x="360" y="68" text-anchor="middle" fill="#E11D48">끄지 않으면 죽는다</text>
+        <line x1="272" y1="82" x2="448" y2="82" stroke="#E11D48" stroke-opacity=".3"/>
+        <text class="en" x="360" y="108" text-anchor="middle">데스모스 (암컷)</text>
+        <text class="sb" x="360" y="127" text-anchor="middle">불빛에 반응해서 옴</text>
+        <text class="sb" x="360" y="163" text-anchor="middle">손전등 끄고</text>
+        <text class="sb" x="360" y="182" text-anchor="middle">앉아서 지나갈 것</text>
+        <text class="sb" x="360" y="215" text-anchor="middle">수컷은 덜 공격적</text>
+
+        <rect class="bx" x="484" y="8" width="228" height="234" rx="12" stroke="#94A3B8"/>
+        <rect x="484" y="8" width="228" height="234" rx="12" fill="#94A3B8" opacity=".05"/>
+        <text class="ic" x="598" y="46" text-anchor="middle" fill="#64748B">SOUND</text>
+        <text class="hd" x="598" y="68" text-anchor="middle" fill="#64748B">빛과 무관</text>
+        <line x1="510" y1="82" x2="686" y2="82" stroke="#94A3B8" stroke-opacity=".4"/>
+        <text class="en" x="598" y="108" text-anchor="middle">스크래처</text>
+        <text class="sb" x="598" y="127" text-anchor="middle">맹인 · 청각 극도로 예민</text>
+        <text class="en" x="598" y="163" text-anchor="middle">렛치</text>
+        <text class="sb" x="598" y="182" text-anchor="middle">소리로 추적</text>
+        <text class="sb" x="598" y="215" text-anchor="middle">뛰지 말 것. 앉아서 이동</text>
+      </svg>
+      <figcaption>손전등 판단 — 세 갈래만 기억하면 됩니다</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== S1 ===================== -->
+  <section class="panel" id="s1">
+    <div class="panel-head">
+      <h2>로비에서 거주 구역까지</h2>
+      <div class="meta">Session 01 · 약 40~60분</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 0 · 더 로비</div>
+      <h3>노란 벽지 미로 — 튜토리얼이지만 방심하면 죽습니다</h3>
+      <div class="taglist">
+        <span class="tag danger">박테리아</span>
+        <span class="tag rng">배치 랜덤</span>
+      </div>
+      <ol>
+        <li>시작 지점 주변에서 <strong>사다리 조각을 모읍니다.</strong> 출처마다 개수가 다르게 적혀 있는데, 다 모으면 조립 상호작용이 뜨니 그걸 기준으로 하세요.</li>
+        <li>사다리를 고쳐 <strong>환풍구로 올라가 탈출 열쇠</strong>를 챙깁니다. (열쇠가 벽감에 있다는 출처도 있음 <span class="tag warn">확인필요</span>)</li>
+        <li>열쇠로 나무문을 엽니다.</li>
+        <li>바닥에 <strong>네모난 구멍이 뚫린 방</strong>이 나옵니다. 좁은 들보를 따라 건너세요.</li>
+        <li><strong>떨어져도 끝이 아닙니다.</strong> 아래 기둥에 화살표가 그려져 있어요. 그거 따라가면 비밀문이 나옵니다.</li>
+      </ol>
+      <p><strong>박테리아:</strong> 한 곳에 <strong>3분 이상</strong> 머물면 스폰됩니다. 여기선 스태미나가 무한이니 그냥 계속 뛰세요. 싸울 방법은 없습니다.</p>
+      <p><span class="tag safe">도전과제</span> 15분 버티면 배지를 줍니다. 박테리아를 따돌리면서 해야 해서 생각보다 빡셉니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 1 · 거주 구역</div>
+      <h3>주차장 — 코드, 열쇠 4개, 퓨즈</h3>
+      <div class="taglist">
+        <span class="tag danger">스킨 스틸러</span>
+        <span class="tag danger">스마일러</span>
+        <span class="tag rng">코드 랜덤</span>
+      </div>
+      <p>거대한 콘크리트 주차장입니다. 네 단계로 나뉩니다.</p>
+      <ol>
+        <li><strong>엘리베이터 코드</strong> — 주차장의 <strong>색깔별 차 대수를 세면</strong> 그게 키패드 코드입니다. 판마다 다릅니다. (차의 위치로 푼다는 출처도 있어서, 대수부터 세보고 안 되면 배치를 보세요 <span class="tag warn">확인필요</span>)</li>
+        <li><strong>열쇠 4개</strong> — 엘리베이터로 내려가 사무실과 벽장을 뒤집니다. 스킨 스틸러가 돌아다녀요.</li>
+        <li><strong>금고 문</strong> — 열쇠 4개를 구멍에 <strong>동시에</strong> 꽂아야 합니다. 타이밍이 어긋나면 리셋되니 협동 시 카운트를 세세요.</li>
+        <li><strong>퓨즈 박스 9개</strong> — 어두운 지하에서 활성화합니다. 스마일러가 나오니 손전등을 켜고 다니세요.</li>
+      </ol>
+      <p><strong>스킨 스틸러:</strong> <strong>문을 못 엽니다.</strong> 이게 전부예요. 방에 들어가서 문 닫으면 안전합니다.</p>
+      <p><span class="tag safe">팁</span> 지하가 너무 어두우면 그래픽 설정 감마를 올리는 편법이 있습니다.</p>
+    </div>
+  </section>
+
+  <!-- ===================== S2 ===================== -->
+  <section class="panel" id="s2">
+    <div class="panel-head">
+      <h2>파이프 드림과 발전소</h2>
+      <div class="meta">Session 02 · 약 30~45분</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 2 · 파이프 드림</div>
+      <h3>일직선 터널 — 퍼즐이 아니라 반응속도</h3>
+      <div class="taglist"><span class="tag danger">증기 분출</span><span class="tag danger">스마일러</span></div>
+      <p>길게 이어진 배관 터널입니다. 갈림길이 거의 없어서 헤맬 일은 없는데, <strong>증기가 주기적으로 뿜어져 나옵니다.</strong> 분출 간격을 한 번 보고 나서 지나가세요. 급하게 뛰어들면 그냥 죽습니다.</p>
+      <p>후반에 <strong>추격 시퀀스</strong>가 있습니다. 여기선 뒤 돌아보지 말고 직진하세요.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 3 · 발전소</div>
+      <h3>퓨즈 9개 — 세 구역에 3개씩</h3>
+      <div class="taglist"><span class="tag danger">하운드</span></div>
+      <p>산업 설비 미로에서 <strong>퓨즈 박스 9개</strong>를 켜야 합니다. 구역당 3개씩 나뉘어 있어요. 차단기와 게이트 열쇠를 챙기면서 진행합니다.</p>
+      <p><strong>하운드 대응이 핵심입니다:</strong></p>
+      <ul>
+        <li><strong>손전등을 정면에 비추면 잠깐 굳습니다.</strong> 이 틈에 도망치세요.</li>
+        <li>방에 들어가기 전에 <strong>멈춰서 소리를 들으세요.</strong> 발소리와 으르렁거림으로 안에 있는지 알 수 있습니다.</li>
+        <li>어두운 통로는 되도록 우회하세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== S3 ===================== -->
+  <section class="panel" id="s3">
+    <div class="panel-head">
+      <h2>사무실과 테러 호텔</h2>
+      <div class="meta">Session 03 · 약 60~90분 · 최장 구간</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 4 · 버려진 사무실</div>
+      <h3>세는 퍼즐 — 쫓기지 않으니 침착하게</h3>
+      <div class="taglist"><span class="tag safe">추격 없음</span></div>
+      <p>공격적인 엔티티가 없는 몇 안 되는 구간입니다. 대신 <strong>물건 개수를 세서 자판기에 입력</strong>하는 퍼즐이 나옵니다.</p>
+      <ul>
+        <li>정수기, 책, 의자, 책상 — <strong>각각 몇 개인지 세서</strong> 그 숫자를 넣습니다.</li>
+        <li>협동이면 사람마다 하나씩 맡아서 세는 게 빠릅니다.</li>
+        <li>당연히 <strong>개수는 판마다 다릅니다.</strong></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 5 · 테러 호텔</div>
+      <h3>로비 → 객실 → 크롤스페이스 → 보일러실</h3>
+      <div class="taglist">
+        <span class="tag danger">데스모스</span>
+        <span class="tag danger">스킨 스틸러</span>
+        <span class="tag rng">글자 랜덤</span>
+      </div>
+      <p>이 게임에서 제일 긴 레벨입니다. 네 구간으로 끊어 생각하세요.</p>
+      <ol>
+        <li><strong>로비 — 초상화 퍼즐.</strong> 그림 속 인물을 <strong>나이순으로 배열</strong>합니다.</li>
+        <li><strong>객실 — 글자 모으기.</strong> 열려 있는 우편함들을 뒤져 쪽지의 글자를 모읍니다. 다 모으면 <strong>메인 우편함에서 조합</strong>해 코드를 만듭니다.</li>
+        <li><strong>크롤스페이스</strong> — 열 감지가 깔린 거대한 미로. <strong>온도계를 보면서, 기어서</strong> 이동해 모션 센서를 피합니다.</li>
+        <li><strong>보일러실</strong> — 기계 미로를 통과하면 끝입니다.</li>
+      </ol>
+      <p><strong>데스모스 — 암수를 구분하세요.</strong> 암컷은 <strong>빛에 반응합니다. 손전등을 끄고 앉아서</strong> 지나가세요. 수컷은 덜 공격적이고, <strong>살충제를 뿌리면 모스 젤리</strong>를 얻습니다. 이 젤리가 스태미나와 이동속도를 같이 올려줘서 이 구간 최고의 소모품입니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 5.5 · 비벌리 룸</div>
+      <h3>비밀 구역 — 무한 복도</h3>
+      <div class="taglist"><span class="tag danger">하운드</span><span class="tag warn">선택 구간</span></div>
+      <p>같은 복도가 계속 반복되는 루프에 갇힙니다. <strong>우편함 장치를 풀면</strong> 빠져나옵니다. 하운드가 있으니 은신 위주로 움직이세요.</p>
+    </div>
+  </section>
+
+  <!-- ===================== S4 ===================== -->
+  <section class="panel" id="s4">
+    <div class="panel-head">
+      <h2>파티룸에서 추격 복도까지</h2>
+      <div class="meta">Session 04 · 약 45~70분</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level Fun · 파티 룸</div>
+      <h3>순수 잠입 — 싸울 방법이 없습니다</h3>
+      <div class="taglist"><span class="tag danger">파티고어</span></div>
+      <p>알록달록한 생일파티 장식이 깔린 미로. 분위기와 다르게 <strong>이 게임에서 제일 무자비한 구간</strong>입니다. 파티고어는 닿는 즉시 끝이에요.</p>
+      <ul>
+        <li><strong>계속 앉아서 다니세요.</strong> 서서 걷는 순간 발각됩니다.</li>
+        <li>파티고어는 <strong>정해진 순찰 경로</strong>를 돕니다. 숨어서 한 바퀴 관찰하고, 등을 보일 때 움직이세요.</li>
+        <li><strong>하얀 파티 테이블 밑이 안전지대입니다.</strong> 들켰으면 싸우지 말고 제일 가까운 테이블로 뛰어들어 숨으세요.</li>
+        <li>경로는 <strong>오른쪽 벽을 타고</strong> 엄폐물 사이를 옮겨 다니면 출구 쪽으로 이어집니다.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 37 · 풀룸</div>
+      <h3>물에 들어가면 죽습니다</h3>
+      <div class="taglist"><span class="tag danger">박테리아</span></div>
+      <p>백룸에서 제일 유명하고 제일 예쁜 구간입니다. 평화로워 보이는 게 함정이에요. <strong>박테리아가 있는 물에 빠지면 즉사에 가깝게 죽습니다.</strong> 수면 아래가 안 보이니 아무 데나 뛰어들지 마세요.</p>
+      <p>확장 구간인 <strong>Level 37.2</strong>는 밸브를 돌려 수위를 조절하는 퍼즐이 여러 단계로 나옵니다. 밸브 개수가 구간마다 4개, 8개, 3개, 7개 식으로 바뀌고, 일부는 <strong>시간제한</strong>이 걸려 있어 협동으로 나눠 도는 게 사실상 필수입니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level ! · 추격 복도</div>
+      <h3>퍼즐 없음. 그냥 달리기입니다</h3>
+      <div class="taglist"><span class="tag danger">추격</span></div>
+      <p>빨간 조명의 병원 복도를 <strong>멈추지 않고</strong> 끝까지 달립니다. 생각할 게 없어서 오히려 많이 죽는 구간이에요.</p>
+      <ul>
+        <li><strong>절대 멈추지 마세요.</strong> 뒤돌아보는 것도 손해입니다.</li>
+        <li>병원 침대 같은 장애물은 <strong>지그재그로 피해서</strong> 통과합니다.</li>
+        <li><strong>에너지바를 미리 먹고 들어가세요.</strong> 스태미나가 끊기는 순간 잡힙니다.</li>
+        <li>협동이면 전원이 도착해야 하니, 느린 사람 기준으로 페이스를 잡으세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== S5 ===================== -->
+  <section class="panel" id="s5">
+    <div class="panel-head">
+      <h2>디엔드 — 도서관</h2>
+      <div class="meta">Session 05 · 약 30~50분</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">The End · 딘 라이브러리</div>
+      <h3>테이프 24개 — 소리를 내면 죽습니다</h3>
+      <div class="taglist"><span class="tag danger">스크래처</span></div>
+      <p>메인 캠페인의 마지막입니다. <strong>스크래처는 앞을 못 보는 대신 청각이 극도로 예민합니다.</strong> 그리고 당신보다 빠릅니다. 들키면 도망칠 수 없어요.</p>
+      <ol>
+        <li>책장에 흩어진 <strong>테이프를 모읍니다.</strong> 솔로 기준 24개, 협동이면 인원수에 따라 줄어듭니다.</li>
+        <li><strong>내내 앉아서 걸으세요.</strong> 뛰는 순간 즉시 감지됩니다.</li>
+        <li>막히면 <strong>화재경보기를 한 번 울려</strong> 스크래처를 다른 쪽으로 유인합니다. 자주 쓰면 안 통합니다.</li>
+        <li>테이프를 다 모으면 <strong>컴퓨터 단말기</strong>를 조작합니다. 밝은 빛이 출구로 열립니다.</li>
+      </ol>
+      <p>여기를 넘기면 <strong>잘못된 문 엔딩</strong> 루트로 이어집니다. 트루 엔딩을 노린다면 여기서 끝이 아니라 시작입니다.</p>
+    </div>
+  </section>
+
+  <!-- ===================== S6 ===================== -->
+  <section class="panel" id="s6">
+    <div class="panel-head">
+      <h2>분기 엔딩 4종</h2>
+      <div class="meta">Session 06 · 각 30~60분</div>
+    </div>
+
+    <div class="alert note">
+      <h4>여기부터는 출처가 가장 많이 엇갈립니다</h4>
+      <p>엔딩에 붙는 <strong>알파벳(A/B/C/D)이 출처마다 다르게 매겨져 있습니다.</strong> 그래서 알파벳 대신 <strong>엔딩 이름</strong>으로 정리했습니다. 공통점은 확실합니다 — <strong>네 개를 전부 봐야 트루 엔딩이 열립니다.</strong></p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 720 300" role="img" aria-label="엔딩 의존 관계도: 분기 엔딩 4개를 모두 완료해야 트루 엔딩이 열림">
+        <defs>
+          <style>
+            .eb{fill:#FFFFFF;stroke:#F59E0B;stroke-width:1.5}
+            .et{font-family:Rajdhani,sans-serif;font-size:14.5px;font-weight:700;fill:#0F172A}
+            .es{font-family:Rajdhani,sans-serif;font-size:11.5px;font-weight:500;fill:#475569}
+            .ar{stroke:#F59E0B;stroke-width:1.6;fill:none;stroke-opacity:.65}
+          </style>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+            <path d="M0,0 L7,3.2 L0,6.4 z" fill="#F59E0B" fill-opacity=".8"/>
+          </marker>
+        </defs>
+
+        <rect class="eb" x="10" y="14" width="164" height="62" rx="10"/>
+        <text class="et" x="92" y="40" text-anchor="middle">잘못된 문</text>
+        <text class="es" x="92" y="60" text-anchor="middle">Level 55.1 · 사진 촬영</text>
+
+        <rect class="eb" x="10" y="90" width="164" height="62" rx="10"/>
+        <text class="et" x="92" y="116" text-anchor="middle">핑크 하우스</text>
+        <text class="es" x="92" y="136" text-anchor="middle">Level 6 → 테디베어 12</text>
+
+        <rect class="eb" x="10" y="166" width="164" height="62" rx="10"/>
+        <text class="et" x="92" y="192" text-anchor="middle">교외</text>
+        <text class="es" x="92" y="212" text-anchor="middle">Level 922 · 94층 → 낙하</text>
+
+        <rect class="eb" x="10" y="242" width="164" height="50" rx="10"/>
+        <text class="et" x="92" y="264" text-anchor="middle">빈 도시</text>
+        <text class="es" x="92" y="282" text-anchor="middle">그래스룸 · 11층</text>
+
+        <path class="ar" d="M174,45 C250,45 250,150 320,150" marker-end="url(#ah)"/>
+        <path class="ar" d="M174,121 C250,121 250,148 320,150" marker-end="url(#ah)"/>
+        <path class="ar" d="M174,197 C250,197 250,152 320,150" marker-end="url(#ah)"/>
+        <path class="ar" d="M174,267 C250,267 250,154 320,150" marker-end="url(#ah)"/>
+
+        <rect x="330" y="112" width="150" height="76" rx="10" fill="#F59E0B" fill-opacity=".1" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <text class="et" x="405" y="140" text-anchor="middle">4개 전부 완료</text>
+        <text class="es" x="405" y="160" text-anchor="middle">Level 3999 해금</text>
+        <text class="es" x="405" y="176" text-anchor="middle">M.E.G. 카드 필요</text>
+
+        <path class="ar" d="M480,150 L536,150" marker-end="url(#ah)"/>
+
+        <rect x="546" y="106" width="164" height="88" rx="10" fill="#2563EB" fill-opacity=".08" stroke="#2563EB" stroke-width="2"/>
+        <text x="628" y="136" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="11.5" font-weight="700" fill="#2563EB">TRUE ENDING</text>
+        <text class="et" x="628" y="158" text-anchor="middle">최종 탈출</text>
+        <text class="es" x="628" y="178" text-anchor="middle">아케이드 4대 + 관리인</text>
+      </svg>
+      <figcaption>순서는 상관없습니다. 네 개를 다 봐야 마지막이 열립니다</figcaption>
+    </figure>
+
+    <div class="card">
+      <div class="card-id">Ending · 잘못된 문</div>
+      <h3>Wrong Door — 메인 캠페인의 기본 엔딩</h3>
+      <p><strong>Level 55.1</strong>에서 세 개 층에 걸친 <strong>사진 촬영 목표</strong>를 완료하면 도달합니다. 엔티티를 카메라로 찍어 기록하는 방식이라, 도망만 다녀서는 진행이 안 됩니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Ending · 핑크 하우스</div>
+      <h3>Pink House — 테디베어 수집</h3>
+      <p><strong>Level 6(라이다 구간)의 M.E.G. 문</strong>을 ID 카드로 열고 들어갑니다. 어두운 미로에서 <strong>테디베어 12개</strong>를 모으면 됩니다. <span class="tag warn">확인필요</span></p>
+      <p>여기 나오는 <strong>키티</strong>가 까다롭습니다. <strong>눈을 마주친 상태를 유지하면서</strong> 움직여야 한다는 출처가 있는데, 다른 곳에선 Level 974의 별개 구간으로 설명합니다. 둘이 같은 곳일 가능성이 높습니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Ending · 교외</div>
+      <h3>The Suburbs — 계단을 끝까지 오른 뒤 뛰어내리기</h3>
+      <p><strong>Level 1에 있는 M.E.G. 문</strong>으로 들어가 <strong>Level 922(나선 계단)</strong>에 진입합니다. 무한히 이어지는 계단을 <strong>94층 이상</strong> 오른 다음, 계단 아래로 <strong>뛰어내리면</strong> 트리거됩니다.</p>
+      <p>순수 노가다 구간이라 프레임 제한을 거는 편법이 알려져 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Ending · 빈 도시</div>
+      <h3>Empty City — 오버그로스 / 그래스룸</h3>
+      <p>허브의 <strong>M.E.G. 문에서 그래스룸</strong> 쪽으로 갑니다. 파쿠르와 퍼즐이 섞인 구간을 넘어 <strong>11층에 도달</strong>하면 됩니다. <span class="tag warn">확인필요</span></p>
+      <p>중간에 <strong>카트 레버와 버튼 4개</strong> 퍼즐, 그리고 <strong>팀원을 구출해야 하는 구간</strong>이 있어 협동 전제로 설계돼 있습니다.</p>
+    </div>
+  </section>
+
+  <!-- ===================== S7 ===================== -->
+  <section class="panel" id="s7">
+    <div class="panel-head">
+      <h2>트루 엔딩</h2>
+      <div class="meta">Session 07 · 약 20~30분</div>
+    </div>
+
+    <div class="card">
+      <div class="card-id">Level 3999 · 아케이드 허브</div>
+      <h3>The Final Escape</h3>
+      <p>분기 엔딩 <strong>네 개를 전부 본 상태</strong>여야 Level 3999가 열립니다. 여기까지 왔으면 남은 건 단순합니다.</p>
+      <ol>
+        <li><strong>M.E.G. 엘리베이터 카드</strong>를 챙깁니다.</li>
+        <li>아케이드 허브에서 <strong>기계 4대를 활성화</strong>합니다. 각각이 앞서 본 엔딩 하나에 대응합니다.</li>
+        <li><strong>관리인(Janitor) NPC</strong>와 대화합니다. <span class="tag warn">확인필요</span></li>
+        <li>아케이드 기계를 조작하면 <strong>트루 엔딩</strong>이 재생됩니다.</li>
+      </ol>
+    </div>
+
+    <h3 style="font-family:Orbitron,sans-serif;font-size:.9rem;font-weight:700;margin:26px 0 14px;">엔딩 체크리스트</h3>
+    <ul class="checklist">
+      <li><span class="box"></span><span><span class="t">잘못된 문 (Wrong Door)</span><span class="d">Level 55.1 · 3개 층 사진 촬영 완료</span></span></li>
+      <li><span class="box"></span><span><span class="t">핑크 하우스 (Pink House)</span><span class="d">Level 6 M.E.G. 문 · 테디베어 12개 · 키티 대응</span></span></li>
+      <li><span class="box"></span><span><span class="t">교외 (The Suburbs)</span><span class="d">Level 1 M.E.G. 문 → Level 922 · 94층 이상 → 낙하</span></span></li>
+      <li><span class="box"></span><span><span class="t">빈 도시 (Empty City)</span><span class="d">그래스룸 / 오버그로스 · 11층 도달</span></span></li>
+      <li><span class="box"></span><span><span class="t">최종 탈출 (The Final Escape)</span><span class="d">Level 3999 · 카드 + 아케이드 4대 + 관리인</span></span></li>
+    </ul>
+  </section>
+
+  <!-- ===================== REF ===================== -->
+  <section class="panel" id="ref">
+    <div class="panel-head">
+      <h2>즉석 대응표</h2>
+      <div class="meta">플레이 중 참고</div>
+    </div>
+
+    <h3 style="font-family:Orbitron,sans-serif;font-size:.9rem;font-weight:700;margin:0 0 14px;">엔티티 대응</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>엔티티</th><th>감지 방식</th><th>대응</th><th>출현</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">스킨 스틸러</td><td>시야</td><td>문 닫고 방에 들어가기. 문을 못 엽니다</td><td class="mono">L1 · L5 · L8</td></tr>
+          <tr><td class="name">스마일러</td><td>시야</td><td>손전등 빔 유지 → 후퇴. 깜빡이는 구역 회피</td><td class="mono">L1 · L2</td></tr>
+          <tr><td class="name">하운드</td><td>시야 + 소리</td><td>손전등 정면 조사 → 경직. 입장 전 소리 확인</td><td class="mono">L3 · L5.5</td></tr>
+          <tr><td class="name">데스모스 (암)</td><td>빛</td><td>손전등 끄기 + 앉아서 이동</td><td class="mono">L5 · L8</td></tr>
+          <tr><td class="name">데스모스 (수)</td><td>근접</td><td>살충제 → 모스 젤리 획득</td><td class="mono">L5</td></tr>
+          <tr><td class="name">파티고어</td><td>시야 (순찰)</td><td>상시 앉기. 하얀 테이블 밑으로 회피</td><td class="mono">Level Fun</td></tr>
+          <tr><td class="name">스크래처</td><td>소리 (맹인)</td><td>절대 뛰지 않기. 화재경보기로 유인</td><td class="mono">The End</td></tr>
+          <tr><td class="name">렛치</td><td>소리 (맹인)</td><td>앉아서 이동. 오른쪽 벽 타기</td><td class="mono">L6</td></tr>
+          <tr><td class="name">박테리아</td><td>체류 시간</td><td>계속 이동. 물 접촉 시 즉사</td><td class="mono">L0 · L37</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:Orbitron,sans-serif;font-size:.9rem;font-weight:700;margin:26px 0 14px;">소모품</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>아이템</th><th>효과</th><th>쓸 때</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">아몬드 워터</td><td class="mono">정신력 +50%</td><td>정신력이 위험할 때. 항상 한 병은 소지</td></tr>
+          <tr><td class="name">에너지바</td><td class="mono">정신력 +25% / 스태미나</td><td>추격 구간 진입 직전</td></tr>
+          <tr><td class="name">더 주스</td><td class="mono">정신력 +25% / 이동속도</td><td>급하게 빠져나가야 할 때</td></tr>
+          <tr><td class="name">모스 젤리</td><td class="mono">스태미나 + 이동속도</td><td>테러 호텔 구간. 보이면 무조건 채집</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.86rem;color:var(--text-dim);font-weight:500;">에너지바와 주스는 출처에 따라 정신력 회복으로도, 스태미나·속도 버프로도 설명됩니다. 실제로는 둘 다 조금씩 붙어 있을 가능성이 높습니다.</p>
+
+    <footer>
+      <h4>출처</h4>
+      <ul>
+        <li><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">escapethebackrooms.org — All Levels List &amp; Guide (v1.0)</a></li>
+        <li><a href="https://www.escapethebackrooms.wiki/guide/Escape-the-Backrooms-walkthrough" target="_blank" rel="noopener">Escape the Backrooms Wiki — Full Walkthrough</a></li>
+        <li><a href="https://www.escapethebackrooms.wiki/guide/Escape-the-Backrooms-all-levels" target="_blank" rel="noopener">Escape the Backrooms Wiki — All Levels &amp; Tips</a></li>
+        <li><a href="https://katkat.com/blog/escape-the-backrooms-all-levels-walkthrough-guide" target="_blank" rel="noopener">Katkat — All Levels Walkthrough</a></li>
+        <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3007075917" target="_blank" rel="noopener">Steam Community — Full game guide in order</a></li>
+      </ul>
+      <p>커뮤니티 2차 공략을 교차 정리한 문서입니다. 게임 내에서 직접 검증하지 않았고, 패치로 내용이 바뀔 수 있습니다. <span class="tag warn">확인필요</span> 표시가 붙은 항목은 출처 간 설명이 엇갈리는 부분입니다.</p>
+    </footer>
+  </section>
+
+</div>
+
+<script>
+const tabs = document.getElementById('tabs');
+tabs.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  const id = btn.dataset.p;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === btn));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
