@@ -584,7 +584,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
   </div>
   <figure>
     <img src="backrooms-maps/plan_overgrowth.svg" alt="오버그로스 평면도" loading="lazy">
-    <figcaption>오버그로스 · 137 × 143 m · 액터 3,483개 — 데스 슬라이드 구간이 포함된 전체 배치</figcaption>
+    <figcaption>오버그로스 · 3개 층으로 분리 · 출구는 Level 421 방향</figcaption>
   </figure>
 
 
@@ -623,14 +623,26 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <div class="alert good">
     <h4>이 게임은 일직선이 아닙니다</h4>
-    <p>공략 사이트마다 레벨 순서가 다른 진짜 이유가 이겁니다. <strong>M.E.G. 베이스(내부 이름 <code>Bunker</code>)가 허브</strong>고, 거기서 <strong>7개 갈래가 뻗어나갑니다.</strong> 한 줄로 적으면 반드시 틀려요.</p>
-    <p>판별 기준은 단순합니다 — <strong>어떤 레벨도 그리로 보내지 않는 레벨</strong>이 허브 진입점입니다. 게임 데이터의 <code>StartingLevel</code> / <code>EndingLevel</code> 을 전부 이어 붙여 확인했습니다.</p>
+    <p>공략 사이트마다 레벨 순서가 다른 진짜 이유가 이겁니다. 허브(<code>Maps/TheHub</code>)에 <strong>레벨로 통하는 문이 10개</strong> 있고, 각 문이 캠페인의 서로 다른 지점으로 넣어줍니다. 한 줄로 적으면 반드시 틀려요.</p>
+    <p>추측이 아닙니다. 허브 맵의 <strong><code>BP_ExitZone</code> 액터 10개</strong>가 각각 목적지 레벨 이름을 속성으로 들고 있어서, 그걸 그대로 읽었습니다. 아래 평면도의 번호가 그 문들입니다.</p>
   </div>
 
   <figure>
-    <img src="backrooms-maps/hub_flow.svg" alt="허브에서 뻗어나가는 7개 갈래 플로우차트" loading="lazy">
-    <figcaption>테두리 색 = 위험도 · 실선 = 자동으로 이어짐 · 점선 = 허브 복귀 또는 다른 갈래로 합류</figcaption>
+    <img src="backrooms-maps/hub_rooms.svg" alt="허브 평면도와 번호가 매겨진 출구 10개" loading="lazy">
+    <figcaption>허브 평면도 · 파란 번호가 각 레벨로 통하는 문입니다</figcaption>
   </figure>
+
+  <figure>
+    <img src="backrooms-maps/hub_flow.svg" alt="허브 문 10개에서 시작되는 진행 흐름" loading="lazy">
+    <figcaption>번호는 위 평면도와 같습니다 · 문으로 들어가면 화살표를 따라 자동으로 이어집니다</figcaption>
+  </figure>
+
+  <div class="card">
+    <div class="card-id">예시</div>
+    <h3>9번 문으로 들어가면</h3>
+    <p><strong>Level 9(주택가) → Level 10(밀밭) → Level 3999(아케이드) → Level 0.2 → 스낵룸 → Level !-! → Level 188</strong> 순으로 계속 이어집니다. 한 레벨을 깨면 다음이 자동으로 열리는 구조예요.</p>
+    <p>거기서 더 가면 Level 37.2 → Fun+ → Level 52 → Level 55.1 을 거쳐 <strong>허브로 돌아옵니다.</strong> 문 하나로 11개 레벨짜리 코스가 열리는 셈입니다.</p>
+  </div>
 
   <h3 style="font-family:Orbitron;font-size:.9rem;font-weight:700;margin:26px 0 12px">허브 진입 레벨 7개</h3>
   <div class="tablewrap"><table>
@@ -727,12 +739,14 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
     <p>게임의 <code>.pak</code>에서 레벨 맵을 꺼내 <strong>액터 좌표를 위에서 내려다본 것</strong>입니다. 스크린샷이나 손으로 그린 게 아니라 실제 배치 데이터예요.</p>
     <p><strong>벽만 그렸습니다.</strong> 가구·소품·조명·바닥·천장은 전부 뺐어요. 그것들까지 찍으면 벽이 묻혀서 지도로 안 읽힙니다.</p>
     <p>메시 이름에 길이가 들어있어서(<code>SM_Wall_4m</code> = 4 m) 점이 아니라 <strong>실제 길이와 방향을 가진 선분</strong>으로 그렸습니다. 회전값은 컴포넌트 로테이션에서, 인스턴스 벽은 변환 행렬에서 뽑았습니다.</p>
+    <p><strong>층이 있는 레벨은 층별로 나눠 그렸습니다.</strong> 전부 한 평면에 겹쳐 찍으면 3층과 4층이 뒤엉켜 못 읽거든요. 벽의 높이(Z)를 묶어 층을 가르고, 패널을 나란히 놓았습니다.</p>
+    <p><strong>시작 지점과 출구도 표시했습니다.</strong> <span style="color:var(--accent-green)">●</span> 초록이 스폰 지점(<code>PlayerStart</code>), <span style="color:var(--accent-blue)">■</span> 파랑이 출구입니다. 출구에는 <strong>어느 레벨로 나가는지</strong> 이름을 붙였습니다.</p>
     <p>단, <strong>모듈형 벽 키트로 지은 레벨에서만 잘 나옵니다.</strong> 아케이드나 볼풀처럼 통짜 아트 메시로 만든 레벨은 이름에 wall이 안 붙어서 걸러낼 수가 없어 뺐습니다.</p>
   </div>
 
   <figure>
     <img src="backrooms-maps/plan_level0.svg" alt="Level 0 평면도" loading="lazy">
-    <figcaption>Level 0 · 211 × 216 m · 인스턴스 포함 8,802점</figcaption>
+    <figcaption>Level 0 · 벽 4,800개 · 시작 지점 19곳 · 출구는 Level 1 방향</figcaption>
   </figure>
 
   <figure>
@@ -742,12 +756,17 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <figure>
     <img src="backrooms-maps/plan_overgrowth.svg" alt="오버그로스 평면도" loading="lazy">
-    <figcaption>오버그로스 · 137 × 143 m · 3,483점</figcaption>
+    <figcaption>오버그로스 · 3개 층 · 시작 4곳 · Level 421 출구</figcaption>
   </figure>
 
   <figure>
     <img src="backrooms-maps/plan_grassrooms.svg" alt="그래스룸 평면도" loading="lazy">
-    <figcaption>그래스룸 · 110 × 105 m · 2,738점</figcaption>
+    <figcaption>그래스룸 · 시작 지점 12곳</figcaption>
+  </figure>
+
+  <figure>
+    <img src="backrooms-maps/plan_bunker.svg" alt="M.E.G. 벙커 평면도" loading="lazy">
+    <figcaption>M.E.G. 벙커 · Level 421로 가는 볼풀이 있는 곳</figcaption>
   </figure>
 </section>
 
