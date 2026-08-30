@@ -79,6 +79,17 @@ body::before{content:'';position:fixed;width:520px;height:520px;top:-140px;right
 .panel-head .meta{font-family:'Orbitron',sans-serif;font-size:.64rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);font-weight:600}
 
 .card{background:var(--bg-glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border-glass);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.srcbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.srcbar a{display:inline-flex;align-items:center;gap:5px;font-family:'Rajdhani',sans-serif;
+  font-size:.82rem;font-weight:700;text-decoration:none;padding:6px 12px;border-radius:8px;
+  border:1px solid var(--border-glass);background:var(--bg-surface);color:var(--text-secondary);
+  transition:all .18s}
+.srcbar a:hover{border-color:var(--accent-blue);color:var(--accent-blue)}
+.srcbar .lbl{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--text-dim);align-self:center;margin-right:2px}
+.shotslot{margin-top:14px;padding:14px 16px;border:1px dashed var(--border-glass);
+  border-radius:var(--radius);background:rgba(148,187,233,.06);font-size:.85rem;
+  color:var(--text-dim);font-weight:500}
 .card-id{font-family:'Orbitron',sans-serif;font-size:.64rem;font-weight:700;letter-spacing:1.1px;color:var(--accent-amber);text-transform:uppercase;margin-bottom:6px}
 .card h3{font-size:1.1rem;font-weight:700;margin-bottom:12px}
 .card p{color:var(--text-secondary);margin-bottom:12px;font-weight:500}
@@ -198,13 +209,12 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <div class="alert good">
     <h4>이 문서의 순서는 추측이 아닙니다</h4>
-    <p>레벨 순서·위험도·목표시간은 게임이 로비 UI에 쓰는 데이터테이블(<code>DT_Levels</code>) 원본을 그대로 읽은 것입니다. 공략 사이트마다 순서가 다른 이유는 <strong>분기가 많아서 일렬로 적으면 반드시 틀리기 때문</strong>입니다.</p>
-    <p><strong>추격 구간이 두 개입니다.</strong> <code>Run for your Life!</code>(9번)와 <code>Level !-!</code>(21번). 두 번째 추격 다음이 호텔처럼 생긴 <strong>Level 188</strong>이고, 이걸 헷갈리는 경우가 많습니다.</p>
+    <p><strong>추격 구간이 두 개입니다.</strong> 09번 Level ! 와 21번 Level !-!. 21번 다음이 호텔처럼 생긴 22번 Level 188 입니다.</p>
   </div>
 
   <div class="alert">
     <h4>코드는 외워지지 않습니다</h4>
-    <p><strong>키패드 코드와 열쇠 위치는 판마다 랜덤입니다.</strong> "코드는 4739" 같은 건 그 사람 판에서만 맞아요. 이 문서는 숫자 대신 <strong>숫자를 구하는 방법</strong>을 적습니다.</p>
+    <p><strong>키패드 코드와 열쇠 위치는 판마다 랜덤입니다.</strong> 숫자가 아니라 구하는 방법을 적었습니다.</p>
   </div>
 
   <div class="card">
@@ -309,9 +319,8 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <div class="alert good">
     <h4>읽는 법</h4>
-    <p><strong>번호가 곧 진행 순서입니다.</strong> 01번부터 31번까지 이어지고, 각 레벨을 깨면 다음 번호로 자동으로 넘어갑니다. 문서 안의 모든 카드에 같은 번호가 붙어 있으니 <strong>지금 몇 번인지만 알면 어디를 봐야 할지 바로 나옵니다.</strong></p>
-    <p><span style="color:var(--accent-blue);font-weight:700">● 파란 원</span> 은 <strong>허브에서 바로 들어갈 수 있는 지점</strong>입니다. 원 안의 숫자가 허브 문 번호예요. 처음부터 안 타도 여기로 건너뛸 수 있습니다.</p>
-    <p><span style="color:#7C3AED;font-weight:700">▲ 보라색</span> 은 <strong>엔딩이 나오는 지점</strong>입니다. 네 개를 다 봐야 트루 엔딩이 열립니다.</p>
+    <p>번호대로 01 → 31 로 이어집니다. 깨면 다음 번호로 자동으로 넘어갑니다.</p>
+    <p><span style="color:var(--accent-blue);font-weight:700">● 파란 원</span> 허브에서 바로 갈 수 있는 지점 (숫자는 허브 문 번호) &nbsp;·&nbsp; <span style="color:#7C3AED;font-weight:700">▲ 보라</span> 엔딩 지점</p>
   </div>
 
   <figure>
@@ -336,6 +345,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S1 ============ -->
 <section class="panel" id="lv01">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%200" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%200" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>01 &nbsp;·&nbsp; Level 0</h2><div class="meta">더 로비</div></div>
 <div class="card">
     <div class="card-id">진행 01 &nbsp;·&nbsp; LEVEL 0 — The Lobby</div>
@@ -348,7 +358,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>떨어져도 끝이 아닙니다.</strong> 아래 기둥의 화살표를 따라가면 비밀문이 있습니다.</li>
     </ol>
     <p><strong>박테리아:</strong> 한 곳에 <strong>3분 이상</strong> 머물면 스폰됩니다. 여기선 스태미나가 무한이니 계속 뛰세요.</p>
-    <p class="official">Level 0 is a non-linear space, resembling the back rooms of a retail outlet. All rooms appear uniform — yellowed wallpaper, damp carpet, inconsistently placed fluorescent lighting. However, no two rooms within the Level are identical.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level0.svg" alt="LEVEL 0 — The Lobby 평면도" loading="lazy">
       <figcaption>LEVEL 0 — The Lobby — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -357,6 +366,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv02">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%201%20Habitable%20Zone" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%201%20Habitable%20Zone" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>02 &nbsp;·&nbsp; Level 1</h2><div class="meta">주차장</div></div>
 <div class="card">
     <div class="card-id">진행 02 &nbsp;·&nbsp; LEVEL 1 — Habitable Zone 거주 구역</div>
@@ -369,7 +379,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>퓨즈 박스 9개</strong> — 어두운 지하에서. 손전등을 켜고 다니세요.</li>
     </ol>
     <p><strong>스킨 스틸러는 문을 못 엽니다.</strong> 방에 들어가 문을 닫으면 안전합니다.</p>
-    <p class="hint">여기 M.E.G. 문으로 <strong>Level 922(교외 엔딩)</strong>가 갈라집니다. 게임 파일에 <code>Maps/Garage/922Path</code>로 확인됩니다.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level1.svg" alt="LEVEL 1 — Habitable Zone 평면도" loading="lazy">
       <figcaption>LEVEL 1 — Habitable Zone — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -378,6 +387,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv03">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%202%20Pipe%20Dreams" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%202%20Pipe%20Dreams" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>03 &nbsp;·&nbsp; Level 2</h2><div class="meta">배관 터널</div></div>
 <div class="card">
     <div class="card-id">진행 03 &nbsp;·&nbsp; LEVEL 2 — Pipe Dreams 파이프 드림</div>
@@ -395,6 +405,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S2 ============ -->
 <section class="panel" id="lv04">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%203%20Electrical%20Station" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%203%20Electrical%20Station" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>04 &nbsp;·&nbsp; Level 3</h2><div class="meta">발전소</div></div>
 <div class="card">
     <div class="card-id">진행 04 &nbsp;·&nbsp; LEVEL 3 — Electrical Station 발전소</div>
@@ -413,6 +424,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv05">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%204%20Abandoned%20Office" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%204%20Abandoned%20Office" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>05 &nbsp;·&nbsp; Level 4</h2><div class="meta">사무실</div></div>
 <div class="card">
     <div class="card-id">진행 05 &nbsp;·&nbsp; LEVEL 4 — Abandoned Office 버려진 사무실</div>
@@ -427,6 +439,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv06">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%205%20Terror%20Hotel" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%205%20Terror%20Hotel" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>06 &nbsp;·&nbsp; Level 5</h2><div class="meta">테러 호텔</div></div>
 <div class="card">
     <div class="card-id">진행 06 &nbsp;·&nbsp; LEVEL 5 — Terror Hotel 테러 호텔</div>
@@ -439,7 +452,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>보일러실</strong> — 기계 미로를 통과하면 끝.</li>
     </ol>
     <p><strong>데스모스는 암수를 구분하세요.</strong> 암컷은 <strong>빛에 반응</strong>하니 손전등을 끄고 앉아서 지나갑니다. 수컷에 <strong>살충제를 뿌리면 모스 젤리</strong>가 나옵니다 — 스태미나와 속도를 같이 올려주는 이 구간 최고의 소모품입니다.</p>
-    <p class="official">Level 5 is a hotel complex with many rooms and halls, seemingly constructed in the 1930s with furniture dating back to the 1920s.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level5.svg" alt="LEVEL 5 — Terror Hotel 평면도" loading="lazy">
       <figcaption>LEVEL 5 — Terror Hotel — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -450,6 +462,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S3 ============ -->
 <section class="panel" id="lv07">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20Fun" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20Fun" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>07 &nbsp;·&nbsp; Level Fun</h2><div class="meta">파티룸</div></div>
 <div class="card">
     <div class="card-id">진행 07 &nbsp;·&nbsp; LEVEL FUN — 파티 룸</div>
@@ -461,7 +474,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>하얀 파티 테이블 밑이 안전지대입니다.</strong> 들켰으면 제일 가까운 테이블로 뛰어드세요.</li>
       <li><strong>오른쪽 벽을 타면</strong> 출구로 이어집니다.</li>
     </ul>
-    <p class="official">M.E.G. Notice: information has been removed as it was vandalized by the Partygoers.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_levelfun.svg" alt="LEVEL FUN — 파티 룸 평면도" loading="lazy">
       <figcaption>LEVEL FUN — 파티 룸 — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -470,6 +482,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv08">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2037%20Poolrooms" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2037%20Poolrooms" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>08 &nbsp;·&nbsp; Level 37</h2><div class="meta">풀룸</div></div>
 <div class="card">
     <div class="card-id">진행 08 &nbsp;·&nbsp; LEVEL 37 — The Poolrooms 풀룸</div>
@@ -484,6 +497,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv09">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Run%20for%20your%20Life" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Run%20for%20your%20Life" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>09 &nbsp;·&nbsp; Level !</h2><div class="meta">추격 복도 ①</div></div>
 <div class="card">
     <div class="card-id">진행 09 &nbsp;·&nbsp; LEVEL ! — Run for your Life! 추격 복도 ①</div>
@@ -503,6 +517,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv10">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=The%20End" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=The%20End" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>10 &nbsp;·&nbsp; The End</h2><div class="meta">도서관</div></div>
 <div class="card">
     <div class="card-id">진행 10 &nbsp;·&nbsp; THE END — 딘 라이브러리</div>
@@ -515,7 +530,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li>막히면 <strong>화재경보기</strong>로 유인합니다. 자주 쓰면 안 통합니다.</li>
       <li>다 모으면 <strong>컴퓨터 단말기</strong>를 조작합니다.</li>
     </ol>
-    <p class="official">The End creates the illusion of escaping The Backrooms — a modern library with the main area in the center.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_theend.svg" alt="THE END — 딘 라이브러리 평면도" loading="lazy">
       <figcaption>THE END — 딘 라이브러리 — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -526,6 +540,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S4 ============ -->
 <section class="panel" id="lv11">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2094" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2094" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>11 &nbsp;·&nbsp; Level 94</h2><div class="meta">놀이공원</div></div>
 <div class="card">
     <div class="card-id">진행 11 &nbsp;·&nbsp; LEVEL 94 — 놀이공원</div>
@@ -540,6 +555,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv12">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%206%20Lights%20Out" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%206%20Lights%20Out" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>12 &nbsp;·&nbsp; Level 6</h2><div class="meta">라이다</div></div>
 <div class="card">
     <div class="card-id">진행 12 &nbsp;·&nbsp; LEVEL 6 — Lights Out</div>
@@ -555,6 +571,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv13">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%207%20Thalassophobia" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%207%20Thalassophobia" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>13 &nbsp;·&nbsp; Level 7</h2><div class="meta">바다</div></div>
 <div class="card">
     <div class="card-id">진행 13 &nbsp;·&nbsp; LEVEL 7 — Thalassophobia</div>
@@ -569,6 +586,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv14">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%208%20Cave%20System" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%208%20Cave%20System" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>14 &nbsp;·&nbsp; Level 8</h2><div class="meta">동굴</div></div>
 <div class="card">
     <div class="card-id">진행 14 &nbsp;·&nbsp; LEVEL 8 — Cave System</div>
@@ -583,6 +601,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv15">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%200.11" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%200.11" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>15 &nbsp;·&nbsp; Level 0.11</h2><div class="meta">곰팡이 미로</div></div>
 <div class="card">
     <div class="card-id">진행 15 &nbsp;·&nbsp; LEVEL 0.11</div>
@@ -599,13 +618,13 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S5 ============ -->
 <section class="panel" id="lv16">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%209%20Darkened%20Suburbs" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%209%20Darkened%20Suburbs" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>16 &nbsp;·&nbsp; Level 9</h2><div class="meta">주택가</div></div>
 <div class="card">
     <div class="card-id">진행 16 &nbsp;·&nbsp; LEVEL 9 — Darkened Suburbs</div>
     <h3>야간 주택가 — 게임에서 가장 긴 레벨</h3>
     <div class="taglist"><span class="tag danger">위험도 5</span><span class="tag danger">베이시</span><span class="tag danger">빅 아이</span><span class="tag warn">목표 15:00</span></div>
     <p>게임 파일상 <strong>집 25채가 개별 제작</strong>돼 있습니다. 컴퓨터 퍼즐을 풀고 <strong>출입 배지</strong>를 얻어야 연구소를 나갑니다.</p>
-    <p class="official">Level 9 is a suburban area at night. There have been reports of an outbreak in the M.E.G. base located here.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level9.svg" alt="LEVEL 9 — Darkened Suburbs 평면도" loading="lazy">
       <figcaption>LEVEL 9 — Darkened Suburbs — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -614,6 +633,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv17">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2010" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2010" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>17 &nbsp;·&nbsp; Level 10</h2><div class="meta">밀밭</div></div>
 <div class="card">
     <div class="card-id">진행 17 &nbsp;·&nbsp; LEVEL 10 — 밀밭</div>
@@ -628,6 +648,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv18">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%203999" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%203999" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>18 &nbsp;·&nbsp; Level 3999</h2><div class="meta">아케이드</div></div>
 <div class="card">
     <div class="card-id">진행 18 &nbsp;·&nbsp; LEVEL 3999 — 아케이드</div>
@@ -642,6 +663,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv19">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%200.2" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%200.2" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>19 &nbsp;·&nbsp; Level 0.2</h2><div class="meta">건설 구역</div></div>
 <div class="card">
     <div class="card-id">진행 19 &nbsp;·&nbsp; LEVEL 0.2</div>
@@ -656,6 +678,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv20">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Snackrooms" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Snackrooms" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>20 &nbsp;·&nbsp; 스낵룸</h2><div class="meta">안전지대</div></div>
 <div class="card">
     <div class="card-id">진행 20 &nbsp;·&nbsp; THE SNACKROOMS</div>
@@ -673,6 +696,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S6 ============ -->
 <section class="panel" id="lv21">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20%21-%21" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20%21-%21" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>21 &nbsp;·&nbsp; Level !-!</h2><div class="meta">추격 복도 ②</div></div>
 <div class="alert note">
     <h4>추격 복도가 두 번 나옵니다</h4>
@@ -699,17 +723,16 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv22">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20188" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20188" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>22 &nbsp;·&nbsp; Level 188</h2><div class="meta">호텔형 건물</div></div>
 <div class="card">
     <div class="card-id">진행 22 &nbsp;·&nbsp; LEVEL 188 — 안뜰</div>
     <h3>호텔처럼 생긴 그 건물이 여깁니다</h3>
-    <div class="taglist"><span class="tag rng">위험도 3</span><span class="tag danger">천장 거미</span><span class="tag danger">커튼 유령</span><span class="tag warn">목표 8:00</span></div>
-    <p>게임 파일 구조가 그대로 설명해 줍니다 — <code>Lobby · Floor3 · Floor4 · LaundryRoom · Courtyard · ElectricalRoom</code>. <strong>로비와 층, 세탁실이 있는 호텔형 복합건물</strong>입니다.</p>
+    <div class="taglist"><span class="tag rng">위험도 3</span><span class="tag danger">천장 거미</span><span class="tag danger">커튼 유령</span><span class="tag warn">목표 8:00</span></div><strong>로비와 층, 세탁실이 있는 호텔형 복합건물</strong>입니다.</p>
     <ul>
       <li><strong>화물 엘리베이터로 TV를 옮기는</strong> 것이 주 퍼즐입니다.</li>
       <li><strong>천장 거미</strong>는 위를 보고 확인하세요. <strong>커튼 유령</strong>은 커튼 근처에서 조심.</li>
     </ul>
-    <p class="official">Level 188 is a large complex of interior spaces with a courtyard containing many windows, some with open curtains showing views of what appears to be outside.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level188.svg" alt="LEVEL 188 — 안뜰 평면도" loading="lazy">
       <figcaption>LEVEL 188 — 안뜰 — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -718,6 +741,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv23">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2037.2" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2037.2" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>23 &nbsp;·&nbsp; Level 37.2</h2><div class="meta">밸브 퍼즐</div></div>
 <div class="card">
     <div class="card-id">진행 23 &nbsp;·&nbsp; LEVEL 37.2 — 어두운 풀룸</div>
@@ -739,6 +763,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv24">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20Fun%2B" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20Fun%2B" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>24 &nbsp;·&nbsp; Level Fun+</h2><div class="meta">에어바운스</div></div>
 <div class="card">
     <div class="card-id">진행 24 &nbsp;·&nbsp; LEVEL FUN+ — 에어바운스</div>
@@ -753,6 +778,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv25">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2052" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2052" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>25 &nbsp;·&nbsp; Level 52</h2><div class="meta">학교</div></div>
 <div class="card">
     <div class="card-id">진행 25 &nbsp;·&nbsp; LEVEL 52 — 무한 학교</div>
@@ -767,6 +793,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv26">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%2055.1" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%2055.1" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>26 &nbsp;·&nbsp; Level 55.1</h2><div class="meta">터널 · 사진</div></div>
 <div class="card">
     <div class="card-id">진행 26 &nbsp;·&nbsp; LEVEL 55.1 — 터널</div>
@@ -784,6 +811,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
 <!-- ============ S7 ============ -->
 <section class="panel" id="lv27">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20922" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20922" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>27 &nbsp;·&nbsp; Level 922</h2><div class="meta">나선 계단</div></div>
 <div class="alert note">
     <h4>이 넷은 순서가 없습니다</h4>
@@ -805,13 +833,13 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv28">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Level%20974" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Level%20974" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>28 &nbsp;·&nbsp; Level 974</h2><div class="meta">핑크 하우스</div></div>
 <div class="card">
     <div class="card-id">진행 28 &nbsp;·&nbsp; LEVEL 974 — 핑크 하우스</div>
     <h3>키티와 테디베어 12개</h3>
     <div class="taglist"><span class="tag rng">위험도 3</span><span class="tag danger">키티</span><span class="tag rng">허브 진입</span><span class="tag warn">목표 6:00</span></div>
     <p>내부가 온통 분홍색인 큰 저택. <strong>Level 6(라이다 구간)의 M.E.G. 문</strong>을 ID 카드로 열고 진입합니다. 어두운 미로에서 <strong>테디베어 12개</strong>를 모읍니다.</p>
-    <p class="official">Level 974 contains an entity that has been reported to help explorers if it likes them.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_level974.svg" alt="LEVEL 974 — 핑크 하우스 평면도" loading="lazy">
       <figcaption>LEVEL 974 — 핑크 하우스 — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -820,13 +848,13 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv29">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Overgrowth" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Overgrowth" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>29 &nbsp;·&nbsp; 오버그로스</h2><div class="meta">미끄럼틀</div></div>
 <div class="card">
     <div class="card-id">진행 29 &nbsp;·&nbsp; OVERGROWTH — 오버그로스</div>
     <h3>그래피티 낙서 + 미끄럼틀 — 이게 오버그로스입니다</h3>
     <div class="taglist"><span class="tag rng">위험도 2</span><span class="tag danger">박테리아 5</span><span class="tag danger">본시프</span><span class="tag rng">NPC 운반</span><span class="tag warn">목표 7:00</span></div>
-    <p><strong>한 줄 요약 — 그래피티가 칠해진 Level 0 변종이고, 미끄럼틀을 타고 내려가는 레벨입니다.</strong> 내부 이름이 <code>GraffitiLevel</code>인 이유죠.</p>
-    <p>맵 데이터에서 확인한 실제 구성입니다:</p>
+    <p><strong>그래피티가 칠해진 Level 0 변종이고, 미끄럼틀을 타고 내려가는 레벨입니다.</strong> 내부 이름이 <code>GraffitiLevel</code>인 이유죠.</p>
     <ul>
       <li><strong>데스 슬라이드 8개</strong> — 이 레벨의 정체입니다. 미끄럼틀을 타고 내려가는데 중간에 <strong>게이트 3개</strong>가 있어 열어가며 진행합니다. 표시등이 어느 게이트가 열렸는지 알려줍니다.</li>
       <li><strong>숨는 벽 18개</strong> — 박테리아가 지나갈 때 몸을 숨기는 곳입니다. 위치를 미리 봐두세요.</li>
@@ -843,13 +871,13 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 </section>
 
 <section class="panel" id="lv30">
+  <div class="srcbar"><span class="lbl">원본 이미지</span><a href="https://escapethebackrooms.fandom.com/wiki/Special:Search?query=Grassrooms" target="_blank" rel="noopener">위키 &#8599;</a><a href="https://steamcommunity.com/app/1943950/screenshots/?filter=Grassrooms" target="_blank" rel="noopener">스팀 스크린샷 &#8599;</a><a href="https://escapethebackrooms.org/levels" target="_blank" rel="noopener">공략 사이트 &#8599;</a></div>
   <div class="panel-head"><h2>30 &nbsp;·&nbsp; 그래스룸</h2><div class="meta">덩굴 건물</div></div>
 <div class="card">
     <div class="card-id">진행 30 &nbsp;·&nbsp; THE GRASSROOMS — 그래스룸</div>
     <h3>덩굴 건물을 11층까지 — 빈 도시 엔딩 지점</h3>
     <div class="taglist"><span class="tag safe">위험도 1</span><span class="tag rng">허브 진입</span><span class="tag rng">버튼 8개</span><span class="tag safe">4인 설계</span><span class="tag warn">목표 4:00</span></div>
-    <p><strong>한 줄 요약 — 풀과 덩굴로 덮인 실내 건물을 층층이 올라가 11층에서 탈출하는 레벨입니다.</strong> 여기가 빈 도시 엔딩 지점입니다.</p>
-    <p>맵 데이터에서 확인한 실제 구성입니다:</p>
+    <p><strong>풀과 덩굴로 덮인 실내 건물을 층층이 올라가 11층에서 탈출하는 레벨입니다.</strong> 여기가 빈 도시 엔딩 지점입니다.</p>
     <ul>
       <li><strong>버튼 스탠드 8개 + 표시등 8개.</strong> 앞서 "버튼 4개"라고 적었는데 <strong>실제로는 8개</strong>였습니다. 표시등이 눌린 버튼을 보여주니 그걸 보고 남은 걸 찾으세요.</li>
       <li><strong>레버 3개</strong> — 바닥 레버 2개와 일반 레버 1개.</li>
@@ -859,7 +887,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>엘리베이터 1대 + 건설용 리프트 2대</strong>로 층을 올라갑니다. 목표는 <code>BP_Level11_Exit</code> — <strong>11층 출구</strong>가 맞습니다.</li>
       <li>쪽지 2개가 있습니다. 스토리를 따라가려면 챙기세요.</li>
     </ul>
-    <p class="hint">진입은 <strong>Level 55.1 터널에서 갈라집니다</strong>(<code>Maps/Tunnel/GrassRooms_New</code>). Level 421을 하면 오버그로스를 거쳐 여기로 자동으로 이어집니다.</p>
     <figure class="lvmap">
       <img src="backrooms-maps/lv_grassrooms.svg" alt="THE GRASSROOMS — 그래스룸 평면도" loading="lazy">
       <figcaption>THE GRASSROOMS — 그래스룸 — 벽 평면도 · <span class="mk-s">시작</span> · <span class="mk-e">출구</span></figcaption>
@@ -874,8 +901,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
   <div class="alert good">
     <h4>이 게임은 일직선이 아닙니다</h4>
-    <p>공략 사이트마다 레벨 순서가 다른 진짜 이유가 이겁니다. 허브(<code>Maps/TheHub</code>)에 <strong>레벨로 통하는 문이 10개</strong> 있고, 각 문이 캠페인의 서로 다른 지점으로 넣어줍니다. 한 줄로 적으면 반드시 틀려요.</p>
-    <p>추측이 아닙니다. 허브 맵의 <strong><code>BP_ExitZone</code> 액터 10개</strong>가 각각 목적지 레벨 이름을 속성으로 들고 있어서, 그걸 그대로 읽었습니다. 아래 평면도의 번호가 그 문들입니다.</p>
+    <p>허브에 <strong>문이 10개</strong> 있고, 각각 진행 순서의 다른 지점으로 들어갑니다. 처음부터 안 타도 됩니다.</p>
   </div>
 
   <figure>
@@ -944,7 +970,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>Level 1 주차장으로 돌아가 M.E.G. 문 열기.</strong> 주차장 최하층에 <strong>M.E.G. 문 + 카드 스캐너 + 벙커 문</strong>이 나란히 있습니다. ID 카드로 스캐너를 통과하면 <strong>확장된 M.E.G. 벙커</strong>가 열립니다.</li>
       <li><strong>벙커 안에서 421 입구로.</strong> 벙커에는 벙커 문 5개, 카드 스캐너 2개, 전용 엘리베이터, 그리고 <strong>볼풀 1개</strong>가 있습니다. 그 볼풀이 Level 421로 넘어가는 지점입니다.</li>
     </ol>
-    <p class="hint"><strong>파일로 확인한 근거</strong> — <code>Maps/Garage/BottomFloor</code>에 <code>BP_MEGDoor</code> · <code>BP_CardScanner</code> · <code>BP_BunkerDoor</code>가 각 1개씩 같이 있습니다. <code>Maps/Bunker</code>에는 카드 스캐너 2 · 벙커 문 5 · <code>BP_BallPit_Square</code> 1개와 <code>LP_LevelPlasticMariana</code> 참조가 있습니다.</p>
     <p><strong>층수만 확인이 안 됩니다.</strong> "4층"으로 알려져 있는데 게임 파일의 주차장 맵은 <code>TopFloor · MiddleFloor · BottomFloor</code> 셋뿐이고, 장치는 <strong>BottomFloor</strong>에 있습니다. 게임 내 표기와 파일 이름이 다를 수 있으니 <strong>최하층부터 찾아보세요.</strong></p>
     <p>나가는 길은 정해져 있습니다: <strong>421 → 오버그로스 → 그래스룸 → M.E.G. 베이스.</strong> 그래서 이 코스 자체가 <strong>빈 도시 엔딩</strong>으로 이어집니다 — 신규 레벨 즐기면서 엔딩 하나 따는 셈입니다.</p>
   </div>
@@ -958,7 +983,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
       <li><strong>브루스 디스커버리 센터 (ChildrensHospital)</strong> — 상어 마스코트 브루스가 있는 거대 어린이병원. <strong>여기가 본편</strong>이고 미로 구조입니다.</li>
       <li><strong>플라스틱 마리아나 (EndlessOceanBallPit)</strong> — 노클립으로 떨어지는 <strong>끝없는 볼풀</strong>. 상어 개체의 영역입니다.</li>
     </ol>
-    <p class="official">Level 421 is known for the Plastic Mariana, hidden somewhere deep down. The maze of hallways holds the secrets to unlocking the trench below.</p>
     <p class="hint">공식 설명이 핵심을 말해줍니다 — <strong>복도 미로를 풀어야 아래 해구가 열립니다.</strong> 병원에서 헤매는 게 이 레벨의 본체고, 볼풀은 그 다음입니다.</p>
   </div>
 
@@ -967,7 +991,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
     <h3>상어</h3>
     <p>게임 파일에 <code>Blueprints/Entity/L_SharkDeathScare</code>가 있습니다 — <strong>전용 사망 연출이 있는 개체</strong>라는 뜻입니다. 볼풀 구간에서 잡히면 그걸로 끝입니다.</p>
     <p><strong>입구 구역에서 나올 것들</strong>(<code>L_PM_Entrance_Gameplay</code> 기준): <strong>볼풀 14개</strong>와 <strong>볼풀 이동 스플라인</strong> — 볼풀을 타고 흘러가는 구간이 있다는 뜻입니다. 카드 스캐너 3개, 벙커 문 3개, 그리고 <strong>색깔 퍼즐 문 1개</strong>가 있습니다.</p>
-    <p class="hint">이 레벨은 나온 지 며칠 안 돼서 <strong>세부 공략이 아직 정립되지 않았습니다.</strong> 위 내용은 게임 파일 구조와 공식 설명에서 확인한 것까지입니다. 직접 해보시고 알려주시면 채워 넣겠습니다.</p>
   </div>
 
 </section>
@@ -979,11 +1002,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
   <div class="alert note">
     <h4>이 지도는 어디서 왔나</h4>
     <p>게임의 <code>.pak</code>에서 레벨 맵을 꺼내 <strong>액터 좌표를 위에서 내려다본 것</strong>입니다. 스크린샷이나 손으로 그린 게 아니라 실제 배치 데이터예요.</p>
-    <p><strong>벽만 그렸습니다.</strong> 가구·소품·조명·바닥·천장은 전부 뺐어요. 그것들까지 찍으면 벽이 묻혀서 지도로 안 읽힙니다.</p>
-    <p>메시 이름에 길이가 들어있어서(<code>SM_Wall_4m</code> = 4 m) 점이 아니라 <strong>실제 길이와 방향을 가진 선분</strong>으로 그렸습니다. 회전값은 컴포넌트 로테이션에서, 인스턴스 벽은 변환 행렬에서 뽑았습니다.</p>
-    <p><strong>층이 있는 레벨은 층별로 나눠 그렸습니다.</strong> 전부 한 평면에 겹쳐 찍으면 3층과 4층이 뒤엉켜 못 읽거든요. 벽의 높이(Z)를 묶어 층을 가르고, 패널을 나란히 놓았습니다.</p>
-    <p><strong>시작 지점과 출구도 표시했습니다.</strong> <span style="color:var(--accent-green)">●</span> 초록이 스폰 지점(<code>PlayerStart</code>), <span style="color:var(--accent-blue)">■</span> 파랑이 출구입니다. 출구에는 <strong>어느 레벨로 나가는지</strong> 이름을 붙였습니다.</p>
-    <p>단, <strong>모듈형 벽 키트로 지은 레벨에서만 잘 나옵니다.</strong> 아케이드나 볼풀처럼 통짜 아트 메시로 만든 레벨은 이름에 wall이 안 붙어서 걸러낼 수가 없어 뺐습니다.</p>
+    <p>벽만 그렸습니다. <span style="color:var(--accent-green)">●</span> 초록 = 시작 지점 &nbsp;·&nbsp; <span style="color:var(--accent-blue)">■</span> 파랑 = 출구(도착 레벨 표시). 층이 있으면 층별로 나눠 놓았습니다.</p>
   </div>
 
 
