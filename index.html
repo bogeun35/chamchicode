@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="suika" onclick="navigate('suika')">
+      <span class="nav-icon">🍉</span>
+      <span>수박게임</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
       <span class="nav-icon">🗺️</span>
       <span>배그 맵</span>
@@ -428,6 +434,11 @@ body::after {
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
+        <div class="landing-card" onclick="navigate('suika')">
+          <div class="landing-card-icon">🍉</div>
+          <div class="landing-card-title">수박게임</div>
+          <div class="landing-card-desc">같은 과일을 합쳐 수박 만들기<br>랜덤 스킬로 한 방 역전</div>
+        </div>
         <div class="landing-card" onclick="navigate('pubgmap')">
           <div class="landing-card-icon">🗺️</div>
           <div class="landing-card-title">배그 맵</div>
@@ -475,6 +486,11 @@ body::after {
   <!-- Draw Quiz iframe -->
   <div class="page-frame" id="page-drawquiz">
     <iframe src="draw-quiz.html" id="iframe-drawquiz"></iframe>
+  </div>
+
+  <!-- 수박게임 iframe -->
+  <div class="page-frame" id="page-suika">
+    <iframe src="suika/index.html" id="iframe-suika"></iframe>
   </div>
 
   <!-- PUBG Map iframe -->
