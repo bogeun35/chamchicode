@@ -97,6 +97,9 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .modal .card { width: 100%; max-width: 460px; margin: 0; max-height: 88vh; overflow-y: auto; }
 .confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 45; }
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+
+#joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
+#joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -167,6 +170,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
   </div>
 </div>
 
+<script src="party-ux.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -211,7 +215,13 @@ const roomRef = () => db.ref(rpath(code));
   const saved = localStorage.getItem('lr_nick'); if (saved) $('nick').value = saved;
   const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
 })();
-function getNick() { const n = $('nick').value.trim(); if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; } localStorage.setItem('lr_nick', n); return n; }
+UX.nick('nick', 'joinCode', 'btnCreate', 'btnJoin');
+UX.emphasizeJoin(document.getElementById('joinCode').closest('.card'), 'home');
+UX.resumeCard('lr', 'home', c => db.ref(rpath(c)).once('value').then(sn => { const r = sn.val(); return !!r && !(r.expiresAt && Date.now() > r.expiresAt); }), v => { $('nick').value = v.nick; $('joinCode').value = v.code; $('btnJoin').click(); });
+
+function getNick() {
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = UX.randomNick(); $('nick').value = n; toast('닉네임을 자동으로 정했어요: ' + n); } localStorage.setItem('lr_nick', n); return n; }
 $('btnCreate').onclick = async () => {
   const n = getNick(); if (!n) return;
   myNick = n; myKey = sanitizeKey(n); code = genCode(); isHost = true;
@@ -240,21 +250,26 @@ function enterRoom() {
     room = snap.val();
     if (!room) { toast('방이 종료되었어요'); leave(false); return; }
     isHost = room.host === myKey;
+    if (enterRoom.setGuestDisco) enterRoom.setGuestDisco(room.status === 'lobby');
     if (room.status === 'lobby') renderLobby(); else renderGame();
   });
   listeners.push(() => ref.off('value', cb));
+  UX.remember('lr', code, myNick);
   const pref = db.ref(`${rpath(code)}/players/${myKey}`);
-  if (isHost) { ref.onDisconnect().remove(); listeners.push(() => ref.onDisconnect().cancel()); }
-  else { pref.onDisconnect().remove(); listeners.push(() => pref.onDisconnect().cancel()); }
+  // 방장이 새로고침/잠깐 끊겨도 방은 유지 (만료 시각으로만 정리). 손님은 대기실에 있을 때만 끊기면 자동 퇴장, 게임 중엔 유지(재접속 가능)
+  let guestDisco = false;
+  enterRoom.setGuestDisco = on => { if (isHost || on === guestDisco) return; guestDisco = on; if (on) pref.onDisconnect().remove(); else pref.onDisconnect().cancel(); };
+  listeners.push(() => { if (guestDisco) pref.onDisconnect().cancel(); guestDisco = false; });
 }
 function leave(confirmIt = true) {
   if (confirmIt && !confirm('방을 나갈까요?')) return;
+  UX.forget('lr');
   offAll(); clearInterval(tick);
   if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
   room = null; code = ''; isHost = false; show('home');
 }
 $('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave();
-$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyLink').onclick = () => UX.share(location.href.split('?')[0] + '?room=' + code, document.title.replace('참스코드 ', '') + ' 방 ' + code, toast);
 $('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
 function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
 $('btnRules').onclick = () => $('rulesModal').classList.add('show');
@@ -312,6 +327,13 @@ function renderGame() {
   const keys = Object.keys(room.players || {});
   const me = isLiar(myKey);
   clearInterval(tick);
+  const phaseKey = `${g.round}:${g.phase}`;
+  if (renderGame._phase && renderGame._phase !== phaseKey) {
+    if (g.phase === 'vote' || g.phase === 'card') UX.notify('phase');
+    if (g.phase === 'liarGuess' && me) UX.notify('turn');
+    if (g.phase === 'result') UX.notify((g.liarWin && me) || (!g.liarWin && !me) ? 'good' : 'bad');
+  }
+  renderGame._phase = phaseKey;
 
   if (g.phase === 'card' || g.phase === 'talk') {
     B.className = 'banner' + (g.phase === 'talk' ? ' hot' : '');
@@ -321,14 +343,14 @@ function renderGame() {
         <div class="secret" id="secret">
           ${me ? `<div><div class="c">카테고리: ${esc(g.category)}</div><div class="liar">🤥 당신은 라이어!</div><div style="font-size:13px;color:#8a5a2a;margin-top:6px">제시어를 모르는 척… 아니, 아는 척하세요</div></div>`
                : `<div><div class="c">카테고리: ${esc(g.category)}</div><div class="w">${esc(g.word)}</div></div>`}
-          <div class="veil" id="veil" ${veiled ? '' : 'style="display:none"'}>👆 눌러서 카드 보기<small>다시 누르면 가려요</small></div>
+          <div class="veil" id="veil">👆 누르고 있으면 보여요<small>손 떼면 바로 가려져요</small></div>
         </div>
         <div style="font-size:13px;color:#8a5a2a;text-align:center;margin-top:8px">발언 순서</div>
         <div class="order">${g.order.map((k, i) => `<span class="o ${k === myKey ? 'me' : ''}"><span class="n">${i + 1}</span>${avatarOf(k)} ${esc(nickOf(k))}</span>`).join('')}</div>
       </div>
       ${g.phase === 'talk' && g.talkSec ? `<div class="timer" id="timer">--:--</div>` : ''}
       <div class="row" id="hostRow"></div>`;
-    $('secret').onclick = () => { veiled = !veiled; $('veil').style.display = veiled ? '' : 'none'; };
+    UX.holdToPeek($('secret'), $('veil'));
     if (isHost) {
       $('hostRow').innerHTML = g.phase === 'card'
         ? `<button class="btn purple wide" id="btnTalk">🗣️ 토론 시작</button>`
@@ -346,13 +368,14 @@ function renderGame() {
   if (g.phase === 'vote') {
     const votes = g.votes || {};
     const voted = Object.keys(votes).length, total = keys.length;
-    B.className = 'banner hot'; B.textContent = votes[myKey] ? `🗳️ 투표 완료 — 기다리는 중 (${voted}/${total})` : '🗳️ 라이어라고 생각하는 사람을 고르세요';
+    B.className = 'banner hot'; B.textContent = votes[myKey] ? `🗳️ 투표함 (${voted}/${total}) — 모두 투표하면 자동 마감` : '🗳️ 라이어라고 생각하는 사람을 고르세요';
     S.innerHTML = `<div class="card">
-      <div class="grid">${keys.map(k => `<button class="vbtn ${votes[myKey] === k ? 'sel' : ''}" data-k="${esc(k)}" ${k === myKey || votes[myKey] ? 'disabled' : ''}><span class="av">${avatarOf(k)}</span>${esc(nickOf(k))}</button>`).join('')}</div>
+      <div class="grid">${keys.map(k => `<button class="vbtn ${votes[myKey] === k ? 'sel' : ''}" data-k="${esc(k)}" ${k === myKey ? 'disabled' : ''}><span class="av">${avatarOf(k)}</span>${esc(nickOf(k))}${votes[myKey] === k ? '<span class="cnt">✅ 내 투표</span>' : ''}</button>`).join('')}</div>
+      <div style="font-size:12px;color:#8a5a2a;text-align:center;margin-top:6px">마감 전까지 다른 사람을 눌러 바꿀 수 있어요</div>
       <div class="status">${keys.map(k => `<span class="p ${votes[k] ? 'done' : ''}">${votes[k] ? '✅' : '⏳'} ${esc(nickOf(k))}</span>`).join('')}</div>
       ${isHost ? `<div class="row"><button class="btn ghost wide" style="color:#8a5a2a;background:#fff;box-shadow:0 4px 0 #b8834a" id="btnClose">투표 마감 (안 한 사람은 기권)</button></div>` : ''}
     </div>`;
-    S.querySelectorAll('.vbtn').forEach(b => b.onclick = () => { if (votes[myKey]) return; roomRef().update({ [`game/votes/${myKey}`]: b.dataset.k }); });
+    S.querySelectorAll('.vbtn').forEach(b => b.onclick = () => { if (votes[myKey] === b.dataset.k) return; roomRef().update({ [`game/votes/${myKey}`]: b.dataset.k }); });
     if (isHost) $('btnClose').onclick = () => tally();
     if (isHost && voted >= total) tally();
     return;

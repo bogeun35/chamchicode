@@ -105,7 +105,7 @@ body::before {   /* 펠트 질감 */
 .tile.shake { animation: shake .4s; }
 @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .tile.joker { font-size: 20px; }
-.slot { width: 18px; height: 62px; border-radius: 6px; border: 2px dashed rgba(255,255,255,.6); cursor: pointer; display: grid; place-items: center; font-size: 12px; }
+.slot { width: 30px; height: 62px; border-radius: 8px; border: 2px dashed var(--gold); background: rgba(255,211,107,.18); cursor: pointer; display: grid; place-items: center; font-size: 16px; color: var(--gold); animation: pulse .9s ease-in-out infinite alternate; }
 .slot:hover { background: rgba(255,211,107,.35); }
 
 .center { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 12px; }
@@ -126,6 +126,7 @@ body::before {   /* 펠트 질감 */
 .num.w { background: linear-gradient(180deg, #fffdf7, #efe6d2); color: #1d1a16; box-shadow: 0 3px 0 #b9ad93; }
 .num.b { background: linear-gradient(180deg, #3b3e55, #17181f); color: #f4f0e6; box-shadow: 0 3px 0 #050507; }
 .num:active { transform: translateY(2px); }
+.num.off { opacity: .28; }
 
 /* 결과 */
 .confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 45; }
@@ -151,6 +152,9 @@ body::before {   /* 펠트 질감 */
 .demo .range { display: flex; align-items: center; gap: 4px; }
 .tip { background: #fff8e6; border: 2px dashed #e6c58f; border-radius: 12px; padding: 8px 12px; font-size: 13px; color: #6a4a2a; margin-top: 8px; line-height: 1.5; }
 #rulesModal .card { max-height: 88vh; overflow-y: auto; }
+
+#joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
+#joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -313,10 +317,12 @@ body::before {   /* 펠트 질감 */
   <div class="card">
     <h3 id="numTitle">숫자 추측</h3>
     <div class="numgrid" id="numGrid"></div>
+    <div style="font-size:12px;color:#8a5a2a;margin:2px 0 8px;text-align:center" id="numHint"></div>
     <button class="btn ghost wide" style="color:#8a5a2a;background:#fff;box-shadow:0 4px 0 #b8834a" id="numCancel">취소</button>
   </div>
 </div>
 
+<script src="party-ux.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -369,9 +375,13 @@ function roomRef() { return db.ref(rpath(code)); }
   const saved = localStorage.getItem('dv_nick'); if (saved) $('nick').value = saved;
   const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
 })();
+UX.nick('nick', 'joinCode', 'btnCreate', 'btnJoin');
+UX.emphasizeJoin(document.getElementById('joinCode').closest('.card'), 'home');
+UX.resumeCard('dv', 'home', c => db.ref(rpath(c)).once('value').then(sn => { const r = sn.val(); return !!r && !(r.expiresAt && Date.now() > r.expiresAt); }), v => { $('nick').value = v.nick; $('joinCode').value = v.code; $('btnJoin').click(); });
+
 function getNick() {
-  const n = $('nick').value.trim();
-  if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; }
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = UX.randomNick(); $('nick').value = n; toast('닉네임을 자동으로 정했어요: ' + n); }
   localStorage.setItem('dv_nick', n);
   return n;
 }
@@ -406,18 +416,23 @@ function enterRoom() {
     room = snap.val();
     if (!room) { toast('방이 종료되었어요'); leave(false); return; }
     isHost = room.host === myKey;
+    if (enterRoom.setGuestDisco) enterRoom.setGuestDisco(room.status === 'lobby');
     if (room.status === 'lobby') renderLobby();
     else if (room.status === 'playing') renderGame();
     else if (room.status === 'ended') renderEnd();
   });
   listeners.push(() => ref.off('value', cb));
+  UX.remember('dv', code, myNick);
   // 대기실에서 끊기면 자동 퇴장 (호스트가 나가면 방 삭제)
   const pref = db.ref(`${rpath(code)}/players/${myKey}`);
-  if (isHost) { ref.onDisconnect().remove(); listeners.push(() => ref.onDisconnect().cancel()); }
-  else { pref.onDisconnect().remove(); listeners.push(() => pref.onDisconnect().cancel()); }
+  // 방장이 새로고침/잠깐 끊겨도 방은 유지 (만료 시각으로만 정리). 손님은 대기실에 있을 때만 끊기면 자동 퇴장, 게임 중엔 유지(재접속 가능)
+  let guestDisco = false;
+  enterRoom.setGuestDisco = on => { if (isHost || on === guestDisco) return; guestDisco = on; if (on) pref.onDisconnect().remove(); else pref.onDisconnect().cancel(); };
+  listeners.push(() => { if (guestDisco) pref.onDisconnect().cancel(); guestDisco = false; });
 }
 function leave(confirmIt = true) {
   if (confirmIt && !confirm('방을 나갈까요?')) return;
+  UX.forget('dv');
   offAll();
   if (room) {
     if (isHost) roomRef().remove();
@@ -441,7 +456,7 @@ function renderLobby() {
   $('btnStart').disabled = ps.length < 2;
   if (!isHost) $('lobbyList').insertAdjacentHTML('beforeend', '<div class="hint" style="color:#8a5a2a">방장이 시작하면 자동으로 넘어가요</div>');
 }
-$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyLink').onclick = () => UX.share(location.href.split('?')[0] + '?room=' + code, document.title.replace('참스코드 ', '') + ' 방 ' + code, toast);
 $('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
 function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
 
@@ -500,6 +515,8 @@ function renderGame() {
   const g = room.game; if (!g) return;
   const turnKey = g.order[g.turn];
   const mine = turnKey === myKey;
+  if (mine && !g.winner && renderGame._lastTurn !== g.turn + ':' + turnKey) { UX.notify('turn'); }
+  renderGame._lastTurn = g.turn + ':' + turnKey;
   $('gameCode').textContent = code;
   $('roundChip').textContent = `${g.round}판`;
   $('pileCount').textContent = g.pile.length;
@@ -594,9 +611,23 @@ function onTileClick(pkey, idx) {
   }
 }
 function openNumModal(color, pkey) {
+  const g = room.game, idx = selTarget ? selTarget.idx : -1;
+  // 공개 정보만으로 제외되는 숫자: 어디선가 이미 공개된 같은 색 숫자 + 내 손의 같은 색 숫자 (색마다 각 숫자는 한 장뿐)
+  const known = new Set();
+  for (const k of g.order) (g.hands[k] || []).forEach(x => { if ((x.r || k === myKey) && tileColor(x.t) === color && tileVal(x.t) !== null) known.add(tileVal(x.t)); });
+  // 정렬 규칙으로 좁히기: 대상 타일 양옆에 공개된 숫자가 있으면 그 사이만 가능
+  let lo = 0, hi = 11;
+  if (idx >= 0) {
+    const hand = g.hands[pkey];
+    for (let i = idx - 1; i >= 0; i--) { const x = hand[i]; if (x.r && tileVal(x.t) !== null) { lo = tileVal(x.t) + (tileColor(x.t) === 'w' && color === 'b' ? 1 : tileColor(x.t) === color ? 1 : 0); break; } }
+    for (let i = idx + 1; i < hand.length; i++) { const x = hand[i]; if (x.r && tileVal(x.t) !== null) { hi = tileVal(x.t) - (tileColor(x.t) === 'b' && color === 'w' ? 1 : tileColor(x.t) === color ? 1 : 0); break; } }
+  }
+  const jokerKnown = g.order.some(k => (g.hands[k] || []).some(x => (x.r || k === myKey) && tileColor(x.t) === color && tileVal(x.t) === null));
   $('numTitle').textContent = `${nickOf(pkey)}의 ${color === 'b' ? '검은' : '흰'} 타일 — 숫자는?`;
   const grid = $('numGrid');
-  grid.innerHTML = [...Array(12).keys()].map(n => `<button class="num ${color}" data-n="${n}">${n}</button>`).join('') + `<button class="num ${color}" data-n="J" style="grid-column:span 4">조커 –</button>`;
+  grid.innerHTML = [...Array(12).keys()].map(n => { const off = known.has(n) || n < lo || n > hi; return `<button class="num ${color} ${off ? 'off' : ''}" data-n="${n}" title="${known.has(n) ? '이미 공개됨/내 손에 있음' : off ? '정렬 순서상 불가능' : ''}">${n}</button>`; }).join('')
+    + `<button class="num ${color} ${jokerKnown ? 'off' : ''}" data-n="J" style="grid-column:span 4">조커 –</button>`;
+  $('numHint').textContent = `흐린 숫자 = 공개된 정보로 불가능 (양옆 공개 숫자 사이: ${lo}~${hi})`;
   grid.querySelectorAll('.num').forEach(b => b.onclick = () => { closeNum(); guess(b.dataset.n); });
   $('numModal').classList.add('show');
 }

@@ -200,6 +200,9 @@ body::before {   /* 은은한 격자 테이블 무늬 */
 .demo .sc { border-radius: 8px; padding: 3px 9px; color: #fff; font-size: 12px; }
 .demo .sc.r { background: var(--red); } .demo .sc.b { background: var(--blue); }
 .tip { background: #fff8e6; border: 2px dashed #e6c58f; border-radius: 12px; padding: 8px 12px; font-size: 13px; color: #6a4a2a; margin-top: 8px; line-height: 1.5; }
+
+#joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
+#joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -302,6 +305,7 @@ body::before {   /* 은은한 격자 테이블 무늬 */
   </div>
 </div>
 
+<script src="party-ux.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -364,10 +368,14 @@ function roomRef() { return db.ref(rpath(code)); }
   $('numRow').querySelectorAll('.num').forEach(b => b.onclick = () => { hintNum = b.dataset.n === 'inf' ? 'inf' : +b.dataset.n; paintNum(); });
   paintNum();
 })();
+UX.nick('nick', 'joinCode', 'btnCreate', 'btnJoin');
+UX.emphasizeJoin(document.getElementById('joinCode').closest('.card'), 'home');
+UX.resumeCard('cn', 'home', c => db.ref(rpath(c)).once('value').then(sn => { const r = sn.val(); return !!r && !(r.expiresAt && Date.now() > r.expiresAt); }), v => { $('nick').value = v.nick; $('joinCode').value = v.code; $('btnJoin').click(); });
+
 function paintNum() { $('numRow').querySelectorAll('.num').forEach(b => b.classList.toggle('on', (b.dataset.n === 'inf' ? 'inf' : +b.dataset.n) === hintNum)); }
 function getNick() {
-  const n = $('nick').value.trim();
-  if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; }
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = UX.randomNick(); $('nick').value = n; toast('닉네임을 자동으로 정했어요: ' + n); }
   localStorage.setItem('cn_nick', n);
   return n;
 }
@@ -412,6 +420,7 @@ function enterRoom() {
     else { setDisco(false); if (room.status === 'playing') renderGame(); else if (room.status === 'ended') renderEnd(); }
   });
   listeners.push(() => ref.off('value', cb));
+  UX.remember('cn', code, myNick);
   listeners.push(() => setDisco(false));
 }
 // 대기실에서 끊기면 자동 퇴장 (호스트가 나가면 방 삭제). 게임 중엔 재접속 가능하도록 해제
@@ -419,11 +428,12 @@ function setDisco(on) {
   if (on === discoSet) return;
   discoSet = on;
   const ref = isHost ? roomRef() : db.ref(`${rpath(code)}/players/${myKey}`);
-  if (on) ref.onDisconnect().remove();
+  if (on) { if (!isHost) ref.onDisconnect().remove(); }   // 방장이 끊겨도 방은 유지
   else { roomRef().onDisconnect().cancel(); db.ref(`${rpath(code)}/players/${myKey}`).onDisconnect().cancel(); }
 }
 function leave(confirmIt = true) {
   if (confirmIt && !confirm('방을 나갈까요?')) return;
+  UX.forget('cn');
   offAll();
   if (room) {
     if (isHost) roomRef().remove();
@@ -498,7 +508,7 @@ $('btnRandSpy').onclick = () => {
   for (const t of ['red', 'blue']) { const ks = teamOf(t).map(e => e[0]); const pick = ks[Math.floor(Math.random() * ks.length)]; ks.forEach(k => up[`players/${k}/spy`] = k === pick); }
   roomRef().update(up); toast('팀장을 랜덤으로 정했어요');
 };
-$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyLink').onclick = () => UX.share(location.href.split('?')[0] + '?room=' + code, document.title.replace('참스코드 ', '') + ' 방 ' + code, toast);
 $('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
 function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
 
@@ -531,6 +541,10 @@ function renderGame() {
   const myTurn = myTeam === t;
   const canPick = g.phase === 'guess' && myTurn && !amSpy && !g.winner;
   const myAction = !g.winner && ((g.phase === 'hint' && amSpy && myTurn) || canPick);
+  const actKey = `${g.round}:${g.turn}:${g.phase}:${myAction}`;
+  if (myAction && renderGame._act !== actKey) UX.notify('turn');
+  if (g.winner && renderGame._win !== g.round) { renderGame._win = g.round; UX.notify(g.winner === myTeam ? 'good' : 'bad'); }
+  renderGame._act = actKey;
   const turnId = `${g.round}-${t}-${g.phase}`;
   if (turnId !== prevTurnId) { sel = null; prevTurnId = turnId; }
   if (sel !== null && g.revealed[sel]) sel = null;
