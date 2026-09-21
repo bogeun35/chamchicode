@@ -173,7 +173,7 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  const W = 540, H = 940;                       // 게임 좌표계 (오른쪽 80px = 수박 창고)
+  let W = 540; const H = 940;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
   const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
   const BOX = { l: 22, r: 438, t: 260, b: 825 };  // 상자 안쪽 영역 (높이 565 — 원작보다 넉넉하게; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
@@ -422,8 +422,10 @@
   function applyCfg() {
     cfg = computeCfg();
     const w = BOX_W * cfg.boxScale;
-    BOX.l = Math.round(BOX_CX - w / 2);
-    BOX.r = Math.round(BOX_CX + w / 2);
+    BOX.l = Math.max(12, Math.round(BOX_CX - w / 2));   // 왼쪽 여백은 12px 이상
+    BOX.r = BOX.l + Math.round(w);
+    W = Math.max(540, BOX.r + 100);                    // 창고가 오른쪽으로 밀리며 캔버스가 넓어짐
+    resize();
     BOX.t = BOX_T_BASE - Math.max(-60, Math.min(60, cfg.ceilingOffset));
     buildWalls();
     engine.gravity.y = cfg.gravity;
@@ -1014,22 +1016,27 @@
     ctx.restore();
   }
 
-  // 오른쪽 창고: 판매한 수박 진열
+  // 오른쪽 창고: 판매한 수박 진열 — 상자와 구분되게 진한 나무 선반
   function drawShelf() {
-    const sl = 452, sr = 528, st = BOX.t, sb = BOX.b;
-    ctx.fillStyle = '#e9c68f'; ctx.fillRect(sl, st, sr - sl, sb - st);
-    ctx.strokeStyle = '#d8ab66'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(sl, st); ctx.lineTo(sl, sb); ctx.lineTo(sr, sb); ctx.lineTo(sr, st); ctx.stroke();
-    outlinedText('창고', (sl + sr) / 2, st - 14, 13);
-    outlinedText(`💰${soldMelons}`, (sl + sr) / 2, st + 16, 13);
+    const sl = BOX.r + 14, sr = sl + 76, st = BOX.t - RIM, sb = BOX.b;
+    ctx.fillStyle = '#8f5a2b'; ctx.fillRect(sl, st, sr - sl, sb - st);            // 진한 나무판
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(sl, st, 6, sb - st); ctx.fillRect(sr - 6, st, 6, sb - st);
+    ctx.strokeStyle = '#5c3a1a'; ctx.lineWidth = 4;
+    ctx.strokeRect(sl, st, sr - sl, sb - st);
+    // 라벨 칩
+    ctx.fillStyle = '#ffefd0';
+    ctx.beginPath(); ctx.roundRect(sl + 6, st + 6, sr - sl - 12, 40, 8); ctx.fill();
+    ctx.fillStyle = '#6a3a1a'; ctx.font = '13px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('창고', (sl + sr) / 2, st + 18);
+    ctx.fillText(`💰 ${soldMelons}`, (sl + sr) / 2, st + 35);
     // 선반 + 수박 (아래부터 채움, 최대 12개 표시)
-    const slots = 12, cellH = (sb - st - 34) / slots;
+    const top = st + 54, slots = 12, cellH = (sb - top - 6) / slots;
     for (let i = 0; i < slots; i++) {
-      const y = sb - 8 - i * cellH - cellH / 2;
-      ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(sl + 6, y + cellH / 2 - 2, sr - sl - 12, 3);
-      if (i < Math.min(slots, soldMelons)) drawFruit(ctx, (sl + sr) / 2, y, 10, 0, (cellH / 2 - 2) / FRUITS[10].r);
+      const y = sb - 6 - i * cellH - cellH / 2;
+      ctx.fillStyle = '#d9a066'; ctx.fillRect(sl + 8, y + cellH / 2 - 3, sr - sl - 16, 4);   // 선반 판
+      if (i < Math.min(slots, soldMelons)) drawFruit(ctx, (sl + sr) / 2, y - 1, 10, 0, (cellH / 2 - 3) / FRUITS[10].r);
     }
-    if (soldMelons > slots) outlinedText(`+${soldMelons - slots}`, (sl + sr) / 2, sb - 8 - slots * cellH, 12);
+    if (soldMelons > slots) outlinedText(`+${soldMelons - slots}`, (sl + sr) / 2, top + 8, 12);
   }
 
   function drawBox() {
