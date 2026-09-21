@@ -39,8 +39,9 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .chip.on { background: var(--felt); color: #fff; border-color: #fff; }
 
 /* 게임 */
-.top { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.pill { background: rgba(0,0,0,.3); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 8px; flex-wrap: nowrap; }
+.top .btn.ghost { padding: 6px 10px; font-size: 13px; }
+.pill { background: rgba(0,0,0,.3); border-radius: 999px; padding: 5px 10px; font-size: 13px; white-space: nowrap; }
 .banner { text-align: center; font-size: 17px; padding: 9px 12px; border-radius: 14px; margin: 4px 0 10px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.15); }
 .banner.hot { background: var(--gold); color: var(--ink); border-color: #fff; animation: glow 1.2s ease-in-out infinite alternate; }
 @keyframes glow { from { box-shadow: 0 0 0 3px rgba(255,211,107,.25); } to { box-shadow: 0 0 0 8px rgba(255,211,107,.55); } }
@@ -62,6 +63,14 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .tile.sel { transform: translateY(-8px); outline: 3px solid var(--gold); }
 .tile.moved::after { content: ''; position: absolute; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: #5cb85c; box-shadow: 0 0 0 2px #fff; }
 .tile.dim { opacity: .55; cursor: default; }
+.tile.pick { touch-action: none; }
+.tile.dragging { opacity: .25; }
+.dragghost { position: fixed; z-index: 70; pointer-events: none; display: flex; gap: 3px; transform: translate(-50%, -60%) scale(1.15); filter: drop-shadow(0 10px 12px rgba(0,0,0,.45)); }
+.dragghost .tile { cursor: grabbing; }
+.set.drop, .newset.drop { border-color: var(--gold); background: rgba(255,211,107,.35); box-shadow: 0 0 0 4px rgba(255,211,107,.5); }
+.table.drop { box-shadow: inset 0 0 0 3px var(--gold); }
+.rack.drop { box-shadow: inset 0 0 0 3px var(--gold); }
+.rack.no { box-shadow: inset 0 0 0 3px #ff6b6b; }
 .rack { background: rgba(0,0,0,.28); border-radius: 18px; padding: 10px; }
 .rack .tiles { display: flex; flex-wrap: wrap; gap: 5px; min-height: 58px; }
 .rack .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
@@ -71,7 +80,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .hint { font-size: 13px; opacity: .9; text-align: center; margin-top: 8px; min-height: 18px; }
 .log { background: rgba(0,0,0,.22); border-radius: 12px; padding: 6px 10px; font-size: 12.5px; margin-bottom: 8px; line-height: 1.4; }
 .log div:first-child { color: var(--gold); }
-.timer { font-size: 22px; }
+.timer { font-size: 18px; white-space: nowrap; min-width: 52px; text-align: center; }
 .timer.low { color: #ff6b6b; animation: blink .5s steps(2) infinite; }
 @keyframes blink { to { opacity: .4; } }
 .winbox { text-align: center; }
@@ -341,11 +350,10 @@ function renderGame() {
     const changed = JSON.stringify(work.table) !== JSON.stringify(g.table || []) || work.rack.length !== (g.racks[myKey] || []).length;
     A.innerHTML = `<button class="btn green" id="btnEnd" ${changed ? '' : 'disabled'}>✅ 턴 종료</button><button class="btn light" id="btnReset" ${changed ? '' : 'disabled'}>↩ 되돌리기</button><button class="btn blue" id="btnDraw" ${changed ? 'disabled' : ''}>🎴 뽑고 넘기기</button>`;
     $('btnEnd').onclick = endTurn; $('btnReset').onclick = () => { work = null; renderGame(); }; $('btnDraw').onclick = () => doDraw(false);
-    H.textContent = selected.size ? `${selected.size}장 선택됨 → 놓을 묶음이나 "새 묶음"을 누르세요` : (g.melded[myKey] ? '타일을 누르면 선택돼요. 테이블 타일도 옮길 수 있어요' : '랙의 타일을 골라 묶음을 만들어 내려놓으세요');
+    H.textContent = selected.size ? `${selected.size}장 선택됨 → 끌어서 놓거나 묶음을 누르세요` : (g.melded[myKey] ? '타일을 끌어서 묶음에 놓거나 빈 곳에 놓으세요 (테이블 타일도 이동 가능)' : '랙의 타일을 끌어서 테이블 빈 곳에 놓아 묶음을 만드세요');
   }
-  // 클릭
-  $('rack').querySelectorAll('.tile.pick').forEach(el => el.onclick = () => toggleSel(el.dataset.t));
-  $('table').querySelectorAll('.tile.pick').forEach(el => el.onclick = e => { e.stopPropagation(); toggleSel(el.dataset.t); });
+  // 조작: 드래그 앤 드롭 (톡 = 선택, 끌기 = 이동)
+  document.querySelectorAll('#rack .tile.pick, #table .tile.pick').forEach(el => el.onpointerdown = e => startDrag(e, el));
   $('table').querySelectorAll('[data-set]').forEach(el => el.onclick = () => placeSelected(el.dataset.set));
   if (g.winner) setTimeout(() => { if (isHost && room.status === 'playing') roomRef().update({ status: 'ended' }); }, 1200);
 }
@@ -370,12 +378,81 @@ function toggleSel(t) {
 }
 function placeSelected(target) {
   if (!work || !selected.size) return;
-  const ids = [...selected];
-  // 원래 자리에서 제거
-  for (const t of ids) { const ri = work.rack.indexOf(t); if (ri >= 0) { work.rack.splice(ri, 1); work.moved.add(t); } for (const s of work.table) { const i = s.indexOf(t); if (i >= 0) s.splice(i, 1); } }
-  if (target === 'new') work.table.push(ids); else work.table[+target].push(...ids);
+  moveTiles([...selected], target === 'new' ? { type: 'new' } : { type: 'set', idx: +target });
+}
+// target: {type:'set', idx} | {type:'new'} | {type:'rack'}
+function moveTiles(ids, target) {
+  if (!work || !ids.length) return;
+  if (target.type === 'rack' && ids.some(t => !work.moved.has(t) && !work.rack.includes(t))) { toast('테이블에 있던 타일은 랙으로 가져올 수 없어요'); selected.clear(); renderGame(); return; }
+  for (const t of ids) {
+    const ri = work.rack.indexOf(t); if (ri >= 0) work.rack.splice(ri, 1);
+    for (const s of work.table) { const i = s.indexOf(t); if (i >= 0) s.splice(i, 1); }
+  }
+  if (target.type === 'rack') { work.rack.push(...ids); ids.forEach(t => work.moved.delete(t)); }
+  else {
+    ids.forEach(t => { if (!work.rack.includes(t)) work.moved.add(t); });
+    // moved 는 "이번 턴에 랙에서 나온 타일" 이므로 원래 테이블 타일은 제외
+    const origTable = (room.game.table || []).flat(); ids.forEach(t => { if (origTable.includes(t)) work.moved.delete(t); });
+    if (target.type === 'new') work.table.push(ids); else (work.table[target.idx] || (work.table[target.idx] = [])).push(...ids);
+  }
   work.table = work.table.filter(s => s.length);
   selected.clear(); renderGame();
+}
+
+// ── 드래그 앤 드롭 ──
+let drag = null;   // { ids, startX, startY, ghost, el, active }
+function startDrag(e, el) {
+  if (!work) return;
+  const g = room.game; const t = el.dataset.t;
+  const onTable = work.table.some(s => s.includes(t));
+  if (onTable && !g.melded[myKey] && !work.moved.has(t)) { toast('첫 등록 전엔 테이블 타일을 옮길 수 없어요'); return; }
+  e.preventDefault();
+  const ids = selected.has(t) ? [...selected] : [t];
+  drag = { ids, startX: e.clientX, startY: e.clientY, el, active: false, ghost: null, pid: e.pointerId };
+  try { el.setPointerCapture(e.pointerId); } catch (err) {}
+  el.onpointermove = onDragMove; el.onpointerup = el.onpointercancel = onDragEnd;
+}
+function onDragMove(e) {
+  if (!drag) return;
+  if (!drag.active) {
+    if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 7) return;
+    drag.active = true;
+    const gh = document.createElement('div'); gh.className = 'dragghost';
+    gh.innerHTML = drag.ids.map(t => tileHtml(t, false, 'pick')).join('');
+    document.body.appendChild(gh); drag.ghost = gh;
+    drag.ids.forEach(t => document.querySelectorAll(`.tile[data-t="${t}"]`).forEach(x => x.classList.add('dragging')));
+  }
+  drag.ghost.style.left = e.clientX + 'px'; drag.ghost.style.top = e.clientY + 'px';
+  const tgt = dropTargetAt(e.clientX, e.clientY);
+  document.querySelectorAll('.drop, .rack.no').forEach(x => x.classList.remove('drop', 'no'));
+  if (tgt) {
+    if (tgt.type === 'rack') { const ok = drag.ids.every(t => work.moved.has(t) || work.rack.includes(t)); $('rack').closest('.rack').classList.add(ok ? 'drop' : 'no'); }
+    else if (tgt.type === 'new') $('table').classList.add('drop');
+    else document.querySelector(`.set[data-set="${tgt.idx}"]`).classList.add('drop');
+  }
+}
+function onDragEnd(e) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  d.el.onpointermove = d.el.onpointerup = d.el.onpointercancel = null;
+  try { d.el.releasePointerCapture(d.pid); } catch (err) {}
+  document.querySelectorAll('.drop, .rack.no').forEach(x => x.classList.remove('drop', 'no'));
+  if (d.ghost) d.ghost.remove();
+  document.querySelectorAll('.tile.dragging').forEach(x => x.classList.remove('dragging'));
+  if (!d.active) { toggleSel(d.el.dataset.t); return; }   // 톡 = 선택
+  const tgt = dropTargetAt(e.clientX, e.clientY);
+  if (!tgt) { renderGame(); return; }
+  // 같은 자리에 놓으면 무시
+  if (tgt.type === 'set' && d.ids.every(t => (work.table[tgt.idx] || []).includes(t))) { renderGame(); return; }
+  if (tgt.type === 'rack' && d.ids.every(t => work.rack.includes(t))) { renderGame(); return; }
+  moveTiles(d.ids, tgt);
+}
+function dropTargetAt(x, y) {
+  const el = document.elementFromPoint(x, y); if (!el) return null;
+  const set = el.closest('.set'); if (set) return { type: 'set', idx: +set.dataset.set };
+  if (el.closest('.newset') || el.closest('#table')) return { type: 'new' };
+  if (el.closest('.rack')) return { type: 'rack' };
+  return null;
 }
 function endTurn() {
   const g = room.game; if (!work) return;
@@ -437,7 +514,7 @@ const HOWTO = `
     <div class="demo">${T('k', 10)}${T('k', 11)}${T('k', 12)}<span class="lbl">= 33점 ✓</span></div></div></div>
   <div class="step"><div class="no">4</div><div><h4>등록한 뒤엔 테이블도 마음대로</h4><p>테이블 타일을 옮기거나 끼워 넣어 새 묶음을 만들어도 돼요. 단, <b>턴이 끝날 때 모든 묶음이 올바라야</b> 하고 테이블 타일은 없앨 수 없어요.</p>
     <div class="demo">${T('r', 3)}${T('r', 4)}${T('r', 5)}${T('r', 6)}<span class="arrow">➜</span>${T('r', 3)}${T('r', 4)}${T('r', 5)}<span class="lbl">+</span>${T('r', 6)}${T('b', 6)}${T('y', 6)}</div></div></div>
-  <div class="step"><div class="no">5</div><div><h4>조작법</h4><p>타일을 <b>톡</b> 눌러 선택 → 놓을 묶음이나 "＋ 새 묶음"을 <b>톡</b>. 빨간 테두리 = 아직 잘못된 묶음. "되돌리기"로 턴 시작 상태로.</p></div></div>
+  <div class="step"><div class="no">5</div><div><h4>조작법</h4><p>타일을 <b>끌어서</b> 묶음 위에 놓거나, 테이블 빈 곳에 놓으면 새 묶음. 이번 턴에 내려놓은 타일은 다시 랙으로 끌어올 수 있어요. 여러 장을 <b>톡</b>으로 선택한 뒤 한 번에 끌어도 돼요. 빨간 테두리 = 아직 잘못된 묶음. "되돌리기"로 턴 시작 상태로.</p></div></div>
   <div class="step"><div class="no">6</div><div><h4>먼저 다 내려놓으면 승리</h4><p>남은 타일 숫자 합이 벌점 (조커 30점).</p></div></div>`;
 $('howtoHome').innerHTML = $('howtoModal').innerHTML = HOWTO;
 </script>
