@@ -357,7 +357,7 @@
   let reached = new Set();                // 이번 판에 만들어 본 과일 단계
   let offerQueue = [];                    // 유물 제안 대기 [{ reason }]
   let cardsReadyAt = 0;                   // 이 시각 전엔 카드 선택 불가 (연타 방지)
-  const CARD_LOCK_MS = 1800;
+  const CARD_LOCK_MS = 1000;
   const relicLevel = key => { const r = relics.find(x => x.def.key === key); return r ? r.level : 0; };
   let melons = 0, runTime = 0;
   let fruitScale = 1;                     // 수박 만들 때마다 과일이 작아짐 = 상자가 커지는 효과
