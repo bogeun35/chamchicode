@@ -173,31 +173,31 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  let W = 540; const H = 940;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
+  let W = 540; const H = 860;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
   const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
-  const BOX = { l: 22, r: 438, t: 260, b: 825 };  // 상자 안쪽 영역 (높이 565 — 원작보다 넉넉하게; l/r 은 상자 폭에 따라 바뀜)
+  const BOX = { l: 22, r: 438, t: 260, b: 740 };  // 상자 안쪽 영역 (높이 480 ≈ 원작 비율; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const BOX_T_BASE = 260;                       // 상자 윗변 기본값 (천장 유물/저주로 BOX.t 가 오르내림)
   const dropY = () => BOX.t - 75;               // 손에 든 과일 중심 높이 (상자 윗변 기준)
   const deadY = () => BOX.t + 4;                // 이 선 위에 과일이 머물면 게임 오버
-  const DROP_COOLDOWN = 250;                    // ms — 클릭 후 다음 과일까지
+  const DROP_COOLDOWN = 450;                    // ms — 클릭 후 다음 과일까지 (너무 빠르면 연타로 쉬워짐)
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
 
   const SHAKE_TIME = 700;                       // ms
 
   const FRUITS = [
-    { name: '체리',     r: 14,  color: '#e0313f', score: 1 },
-    { name: '딸기',     r: 20,  color: '#ff5a5a', score: 3 },
-    { name: '포도',     r: 27,  color: '#9b5de5', score: 6 },
-    { name: '한라봉',   r: 34,  color: '#ffb02e', score: 10 },
-    { name: '감',       r: 41,  color: '#ff8c2e', score: 15 },
-    { name: '사과',     r: 49,  color: '#e63946', score: 21 },
-    { name: '배',       r: 58,  color: '#f6e58d', score: 28 },
-    { name: '복숭아',   r: 67,  color: '#ffb6b9', score: 36 },
-    { name: '파인애플', r: 77,  color: '#ffd43b', score: 45 },
-    { name: '멜론',     r: 88,  color: '#b8e994', score: 55 },
-    { name: '수박',     r: 100, color: '#4caf50', score: 66 },
+    { name: '체리',     r: 17,  color: '#e0313f', score: 1 },
+    { name: '딸기',     r: 24,  color: '#ff5a5a', score: 3 },
+    { name: '포도',     r: 32,  color: '#9b5de5', score: 6 },
+    { name: '한라봉',   r: 41,  color: '#ffb02e', score: 10 },
+    { name: '감',       r: 49,  color: '#ff8c2e', score: 15 },
+    { name: '사과',     r: 59,  color: '#e63946', score: 21 },
+    { name: '배',       r: 70,  color: '#f6e58d', score: 28 },
+    { name: '복숭아',   r: 80,  color: '#ffb6b9', score: 36 },
+    { name: '파인애플', r: 92,  color: '#ffd43b', score: 45 },
+    { name: '멜론',     r: 106,  color: '#b8e994', score: 55 },
+    { name: '수박',     r: 120, color: '#4caf50', score: 66 },
   ];
   const ART = window.FRUIT_ART;
   const artBroken = [];   // 그리다 에러난 과일은 폴백으로 (아트 파일 수정 중이어도 게임은 돌아가게)
@@ -207,11 +207,11 @@
     minDrop: 0, maxDrop: 4,     // 손에 쥐는 과일 단계 범위
     nextCount: 3,               // 미리보기 개수
     gravity: 2.0,
-    restitution: 0.05,
-    friction: 0.3,              // 과일 마찰
+    restitution: 0.25,          // 원작처럼 살짝 튕겨서 흩어지게 (얌전하면 한 자리 연타로 다 합쳐짐)
+    friction: 0.15,             // 과일 마찰 (낮을수록 굴러가서 흩어짐)
     inertiaMul: 0.15,           // 낮을수록 잘 돈다
     scoreMul: 1,
-    deadTime: 1000,             // 게임오버 유예 ms
+    deadTime: 800,              // 게임오버 유예 ms (선 위에 이만큼 머물면 끝)
     boxScale: 1,                // 상자 폭 배율
     ceilingOffset: 0,           // 상자 윗변 이동 px (+ 위로 = 상자가 커짐)
     cherryRate: 1,              // 체리 등장 확률 (0~1)
@@ -269,7 +269,7 @@
   // 수박 = 페이즈 업: 유물 + (PHASE 2 부터) 저주 하나
   const phase = () => melons + 1;
   // 페이즈별로 유물을 주는 "첫 달성" 단계: P1 포도·감·배·파인애플·멜론, P2 감·배·파인애플·멜론, P3 배·…, P4+ 파인애플·멜론
-  const relicLevelsForPhase = () => [2, 4, 6, 8, 9].filter(lv => lv >= Math.min(8, 2 + melons * 2));
+  const relicLevelsForPhase = () => [4, 6, 9].filter(lv => lv >= Math.min(9, 4 + melons * 2));
   const phaseStartLevel = () => relicLevelsForPhase()[0];
   const WATERMELON_BONUS = 100;     // 수박 두 개가 닿아 사라질 때 보너스
 
@@ -361,7 +361,7 @@
   const relicLevel = key => { const r = relics.find(x => x.def.key === key); return r ? r.level : 0; };
   let melons = 0, runTime = 0;
   let fruitScale = 1;                     // 수박 만들 때마다 과일이 작아짐 = 상자가 커지는 효과
-  const MELON_GROW = 0.94, MIN_FRUIT_SCALE = 0.55;
+  const MELON_GROW = 0.96, MIN_FRUIT_SCALE = 0.71;
   const fr = b => b.circleRadius || FRUITS[b.level].r;   // 몸체 실제 반지름
   let insuranceCharges = 0;               // 보험 충전 개수 (멜론 보험)
   // 연출/기록
@@ -395,10 +395,18 @@
   }
 
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  // 페이즈별 낙하 과일 범위: P1 체리~감, P2 +사과, P3 체리 빠짐, P4 +배, P5+ 딸기 빠짐 (저주 대신 판 자체가 험해짐)
+  const dropRange = () => {
+    const ph = phase();
+    const lo = Math.max(cfg.minDrop, ph >= 5 ? 2 : ph >= 3 ? 1 : 0);
+    const hi = Math.min(6, Math.max(cfg.maxDrop, ph >= 4 ? 6 : ph >= 2 ? 5 : 4));
+    return [lo, hi];
+  };
   const randLevel = () => {
-    let lv = cfg.minDrop + Math.floor(Math.random() * (cfg.maxDrop - cfg.minDrop + 1));
-    if (lv === 0 && Math.random() >= cfg.cherryRate) lv = Math.max(1, cfg.minDrop);   // 체리 다이어트
-    if (lv === 1 && Math.random() >= cfg.strawberryRate) lv = Math.max(2, cfg.minDrop);  // 작은 것부터
+    const [lo, hi] = dropRange();
+    let lv = lo + Math.floor(Math.random() * (hi - lo + 1));
+    if (lv === 0 && Math.random() >= cfg.cherryRate) lv = Math.max(1, lo);          // 체리 다이어트
+    if (lv === 1 && Math.random() >= cfg.strawberryRate) lv = Math.max(2, lo);      // 딸기 다이어트
     return lv;
   };
   const fruitsInBox = () => Composite.allBodies(world).filter(b => b.label === 'fruit');
@@ -461,7 +469,7 @@
     sfx('click');
     applyCfg();
     clearBoard();
-    if (mode === 'rogue') showToast(`PHASE 1 — 🍇 포도를 처음 만들면 첫 유물!`, 3000);
+    if (mode === 'rogue') showToast(`PHASE 1 — 🟠 감을 처음 만들면 첫 유물!`, 3000);
     startEl.hidden = true; cardsEl.hidden = true; overEl.hidden = true;
     paused = false;
   }
@@ -482,9 +490,13 @@
     if (typeof entry === 'string') entry = { reason: entry };
     const reason = entry.reason || '';
     paused = true;
-    const pool = RELICS.filter(d => d.instant ? (!d.available || d.available()) : relicLevel(d.key) < maxLvOf(d));
+    const lvPool = RELICS.filter(d => !d.instant && relicLevel(d.key) < maxLvOf(d));
+    const instPool = RELICS.filter(d => d.instant && (!d.available || d.available()));
     const offer = [];
-    while (offer.length < 3 && pool.length) offer.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    if (instPool.length && Math.random() < 0.7) offer.push(pick(instPool));            // 즉시형은 최대 1장
+    while (offer.length < 3 && lvPool.length) offer.push(lvPool.splice(Math.floor(Math.random() * lvPool.length), 1)[0]);
+    if (offer.length < 3 && instPool.length && !offer.some(d => d.instant)) offer.push(pick(instPool));
+    offer.sort(() => Math.random() - 0.5);
     if (!offer.length) { paused = false; return; }
     document.getElementById('cardsTitle').textContent = `🎁 ${reason || '유물 획득!'}`;
     const note = document.getElementById('cardsNote');
@@ -771,7 +783,7 @@
       sfx('merge', { level: lv, combo: comboCount });
       if (lv === FRUITS.length - 1) {
         melons++;
-        if (fruitScale > MIN_FRUIT_SCALE) {   // 상자 성장: 모든 과일이 6% 작아짐 (= 폭·높이 +6%)
+        if (fruitScale > MIN_FRUIT_SCALE) {   // 상자 성장: 모든 과일이 4% 작아짐 (= 폭·높이 +4%, 최대 +40%)
           fruitScale = Math.max(MIN_FRUIT_SCALE, fruitScale * MELON_GROW);
           for (const o of fruitsInBox()) { Body.scale(o, MELON_GROW, MELON_GROW); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
           floatText(BOX_CX, BOX.t + 150, `📦 상자 성장! +${Math.round((1 / fruitScale - 1) * 100)}%`, '#9be8a8', 20);
@@ -780,7 +792,7 @@
         // 페이즈 업: 첫 달성 기록 리셋 (시작 단계가 올라감), 배너
         reached = new Set();
         floatText(BOX_CX, BOX.t + 200, `PHASE ${phase()}`, '#fff', 44);
-        showToast(`🍉 수박 ${melons}개! PHASE ${phase()} 시작 — ${FRUITS[phaseStartLevel()].name}부터 유물`, 3500);
+        { const [lo, hi] = dropRange(); showToast(`🍉 PHASE ${phase()}! 이제 ${FRUITS[lo].name}~${FRUITS[hi].name}가 떨어져요`, 3500); }
         if (mode === 'rogue') offerQueue.push({ reason: `🍉 PHASE ${phase()} 돌입!` });
       } else if (mode === 'rogue' && relicLevelsForPhase().includes(lv) && !reached.has(lv)) {
         reached.add(lv);
@@ -796,9 +808,10 @@
     danger = false;
     for (const b of fruitsInBox()) {
       const top = b.position.y - fr(b);
-      const settled = b.speed < 0.8 && now - b.born > 600;
-      if (top < deadY() + 30 && settled) danger = true;     // 선 근처: 경고 연출
-      if (top < deadY() && settled) {
+      // 방금 떨어뜨려 낙하 중인 과일만 제외 (아래로 3px/step 이상 이동 중). 흔들리는 더미는 그대로 카운트
+      const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed);
+      if (top < deadY() + 30 && counting) danger = true;     // 선 근처: 경고 연출
+      if (top < deadY() && counting) {
         if (!b.deadSince) b.deadSince = now;
         else if (now - b.deadSince > cfg.deadTime) {
           if (insuranceCharges > 0) useInsurance(); else endGame();
@@ -1236,11 +1249,11 @@
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
-      drawFruit(ctx, ex, 880, i, 0, 12 / FRUITS[i].r);
+      drawFruit(ctx, ex, 798, i, 0, 12 / FRUITS[i].r);
       if (i < FRUITS.length - 1) {
         ctx.fillStyle = 'rgba(255,255,255,.7)';
         ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', ex + 20, 880);
+        ctx.fillText('›', ex + 20, 798);
       }
       ex += 40;
     }
