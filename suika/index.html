@@ -23,6 +23,19 @@
   }
   #menuBtn:hover { background: #fff; }
   #menuBtn:active { transform: translate(-50%, 2px); box-shadow: 0 1px 0 #9c6532; }
+  #muteBtn {
+    position: absolute; right: 14px; bottom: 8px; width: 38px; height: 38px;
+    border: 3px solid #fff; border-radius: 50%; background: #ffefd0; font-size: 18px;
+    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
+  }
+  #muteBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+  .stats { display: flex; gap: 14px; align-items: center; justify-content: center; }
+  .stat { background: rgba(255,255,255,.15); border-radius: 14px; padding: 8px 14px; min-width: 80px; }
+  .stat .v { font-size: 24px; }
+  .stat .k { font-size: 12px; opacity: .85; }
+  #overFruit { display: block; margin: 0 auto; }
+  .row { display: flex; gap: 10px; }
+  .card .syn { margin-top: 6px; font-size: 11px; color: #d9822b; background: #fff3d6; border-radius: 8px; padding: 3px 6px; }
 
   .overlay {
     position: absolute; inset: 0;
@@ -65,12 +78,14 @@
   .card .nm { font-size: 17px; margin-top: 4px; }
   .card .ds { font-size: 12px; color: #9a7a5a; margin-top: 6px; line-height: 1.4; }
   .card .key { font-size: 11px; color: #c9a06a; margin-top: 6px; }
+  .card .lv { font-size: 12px; color: #fff; background: #ff9f43; border-radius: 8px; padding: 1px 6px; vertical-align: middle; }
 </style>
 </head>
 <body>
 <div id="gameBox">
   <canvas id="game"></canvas>
   <button id="menuBtn">메뉴</button>
+  <button id="muteBtn" title="소리 켜기/끄기">🔊</button>
 
   <div id="start" class="overlay">
     <h1>🍉 수박게임</h1>
@@ -97,15 +112,26 @@
   </div>
 
   <div id="over" class="overlay" hidden>
-    <h1>게임 오버</h1>
+    <h1 id="overTitle">게임 오버</h1>
+    <canvas id="overFruit" width="110" height="110"></canvas>
+    <p class="small" id="overFruitText"></p>
+    <div class="stats">
+      <div class="stat"><div class="v" id="ovScore">0</div><div class="k">점수</div></div>
+      <div class="stat"><div class="v" id="ovMelons">0</div><div class="k">🍉 수박</div></div>
+      <div class="stat"><div class="v" id="ovTime">00:00</div><div class="k">⏱ 시간</div></div>
+    </div>
     <p id="overText"></p>
-    <button class="btn" id="retry">다시 하기</button>
-    <button class="btn ghost" id="toMenu">메뉴로</button>
+    <button class="btn" id="retry">다시 하기 (Space)</button>
+    <div class="row">
+      <button class="btn ghost" id="shareBtn">📸 결과 저장</button>
+      <button class="btn ghost" id="toMenu">메뉴로</button>
+    </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="fruit-art.js"></script>
+<script src="sound.js"></script>
 <script>
 (() => {
   const { Engine, Bodies, Body, Composite, Events } = Matter;
@@ -152,44 +178,121 @@
     boxScale: 1,                // 상자 폭 배율
     ceilingOffset: 0,           // 게임오버 선 이동 (+ 위로 = 여유, − 아래로 = 압박)
     melonBonus: 0,              // 수박 만들 때 추가 점수
-    combo: false,               // 3초 안에 연속 합체 시 점수 ×1.5
-    chainPop: 0,                // 합체 시 근처 작은 과일 하나 펑 확률
-    rainbowEvery: 0,            // 합체 N번마다 무지개 (0=없음)
-    cleanupEvery: 0,            // 합체 N번마다 체리·딸기 전부 삭제 (0=없음)
+    cherryRate: 1,              // 체리 등장 확률 (0~1)
+    strawberryRate: 1,          // 딸기 등장 확률 (시너지)
+    cleanupPlus: 0,             // 파인애플 청소 범위 +N 단계 (시너지)
+    upgradeHand: false,         // 한라봉 향기가 손에 든 과일도 키움 (시너지)
+    insuranceCap: 0,            // 보험 충전 상한 (0 = 보험 없음)
     magnet: false,              // 같은 과일끼리 끌림
-    insurance: false,           // 게임오버 1회 방어
+    magnetReach: 1,             // 자석 범위 배율
+    comboWindow: 3000,          // 콤보 표시 인정 간격 ms
     quakeEvery: 0,              // ms 마다 지진 (0=없음)
-    cherryRainEvery: 0,         // ms 마다 체리 3개 낙하 (0=없음)
-    hurryMs: 0,                 // 이 시간 안에 안 떨어뜨리면 자동 낙하 (0=없음)
     dropJitter: 0,              // 떨어뜨릴 때 좌우 오차 px
     fogNext: false,             // Next 가림
   };
   // 유물: 전부 "더 오래 버티기 / 수박 더 만들기" 에 직접 도움되는 것만
+  // 유물: 같은 걸 다시 고르면 Lv.2 → Lv.3 으로 강해진다.
+  //  - fruit 가 있는 유물 = 그 과일을 "만들 때" 발동 (onMake)
+  //  - 없는 유물 = 상시 효과 (apply 는 cfg 절대값 설정)
+  const MAX_RELIC_LV = 3;
   const RELICS = [
-    { key: 'noCherry',  icon: '🍓', name: '체리 졸업',    desc: '체리가 안 나옴 → 자잘한 과일이 줄어듦',        apply: c => { c.minDrop = Math.max(c.minDrop, 1); } },
-    { key: 'next5',     icon: '🔮', name: '미리보기 5개',  desc: 'Next 를 5개까지 보고 자리 계획',               apply: c => { c.nextCount = 5; } },
-    { key: 'wideBox',   icon: '📏', name: '넓은 상자',     desc: '상자 폭 +10% → 더 많이 쌓임',                  apply: c => { c.boxScale += 0.10; } },
-    { key: 'ceiling',   icon: '⬆️', name: '높은 천장',     desc: '게임오버 선이 40px 위로 올라감',               apply: c => { c.ceilingOffset += 40; } },
-    { key: 'insurance', icon: '🛡️', name: '보험',          desc: '게임오버 1번 막아줌 (위쪽 과일 전부 삭제)',    apply: c => { c.insurance = true; } },
-    { key: 'cleanup',   icon: '🧹', name: '청소',          desc: '합체 20번마다 체리·딸기가 전부 사라짐',        apply: c => { c.cleanupEvery = 20; } },
-    { key: 'chainPop',  icon: '💣', name: '연쇄 폭발',     desc: '합체할 때 15% 확률로 옆의 작은 과일 펑',       apply: c => { c.chainPop += 0.15; } },
-    { key: 'rainbow',   icon: '🌈', name: '무지개 주기',   desc: '합체 12번마다 아무 과일과 합쳐지는 무지개',    apply: c => { c.rainbowEvery = 12; } },
-    { key: 'magnet',    icon: '🧲', name: '자석',          desc: '같은 과일끼리 가까우면 서로 끌려 합쳐짐',      apply: c => { c.magnet = true; } },
-    { key: 'antiSlip',  icon: '🧱', name: '미끄럼 방지',   desc: '과일이 덜 굴러 무너지지 않고 쌓임',            apply: c => { c.friction = 0.7; c.inertiaMul *= 2; } },
-    { key: 'melonBonus',icon: '🍉', name: '수박 보너스',   desc: '수박 만들 때마다 +200점 (유물이 빨리 옴)',     apply: c => { c.melonBonus += 200; } },
-    { key: 'combo',     icon: '🔥', name: '콤보',          desc: '3초 안에 연속 합체하면 점수 ×1.5',             apply: c => { c.combo = true; } },
+    // ── 과일 유물 (만들 때 발동) ──
+    { key: 'strawberry', fruit: 1, icon: '🍓', name: '딸기 씨앗', levels: [
+      { desc: '딸기 만들면 +5점',                          onMake: e => { bonus(e, 5); } },
+      { desc: '딸기 만들면 +10점, 옆 체리 1개 삭제',        onMake: e => { bonus(e, 10); popNear(e, 120, b => b.level === 0, 1); } },
+      { desc: '딸기 만들면 +15점, 근처 체리 전부 삭제',     onMake: e => { bonus(e, 15); popNear(e, 160, b => b.level === 0, 9); } },
+    ] },
+    { key: 'grape', fruit: 2, icon: '🍇', name: '포도 폭탄', levels: [
+      { desc: '포도 만들면 30% 확률로 옆 작은 과일 1개 펑',  onMake: e => { if (Math.random() < 0.3) popNear(e, 130, b => b.level <= 1, 1); } },
+      { desc: '포도 만들면 60% 확률로 펑',                   onMake: e => { if (Math.random() < 0.6) popNear(e, 130, b => b.level <= 1, 1); } },
+      { desc: '포도 만들면 항상 옆 작은 과일 2개 펑',        onMake: e => { popNear(e, 150, b => b.level <= 1, 2); } },
+    ] },
+    { key: 'dekopon', fruit: 3, icon: '🍊', name: '한라봉 향기', levels: [
+      { desc: '한라봉 만들면 Next 1번이 한 단계 커짐',        onMake: e => { upgradeNext(1); } },
+      { desc: '한라봉 만들면 Next 2개가 한 단계 커짐',        onMake: e => { upgradeNext(2); } },
+      { desc: '한라봉 만들면 Next 전부 한 단계 커짐',         onMake: e => { upgradeNext(9); } },
+    ] },
+    { key: 'persimmon', fruit: 4, icon: '🟠', name: '감 자석', levels: [
+      { desc: '감 만들면 3초간 다른 감을 끌어당김 (가까운 것)', onMake: e => { magnetBurst(4, 3000, 1); } },
+      { desc: '끌어당기는 범위 2배',                          onMake: e => { magnetBurst(4, 3000, 2); } },
+      { desc: '상자 안 어디든 끌어당김',                      onMake: e => { magnetBurst(4, 3000, 6); } },
+    ] },
+    { key: 'apple', fruit: 5, icon: '🍎', name: '사과 상금', levels: [
+      { desc: '사과 만들면 +30점 (유물이 빨리 옴)',           onMake: e => { bonus(e, 30); } },
+      { desc: '사과 만들면 +60점',                            onMake: e => { bonus(e, 60); } },
+      { desc: '사과 만들면 +120점',                           onMake: e => { bonus(e, 120); } },
+    ] },
+    { key: 'pear', fruit: 6, icon: '🍐', name: '배 흔들기', levels: [
+      { desc: '배 만들면 상자가 살짝 흔들려 정리됨',           onMake: e => { shakeBox(0.6); } },
+      { desc: '배 만들면 세게 흔들림',                        onMake: e => { shakeBox(1.0); } },
+      { desc: '세게 흔들리고 근처 체리·딸기 삭제',            onMake: e => { shakeBox(1.0); popNear(e, 150, b => b.level <= 1, 9); } },
+    ] },
+    { key: 'peach', fruit: 7, icon: '🍑', name: '복숭아 무지개', levels: [
+      { desc: '복숭아 만들면 30% 확률로 다음 과일이 무지개',   onMake: e => { if (Math.random() < 0.3) giveRainbow(); } },
+      { desc: '60% 확률로 무지개',                            onMake: e => { if (Math.random() < 0.6) giveRainbow(); } },
+      { desc: '복숭아 만들면 항상 무지개',                    onMake: e => { giveRainbow(); } },
+    ] },
+    { key: 'pineapple', fruit: 8, icon: '🍍', name: '파인애플 청소', levels: [
+      { desc: '파인애플 만들면 상자 안 체리 전부 삭제',        onMake: e => { popFruits(b => b.level <= 0 + cleanupPlus(), '🍍 청소!'); } },
+      { desc: '체리·딸기 전부 삭제',                          onMake: e => { popFruits(b => b.level <= 1 + cleanupPlus(), '🍍 청소!'); } },
+      { desc: '체리·딸기·포도 전부 삭제',                     onMake: e => { popFruits(b => b.level <= 2 + cleanupPlus(), '🍍 청소!'); } },
+    ] },
+    { key: 'melon', fruit: 9, icon: '🍈', name: '멜론 보험', levels: [
+      { desc: '멜론 만들면 보험 1개 충전 (최대 1개) — 게임오버를 막아줌', apply: c => { c.insuranceCap = 1; }, onMake: e => { chargeInsurance(); } },
+      { desc: '보험 최대 2개',                                 apply: c => { c.insuranceCap = 2; }, onMake: e => { chargeInsurance(); } },
+      { desc: '보험 최대 3개',                                 apply: c => { c.insuranceCap = 3; }, onMake: e => { chargeInsurance(); } },
+    ] },
+    { key: 'watermelon', fruit: 10, icon: '🍉', name: '수박 축제', levels: [
+      { desc: '수박 만들면 +200점',                            apply: c => { c.melonBonus = 200; } },
+      { desc: '수박 만들면 +400점',                            apply: c => { c.melonBonus = 400; } },
+      { desc: '+400점, 주변 과일 3개가 한 단계 커짐',          apply: c => { c.melonBonus = 400; }, onMake: e => { upgradeNear(e, 170, 3); } },
+    ] },
+    // ── 상시 유물 ──
+    { key: 'cherry', icon: '🍒', name: '체리 다이어트', levels: [
+      { desc: '체리가 절반만 나옴',                 apply: c => { c.cherryRate = 0.5; } },
+      { desc: '체리가 더 이상 안 나옴',              apply: c => { c.cherryRate = 0; } },
+      { desc: '상자 안 체리가 전부 사라짐',          apply: c => { c.cherryRate = 0; }, once: () => popFruits(b => b.level === 0, '🍒 체리 전부 삭제!') },
+    ] },
+    { key: 'next', icon: '🔮', name: '미리보기', levels: [
+      { desc: 'Next 4개',                            apply: c => { c.nextCount = 4; } },
+      { desc: 'Next 5개',                            apply: c => { c.nextCount = 5; } },
+      { desc: 'Next 6개',                            apply: c => { c.nextCount = 6; } },
+    ] },
+    { key: 'wideBox', icon: '📏', name: '넓은 상자', levels: [
+      { desc: '상자 폭 +6%',                         apply: c => { c.boxScale += 0.06; } },
+      { desc: '상자 폭 +12%',                        apply: c => { c.boxScale += 0.12; } },
+      { desc: '상자 폭 +18%',                        apply: c => { c.boxScale += 0.18; } },
+    ] },
+    { key: 'ceiling', icon: '⬆️', name: '높은 천장', levels: [
+      { desc: '게임오버 선 25px 위로',               apply: c => { c.ceilingOffset += 25; } },
+      { desc: '게임오버 선 50px 위로',               apply: c => { c.ceilingOffset += 50; } },
+      { desc: '게임오버 선 75px 위로',               apply: c => { c.ceilingOffset += 75; } },
+    ] },
+    { key: 'antiSlip', icon: '🧱', name: '미끄럼 방지', levels: [
+      { desc: '과일이 덜 굴러 안정적으로 쌓임',      apply: c => { c.friction = 0.5; c.inertiaMul = 0.25; } },
+      { desc: '거의 안 굴러감',                      apply: c => { c.friction = 0.7; c.inertiaMul = 0.4; } },
+      { desc: '놓은 자리에 딱 멈춤',                 apply: c => { c.friction = 0.9; c.inertiaMul = 0.7; } },
+    ] },
   ];
   // 저주: 전부 눈에 보이는 불이익
   const CURSES = [
     { key: 'narrow',     icon: '📐', name: '좁은 상자',    desc: '상자 폭 −15%',                          apply: c => { c.boxScale -= 0.15; } },
     { key: 'lowCeiling', icon: '⬇️', name: '낮은 천장',    desc: '게임오버 선이 40px 내려옴',              apply: c => { c.ceilingOffset -= 40; } },
     { key: 'bigOnly',    icon: '🍊', name: '큰 과일만',    desc: '포도~사과만 나와서 금방 참',             apply: c => { c.minDrop = Math.max(c.minDrop, 2); c.maxDrop = 5; } },
-    { key: 'cherryRain', icon: '🍒', name: '체리 비',      desc: '15초마다 체리 3개가 떨어짐',             apply: c => { c.cherryRainEvery = 15000; } },
-    { key: 'hurry',      icon: '⏱', name: '재촉',         desc: '4초 안에 안 떨어뜨리면 자동 낙하',       apply: c => { c.hurryMs = 4000; } },
     { key: 'shakyHand',  icon: '🫨', name: '떨리는 손',    desc: '떨어뜨릴 때 좌우로 ±25px 빗나감',        apply: c => { c.dropJitter = 25; } },
     { key: 'quake',      icon: '🌋', name: '지진',         desc: '20초마다 상자가 흔들림',                 apply: c => { c.quakeEvery = 20000; } },
     { key: 'fog',        icon: '🌫️', name: '안개',         desc: 'Next 가 안 보임',                        apply: c => { c.fogNext = true; } },
   ];
+  // 시너지: 유물/저주 조합이 갖춰지면 자동 발동 ("이 조합 미쳤다" 용)
+  const SYNERGIES = [
+    { keys: ['grape', 'pineapple'],     icon: '🧨', name: '대청소',      desc: '파인애플 청소가 한 단계 더 큰 과일까지 치움', apply: c => { c.cleanupPlus = 1; } },
+    { keys: ['peach', 'watermelon'],    icon: '🌈', name: '무지개 수박', desc: '수박 보너스 2배',                            apply: c => { c.melonBonus *= 2; } },
+    { keys: ['melon', 'ceiling'],       icon: '🏰', name: '철벽',        desc: '보험 최대 개수 +1',                          apply: c => { c.insuranceCap += 1; } },
+    { keys: ['cherry', 'strawberry'],   icon: '🌱', name: '작은 것부터', desc: '딸기도 절반만 나옴',                         apply: c => { c.strawberryRate = 0.5; } },
+    { keys: ['dekopon', 'next'],        icon: '🔭', name: '선견지명',    desc: '한라봉 향기가 손에 든 과일도 키움',          apply: c => { c.upgradeHand = true; } },
+    { keys: ['wideBox', 'narrow'],      icon: '🪄', name: '상쇄',        desc: '좁은 상자 저주가 무효 + 보너스 +5%',         apply: c => { c.boxScale += 0.20; } },
+  ];
+
   // 유물 지급 점수: 500, 750, 1050, 1500, 2200, 3200, 4650, ... (×1.45)
   const milestoneTarget = i => Math.round(500 * Math.pow(1.45, i) / 50) * 50;
   const WATERMELON_BONUS = 100;     // 수박 두 개가 닿아 사라질 때 보너스
@@ -264,19 +367,54 @@
   let paused = true;        // 오버레이 떠 있을 때 물리 정지
   let mergeQueue = [];
   let effects = [];
-  let shakeUntil = 0;                     // 흔들기(지진) 진행 중
+  let shakeUntil = 0, shakePower = 1;     // 흔들기(지진/배) 진행 중 / 세기
   let mergeCount = 0;                     // 무지개 주기 카운터
   let lastMergeAt = 0;                    // 콤보 판정용
   let toast = null;                       // { text, t } 화면 안내
   let holdWild = false;                   // 손에 든 과일이 무지개
   // 런 상태 (클래식도 시간/수박 수는 셈)
-  let relics = [], curses = [], milestoneIdx = 0;
-  let melons = 0, runTime = 0, lastQuake = 0, lastRain = 0;
-  let insuranceUsed = false;
-  let holdSince = 0;                      // 손에 든 과일을 잡은 시각 (재촉 저주용)
+  let relics = [], curses = [], milestoneIdx = 0;   // relics: [{ def, level }]
+  const relicLevel = key => { const r = relics.find(x => x.def.key === key); return r ? r.level : 0; };
+  let melons = 0, runTime = 0, lastQuake = 0;
+  let insuranceCharges = 0;               // 보험 충전 개수 (멜론 보험)
+  let burst = null;                       // 감 자석: { level, until, reach }
+  // 연출/기록
+  let floaters = [];                      // 떠오르는 점수 텍스트
+  let particles = [];                     // 합체 조각 / 색종이
+  let shakeMag = 0;                       // 화면 흔들림 세기 (감쇠)
+  let comboCount = 0;                     // 연속 합체 수 (표시용)
+  let scorePulseAt = 0;
+  let bestLevelMade = 0;                  // 이번 판 최고 과일
+  let recordBefore = 0;                   // 시작 시점의 최고 기록 (신기록 판정)
+  let lastWarnAt = 0;                     // 경고음 간격
+  let danger = false;                     // 게임오버 선 근처 과일 있음
+
+  const sfx = (name, opt) => { try { if (window.Sound) window.Sound.play(name, opt); } catch (e) {} };
+  function spawnParticles(x, y, color, n, speed = 4, life = 600, size = 5) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, v = speed * (0.4 + Math.random() * 0.8);
+      particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, color, t: performance.now(), life, size: size * (0.6 + Math.random() * 0.8), rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3 });
+    }
+  }
+  function confetti(n = 70) {
+    const colors = ['#ff8a94', '#ffcb7a', '#fff4b0', '#9be8a8', '#c3a6ff', '#7fd7ff', '#ffffff'];
+    for (let i = 0; i < n; i++) {
+      particles.push({ x: BOX.l + Math.random() * (BOX.r - BOX.l), y: BOX.t - RIM - 40 - Math.random() * 80,
+        vx: (Math.random() - 0.5) * 3, vy: 1 + Math.random() * 2, color: pick(colors), t: performance.now(), life: 1800,
+        size: 6 + Math.random() * 5, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, rect: true, drag: 0.98 });
+    }
+  }
+  function floatText(x, y, text, color = '#fff', size = 18) {
+    floaters.push({ x, y, text, color, size, t: performance.now() });
+  }
 
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  const randLevel = () => cfg.minDrop + Math.floor(Math.random() * (cfg.maxDrop - cfg.minDrop + 1));
+  const randLevel = () => {
+    let lv = cfg.minDrop + Math.floor(Math.random() * (cfg.maxDrop - cfg.minDrop + 1));
+    if (lv === 0 && Math.random() >= cfg.cherryRate) lv = Math.max(1, cfg.minDrop);   // 체리 다이어트
+    if (lv === 1 && Math.random() >= cfg.strawberryRate) lv = Math.max(2, cfg.minDrop);  // 작은 것부터
+    return lv;
+  };
   const fruitsInBox = () => Composite.allBodies(world).filter(b => b.label === 'fruit');
 
   function clampX(x, level) {
@@ -291,8 +429,11 @@
 
   function computeCfg() {
     const c = { ...BASE_CFG };
-    for (const r of relics) r.apply(c);
+    for (const r of relics) { const L = r.def.levels[r.level - 1]; if (L.apply) L.apply(c); }
     for (const r of curses) r.apply(c);
+    const owned = new Set([...relics.map(r => r.def.key), ...curses.map(r => r.key)]);
+    c.synergies = SYNERGIES.filter(sy => sy.keys.every(k => owned.has(k)));
+    for (const sy of c.synergies) sy.apply(c);
     c.boxScale = Math.max(0.6, Math.min(1.3, c.boxScale));
     return c;
   }
@@ -328,8 +469,11 @@
     score = 0; gameOver = false;
     mergeCount = 0; lastMergeAt = 0; toast = null;
     relics = []; curses = []; milestoneIdx = 0;
-    melons = 0; runTime = 0; lastQuake = lastRain = performance.now();
-    insuranceUsed = false; holdSince = 0;
+    melons = 0; runTime = 0; lastQuake = performance.now();
+    insuranceCharges = 0; burst = null;
+    floaters = []; particles = []; shakeMag = 0; comboCount = 0; bestLevelMade = 0; danger = false;
+    recordBefore = m === 'rogue' ? rogueBest.score : best;
+    sfx('click');
     applyCfg();
     clearBoard();
     if (mode === 'rogue') showToast(`${milestoneTarget(0)}점에서 첫 유물!`, 2500);
@@ -347,7 +491,7 @@
 
   function offerRelics() {
     paused = true;
-    const pool = RELICS.filter(r => !relics.includes(r));
+    const pool = RELICS.filter(d => relicLevel(d.key) < MAX_RELIC_LV);
     const offer = [];
     while (offer.length < 3 && pool.length) offer.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     const cursePool = CURSES.filter(c => !curses.includes(c));
@@ -359,28 +503,48 @@
       : '첫 유물은 저주 없이!';
     const list = document.getElementById('cardList');
     list.innerHTML = '';
-    offer.forEach((r, i) => {
+    const ownedKeys = new Set([...relics.map(r => r.def.key), ...curses.map(x => x.key)]);
+    if (pendingCurse) ownedKeys.add(pendingCurse.key);
+    offer.forEach((d, i) => {
       const el = document.createElement('div');
       el.className = 'card';
-      el.innerHTML = `<div class="ic">${r.icon}</div><div class="nm">${r.name}</div><div class="ds">${r.desc}</div><div class="key">[${i + 1}]</div>`;
-      el.onclick = () => takeRelic(r, pendingCurse);
+      const cur = relicLevel(d.key), next = cur + 1;
+      const syn = cur === 0 && SYNERGIES.find(sy => sy.keys.includes(d.key) && sy.keys.every(k => k === d.key || ownedKeys.has(k)));
+      el.innerHTML = `<div class="ic">${d.icon}</div><div class="nm">${d.name} <span class="lv">Lv.${next}</span></div>`
+        + (cur ? `<div class="ds" style="opacity:.6">현재: ${d.levels[cur - 1].desc}</div><div class="ds">↑ ${d.levels[next - 1].desc}</div>` : `<div class="ds">${d.levels[0].desc}</div>`)
+        + (syn ? `<div class="syn">✨ 시너지 ${syn.icon} ${syn.name}<br>${syn.desc}</div>` : '')
+        + `<div class="key">[${i + 1}]</div>`;
+      el.onclick = () => takeRelic(d, pendingCurse);
       list.appendChild(el);
     });
+    sfx('relic');
     cardsEl.hidden = false;
     cardsEl._offer = offer;
     cardsEl._curse = pendingCurse;
   }
 
-  function takeRelic(relic, pendingCurse) {
+  function takeRelic(def, pendingCurse) {
     cardsEl.hidden = true;
-    if (relic) relics.push(relic);
+    const before = new Set((cfg.synergies || []).map(sy => sy.name));
+    let got = null;
+    if (def) {
+      got = relics.find(r => r.def === def);
+      if (got) got.level = Math.min(MAX_RELIC_LV, got.level + 1);
+      else { got = { def, level: 1 }; relics.push(got); }
+    }
     if (pendingCurse) curses.push(pendingCurse);
     milestoneIdx++;
     applyCfg();                      // 상자는 그대로, 규칙만 갱신
+    if (got) { const lvDef = def.levels[got.level - 1]; if (lvDef.once) lvDef.once(); }   // 즉시 효과 (Lv.3 체리 삭제 등)
     const parts = [];
-    if (relic) parts.push(`${relic.icon} ${relic.name}`);
-    if (pendingCurse) parts.push(`${pendingCurse.icon} ${pendingCurse.name}`);
+    if (got) parts.push(`${def.icon} ${def.name} Lv.${got.level}`);
+    if (pendingCurse) { parts.push(`${pendingCurse.icon} ${pendingCurse.name}`); sfx('curse'); }
+    const newSyn = cfg.synergies.filter(sy => !before.has(sy.name));
+    if (newSyn.length) {
+      setTimeout(() => { showToast(`✨ 시너지 발동! ${newSyn.map(sy => sy.icon + ' ' + sy.name).join(', ')}`, 3200); confetti(40); sfx('rainbow'); }, 1200);
+    }
     showToast(parts.join('  +  ') + `  · 다음 유물 ${milestoneTarget(milestoneIdx)}점`, 3000);
+    sfx('click');
     paused = false;
   }
 
@@ -391,9 +555,10 @@
     const x = clampX(mouseX + jitter, current);
     const b = makeFruit(x, DROP_Y, current);
     if (holdWild) { b.wild = true; holdWild = false; }
-    holdSince = 0;
+    b.dropped = true;
     Body.setVelocity(b, { x: 0, y: 4 });   // 바로 떨어지기 시작 (반응 빠르게)
     Composite.add(world, b);
+    sfx('drop', { level: current });
     current = null;
     canDrop = false;
     setTimeout(() => {
@@ -403,46 +568,154 @@
     }, DROP_COOLDOWN);
   }
 
+  // ── 과일 유물 효과 헬퍼 ──
+  function bonus(e, pts) {
+    const v = Math.round(pts * cfg.scoreMul);
+    addScore(v);
+    floatText(e.x, e.y - FRUITS[e.lv].r - 10, `+${v} 보너스`, '#ffd36b', 16);
+  }
+  function popNear(e, radius, test, maxN) {
+    const near = fruitsInBox().filter(b => b !== e.body && !b.wild && test(b) && Math.hypot(b.position.x - e.x, b.position.y - e.y) < radius);
+    near.sort((a, b) => Math.hypot(a.position.x - e.x, a.position.y - e.y) - Math.hypot(b.position.x - e.x, b.position.y - e.y));
+    let n = 0;
+    for (const b of near.slice(0, maxN)) {
+      Composite.remove(world, b); n++;
+      effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: performance.now(), pop: true });
+      spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 8);
+    }
+    if (n) sfx('pop');
+    return n;
+  }
+  function upgradeNext(n) {
+    let done = 0;
+    for (let i = 0; i < nextQueue.length && done < n; i++) if (nextQueue[i] < 4) { nextQueue[i]++; done++; }
+    if (cfg.upgradeHand && current !== null && current < 4) { current++; done++; }
+    if (done) { showToast(`🍊 한라봉 향기! 다음 과일 ${done}개가 커짐`); sfx('relic'); }
+  }
+  function upgradeNear(e, radius, maxN) {
+    const near = fruitsInBox().filter(b => b !== e.body && !b.wild && b.level < 9 && Math.hypot(b.position.x - e.x, b.position.y - e.y) < radius);
+    near.sort((a, b) => Math.hypot(a.position.x - e.x, a.position.y - e.y) - Math.hypot(b.position.x - e.x, b.position.y - e.y));
+    for (const b of near.slice(0, maxN)) {
+      const nb = makeFruit(b.position.x, b.position.y, b.level + 1);
+      Composite.remove(world, b); Composite.add(world, nb);
+      effects.push({ x: nb.position.x, y: nb.position.y, r: FRUITS[nb.level].r, t: performance.now() });
+      spawnParticles(nb.position.x, nb.position.y, '#fff', 10);
+    }
+    if (near.length) { showToast('🍉 수박 축제! 주변 과일이 커짐'); sfx('rainbow'); }
+  }
+  function magnetBurst(level, ms, reach) {
+    burst = { level, until: performance.now() + ms, reach };
+    showToast(`🧲 ${FRUITS[level].name} 자석!`, 1500);
+  }
+  function shakeBox(power) {
+    shakeUntil = performance.now() + SHAKE_TIME;
+    shakePower = power;
+    sfx('shake');
+  }
+  function giveRainbow() {
+    holdWild = true;
+    showToast('🌈 무지개 과일!'); sfx('rainbow');
+  }
+  function chargeInsurance() {
+    if (insuranceCharges < cfg.insuranceCap) { insuranceCharges++; showToast(`🛡️ 보험 충전! (${insuranceCharges}/${cfg.insuranceCap})`, 2200); sfx('relic'); }
+    else showToast('🛡️ 보험이 이미 가득');
+  }
+  const cleanupPlus = () => cfg.cleanupPlus || 0;
+
+  function popFruits(test, msg) {
+    const now = performance.now();
+    let n = 0;
+    for (const b of fruitsInBox()) if (test(b)) {
+      Composite.remove(world, b); n++;
+      effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: now, pop: true });
+      spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 8);
+    }
+    if (n) { showToast(msg + ` (${n}개)`, 2200); sfx('pop'); }
+    return n;
+  }
+
   function useInsurance() {
-    insuranceUsed = true;
+    insuranceCharges--;
     const now = performance.now();
     for (const b of fruitsInBox()) {
       if (b.position.y < BOX.t + 220) {
         Composite.remove(world, b);
         effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: now, pop: true });
+        spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 8);
       } else b.deadSince = 0;
     }
-    showToast('🛡️ 보험 발동! 위쪽 과일 삭제', 2500);
-  }
-
-  function rainCherries(n) {
-    for (let i = 0; i < n; i++) {
-      const x = BOX.l + 40 + Math.random() * (BOX.r - BOX.l - 80);
-      const b = makeFruit(x, DROP_Y - 30 - i * 30, 0);
-      Body.setVelocity(b, { x: (Math.random() - 0.5) * 2, y: 3 });
-      Composite.add(world, b);
-    }
-    showToast('🍒 체리 비!');
+    shakeMag = 8;
+    sfx('melonPop');
+    showToast(`🛡️ 보험 발동! 위쪽 과일 삭제 (${insuranceCharges}개 남음)`, 2500);
   }
 
   function endGame() {
     gameOver = true;
-    let text = `점수 ${score} · 🍉 ${melons}개 · ⏱ ${fmtTime(runTime)}`;
-    if (mode === 'rogue') {
-      text += `<br><span class="small">유물: ${relics.map(r => r.icon).join(' ') || '없음'}   저주: ${curses.map(c => c.icon).join(' ') || '없음'}</span>`;
-      if (score > rogueBest.score) {
-        rogueBest = { score, melons };
-        localStorage.setItem('suika_rogue_best', JSON.stringify(rogueBest));
-        text += '<br><span class="small">🏅 최고 기록 갱신!</span>';
-      }
+    sfx('gameover');
+    shakeMag = 10;
+    const isRecord = score > recordBefore;
+    if (mode === 'rogue' && score > rogueBest.score) {
+      rogueBest = { score, melons };
+      localStorage.setItem('suika_rogue_best', JSON.stringify(rogueBest));
     }
-    document.getElementById('overText').innerHTML = text;
+    // 최고 과일
+    const oc = document.getElementById('overFruit'), octx = oc.getContext('2d');
+    octx.clearRect(0, 0, oc.width, oc.height);
+    drawFruit(octx, oc.width / 2, oc.height / 2 + 4, bestLevelMade, 0, Math.min(1, 44 / FRUITS[bestLevelMade].r));
+    document.getElementById('overFruitText').textContent = `이번 판 최고 과일: ${FRUITS[bestLevelMade].name}`;
+    document.getElementById('ovScore').textContent = score;
+    document.getElementById('ovMelons').textContent = melons;
+    document.getElementById('ovTime').textContent = fmtTime(runTime);
+    // "한 판 더" 문장
+    let line;
+    if (isRecord) { line = `🏅 신기록! (이전 ${recordBefore}점)`; confetti(90); }
+    else if (recordBefore - score <= 150) line = `😱 최고 기록까지 겨우 <b>${recordBefore - score}점</b>! 한 판 더?`;
+    else line = `최고 기록까지 ${recordBefore - score}점 · 다음 과일 목표: ${FRUITS[Math.min(10, bestLevelMade + 1)].name}`;
+    if (mode === 'rogue') {
+      line += `<br><span class="small">유물: ${relics.map(r => r.def.icon + (r.level > 1 ? r.level : '')).join(' ') || '없음'}   저주: ${curses.map(c => c.icon).join(' ') || '없음'}`
+        + (cfg.synergies && cfg.synergies.length ? `   시너지: ${cfg.synergies.map(sy => sy.icon).join(' ')}` : '') + `</span>`;
+    }
+    document.getElementById('overTitle').textContent = isRecord ? '🎉 신기록!' : '게임 오버';
+    document.getElementById('overText').innerHTML = line;
     overEl.hidden = false;
+  }
+
+  // 결과 이미지: 게임 화면 + 하단 요약 띠 → PNG 다운로드
+  function shareImage() {
+    sfx('click');
+    const pad = 90, out = document.createElement('canvas');
+    out.width = W * 2; out.height = (H + pad) * 2;
+    const c = out.getContext('2d');
+    c.scale(2, 2);
+    c.fillStyle = '#c8874a'; c.fillRect(0, 0, W, H + pad);
+    c.drawImage(canvas, 0, 0, W, H);
+    c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, H, W, pad);
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+    const line1 = `🍉 수박게임 ${mode === 'rogue' ? '로그라이크' : '클래식'} · ${score}점 · 수박 ${melons}개 · ${fmtTime(runTime)}`;
+    const line2 = mode === 'rogue' && relics.length ? `유물 ${relics.map(r => r.def.icon + (r.level > 1 ? r.level : '')).join(' ')}   저주 ${curses.map(x => x.icon).join(' ') || '없음'}` : '같은 과일을 합쳐 수박을 만들어요';
+    let url = location.href; try { url = window.top.location.href; } catch (e) {}
+    url = url.split('?')[0].split('#')[0];
+    for (const [txt, y, size] of [[line1, H + 24, 20], [line2, H + 50, 15], [url, H + 74, 12]]) {
+      c.font = `${size}px Jua, "Malgun Gothic", sans-serif`;
+      c.lineWidth = size * 0.22; c.strokeStyle = '#6a3a1a'; c.strokeText(txt, W / 2, y);
+      c.fillStyle = '#fff'; c.fillText(txt, W / 2, y);
+    }
+    out.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `suika-${score}점-${melons}수박.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, 'image/png');
   }
 
   // ── 충돌 → 합치기 ────────────────────────────────────
   Events.on(engine, 'collisionStart', ev => {
     for (const { bodyA: a, bodyB: b } of ev.pairs) {
+      for (const f of [a, b]) if (f.label === 'fruit' && f.dropped && !f.landed) {   // 처음 착지
+        f.landed = true; f.landedAt = performance.now();
+        sfx('land', { level: f.level });
+      }
       if (a.label !== 'fruit' || b.label !== 'fruit') continue;
       if (a.merging || b.merging) continue;
       if (a.wild || b.wild) {                       // 무지개: 닿은 과일의 다음 단계로
@@ -461,15 +734,18 @@
   Events.on(engine, 'beforeUpdate', () => {
     const now = performance.now();
     const shaking = now < shakeUntil;
-    const kick = shaking ? Math.sin((shakeUntil - now) / SHAKE_TIME * Math.PI * 6) * 1.6 : 0;
+    const kick = shaking ? Math.sin((shakeUntil - now) / SHAKE_TIME * Math.PI * 6) * 1.6 * shakePower : 0;
     const list = fruitsInBox();
-    // 자석: 같은 과일끼리 가까우면 살짝 끌림
-    if (cfg.magnet) {
+    // 자석: 감 자석 버스트 (3초간 특정 단계끼리 끌림)
+    const bursting = burst && now < burst.until;
+    if (cfg.magnet || bursting) {
       for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
         const a = list[i], b = list[j];
         if (a.level !== b.level || a.wild || b.wild) continue;
+        const viaBurst = bursting && a.level === burst.level;
+        if (!cfg.magnet && !viaBurst) continue;
         const dx = b.position.x - a.position.x, dy = b.position.y - a.position.y;
-        const d = Math.hypot(dx, dy), reach = FRUITS[a.level].r * 2 + 90;
+        const d = Math.hypot(dx, dy), reach = (FRUITS[a.level].r * 2 + 90) * (viaBurst ? burst.reach : cfg.magnetReach);
         if (d < 1 || d > reach) continue;
         const k = 0.00015 / d;
         Body.applyForce(a, a.position, { x: dx * k * a.mass, y: dy * k * a.mass });
@@ -492,9 +768,16 @@
       Composite.remove(world, a);
       Composite.remove(world, b);
       if (lv < 0) {   // 수박 + 수박 → 펑, 보너스
-        for (const o of [a, b]) effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[10].r, t: performance.now(), pop: true });
-        addScore(Math.round(WATERMELON_BONUS * cfg.scoreMul));
-        showToast(`🍉🍉 수박 소멸! +${Math.round(WATERMELON_BONUS * cfg.scoreMul)}`);
+        for (const o of [a, b]) {
+          effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[10].r, t: performance.now(), pop: true });
+          spawnParticles(o.position.x, o.position.y, '#9be8a8', 24, 7, 900, 7);
+          spawnParticles(o.position.x, o.position.y, '#ff8a94', 16, 6, 900, 6);
+        }
+        const bonus = Math.round(WATERMELON_BONUS * cfg.scoreMul);
+        addScore(bonus);
+        floatText(x, y - 40, `+${bonus}`, '#fff', 30);
+        shakeMag = 12; sfx('melonPop'); confetti(50);
+        showToast(`🍉🍉 수박 소멸! +${bonus}`);
         continue;
       }
       const nb = makeFruit(x, y, lv);
@@ -502,52 +785,55 @@
       Body.setAngularVelocity(nb, (a.angularVelocity + b.angularVelocity) / 2 + (Math.random() - 0.5) * 0.2);
       Composite.add(world, nb);
       const now = performance.now();
+      comboCount = now - lastMergeAt < cfg.comboWindow ? comboCount + 1 : 1;
       let gain = FRUITS[lv].score * cfg.scoreMul;
-      if (cfg.combo && now - lastMergeAt < 3000) { gain *= 1.5; effects.push({ x, y, r: FRUITS[lv].r * 1.3, t: now }); }
+      const comboBonus = false;
       lastMergeAt = now;
-      addScore(Math.round(gain));
+      gain = Math.round(gain);
+      addScore(gain);
+      bestLevelMade = Math.max(bestLevelMade, lv);
       effects.push({ x, y, r: FRUITS[lv].r, t: now });
+      // 연출: 조각, 점수, 콤보, 흔들림, 소리
+      spawnParticles(x, y, FRUITS[lv].color, 6 + lv * 2, 3 + lv * 0.4, 500 + lv * 40, 4 + lv * 0.4);
+      floatText(x, y - FRUITS[lv].r * 0.6, `+${gain}`, comboBonus ? '#ffd36b' : '#fff', 14 + lv * 1.6);
+      if (comboCount >= 2) floatText(x, y - FRUITS[lv].r * 0.6 - 26, `${comboCount} 콤보!`, '#ff9f43', 15 + Math.min(10, comboCount) * 1.2);
+      if (lv >= 6) shakeMag = Math.max(shakeMag, (lv - 5) * 1.6);
+      sfx('merge', { level: lv, combo: comboCount });
       if (lv === FRUITS.length - 1) {
         melons++;
-        if (cfg.melonBonus) addScore(Math.round(cfg.melonBonus * cfg.scoreMul));
-        showToast(`🍉 수박 완성! (${melons}개)` + (cfg.melonBonus ? ` +${cfg.melonBonus}` : ''));
+        const mb = cfg.melonBonus ? Math.round(cfg.melonBonus * cfg.scoreMul) : 0;
+        if (mb) { addScore(mb); floatText(x, y - 60, `수박 보너스 +${mb}`, '#9be8a8', 20); }
+        showToast(`🍉 수박 완성! (${melons}개)` + (mb ? ` +${mb}` : ''), 2500);
+        shakeMag = 10; confetti(80); sfx('melon');
       }
       mergeCount++;
-      if (cfg.cleanupEvery && mergeCount % cfg.cleanupEvery === 0) {   // 청소: 체리·딸기 전부 삭제
-        let n = 0;
-        for (const o of fruitsInBox()) if (o.level <= 1 && !o.wild) {
-          Composite.remove(world, o); n++;
-          effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[o.level].r, t: now, pop: true });
-        }
-        if (n) showToast(`🧹 청소! 작은 과일 ${n}개 삭제`);
-      }
-      if (cfg.rainbowEvery && mergeCount % cfg.rainbowEvery === 0) { holdWild = true; showToast('🌈 무지개 과일!'); }
-      if (cfg.chainPop && Math.random() < cfg.chainPop) {   // 연쇄 폭발: 근처 작은 과일 하나 펑
-        const near = fruitsInBox().filter(o => o !== nb && o.level <= 4 && Math.hypot(o.position.x - x, o.position.y - y) < 130);
-        if (near.length) {
-          const o = pick(near);
-          Composite.remove(world, o);
-          effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[o.level].r, t: performance.now(), pop: true });
-        }
+      // 과일 유물 발동: 이 단계 과일을 만들었을 때
+      for (const r of relics) {
+        if (r.def.fruit !== lv) continue;
+        const L = r.def.levels[r.level - 1];
+        if (L.onMake) L.onMake({ x, y, lv, body: nb });
       }
     }
     mergeQueue = [];
 
     if (gameOver) return;
     const now = performance.now();
+    danger = false;
     for (const b of fruitsInBox()) {
       const top = b.position.y - FRUITS[b.level].r;
       const settled = b.speed < 0.8 && now - b.born > 600;
+      if (top < deadY() + 30 && settled) danger = true;     // 선 근처: 경고 연출
       if (top < deadY() && settled) {
         if (!b.deadSince) b.deadSince = now;
         else if (now - b.deadSince > cfg.deadTime) {
-          if (cfg.insurance && !insuranceUsed) useInsurance(); else endGame();
+          if (insuranceCharges > 0) useInsurance(); else endGame();
           break;
         }
       } else {
         b.deadSince = 0;
       }
     }
+    if (danger && now - lastWarnAt > 500) { lastWarnAt = now; sfx('warning'); }
   });
 
   // ── 입력 ─────────────────────────────────────────────
@@ -560,7 +846,34 @@
     const g = toGame(e); mouseX = g.x; mouseY = g.y;
     if (g.y < BOX.b) drop();
   });
+  // 첫 입력에서 오디오 시작 (브라우저 자동재생 정책)
+  let audioReady = false;
+  function initAudio() {
+    if (audioReady || !window.Sound) return;
+    audioReady = true;
+    try { window.Sound.init(); } catch (e) {}
+    updateMuteBtn();
+  }
+  function updateMuteBtn() {
+    const b = document.getElementById('muteBtn');
+    b.textContent = window.Sound && window.Sound.muted ? '🔇' : '🔊';
+  }
+  window.addEventListener('pointerdown', initAudio, true);
+  window.addEventListener('keydown', initAudio, true);
+  document.getElementById('muteBtn').onclick = () => {
+    if (!window.Sound) return;
+    window.Sound.setMuted(!window.Sound.muted);
+    updateMuteBtn();
+    if (!window.Sound.muted) sfx('click');
+  };
+  updateMuteBtn();
+  document.getElementById('shareBtn').onclick = shareImage;
+
   window.addEventListener('keydown', e => {
+    if (!overEl.hidden) {    // 게임오버: Space/Enter 로 바로 다시
+      if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); newGame(mode); }
+      return;
+    }
     if (!cardsEl.hidden) {   // 유물 고르기: 1/2/3
       const i = ['Digit1', 'Digit2', 'Digit3'].indexOf(e.code);
       if (i >= 0 && cardsEl._offer && cardsEl._offer[i]) takeRelic(cardsEl._offer[i], cardsEl._curse);
@@ -577,8 +890,8 @@
       `클래식 최고 ${best}점 · 로그라이크 최고 ${rogueBest.score}점 (🍉 ${rogueBest.melons}개)`;
     overEl.hidden = true; cardsEl.hidden = true; startEl.hidden = false;
   }
-  document.getElementById('menuBtn').onclick = showMenu;
-  document.getElementById('toMenu').onclick = showMenu;
+  document.getElementById('menuBtn').onclick = () => { sfx('click'); showMenu(); };
+  document.getElementById('toMenu').onclick = () => { sfx('click'); showMenu(); };
   document.getElementById('retry').onclick = () => newGame(mode);
   document.getElementById('modeClassic').onclick = () => newGame('classic');
   document.getElementById('modeRogue').onclick = () => newGame('rogue');
@@ -710,22 +1023,34 @@
     ctx.beginPath(); ctx.moveTo(l, t); ctx.lineTo(l, b); ctx.lineTo(r, b); ctx.lineTo(r, t); ctx.stroke();
   }
 
+  let lastScoreShown = 0;
   function render() {
     ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, 0, 0);
     ctx.fillStyle = '#c8874a';
     ctx.fillRect(0, 0, W, H);
+    // 화면 흔들림 (감쇠)
+    if (shakeMag > 0.2) {
+      ctx.translate((Math.random() - 0.5) * shakeMag * 2, (Math.random() - 0.5) * shakeMag * 2);
+      shakeMag *= 0.85;
+    } else shakeMag = 0;
 
     // HUD
+    if (score !== lastScoreShown) { scorePulseAt = performance.now(); lastScoreShown = score; }
+    const pulse = Math.max(0, 1 - (performance.now() - scorePulseAt) / 250);
     outlinedText('Score', 75, 24, 20);
-    bubble(75, 68, 34);
-    outlinedText(String(score), 75, 70, 26);
+    bubble(75, 68, 34 + pulse * 6);
+    outlinedText(String(score), 75, 70, 26 + pulse * 6);
+    if (comboCount >= 3 && performance.now() - lastMergeAt < cfg.comboWindow) {
+      outlinedText(`🔥 ${comboCount} 콤보`, 75, 140, 15 + Math.min(8, comboCount));
+    }
+    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), 75, 162, 16);
     outlinedText('Best ' + (mode === 'rogue' ? rogueBest.score : best), 75, 113, 14);
     outlinedText('Next', 375, 24, 20);
     pill(300, 42, 150, 52, 26);
     // 다음 과일들: 앞쪽일수록 크게 (5개면 촘촘하게)
     const n = nextQueue.length;
-    const nx = n > 3 ? [318, 348, 378, 406, 432] : [328, 378, 424];
-    const nk = n > 3 ? [18, 13, 11, 10, 9] : [22, 16, 13];
+    const nx = n > 5 ? [314, 340, 366, 390, 412, 434] : n > 3 ? [318, 348, 378, 406, 432] : [328, 378, 424];
+    const nk = n > 5 ? [16, 12, 10, 9, 8, 8] : n > 3 ? [18, 13, 11, 10, 9] : [22, 16, 13];
     for (let i = 0; i < n; i++) {
       const lv = nextQueue[i];
       if (cfg.fogNext) {
@@ -754,9 +1079,15 @@
         ctx.fillText('저주 ' + curses.map(c => c.icon).join(' '), 230, 72);
       }
       if (relics.length) {
-        ctx.font = '15px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        const rx = 450 - relics.length * 17;
-        relics.forEach((r, i) => ctx.fillText(r.icon, Math.max(300, rx) + i * 17, 112));
+        const step = 20, rx = Math.max(300, 452 - relics.length * step);
+        relics.forEach((r, i) => {
+          ctx.font = '15px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+          ctx.fillText(r.def.icon, rx + i * step, 112);
+          if (r.level > 1) {
+            ctx.font = '11px Jua, sans-serif'; ctx.fillStyle = '#fff';
+            ctx.fillText(String(r.level), rx + i * step + 14, 120);
+          }
+        });
       }
     }
 
@@ -767,12 +1098,18 @@
     ctx.translate(shakeOff, 0);
     drawBox();
 
-    // 게임오버 선 (아주 연하게)
+    // 게임오버 선 (위험하면 빨갛게 깜빡)
+    const blink = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 120) : 0;
     ctx.setLineDash([8, 8]);
-    ctx.strokeStyle = cfg.ceilingOffset ? 'rgba(220,60,60,.75)' : 'rgba(220,90,60,.35)';
-    ctx.lineWidth = cfg.ceilingOffset ? 3 : 2;
+    ctx.strokeStyle = danger ? `rgba(255,40,40,${0.5 + blink * 0.5})` : cfg.ceilingOffset ? 'rgba(220,60,60,.75)' : 'rgba(220,90,60,.35)';
+    ctx.lineWidth = danger ? 4 : cfg.ceilingOffset ? 3 : 2;
     ctx.beginPath(); ctx.moveTo(BOX.l, deadY()); ctx.lineTo(BOX.r, deadY()); ctx.stroke();
     ctx.setLineDash([]);
+    if (danger && !gameOver) {
+      ctx.fillStyle = `rgba(255,60,60,${0.08 + blink * 0.1})`;
+      ctx.fillRect(BOX.l, BOX.t, BOX.r - BOX.l, 60);
+      outlinedText('⚠️ 위험!', (BOX.l + BOX.r) / 2, deadY() - 14, 15);
+    }
 
     // 손에 쥔 과일 + 구름 + 가이드
     if (current !== null && !gameOver) {
@@ -783,11 +1120,6 @@
       ctx.beginPath(); ctx.moveTo(x, DROP_Y + r); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
       drawCloud(x, DROP_Y - r - 16);
       drawFruit(ctx, x, DROP_Y, current, 0, 1, holdWild);
-      if (cfg.hurryMs && holdSince) {   // 재촉: 남은 시간 링
-        const f = Math.min(1, (performance.now() - holdSince) / cfg.hurryMs);
-        ctx.beginPath(); ctx.arc(x, DROP_Y, r + 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - f));
-        ctx.strokeStyle = f > 0.7 ? 'rgba(255,80,80,.9)' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 4; ctx.stroke();
-      }
     } else if (!gameOver) {
       drawCloud(clampX(mouseX, 2), DROP_Y - FRUITS[2].r - 16);
     }
@@ -798,8 +1130,21 @@
     const tNow = performance.now();
     for (const b of fruitsInBox()) {
       const age = tNow - b.born;
-      const k = age < 120 ? 0.85 + 0.15 * (age / 120) : 1;   // 짧게 커지기만 (출렁임 없음)
+      let k = age < 120 ? 0.85 + 0.15 * (age / 120) : 1;   // 짧게 커지기만 (출렁임 없음)
+      if (b.landedAt && tNow - b.landedAt < 140) k *= 1 - 0.07 * Math.sin(Math.PI * (tNow - b.landedAt) / 140);   // 착지 살짝 찌그러짐
       drawFruit(ctx, b.position.x, b.position.y, b.level, b.angle, k, !!b.wild);
+    }
+    // 조각 / 색종이
+    particles = particles.filter(pt => tNow - pt.t < pt.life);
+    for (const pt of particles) {
+      const p = (tNow - pt.t) / pt.life;
+      pt.x += pt.vx; pt.y += pt.vy; pt.vy += pt.rect ? 0.06 : 0.25; pt.rot += pt.vr;
+      if (pt.drag) { pt.vx *= pt.drag; pt.vy *= pt.drag; }
+      ctx.save(); ctx.translate(pt.x, pt.y); ctx.rotate(pt.rot); ctx.globalAlpha = 1 - p * p;
+      ctx.fillStyle = pt.color;
+      if (pt.rect) ctx.fillRect(-pt.size / 2, -pt.size / 4, pt.size, pt.size / 2);
+      else { ctx.beginPath(); ctx.arc(0, 0, pt.size * (1 - p * 0.5), 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
     }
     // 합치기 이펙트
     effects = effects.filter(e => tNow - e.t < 250);
@@ -819,6 +1164,17 @@
       }
     }
     ctx.restore();
+    // 떠오르는 점수/콤보 텍스트
+    floaters = floaters.filter(f => tNow - f.t < 900);
+    for (const f of floaters) {
+      const p = (tNow - f.t) / 900;
+      ctx.globalAlpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
+      const yy = f.y - p * 46, sz = f.size * (p < 0.15 ? 0.7 + p * 2 : 1);
+      ctx.font = `${sz}px Jua, "Malgun Gothic", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      ctx.lineWidth = sz * 0.22; ctx.strokeStyle = '#6a3a1a'; ctx.strokeText(f.text, f.x, yy);
+      ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, yy);
+    }
+    ctx.globalAlpha = 1;
     ctx.restore();   // shake offset
     // 안내 토스트
     if (toast && performance.now() - toast.t < toast.ms) {
@@ -844,7 +1200,7 @@
   // ── 루프: 고정 스텝, 실제 경과시간만큼 따라잡기 (탭 상태와 무관하게 일정한 속도) ──
   const STEP = 1000 / 60;
   let acc = 0, last = performance.now();
-  window.suika = { engine, FRUITS, get state() { return { mode, cfg, relics, curses, milestoneIdx, score, melons, runTime, paused, gameOver }; }, newGame, offerRelics, takeRelic };   // 디버그/튜닝용
+  window.suika = { engine, FRUITS, get state() { return { mode, cfg, relics, curses, milestoneIdx, score, melons, runTime, paused, gameOver, comboCount, bestLevelMade, particles: particles.length, floaters: floaters.length }; }, newGame, offerRelics, takeRelic, endGame, shareImage };   // 디버그/튜닝용
   applyCfg();
   clearBoard();
   showMenu();
@@ -858,10 +1214,7 @@
       acc -= STEP;
     }
     if (running) {
-      if (cfg.quakeEvery && now - lastQuake > cfg.quakeEvery) { lastQuake = now; shakeUntil = now + SHAKE_TIME; showToast('🌋 지진!'); }
-      if (cfg.cherryRainEvery && now - lastRain > cfg.cherryRainEvery) { lastRain = now; rainCherries(3); }
-      if (current !== null && !holdSince) holdSince = now;
-      if (cfg.hurryMs && current !== null && holdSince && now - holdSince > cfg.hurryMs) { showToast('⏱ 재촉!'); drop(); }
+      if (cfg.quakeEvery && now - lastQuake > cfg.quakeEvery) { lastQuake = now; shakeUntil = now + SHAKE_TIME; shakePower = 1; showToast('🌋 지진!'); sfx('shake'); }
       checkMilestone();
     }
     render();
