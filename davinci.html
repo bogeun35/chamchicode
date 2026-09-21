@@ -132,8 +132,25 @@ body::before {   /* 펠트 질감 */
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
 .winbox { text-align: center; padding: 30px 10px; }
 .winbox h1 { font-size: 40px; text-shadow: 3px 3px 0 var(--wood-dark); margin-bottom: 8px; }
-.rules { font-size: 14px; line-height: 1.6; color: #5a4a3a; }
-.rules b { color: var(--wood-dark); }
+.howto { display: flex; flex-direction: column; gap: 12px; }
+.step { background: #fff; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.step .no { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--wood); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.step .body { flex: 1; min-width: 0; }
+.step h4 { font-size: 16px; color: var(--wood-dark); margin-bottom: 4px; }
+.step p { font-size: 13.5px; line-height: 1.55; color: #5a4a3a; }
+.step p b { color: #c0392b; }
+.demo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+.demo .tile { width: 32px; height: 44px; font-size: 16px; border-radius: 7px; }
+.demo .tile.hidden { font-size: 18px; }
+.demo .tile.revealed::after { width: 6px; height: 6px; top: 3px; right: 3px; }
+.demo .tile.new::before { font-size: 9px; top: -8px; }
+.demo .tile.target { outline-width: 3px; transform: translateY(-4px); }
+.demo .arrow { font-size: 18px; color: var(--wood); padding: 0 2px; }
+.demo .lbl { font-size: 12px; color: #8a5a2a; background: #fff3d6; border-radius: 8px; padding: 2px 8px; }
+.demo .ok { color: #2e7a58; font-size: 13px; } .demo .bad { color: #c0392b; font-size: 13px; }
+.demo .range { display: flex; align-items: center; gap: 4px; }
+.tip { background: #fff8e6; border: 2px dashed #e6c58f; border-radius: 12px; padding: 8px 12px; font-size: 13px; color: #6a4a2a; margin-top: 8px; line-height: 1.5; }
+#rulesModal .card { max-height: 88vh; overflow-y: auto; }
 </style>
 </head>
 <body>
@@ -155,12 +172,43 @@ body::before {   /* 펠트 질감 */
     <input class="input" id="joinCode" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:.2em;font-family:'Orbitron'">
     <div class="row"><button class="btn blue wide" id="btnJoin">참가하기</button></div>
   </div>
-  <div class="card rules">
-    <b>규칙</b> — 흑·백 0~11 + 조커(–) 각 1장, 총 26장.<br>
-    처음에 4장(4명이면 3장)을 받아 <b>작은 수부터</b> 놓아요 (같은 수는 흑이 먼저, 조커는 아무 데나).<br>
-    내 차례: 더미에서 1장 뽑고 → 상대 타일 하나 찍어 숫자 추측.<br>
-    <b>맞추면</b> 그 타일 공개, 계속 추측하거나 멈출 수 있어요. <b>틀리면</b> 방금 뽑은 타일이 공개돼요.<br>
-    타일이 전부 공개되면 탈락. 마지막까지 남는 사람이 승리!
+  <div class="card">
+    <h3>❓ 어떻게 하나요? — 3분이면 배워요</h3>
+    <div class="howto">
+      <div class="step"><div class="no">1</div><div class="body">
+        <h4>타일은 26장</h4>
+        <p>검정·흰색 각각 <b>0~11</b> 숫자 12장 + <b>조커(–)</b> 1장.</p>
+        <div class="demo"><div class="tile b">0</div><div class="tile b">1</div><span class="arrow">…</span><div class="tile b">11</div><div class="tile b joker">–</div>
+          <span class="arrow">+</span><div class="tile w">0</div><span class="arrow">…</span><div class="tile w">11</div><div class="tile w joker">–</div></div>
+      </div></div>
+      <div class="step"><div class="no">2</div><div class="body">
+        <h4>내 타일은 작은 수부터 줄 세우기</h4>
+        <p>시작할 때 4장(4명이면 3장)을 받아요. <b>자동으로 정렬</b>되니 신경 안 써도 돼요. 같은 숫자면 검정이 왼쪽, 조커는 아무 자리나.</p>
+        <div class="demo"><div class="tile b">2</div><div class="tile b">5</div><div class="tile w">5</div><div class="tile w joker">–</div><div class="tile b">9</div><span class="lbl">상대에겐 색만 보여요 →</span><div class="tile b hidden">?</div><div class="tile w hidden">?</div></div>
+      </div></div>
+      <div class="step"><div class="no">3</div><div class="body">
+        <h4>내 차례: 뽑고 → 찍고 → 맞히기</h4>
+        <p>더미에서 1장이 <b>자동으로</b> 손에 들어와요(NEW). 그 다음 상대 타일 하나를 누르고 숫자를 고르세요.</p>
+        <div class="demo"><div class="tile w new">6</div><span class="arrow">➜</span><div class="tile b hidden target">?</div><span class="arrow">➜</span><span class="lbl">숫자는? 0~11 · 조커</span></div>
+      </div></div>
+      <div class="step"><div class="no">4</div><div class="body">
+        <h4>맞으면 계속, 틀리면 들킨다</h4>
+        <p><b>정답</b> → 상대 타일이 공개돼요. 한 번 더 추측하거나 "그만"으로 안전하게 턴을 끝낼 수 있어요.<br><b>오답</b> → 방금 뽑은 내 NEW 타일이 공개돼요.</p>
+        <div class="demo"><span class="ok">🎯 정답:</span><div class="tile b hidden">?</div><span class="arrow">➜</span><div class="tile b revealed">7</div>
+          <span class="arrow" style="margin-left:10px"></span><span class="bad">❌ 오답:</span><div class="tile w new">6</div><span class="arrow">➜</span><div class="tile w revealed">6</div></div>
+      </div></div>
+      <div class="step"><div class="no">5</div><div class="body">
+        <h4>추리 요령</h4>
+        <p>타일은 항상 <b>정렬</b>되어 있어요. 양옆에 공개된 숫자가 있으면 그 사이 숫자만 가능!</p>
+        <div class="demo range"><div class="tile w revealed">3</div><div class="tile b hidden target">?</div><div class="tile b revealed">7</div><span class="lbl">→ 검정 4·5·6 중 하나 (조커 빼고)</span></div>
+        <div class="tip">💡 내 손에 있는 숫자·이미 공개된 숫자는 후보에서 빼세요. 같은 색 같은 숫자는 한 장뿐이에요.</div>
+      </div></div>
+      <div class="step"><div class="no">6</div><div class="body">
+        <h4>끝까지 살아남으면 승리</h4>
+        <p>타일이 <b>전부 공개</b>되면 탈락. 더미가 다 떨어진 뒤엔 틀리면 내 타일 하나를 골라 공개해요. 마지막 한 명이 이겨요!</p>
+        <div class="demo"><div class="tile b revealed">1</div><div class="tile w revealed">4</div><div class="tile b revealed">8</div><span class="lbl">💀 탈락</span><span class="arrow" style="margin-left:10px"></span><div class="tile w hidden">?</div><div class="tile b revealed">9</div><span class="lbl">🏆 생존</span></div>
+      </div></div>
+    </div>
   </div>
 </section>
 
@@ -190,6 +238,7 @@ body::before {   /* 펠트 질감 */
   <div class="top">
     <div class="chip">방 <b id="gameCode"></b></div>
     <div class="chip" id="roundChip">1판</div>
+    <button class="btn ghost" id="btnRules">❓ 규칙</button>
     <button class="btn ghost" id="btnLeaveGame">나가기</button>
   </div>
   <div class="banner" id="banner"></div>
@@ -215,6 +264,49 @@ body::before {   /* 펠트 질감 */
   <div class="row"><button class="btn green wide" id="btnAgain">다시 하기</button></div>
   <div class="row"><button class="btn ghost wide" id="btnLeaveEnd">나가기</button></div>
 </section>
+
+<!-- 규칙 -->
+<div class="modal" id="rulesModal">
+  <div class="card">
+    <h3>❓ 어떻게 하나요?</h3>
+    <div class="howto">
+      <div class="step"><div class="no">1</div><div class="body">
+        <h4>타일은 26장</h4>
+        <p>검정·흰색 각각 <b>0~11</b> 숫자 12장 + <b>조커(–)</b> 1장.</p>
+        <div class="demo"><div class="tile b">0</div><div class="tile b">1</div><span class="arrow">…</span><div class="tile b">11</div><div class="tile b joker">–</div>
+          <span class="arrow">+</span><div class="tile w">0</div><span class="arrow">…</span><div class="tile w">11</div><div class="tile w joker">–</div></div>
+      </div></div>
+      <div class="step"><div class="no">2</div><div class="body">
+        <h4>내 타일은 작은 수부터 줄 세우기</h4>
+        <p>시작할 때 4장(4명이면 3장)을 받아요. <b>자동으로 정렬</b>되니 신경 안 써도 돼요. 같은 숫자면 검정이 왼쪽, 조커는 아무 자리나.</p>
+        <div class="demo"><div class="tile b">2</div><div class="tile b">5</div><div class="tile w">5</div><div class="tile w joker">–</div><div class="tile b">9</div><span class="lbl">상대에겐 색만 보여요 →</span><div class="tile b hidden">?</div><div class="tile w hidden">?</div></div>
+      </div></div>
+      <div class="step"><div class="no">3</div><div class="body">
+        <h4>내 차례: 뽑고 → 찍고 → 맞히기</h4>
+        <p>더미에서 1장이 <b>자동으로</b> 손에 들어와요(NEW). 그 다음 상대 타일 하나를 누르고 숫자를 고르세요.</p>
+        <div class="demo"><div class="tile w new">6</div><span class="arrow">➜</span><div class="tile b hidden target">?</div><span class="arrow">➜</span><span class="lbl">숫자는? 0~11 · 조커</span></div>
+      </div></div>
+      <div class="step"><div class="no">4</div><div class="body">
+        <h4>맞으면 계속, 틀리면 들킨다</h4>
+        <p><b>정답</b> → 상대 타일이 공개돼요. 한 번 더 추측하거나 "그만"으로 안전하게 턴을 끝낼 수 있어요.<br><b>오답</b> → 방금 뽑은 내 NEW 타일이 공개돼요.</p>
+        <div class="demo"><span class="ok">🎯 정답:</span><div class="tile b hidden">?</div><span class="arrow">➜</span><div class="tile b revealed">7</div>
+          <span class="arrow" style="margin-left:10px"></span><span class="bad">❌ 오답:</span><div class="tile w new">6</div><span class="arrow">➜</span><div class="tile w revealed">6</div></div>
+      </div></div>
+      <div class="step"><div class="no">5</div><div class="body">
+        <h4>추리 요령</h4>
+        <p>타일은 항상 <b>정렬</b>되어 있어요. 양옆에 공개된 숫자가 있으면 그 사이 숫자만 가능!</p>
+        <div class="demo range"><div class="tile w revealed">3</div><div class="tile b hidden target">?</div><div class="tile b revealed">7</div><span class="lbl">→ 검정 4·5·6 중 하나 (조커 빼고)</span></div>
+        <div class="tip">💡 내 손에 있는 숫자·이미 공개된 숫자는 후보에서 빼세요. 같은 색 같은 숫자는 한 장뿐이에요.</div>
+      </div></div>
+      <div class="step"><div class="no">6</div><div class="body">
+        <h4>끝까지 살아남으면 승리</h4>
+        <p>타일이 <b>전부 공개</b>되면 탈락. 더미가 다 떨어진 뒤엔 틀리면 내 타일 하나를 골라 공개해요. 마지막 한 명이 이겨요!</p>
+        <div class="demo"><div class="tile b revealed">1</div><div class="tile w revealed">4</div><div class="tile b revealed">8</div><span class="lbl">💀 탈락</span><span class="arrow" style="margin-left:10px"></span><div class="tile w hidden">?</div><div class="tile b revealed">9</div><span class="lbl">🏆 생존</span></div>
+      </div></div>
+    </div>
+    <button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button>
+  </div>
+</div>
 
 <!-- 숫자 고르기 -->
 <div class="modal" id="numModal">
@@ -509,6 +601,9 @@ function openNumModal(color, pkey) {
   $('numModal').classList.add('show');
 }
 function closeNum() { $('numModal').classList.remove('show'); }
+$('btnRules').onclick = () => $('rulesModal').classList.add('show');
+$('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
+$('rulesModal').addEventListener('click', e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); });
 $('numCancel').onclick = () => { closeNum(); selTarget = null; renderGame(); };
 function guess(n) {
   const g = room.game; if (!selTarget || g.order[g.turn] !== myKey) return;
