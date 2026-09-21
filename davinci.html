@@ -333,7 +333,7 @@ const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
 function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
 const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙'];
-const avatarOf = k => AVATARS[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATARS.length];
+const avatarOf = k => AVATARS[[...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 100003, 7) % AVATARS.length];
 
 // 타일: 'b7' / 'w11' / 'bJ' / 'wJ'
 const tileColor = t => t[0];

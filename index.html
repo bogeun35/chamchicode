@@ -372,6 +372,24 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="liar" onclick="navigate('liar')">
+      <span class="nav-icon">🤥</span>
+      <span>라이어 게임</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
+    <div class="nav-item" data-page="codenames" onclick="navigate('codenames')">
+      <span class="nav-icon">🟥</span>
+      <span>코드네임</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
+    <div class="nav-item" data-page="telephone" onclick="navigate('telephone')">
+      <span class="nav-icon">✏️</span>
+      <span>그림 전화기</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
       <span class="nav-icon">🗺️</span>
       <span>배그 맵</span>
@@ -440,6 +458,21 @@ body::after {
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
+        <div class="landing-card" onclick="navigate('liar')">
+          <div class="landing-card-icon">🤥</div>
+          <div class="landing-card-title">라이어 게임</div>
+          <div class="landing-card-desc">한 명만 제시어를 몰라요<br>3~10명 · 음성과 함께</div>
+        </div>
+        <div class="landing-card" onclick="navigate('codenames')">
+          <div class="landing-card-icon">🟥</div>
+          <div class="landing-card-title">코드네임</div>
+          <div class="landing-card-desc">팀장 힌트로 단어 찾기<br>4~8명 · 두 팀 대결</div>
+        </div>
+        <div class="landing-card" onclick="navigate('telephone')">
+          <div class="landing-card-icon">✏️</div>
+          <div class="landing-card-title">그림 전화기</div>
+          <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
+        </div>
         <div class="landing-card" onclick="navigate('davinci')">
           <div class="landing-card-icon">🕵️</div>
           <div class="landing-card-title">다빈치 코드</div>
@@ -507,6 +540,21 @@ body::after {
   <!-- 다빈치 코드 iframe -->
   <div class="page-frame" id="page-davinci">
     <iframe src="davinci.html" id="iframe-davinci" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 라이어 게임 iframe -->
+  <div class="page-frame" id="page-liar">
+    <iframe src="liar.html" id="iframe-liar" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 코드네임 iframe -->
+  <div class="page-frame" id="page-codenames">
+    <iframe src="codenames.html" id="iframe-codenames" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 그림 전화기 iframe -->
+  <div class="page-frame" id="page-telephone">
+    <iframe src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
   </div>
 
   <!-- PUBG Map iframe -->

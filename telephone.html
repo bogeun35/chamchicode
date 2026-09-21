@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 그림 전화기</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --cream: #fff3d6; --ink: #2a2118; --wood: #8a5a2b; --wood-dark: #5c3a1a; --gold: #ffd36b; --red: #ff6b6b; --paper: #fffdf7; --teal: #2a9d8f; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Jua', 'Malgun Gothic', sans-serif; color: #fff; -webkit-user-select: none; user-select: none; min-height: 100vh; overflow-x: hidden;
+  background: linear-gradient(180deg, #b98452 0%, #9a6a3c 100%);
+}
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .35; background: repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 46px), repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 9px); }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px); z-index: 60; background: var(--cream); color: var(--ink); padding: 10px 22px; border-radius: 999px; font-size: 15px; box-shadow: 0 6px 0 var(--wood-dark), 0 10px 20px rgba(0,0,0,.3); opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.screen { display: none; max-width: 540px; margin: 0 auto; padding: 18px 14px 40px; position: relative; }
+.screen.active { display: block; }
+.title { text-align: center; margin: 26px 0 4px; font-size: 38px; text-shadow: 3px 3px 0 var(--wood-dark); }
+.sub { text-align: center; opacity: .9; font-size: 15px; margin-bottom: 20px; }
+.card { background: var(--cream); color: var(--ink); border-radius: 20px; padding: 18px; margin-bottom: 14px; border: 4px solid #fff; box-shadow: 0 6px 0 var(--wood-dark), 0 12px 24px rgba(0,0,0,.25); position: relative; }
+.card h3 { font-size: 15px; color: #8a5a2a; margin-bottom: 10px; }
+.note { background: var(--paper); background-image: linear-gradient(transparent 27px, #e9e0cc 28px); background-size: 100% 28px; border-radius: 14px; padding: 14px; box-shadow: inset 0 0 0 2px #e6c58f; }
+.note.spiral::before { content: ''; position: absolute; left: 14px; right: 14px; top: -6px; height: 12px; background: radial-gradient(circle, #6a4a2a 3px, transparent 3.5px) 0 0 / 22px 12px repeat-x; }
+.input { width: 100%; padding: 12px 14px; border: 3px solid #e6c58f; border-radius: 12px; font-size: 18px; font-family: inherit; color: var(--ink); background: #fff; outline: none; }
+.input:focus { border-color: var(--wood); }
+.row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn { padding: 12px 20px; border: 3px solid #fff; border-radius: 999px; font-family: inherit; font-size: 17px; cursor: pointer; background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
+.btn.green { background: #5cb85c; box-shadow: 0 4px 0 #3a7f3a; } .btn.green:active { box-shadow: 0 1px 0 #3a7f3a; }
+.btn.blue { background: #4aa3df; box-shadow: 0 4px 0 #2b6f9e; } .btn.blue:active { box-shadow: 0 1px 0 #2b6f9e; }
+.btn.teal { background: var(--teal); box-shadow: 0 4px 0 #1b6b62; } .btn.teal:active { box-shadow: 0 1px 0 #1b6b62; }
+.btn.ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 14px; padding: 8px 14px; } .btn.ghost:active { box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.btn.light { background: #fff; color: #8a5a2a; box-shadow: 0 4px 0 #b8834a; font-size: 14px; padding: 8px 14px; } .btn.light:active { box-shadow: 0 1px 0 #b8834a; }
+.btn.wide { width: 100%; } .btn:disabled { opacity: .45; cursor: default; transform: none; }
+.code-big { font-family: monospace; font-size: 34px; letter-spacing: .25em; text-align: center; color: var(--wood-dark); margin: 6px 0; font-weight: bold; }
+.plist { display: flex; flex-direction: column; gap: 8px; }
+.pitem { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 12px; padding: 10px 12px; font-size: 17px; }
+.av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: #ffe0b3; flex: none; }
+.tag { font-size: 12px; background: var(--wood); color: #fff; border-radius: 8px; padding: 2px 8px; margin-left: auto; }
+
+/* 게임 */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.pill { background: rgba(0,0,0,.3); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+.banner { text-align: center; font-size: 18px; padding: 10px 14px; border-radius: 16px; margin: 6px 0 12px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.15); }
+.timer { font-size: 40px; text-align: center; text-shadow: 3px 3px 0 var(--wood-dark); line-height: 1; }
+.timer.low { color: var(--red); animation: blink .5s steps(2) infinite; }
+@keyframes blink { to { opacity: .4; } }
+.bubble { position: relative; background: #fff; border-radius: 18px; padding: 16px 18px; font-size: 26px; text-align: center; color: var(--ink); box-shadow: inset 0 0 0 3px #e6c58f; word-break: keep-all; }
+.bubble::after { content: ''; position: absolute; left: 28px; bottom: -14px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+.bubble small { display: block; font-size: 13px; color: #8a5a2a; margin-top: 4px; }
+.art { display: block; width: 100%; max-width: 360px; margin: 0 auto; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 3px #e6c58f; }
+.cwrap { position: relative; width: 100%; max-width: 360px; margin: 0 auto; }
+#pad { display: block; width: 100%; aspect-ratio: 1; border-radius: 12px; background: #fff; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 0 3px #e6c58f; background-image: linear-gradient(#f2ece0 1px, transparent 1px), linear-gradient(90deg, #f2ece0 1px, transparent 1px); background-size: 32px 32px; }
+.tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+.sw { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 0 rgba(0,0,0,.25); cursor: pointer; }
+.sw.on { outline: 3px solid var(--gold); }
+.sz { width: 40px; height: 34px; border-radius: 10px; background: #fff; border: 2px solid #e6c58f; display: grid; place-items: center; cursor: pointer; }
+.sz.on { border-color: var(--wood); background: #fff3d6; }
+.sz i { display: block; border-radius: 50%; background: #333; }
+.status { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+.status .p { background: rgba(0,0,0,.25); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+.status .p.done { background: #5cb85c; }
+.who { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #8a5a2a; margin-bottom: 6px; }
+.frame { background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 4px 0 #b8834a; margin-bottom: 10px; animation: pop .3s ease; }
+@keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.frame .txt { font-size: 24px; text-align: center; padding: 8px; color: var(--ink); }
+.react { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+.react .btn { font-size: 15px; padding: 6px 14px; }
+.lol { position: fixed; font-size: 30px; animation: up 1.2s ease-out forwards; pointer-events: none; z-index: 45; }
+@keyframes up { to { transform: translateY(-140px) scale(1.6); opacity: 0; } }
+
+/* 규칙 */
+.howto { display: flex; flex-direction: column; gap: 12px; }
+.step { background: #fff; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.step .no { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.step h4 { font-size: 16px; color: var(--wood-dark); margin-bottom: 4px; }
+.step p { font-size: 13.5px; line-height: 1.55; color: #5a4a3a; } .step p b { color: #c0392b; }
+.demo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 2px; }
+.mini { width: 64px; height: 64px; border-radius: 10px; background: #fff; border: 3px solid #e6c58f; display: grid; place-items: center; text-align: center; font-size: 12px; line-height: 1.2; color: var(--ink); }
+.mini.t { font-size: 14px; color: var(--teal); }
+.mini.d { font-size: 30px; background-image: linear-gradient(#f2ece0 1px, transparent 1px), linear-gradient(90deg, #f2ece0 1px, transparent 1px); background-size: 16px 16px; }
+.demo .arrow { color: var(--wood); font-size: 18px; }
+.demo .lbl { font-size: 12px; color: #8a5a2a; background: #fff3d6; border-radius: 8px; padding: 2px 8px; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; z-index: 40; padding: 14px; }
+.modal.show { display: flex; }
+.modal .card { width: 100%; max-width: 460px; margin: 0; max-height: 88vh; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<section class="screen active" id="home">
+  <div class="title">✏️📞 그림 전화기</div>
+  <div class="sub">그리고 → 맞히고 → 또 그리고 · 4~8명 · 마지막에 다 같이 공개</div>
+  <div class="card">
+    <h3>닉네임</h3>
+    <input class="input" id="nick" placeholder="닉네임 (2~8자)" maxlength="8">
+    <div class="row"><button class="btn green wide" id="btnCreate">방 만들기</button></div>
+  </div>
+  <div class="card">
+    <h3>코드로 참가</h3>
+    <input class="input" id="joinCode" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:.2em;font-family:monospace">
+    <div class="row"><button class="btn blue wide" id="btnJoin">참가하기</button></div>
+  </div>
+  <div class="card">
+    <h3>❓ 어떻게 하나요?</h3>
+    <div class="howto" id="howtoHome"></div>
+  </div>
+</section>
+
+<section class="screen" id="lobby">
+  <div class="title" style="font-size:28px;margin-top:10px">대기실</div>
+  <div class="card" style="text-align:center">
+    <h3>방 코드 — 친구에게 알려주세요</h3>
+    <div class="code-big" id="lobbyCode">------</div>
+    <div class="row" style="justify-content:center">
+      <button class="btn blue" id="btnCopyLink">🔗 링크 복사</button>
+      <button class="btn light" id="btnCopyCode">코드 복사</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>참가자 <span id="lobbyCount"></span></h3>
+    <div class="plist" id="lobbyList"></div>
+  </div>
+  <div class="row"><button class="btn green wide" id="btnStart" disabled>게임 시작 (3명 이상)</button></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveLobby">나가기</button></div>
+</section>
+
+<section class="screen" id="game">
+  <div class="top">
+    <div class="pill">방 <b id="gameCode"></b></div>
+    <div class="pill" id="stepPill"></div>
+    <div class="timer" id="timer"></div>
+    <button class="btn ghost" id="btnRules">❓</button>
+    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div id="stage"></div>
+</section>
+
+<div class="modal" id="rulesModal">
+  <div class="card">
+    <h3>❓ 어떻게 하나요?</h3>
+    <div class="howto" id="howtoModal"></div>
+    <button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const rpath = c => `games/tp_${c}`;   // 규칙상 열린 경로(games/) 아래, tp_ 접두
+
+const PROMPTS = ['치킨 먹는 고양이','우주에서 라면 끓이기','춤추는 냉장고','비 오는 날 우산 쓴 강아지','피자 위에서 자는 아기','롤러코스터 타는 할머니','아이스크림 눈사람','헬스장에서 운동하는 펭귄','스마트폰 보는 공룡','생일 케이크 폭발','축구하는 문어','지각한 학생','노래방에서 열창','비행기 타고 가는 코끼리','머리에 새 둥지','드라이기로 머리 말리는 사자','도넛 목걸이','짜장면 먹는 로봇','카페에서 일하는 곰','스키 타는 거북이','편의점 알바 유령','자전거 타는 물고기','불닭볶음면 도전','치과 가는 상어','바다에서 서핑하는 소','태권도 하는 토끼','우유 마시는 뱀파이어','한강에서 치맥','비밀 요원 햄스터','지하철에서 잠든 아저씨','케이크 훔치는 원숭이','눈 오는 날 반팔','피아노 치는 문어','달나라 편의점','줄넘기하는 기린','카레 만드는 외계인','수영장에 빠진 휴대폰','마라톤 뛰는 나무늘보','떡볶이 먹는 공주','산타클로스 배달 알바','고양이 카페 사장','책 읽는 악어','풍선 타고 등교','바나나 껍질 미끄럼','노트북으로 게임하는 개','비빔밥 우주선','캠핑장 모기 대전','야구장 치어리더 곰','스케이트보드 타는 할아버지','거대 햄버거 산','샤워하는 선인장','라면 국물 온천','슬리퍼 신은 호랑이','시험 전날 밤','택배 상자 성','헤드폰 낀 올빼미','물구나무 서는 코알라','드론 타고 출근','아이돌 콘서트 응원봉','붕어빵 굽는 상어','비눗방울 안의 고래','노래하는 감자','스파게티 머리카락','지구를 든 개미','줄서서 기다리는 유령들','밤에 편의점 가는 좀비','벚꽃 아래 도시락','축구공 헤딩하는 로봇','하품하는 하마','알람 5개 맞춘 아침','폰 배터리 1%','엘리베이터에서 방귀','카트 타는 다람쥐','미용실 간 사자','치즈 늪에 빠진 쥐','태풍 속 우산 장수','슈퍼마켓 폭탄 세일','수박 먹는 상어','핫도그 강아지'];
+
+// ── 유틸 ──
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐯', '🐨'];
+const avatarOf = k => AVATARS[[...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 100003, 7) % AVATARS.length];
+const nickOf = k => (room && room.players && room.players[k] ? room.players[k].nick : k);
+const T_WORD = 35, T_DRAW = 80, T_TEXT = 40;   // 초
+
+// ── 상태 ──
+let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [], tick = null;
+let submittedStep = -1, lastRenderKey = '';
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+const roomRef = () => db.ref(rpath(code));
+
+// ── 홈 ──
+(function init() {
+  const saved = localStorage.getItem('tp_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+})();
+function getNick() { const n = $('nick').value.trim(); if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; } localStorage.setItem('tp_nick', n); return n; }
+$('btnCreate').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  myNick = n; myKey = sanitizeKey(n); code = genCode(); isHost = true;
+  await roomRef().set({ host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby', players: { [myKey]: { nick: n, joinedAt: Date.now() } } });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const snap = await db.ref(rpath(c)).once('value'); const r = snap.val();
+  if (!r) return toast('방을 찾을 수 없어요');
+  if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
+  const k = sanitizeKey(n); const already = r.players && r.players[k];
+  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 재접속 가능)');
+  if (!already && Object.keys(r.players || {}).length >= 8) return toast('정원(8명)이 찼어요');
+  myNick = n; myKey = k; code = c; isHost = r.host === k;
+  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: n, joinedAt: Date.now() });
+  enterRoom();
+};
+function enterRoom() {
+  offAll();
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); leave(false); return; }
+    isHost = room.host === myKey;
+    if (room.status === 'lobby') renderLobby(); else renderGame();
+    if (isHost) hostAdvance();
+  });
+  listeners.push(() => ref.off('value', cb));
+  const pref = db.ref(`${rpath(code)}/players/${myKey}`);
+  if (isHost) { ref.onDisconnect().remove(); listeners.push(() => ref.onDisconnect().cancel()); }
+  else { pref.onDisconnect().remove(); listeners.push(() => pref.onDisconnect().cancel()); }
+  clearInterval(tick); tick = setInterval(onTick, 500);
+}
+function leave(confirmIt = true) {
+  if (confirmIt && !confirm('방을 나갈까요?')) return;
+  offAll(); clearInterval(tick);
+  if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
+  room = null; code = ''; isHost = false; submittedStep = -1; lastRenderKey = ''; show('home');
+}
+$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave();
+$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
+function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
+$('btnRules').onclick = () => $('rulesModal').classList.add('show');
+$('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
+$('rulesModal').addEventListener('click', e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); });
+
+// ── 대기실 ──
+function renderLobby() {
+  show('lobby');
+  $('lobbyCode').textContent = code;
+  const ps = Object.entries(room.players || {}).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
+  $('lobbyCount').textContent = `${ps.length}/8`;
+  $('lobbyList').innerHTML = ps.map(([k, p]) => `<div class="pitem"><span class="av">${avatarOf(k)}</span>${esc(p.nick)}${k === room.host ? '<span class="tag">방장</span>' : ''}${k === myKey ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</div>`).join('');
+  $('btnStart').style.display = isHost ? '' : 'none';
+  $('btnStart').disabled = ps.length < 3;
+  if (!isHost) $('lobbyList').insertAdjacentHTML('beforeend', '<div style="font-size:13px;color:#8a5a2a;text-align:center;margin-top:6px">방장이 시작하면 자동으로 넘어가요</div>');
+}
+$('btnStart').onclick = () => startRound(1);
+function startRound(round) {
+  const keys = Object.entries(room.players).sort((a, b) => a[1].joinedAt - b[1].joinedAt).map(e => e[0]);
+  if (keys.length < 3) return toast('3명 이상 필요해요');
+  const order = shuffle([...keys]);
+  const game = { round, order, N: order.length, step: 0, phase: 'play', deadline: Date.now() + T_WORD * 1000, books: {}, slide: null, reactions: {} };
+  roomRef().update({ status: 'playing', game, expiresAt: Date.now() + 2 * 3600e3 });
+}
+
+// 배정: step s 에서 order[i] 는 책 order[(i - s + N) % N] 을 맡는다
+const bookFor = (g, k, s) => { const i = g.order.indexOf(k); return g.order[((i - s) % g.N + g.N) % g.N]; };
+const stepType = s => s === 0 ? 'word' : (s % 2 === 1 ? 'draw' : 'text');
+const stepSec = s => s === 0 ? T_WORD : stepType(s) === 'draw' ? T_DRAW : T_TEXT;
+const entry = (g, book, s) => (g.books && g.books[book] && g.books[book][s]) || null;
+
+// ── 방장: 단계 진행 ──
+function hostAdvance() {
+  const g = room && room.game; if (!g || g.phase !== 'play') return;
+  const done = g.order.every(k => entry(g, bookFor(g, k, g.step), g.step));
+  const timeout = Date.now() > g.deadline + 2500;   // 자동 제출 여유
+  if (!done && !timeout) return;
+  const next = g.step + 1;
+  if (next >= g.N) roomRef().update({ 'game/phase': 'reveal', 'game/slide': { book: 0, step: 0 } });
+  else roomRef().update({ 'game/step': next, 'game/deadline': Date.now() + stepSec(next) * 1000 });
+}
+function onTick() {
+  const g = room && room.game; if (!g) return;
+  if (g.phase === 'play') {
+    const left = Math.max(0, Math.ceil((g.deadline - Date.now()) / 1000));
+    const t = $('timer'); t.textContent = `⏱ ${left}`; t.classList.toggle('low', left <= 10);
+    if (left === 0 && submittedStep !== g.step) submitCurrent(true);
+    if (isHost) hostAdvance();
+  } else $('timer').textContent = '';
+}
+
+// ── 게임 렌더 ──
+function renderGame() {
+  show('game');
+  const g = room.game; if (!g) return;
+  $('gameCode').textContent = code;
+  if (g.phase === 'reveal') return renderReveal();
+  const s = g.step, type = stepType(s), book = bookFor(g, myKey, s), mine = entry(g, book, s);
+  $('stepPill').textContent = `${s + 1} / ${g.N} 단계`;
+  const doneList = g.order.map(k => ({ k, done: !!entry(g, bookFor(g, k, s), s) }));
+  const key = `${g.round}:${s}:${mine ? 'done' : 'todo'}:${doneList.map(d => d.done ? 1 : 0).join('')}`;
+  if (key === lastRenderKey) return;   // 입력 중 리렌더 방지
+  const structural = !lastRenderKey.startsWith(`${g.round}:${s}:`);
+  lastRenderKey = key;
+  $('banner').textContent = type === 'word' ? '✍️ 제시어를 정하세요 (다음 사람이 그릴 거예요)' : type === 'draw' ? '🎨 받은 글을 그림으로!' : '🤔 이 그림이 뭘까요? 글로 써요';
+  const statusHtml = `<div class="status">${doneList.map(d => `<span class="p ${d.done ? 'done' : ''}">${d.done ? '✅' : '⏳'} ${esc(nickOf(d.k))}</span>`).join('')}</div>`;
+  if (mine) {
+    $('stage').innerHTML = `<div class="card" style="text-align:center"><div style="font-size:22px">✅ 제출 완료!</div><div style="color:#8a5a2a;font-size:14px;margin-top:4px">다른 사람들을 기다리는 중…</div>${statusHtml}</div>`;
+    return;
+  }
+  if (!structural) { const st = document.querySelector('#stage .status'); if (st) st.outerHTML = statusHtml; return; }
+  const prev = s > 0 ? entry(g, book, s - 1) : null;
+  let recv = '';
+  if (s > 0) {
+    recv = prev ? (prev.type === 'draw'
+      ? `<div class="who"><span class="av">${avatarOf(prev.by)}</span>${esc(nickOf(prev.by))} 님의 그림</div><img class="art" src="${prev.img}">`
+      : `<div class="who"><span class="av">${avatarOf(prev.by)}</span>${esc(nickOf(prev.by))} 님의 글</div><div class="bubble">${esc(prev.text)}</div>`)
+      : `<div class="bubble">(앞 사람이 제출하지 않았어요)<small>자유롭게 그려요!</small></div>`;
+  }
+  let action = '';
+  if (type === 'word') action = `<input class="input" id="txt" placeholder="예: 우주에서 라면 끓이기" maxlength="30"><div class="row"><button class="btn light" id="btnRand">🎲 랜덤 제시어</button><button class="btn green" style="flex:1" id="btnSubmit">제출</button></div>`;
+  else if (type === 'text') action = `<input class="input" id="txt" placeholder="그림을 보고 한 줄로" maxlength="30"><div class="row"><button class="btn green wide" id="btnSubmit">제출</button></div>`;
+  else action = `<div class="cwrap"><canvas id="pad" width="320" height="320"></canvas></div>
+    <div class="tools" id="colors"></div>
+    <div class="tools" id="sizes"><button class="btn light" id="btnUndo">↩ 되돌리기</button><button class="btn light" id="btnClear">🗑 지우기</button></div>
+    <div class="row"><button class="btn green wide" id="btnSubmit">🎨 제출</button></div>`;
+  $('stage').innerHTML = `${recv ? `<div class="card">${recv}</div>` : ''}<div class="card note spiral"><h3>${type === 'word' ? '내 책의 첫 제시어' : type === 'draw' ? '그림으로 표현하기' : '뭘 그린 걸까?'}</h3>${action}${statusHtml}</div>`;
+  if (type === 'draw') initPad();
+  else { $('txt').addEventListener('keydown', e => { if (e.key === 'Enter') submitCurrent(); }); if ($('btnRand')) $('btnRand').onclick = () => { $('txt').value = PROMPTS[Math.floor(Math.random() * PROMPTS.length)]; }; }
+  $('btnSubmit').onclick = () => submitCurrent();
+}
+
+// ── 제출 ──
+function submitCurrent(auto = false) {
+  const g = room && room.game; if (!g || g.phase !== 'play') return;
+  const s = g.step, type = stepType(s), book = bookFor(g, myKey, s);
+  if (submittedStep === s || entry(g, book, s)) return;
+  let payload;
+  if (type === 'draw') {
+    const pad = $('pad'); if (!pad) return;
+    const out = document.createElement('canvas'); out.width = 320; out.height = 320;
+    const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, 320, 320); c.drawImage(pad, 0, 0);
+    payload = { by: myKey, type: 'draw', img: out.toDataURL('image/jpeg', 0.6), t: Date.now() };
+  } else {
+    const v = ($('txt') ? $('txt').value.trim() : '') || (auto ? (type === 'word' ? PROMPTS[Math.floor(Math.random() * PROMPTS.length)] : '…') : '');
+    if (!v) return toast('내용을 입력해 주세요');
+    payload = { by: myKey, type: 'text', text: v.slice(0, 30), t: Date.now() };
+  }
+  submittedStep = s;
+  db.ref(`${rpath(code)}/game/books/${book}/${s}`).set(payload);
+  if (auto) toast('⏰ 시간 종료 — 자동 제출됐어요');
+}
+
+// ── 그림판 ──
+let pad, pctx, strokes = [], cur = null, color = '#222', size = 6, eraser = false;
+const COLORS = ['#222222', '#e63946', '#f4a261', '#ffd166', '#2a9d8f', '#3b82f6', '#9b5de5', '#ff8fab'];
+function initPad() {
+  pad = $('pad'); pctx = pad.getContext('2d'); strokes = []; cur = null; eraser = false;
+  pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+  $('colors').innerHTML = COLORS.map(c => `<div class="sw ${c === color ? 'on' : ''}" data-c="${c}" style="background:${c}"></div>`).join('') + `<div class="sw" data-c="eraser" style="background:#fff;display:grid;place-items:center;color:#333">◻</div>`;
+  const sizes = [3, 6, 12].map(sz => `<div class="sz ${sz === size ? 'on' : ''}" data-s="${sz}"><i style="width:${sz + 4}px;height:${sz + 4}px"></i></div>`).join('');
+  $('sizes').insertAdjacentHTML('afterbegin', sizes);
+  $('colors').querySelectorAll('.sw').forEach(el => el.onclick = () => { eraser = el.dataset.c === 'eraser'; if (!eraser) color = el.dataset.c; $('colors').querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === el)); });
+  $('sizes').querySelectorAll('.sz').forEach(el => el.onclick = () => { size = +el.dataset.s; $('sizes').querySelectorAll('.sz').forEach(x => x.classList.toggle('on', x === el)); });
+  $('btnUndo').onclick = () => { strokes.pop(); redraw(); };
+  $('btnClear').onclick = () => { strokes = []; redraw(); };
+  const pos = e => { const r = pad.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 320, (e.clientY - r.top) / r.height * 320]; };
+  pad.onpointerdown = e => { pad.setPointerCapture(e.pointerId); cur = { c: eraser ? '#ffffff' : color, w: eraser ? size * 3 : size, pts: [pos(e)] }; strokes.push(cur); redraw(); };
+  pad.onpointermove = e => { if (!cur) return; cur.pts.push(pos(e)); drawStroke(cur, cur.pts.length - 2); };
+  pad.onpointerup = pad.onpointercancel = () => { cur = null; };
+  redraw();
+}
+function drawStroke(s, from = 0) {
+  pctx.strokeStyle = s.c; pctx.lineWidth = s.w; pctx.beginPath();
+  const p = s.pts; if (p.length === 1) { pctx.moveTo(p[0][0], p[0][1]); pctx.lineTo(p[0][0] + .1, p[0][1]); }
+  else { pctx.moveTo(p[Math.max(0, from)][0], p[Math.max(0, from)][1]); for (let i = Math.max(1, from + 1); i < p.length; i++) pctx.lineTo(p[i][0], p[i][1]); }
+  pctx.stroke();
+}
+function redraw() { pctx.clearRect(0, 0, 320, 320); for (const s of strokes) drawStroke(s); }
+
+// ── 발표 ──
+function renderReveal() {
+  const g = room.game, sl = g.slide || { book: 0, step: 0 };
+  $('stepPill').textContent = `📖 발표 ${sl.book + 1} / ${g.N}`;
+  $('timer').textContent = '';
+  const owner = g.order[sl.book];
+  $('banner').textContent = `📖 ${nickOf(owner)} 님의 책 — ${sl.step + 1} / ${g.N}`;
+  const total = g.N;
+  const items = [];
+  for (let s = 0; s <= sl.step; s++) {
+    const e = entry(g, owner, s);
+    const rid = `${sl.book}_${s}`, cnt = Object.keys((g.reactions || {})[rid] || {}).length, mineR = !!((g.reactions || {})[rid] || {})[myKey];
+    items.push(`<div class="frame" ${s === sl.step ? '' : 'style="animation:none;opacity:.85"'}>
+      <div class="who"><span class="av">${e ? avatarOf(e.by) : '❔'}</span>${e ? esc(nickOf(e.by)) : '미제출'} · ${s === 0 ? '제시어' : stepType(s) === 'draw' ? '그림' : '추측'}</div>
+      ${e ? (e.type === 'draw' ? `<img class="art" src="${e.img}">` : `<div class="txt">${esc(e.text)}</div>`) : '<div class="txt" style="opacity:.5">(비어 있음)</div>'}
+      <div class="react"><button class="btn light" data-r="${rid}">😂 ${cnt}${mineR ? ' ✓' : ''}</button></div>
+    </div>`);
+  }
+  const last = sl.book === g.N - 1 && sl.step === total - 1;
+  const first = sl.step === 0 && sl.book === 0;
+  const ctrl = isHost
+    ? `<div class="row"><button class="btn light" id="btnPrev" ${first ? 'disabled' : ''}>◀ 이전</button>${last ? `<button class="btn green" style="flex:1" id="btnAgain">🔁 한 판 더</button><button class="btn ghost" id="btnLobby">대기실로</button>` : `<button class="btn teal" style="flex:1" id="btnNext">다음 ▶</button>`}</div>`
+    : `<div style="text-align:center;opacity:.9;font-size:14px;margin-top:6px">방장이 넘겨요 · 😂 눌러서 반응!</div>`;
+  $('stage').innerHTML = items.reverse().join('') + ctrl;
+  lastRenderKey = '';
+  $('stage').querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+    const rid = b.dataset.r; const on = !!((g.reactions || {})[rid] || {})[myKey];
+    db.ref(`${rpath(code)}/game/reactions/${rid}/${myKey}`).set(on ? null : true);
+    if (!on) { const l = document.createElement('span'); l.className = 'lol'; l.textContent = '😂'; const r = b.getBoundingClientRect(); l.style.left = r.left + 'px'; l.style.top = r.top + 'px'; document.body.appendChild(l); setTimeout(() => l.remove(), 1200); }
+  });
+  if (isHost) {
+    const go = (b, s) => roomRef().update({ 'game/slide': { book: b, step: s } });
+    if ($('btnNext')) $('btnNext').onclick = () => { if (sl.step < total - 1) go(sl.book, sl.step + 1); else go(sl.book + 1, 0); };
+    if ($('btnPrev')) $('btnPrev').onclick = () => { if (sl.step > 0) go(sl.book, sl.step - 1); else if (sl.book > 0) go(sl.book - 1, total - 1); };
+    if ($('btnAgain')) $('btnAgain').onclick = () => { submittedStep = -1; startRound(g.round + 1); };
+    if ($('btnLobby')) $('btnLobby').onclick = () => roomRef().update({ status: 'lobby', game: null });
+  }
+}
+
+// ── 규칙 ──
+const HOWTO = `
+  <div class="step"><div class="no">1</div><div><h4>모두 제시어를 하나씩 써요</h4><p>내 책의 첫 장. 랜덤 버튼을 눌러도 돼요.</p>
+    <div class="demo"><div class="mini t">우주에서<br>라면 끓이기</div><span class="lbl">← 내 책 1장</span></div></div></div>
+  <div class="step"><div class="no">2</div><div><h4>옆 사람의 제시어를 그림으로</h4><p>글자는 쓰면 안 돼요! 80초 안에 그리기.</p>
+    <div class="demo"><div class="mini t">우주에서<br>라면 끓이기</div><span class="arrow">➜</span><div class="mini d">🚀🍜</div></div></div></div>
+  <div class="step"><div class="no">3</div><div><h4>그림만 보고 맞히기 → 또 그리기</h4><p>앞 내용은 안 보이고 <b>바로 앞 장만</b> 보여요. 사람 수만큼 이어져요.</p>
+    <div class="demo"><div class="mini d">🚀🍜</div><span class="arrow">➜</span><div class="mini t">로켓이<br>국수 먹음</div><span class="arrow">➜</span><div class="mini d">🚀🍝</div><span class="arrow">➜</span><span class="lbl">…</span></div></div></div>
+  <div class="step"><div class="no">4</div><div><h4>마지막에 다 같이 공개</h4><p>책마다 처음부터 끝까지 넘겨보며 어디서 망가졌는지 확인! 😂 반응 버튼으로 웃겨준 사람 칭찬.</p>
+    <div class="demo"><div class="mini t">라면</div><span class="arrow">➜</span><div class="mini d">🍜</div><span class="arrow">➜</span><div class="mini t">국수</div><span class="arrow">➜</span><div class="mini d">🐍</div><span class="arrow">➜</span><div class="mini t">뱀?!</div></div></div></div>`;
+$('howtoHome').innerHTML = $('howtoModal').innerHTML = HOWTO;
+</script>
+</body>
+</html>

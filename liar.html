@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 라이어 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --cream: #fff3d6; --ink: #2a2118; --wood: #8a5a2b; --wood-dark: #5c3a1a; --gold: #ffd36b; --red: #ff6b6b; --purple: #6a3fb5; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Jua', 'Malgun Gothic', sans-serif; color: #fff; -webkit-user-select: none; user-select: none; min-height: 100vh; overflow-x: hidden;
+  background: radial-gradient(ellipse at 50% 0%, #7a4bd1 0%, #3b1f5e 45%, #1c0f2e 100%);
+}
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .18; background-image: radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px); background-size: 22px 22px; }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px); z-index: 60; background: var(--cream); color: var(--ink); padding: 10px 22px; border-radius: 999px; font-size: 15px; box-shadow: 0 6px 0 var(--wood-dark), 0 10px 20px rgba(0,0,0,.3); opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.screen { display: none; max-width: 540px; margin: 0 auto; padding: 18px 14px 40px; position: relative; }
+.screen.active { display: block; }
+.title { text-align: center; margin: 26px 0 4px; font-size: 38px; text-shadow: 3px 3px 0 #1c0f2e; }
+.sub { text-align: center; opacity: .85; font-size: 15px; margin-bottom: 20px; }
+.card { background: var(--cream); color: var(--ink); border-radius: 20px; padding: 18px; margin-bottom: 14px; border: 4px solid #fff; box-shadow: 0 6px 0 var(--wood-dark), 0 12px 24px rgba(0,0,0,.3); }
+.card h3 { font-size: 15px; color: #8a5a2a; margin-bottom: 10px; }
+.input { width: 100%; padding: 12px 14px; border: 3px solid #e6c58f; border-radius: 12px; font-size: 18px; font-family: inherit; color: var(--ink); background: #fff; outline: none; }
+.input:focus { border-color: var(--wood); }
+.row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn { padding: 12px 20px; border: 3px solid #fff; border-radius: 999px; font-family: inherit; font-size: 17px; cursor: pointer; background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
+.btn.green { background: #5cb85c; box-shadow: 0 4px 0 #3a7f3a; } .btn.green:active { box-shadow: 0 1px 0 #3a7f3a; }
+.btn.blue { background: #4aa3df; box-shadow: 0 4px 0 #2b6f9e; } .btn.blue:active { box-shadow: 0 1px 0 #2b6f9e; }
+.btn.purple { background: var(--purple); box-shadow: 0 4px 0 #3d2270; } .btn.purple:active { box-shadow: 0 1px 0 #3d2270; }
+.btn.ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 14px; padding: 8px 14px; } .btn.ghost:active { box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.btn.wide { width: 100%; } .btn:disabled { opacity: .45; cursor: default; transform: none; }
+.code-big { font-family: monospace; font-size: 34px; letter-spacing: .25em; text-align: center; color: var(--wood-dark); margin: 6px 0; font-weight: bold; }
+.plist { display: flex; flex-direction: column; gap: 8px; }
+.pitem { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 12px; padding: 10px 12px; font-size: 17px; }
+.av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: #ffe0b3; flex: none; }
+.tag { font-size: 12px; background: var(--wood); color: #fff; border-radius: 8px; padding: 2px 8px; margin-left: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 12px; border-radius: 999px; background: #fff; border: 2px solid #e6c58f; font-size: 14px; cursor: pointer; color: var(--ink); }
+.chip.on { background: var(--purple); color: #fff; border-color: #fff; }
+.seg { display: flex; gap: 6px; } .seg .chip { flex: 1; text-align: center; }
+
+/* 게임 */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.pill { background: rgba(0,0,0,.3); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+.banner { text-align: center; font-size: 19px; padding: 10px 14px; border-radius: 16px; margin: 6px 0 12px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.15); }
+.banner.hot { background: var(--gold); color: var(--ink); border-color: #fff; animation: glow 1.2s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 0 3px rgba(255,211,107,.25); } to { box-shadow: 0 0 0 8px rgba(255,211,107,.55); } }
+.timer { font-size: 44px; text-align: center; text-shadow: 3px 3px 0 #1c0f2e; margin: 4px 0; }
+.timer.low { color: var(--red); animation: blink .5s steps(2) infinite; }
+@keyframes blink { to { opacity: .4; } }
+
+.secret { position: relative; border-radius: 18px; overflow: hidden; background: #fff; color: var(--ink); min-height: 150px; display: grid; place-items: center; text-align: center; padding: 18px; }
+.secret .w { font-size: 40px; color: var(--purple); }
+.secret .c { font-size: 15px; color: #8a5a2a; margin-bottom: 4px; }
+.secret .liar { font-size: 34px; color: #c0392b; }
+.secret .veil { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, #6a3fb5 0 12px, #5a32a0 12px 24px); color: #fff; display: grid; place-items: center; font-size: 20px; cursor: pointer; }
+.secret .veil small { display: block; font-size: 13px; opacity: .85; margin-top: 4px; }
+
+.order { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+.order .o { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,.14); border-radius: 999px; padding: 4px 10px 4px 4px; font-size: 14px; }
+.order .o .n { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); color: var(--ink); display: grid; place-items: center; font-size: 12px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.vbtn { display: flex; align-items: center; gap: 8px; background: #fff; border: 3px solid #e6c58f; border-radius: 14px; padding: 10px; font-family: inherit; font-size: 16px; color: var(--ink); cursor: pointer; text-align: left; }
+.vbtn.sel { border-color: var(--purple); background: #efe6ff; }
+.vbtn:disabled { opacity: .5; cursor: default; }
+.vbtn .cnt { margin-left: auto; font-size: 13px; color: #8a5a2a; }
+.words { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wbtn { background: #fff; border: 3px solid #e6c58f; border-radius: 12px; padding: 12px 6px; font-family: inherit; font-size: 16px; color: var(--ink); cursor: pointer; }
+.wbtn:active { transform: translateY(2px); }
+.result { text-align: center; }
+.result h2 { font-size: 30px; margin-bottom: 6px; }
+.result .big { font-size: 44px; color: var(--purple); }
+.score { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+.score .s { background: #fff; border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--ink); }
+.status { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.status .p { background: rgba(255,255,255,.14); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+.status .p.done { background: #5cb85c; }
+
+/* 규칙 */
+.howto { display: flex; flex-direction: column; gap: 12px; }
+.step { background: #fff; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.step .no { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.step h4 { font-size: 16px; color: var(--wood-dark); margin-bottom: 4px; }
+.step p { font-size: 13.5px; line-height: 1.55; color: #5a4a3a; } .step p b { color: #c0392b; }
+.demo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 2px; }
+.mini { width: 62px; height: 78px; border-radius: 10px; background: #fff; border: 3px solid #e6c58f; display: grid; place-items: center; text-align: center; font-size: 13px; line-height: 1.2; color: var(--ink); }
+.mini.word { border-color: var(--purple); color: var(--purple); font-size: 15px; }
+.mini.liar { border-color: #c0392b; color: #c0392b; }
+.mini.hid { background: repeating-linear-gradient(45deg, #6a3fb5 0 8px, #5a32a0 8px 16px); color: #fff; }
+.demo .arrow { color: var(--wood); font-size: 18px; }
+.demo .lbl { font-size: 12px; color: #8a5a2a; background: #fff3d6; border-radius: 8px; padding: 2px 8px; }
+.bubble { background: #f3ecff; border-radius: 12px; padding: 6px 10px; font-size: 13px; color: #3d2270; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; z-index: 40; padding: 14px; }
+.modal.show { display: flex; }
+.modal .card { width: 100%; max-width: 460px; margin: 0; max-height: 88vh; overflow-y: auto; }
+.confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 45; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<section class="screen active" id="home">
+  <div class="title">🤥 라이어 게임</div>
+  <div class="sub">한 명만 제시어를 몰라요 · 3~10명 · 음성 통화와 함께</div>
+  <div class="card">
+    <h3>닉네임</h3>
+    <input class="input" id="nick" placeholder="닉네임 (2~8자)" maxlength="8">
+    <div class="row"><button class="btn green wide" id="btnCreate">방 만들기</button></div>
+  </div>
+  <div class="card">
+    <h3>코드로 참가</h3>
+    <input class="input" id="joinCode" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:.2em;font-family:monospace">
+    <div class="row"><button class="btn blue wide" id="btnJoin">참가하기</button></div>
+  </div>
+  <div class="card">
+    <h3>❓ 어떻게 하나요? — 1분이면 배워요</h3>
+    <div class="howto" id="howtoHome"></div>
+  </div>
+</section>
+
+<section class="screen" id="lobby">
+  <div class="title" style="font-size:28px;margin-top:10px">대기실</div>
+  <div class="card" style="text-align:center">
+    <h3>방 코드 — 친구에게 알려주세요</h3>
+    <div class="code-big" id="lobbyCode">------</div>
+    <div class="row" style="justify-content:center">
+      <button class="btn blue" id="btnCopyLink">🔗 링크 복사</button>
+      <button class="btn ghost" style="color:#8a5a2a;background:#fff;box-shadow:0 4px 0 #b8834a" id="btnCopyCode">코드 복사</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>참가자 <span id="lobbyCount"></span></h3>
+    <div class="plist" id="lobbyList"></div>
+  </div>
+  <div class="card" id="settingsCard">
+    <h3>설정 <span style="opacity:.6;font-size:12px" id="settingsWho"></span></h3>
+    <div style="font-size:13px;color:#8a5a2a;margin-bottom:6px">카테고리 (여러 개 선택 가능)</div>
+    <div class="chips" id="catChips"></div>
+    <div style="font-size:13px;color:#8a5a2a;margin:10px 0 6px">토론 시간</div>
+    <div class="seg" id="talkSeg"></div>
+    <div style="font-size:13px;color:#8a5a2a;margin:10px 0 6px">라이어 수</div>
+    <div class="seg" id="liarSeg"></div>
+  </div>
+  <div class="row"><button class="btn green wide" id="btnStart" disabled>게임 시작 (3명 이상)</button></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveLobby">나가기</button></div>
+</section>
+
+<section class="screen" id="game">
+  <div class="top">
+    <div class="pill">방 <b id="gameCode"></b></div>
+    <div class="pill" id="roundPill">1라운드</div>
+    <button class="btn ghost" id="btnRules">❓ 규칙</button>
+    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div id="stage"></div>
+</section>
+
+<div class="modal" id="rulesModal">
+  <div class="card">
+    <h3>❓ 어떻게 하나요?</h3>
+    <div class="howto" id="howtoModal"></div>
+    <button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const rpath = c => `games/lr_${c}`;   // 규칙상 열린 경로(games/) 아래, lr_ 접두로 분리
+
+// ── 제시어 ──
+const BANK = {
+  '음식': ['김치찌개','치킨','피자','떡볶이','초밥','라면','삼겹살','햄버거','파스타','비빔밥','짜장면','냉면','족발','케이크','아이스크림','순대','된장찌개','타코','카레','샌드위치','떡','호떡','붕어빵','마카롱','불고기'],
+  '동물': ['고양이','강아지','코끼리','기린','펭귄','사자','호랑이','토끼','햄스터','돌고래','상어','악어','캥거루','판다','원숭이','부엉이','거북이','문어','늑대','독수리','개구리','달팽이','고슴도치','앵무새','낙타'],
+  '장소': ['학교','병원','공항','도서관','놀이공원','영화관','편의점','찜질방','노래방','헬스장','수영장','미용실','경찰서','지하철역','카페','시장','캠핑장','동물원','박물관','교회','피시방','목욕탕','주유소','호텔','야구장'],
+  '직업': ['의사','소방관','경찰','요리사','교사','가수','유튜버','프로게이머','변호사','승무원','택배기사','농부','간호사','배우','개발자','치과의사','우주비행사','바리스타','사진작가','통역사','판사','건축가','기자','미용사','군인'],
+  '물건': ['우산','냉장고','드라이기','칫솔','리모컨','안경','베개','자전거','노트북','이어폰','선풍기','책상','지갑','시계','거울','슬리퍼','캐리어','텀블러','충전기','키보드','청소기','가위','양초','모자','장갑'],
+  '스포츠': ['축구','야구','농구','배구','탁구','테니스','골프','수영','태권도','볼링','양궁','펜싱','스키','컬링','마라톤','배드민턴','권투','씨름','승마','사이클','유도','스케이트','서핑','당구','클라이밍'],
+  '나라': ['일본','미국','프랑스','이탈리아','중국','영국','독일','브라질','호주','인도','태국','베트남','스페인','캐나다','러시아','이집트','멕시코','터키','스위스','그리스','필리핀','아르헨티나','스웨덴','싱가포르','몽골'],
+  '영화·만화': ['해리포터','겨울왕국','타이타닉','어벤져스','토이스토리','기생충','슬램덩크','원피스','짱구','도라에몽','포켓몬','드래곤볼','스파이더맨','미니언즈','쥬라기공원','알라딘','인사이드아웃','명탐정코난','진격의거인','귀멸의칼날','토토로','라이온킹','주토피아','스타워즈','아바타'],
+};
+const CATS = Object.keys(BANK);
+const TALK_OPTS = [{ v: 0, l: '없음' }, { v: 120, l: '2분' }, { v: 180, l: '3분' }, { v: 300, l: '5분' }];
+
+// ── 유틸 ──
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐯', '🐨'];
+const avatarOf = k => AVATARS[[...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 100003, 7) % AVATARS.length];
+const nickOf = k => (room && room.players && room.players[k] ? room.players[k].nick : k);
+const isLiar = k => !!(room && room.game && room.game.liars && room.game.liars[k]);
+
+// ── 상태 ──
+let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [], tick = null, veiled = true, myVote = null;
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+const roomRef = () => db.ref(rpath(code));
+
+// ── 홈 ──
+(function init() {
+  const saved = localStorage.getItem('lr_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+})();
+function getNick() { const n = $('nick').value.trim(); if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; } localStorage.setItem('lr_nick', n); return n; }
+$('btnCreate').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  myNick = n; myKey = sanitizeKey(n); code = genCode(); isHost = true;
+  await roomRef().set({ host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby',
+    players: { [myKey]: { nick: n, joinedAt: Date.now() } }, settings: { cats: CATS, talkSec: 180, liars: 1 } });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const snap = await db.ref(rpath(c)).once('value'); const r = snap.val();
+  if (!r) return toast('방을 찾을 수 없어요');
+  if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
+  const k = sanitizeKey(n); const already = r.players && r.players[k];
+  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 재접속 가능)');
+  if (!already && Object.keys(r.players || {}).length >= 10) return toast('정원(10명)이 찼어요');
+  myNick = n; myKey = k; code = c; isHost = r.host === k;
+  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: n, joinedAt: Date.now() });
+  enterRoom();
+};
+function enterRoom() {
+  offAll();
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); leave(false); return; }
+    isHost = room.host === myKey;
+    if (room.status === 'lobby') renderLobby(); else renderGame();
+  });
+  listeners.push(() => ref.off('value', cb));
+  const pref = db.ref(`${rpath(code)}/players/${myKey}`);
+  if (isHost) { ref.onDisconnect().remove(); listeners.push(() => ref.onDisconnect().cancel()); }
+  else { pref.onDisconnect().remove(); listeners.push(() => pref.onDisconnect().cancel()); }
+}
+function leave(confirmIt = true) {
+  if (confirmIt && !confirm('방을 나갈까요?')) return;
+  offAll(); clearInterval(tick);
+  if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
+  room = null; code = ''; isHost = false; show('home');
+}
+$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave();
+$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
+function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
+$('btnRules').onclick = () => $('rulesModal').classList.add('show');
+$('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
+$('rulesModal').addEventListener('click', e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); });
+
+// ── 대기실 ──
+function renderLobby() {
+  show('lobby');
+  $('lobbyCode').textContent = code;
+  const ps = Object.entries(room.players || {}).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
+  $('lobbyCount').textContent = `${ps.length}/10`;
+  $('lobbyList').innerHTML = ps.map(([k, p]) => `<div class="pitem"><span class="av">${avatarOf(k)}</span>${esc(p.nick)}${k === room.host ? '<span class="tag">방장</span>' : ''}${k === myKey ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</div>`).join('');
+  const st = room.settings || { cats: CATS, talkSec: 180, liars: 1 };
+  $('settingsWho').textContent = isHost ? '' : '(방장만 바꿀 수 있어요)';
+  $('catChips').innerHTML = CATS.map(c => `<span class="chip ${(st.cats || []).includes(c) ? 'on' : ''}" data-c="${c}">${c}</span>`).join('');
+  $('talkSeg').innerHTML = TALK_OPTS.map(o => `<span class="chip ${st.talkSec === o.v ? 'on' : ''}" data-t="${o.v}">${o.l}</span>`).join('');
+  $('liarSeg').innerHTML = [1, 2].map(n => `<span class="chip ${st.liars === n ? 'on' : ''}" data-l="${n}">${n}명${n === 2 ? ' (7명+)' : ''}</span>`).join('');
+  if (isHost) {
+    $('catChips').querySelectorAll('.chip').forEach(el => el.onclick = () => { let cats = [...(st.cats || [])]; const c = el.dataset.c; cats = cats.includes(c) ? cats.filter(x => x !== c) : [...cats, c]; if (!cats.length) return toast('하나는 남겨야 해요'); roomRef().update({ 'settings/cats': cats }); });
+    $('talkSeg').querySelectorAll('.chip').forEach(el => el.onclick = () => roomRef().update({ 'settings/talkSec': +el.dataset.t }));
+    $('liarSeg').querySelectorAll('.chip').forEach(el => el.onclick = () => { if (+el.dataset.l === 2 && ps.length < 7) return toast('라이어 2명은 7명 이상일 때'); roomRef().update({ 'settings/liars': +el.dataset.l }); });
+  }
+  $('btnStart').style.display = isHost ? '' : 'none';
+  $('btnStart').disabled = ps.length < 3;
+  if (!isHost) $('lobbyList').insertAdjacentHTML('beforeend', '<div style="font-size:13px;color:#8a5a2a;text-align:center;margin-top:6px">방장이 시작하면 자동으로 넘어가요</div>');
+}
+$('btnStart').onclick = () => startRound(1, {});
+
+// ── 라운드 시작 (방장) ──
+function startRound(round, scores) {
+  const keys = Object.entries(room.players).sort((a, b) => a[1].joinedAt - b[1].joinedAt).map(e => e[0]);
+  if (keys.length < 3) return toast('3명 이상 필요해요');
+  const st = room.settings || {};
+  const cats = (st.cats && st.cats.length) ? st.cats : CATS;
+  const category = cats[Math.floor(Math.random() * cats.length)];
+  const list = BANK[category];
+  const word = list[Math.floor(Math.random() * list.length)];
+  const nLiars = st.liars === 2 && keys.length >= 7 ? 2 : 1;
+  const liars = {}; shuffle([...keys]).slice(0, nLiars).forEach(k => liars[k] = true);
+  const decoys = shuffle(list.filter(w => w !== word)).slice(0, 8);
+  const options = shuffle([word, ...decoys]);
+  const game = { round, phase: 'card', category, word, liars, options, order: shuffle([...keys]), talkSec: st.talkSec ?? 180, deadline: 0, votes: {}, scores: scores || {}, log: [] };
+  roomRef().update({ status: 'playing', game, expiresAt: Date.now() + 2 * 3600e3 });
+}
+const commit = (g) => roomRef().update({ game: g });
+
+// ── 게임 렌더 ──
+function renderGame() {
+  show('game');
+  const g = room.game; if (!g) return;
+  $('gameCode').textContent = code;
+  $('roundPill').textContent = `${g.round}라운드 · ${g.category}`;
+  const S = $('stage'); const B = $('banner');
+  const keys = Object.keys(room.players || {});
+  const me = isLiar(myKey);
+  clearInterval(tick);
+
+  if (g.phase === 'card' || g.phase === 'talk') {
+    B.className = 'banner' + (g.phase === 'talk' ? ' hot' : '');
+    B.textContent = g.phase === 'card' ? '🎴 카드를 확인하세요 (다른 사람에게 보이지 않게!)' : '🗣️ 토론 중 — 순서대로 한마디씩!';
+    S.innerHTML = `
+      <div class="card">
+        <div class="secret" id="secret">
+          ${me ? `<div><div class="c">카테고리: ${esc(g.category)}</div><div class="liar">🤥 당신은 라이어!</div><div style="font-size:13px;color:#8a5a2a;margin-top:6px">제시어를 모르는 척… 아니, 아는 척하세요</div></div>`
+               : `<div><div class="c">카테고리: ${esc(g.category)}</div><div class="w">${esc(g.word)}</div></div>`}
+          <div class="veil" id="veil" ${veiled ? '' : 'style="display:none"'}>👆 눌러서 카드 보기<small>다시 누르면 가려요</small></div>
+        </div>
+        <div style="font-size:13px;color:#8a5a2a;text-align:center;margin-top:8px">발언 순서</div>
+        <div class="order">${g.order.map((k, i) => `<span class="o ${k === myKey ? 'me' : ''}"><span class="n">${i + 1}</span>${avatarOf(k)} ${esc(nickOf(k))}</span>`).join('')}</div>
+      </div>
+      ${g.phase === 'talk' && g.talkSec ? `<div class="timer" id="timer">--:--</div>` : ''}
+      <div class="row" id="hostRow"></div>`;
+    $('secret').onclick = () => { veiled = !veiled; $('veil').style.display = veiled ? '' : 'none'; };
+    if (isHost) {
+      $('hostRow').innerHTML = g.phase === 'card'
+        ? `<button class="btn purple wide" id="btnTalk">🗣️ 토론 시작</button>`
+        : `<button class="btn wide" id="btnVote">🗳️ 투표 시작</button>`;
+      if (g.phase === 'card') $('btnTalk').onclick = () => { g.phase = 'talk'; g.deadline = g.talkSec ? Date.now() + g.talkSec * 1000 : 0; commit(g); };
+      else $('btnVote').onclick = () => { g.phase = 'vote'; g.votes = {}; myVote = null; commit(g); };
+    } else $('hostRow').innerHTML = `<div style="text-align:center;opacity:.8;width:100%;font-size:14px">${g.phase === 'card' ? '방장이 토론을 시작하면 타이머가 켜져요' : '방장이 투표를 시작할 때까지 토론하세요'}</div>`;
+    if (g.phase === 'talk' && g.talkSec) {
+      const upd = () => { const left = Math.max(0, Math.ceil((g.deadline - Date.now()) / 1000)); const t = $('timer'); if (!t) return; t.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`; t.classList.toggle('low', left <= 15); if (left === 0 && isHost && room.game.phase === 'talk') { room.game.phase = 'vote'; room.game.votes = {}; commit(room.game); } };
+      upd(); tick = setInterval(upd, 500);
+    }
+    return;
+  }
+
+  if (g.phase === 'vote') {
+    const votes = g.votes || {};
+    const voted = Object.keys(votes).length, total = keys.length;
+    B.className = 'banner hot'; B.textContent = votes[myKey] ? `🗳️ 투표 완료 — 기다리는 중 (${voted}/${total})` : '🗳️ 라이어라고 생각하는 사람을 고르세요';
+    S.innerHTML = `<div class="card">
+      <div class="grid">${keys.map(k => `<button class="vbtn ${votes[myKey] === k ? 'sel' : ''}" data-k="${esc(k)}" ${k === myKey || votes[myKey] ? 'disabled' : ''}><span class="av">${avatarOf(k)}</span>${esc(nickOf(k))}</button>`).join('')}</div>
+      <div class="status">${keys.map(k => `<span class="p ${votes[k] ? 'done' : ''}">${votes[k] ? '✅' : '⏳'} ${esc(nickOf(k))}</span>`).join('')}</div>
+      ${isHost ? `<div class="row"><button class="btn ghost wide" style="color:#8a5a2a;background:#fff;box-shadow:0 4px 0 #b8834a" id="btnClose">투표 마감 (안 한 사람은 기권)</button></div>` : ''}
+    </div>`;
+    S.querySelectorAll('.vbtn').forEach(b => b.onclick = () => { if (votes[myKey]) return; roomRef().update({ [`game/votes/${myKey}`]: b.dataset.k }); });
+    if (isHost) $('btnClose').onclick = () => tally();
+    if (isHost && voted >= total) tally();
+    return;
+  }
+
+  if (g.phase === 'liarGuess') {
+    B.className = 'banner' + (me ? ' hot' : '');
+    B.textContent = me ? '🤥 잡혔어요! 제시어를 맞히면 역전 승리' : `🤥 라이어(${Object.keys(g.liars).map(nickOf).join(', ')})가 제시어를 추측 중…`;
+    S.innerHTML = `<div class="card">
+      <div style="text-align:center;color:#8a5a2a;font-size:14px;margin-bottom:8px">카테고리: ${esc(g.category)} — 제시어는?</div>
+      <div class="words">${g.options.map(w => `<button class="wbtn" data-w="${esc(w)}" ${me ? '' : 'disabled style="opacity:.55"'}>${esc(w)}</button>`).join('')}</div>
+    </div>`;
+    if (me) S.querySelectorAll('.wbtn').forEach(b => b.onclick = () => { const gg = room.game; gg.liarGuess = b.dataset.w; gg.liarWin = b.dataset.w === gg.word; gg.phase = 'result'; addScores(gg); commit(gg); });
+    return;
+  }
+
+  if (g.phase === 'result') {
+    const liarNames = Object.keys(g.liars).map(nickOf).join(', ');
+    B.className = 'banner'; B.textContent = g.liarWin ? '🤥 라이어 승리!' : '🎉 시민 승리!';
+    const tallyHtml = Object.entries(g.tally || {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<span class="s">${avatarOf(k)} ${esc(nickOf(k))} ${n}표</span>`).join('');
+    S.innerHTML = `<div class="card result">
+      <h2>${g.liarWin ? '🤥 라이어 승리' : '🎉 시민 승리'}</h2>
+      <div style="color:#8a5a2a">제시어</div><div class="big">${esc(g.word)}</div>
+      <div style="margin-top:8px">라이어는 <b style="color:#c0392b">${esc(liarNames)}</b> ${g.caught ? '— 잡혔' : '— 안 잡혔'}${g.caught ? (g.liarWin ? '지만 제시어를 맞혔어요!' : '고 제시어도 틀렸어요') : '어요'}</div>
+      ${g.liarGuess ? `<div style="font-size:14px;color:#8a5a2a;margin-top:4px">라이어의 추측: ${esc(g.liarGuess)}</div>` : ''}
+      <div style="font-size:13px;color:#8a5a2a;margin-top:10px">투표 결과</div><div class="score">${tallyHtml || '<span class="s">기권</span>'}</div>
+      <div style="font-size:13px;color:#8a5a2a;margin-top:10px">누적 점수</div>
+      <div class="score">${keys.map(k => `<span class="s">${avatarOf(k)} ${esc(nickOf(k))} ${(g.scores || {})[k] || 0}점</span>`).join('')}</div>
+    </div>
+    <div class="row">${isHost ? `<button class="btn green wide" id="btnNext">▶ 다음 라운드</button><button class="btn ghost wide" id="btnEnd">대기실로</button>` : '<div style="text-align:center;opacity:.8;width:100%;font-size:14px">방장이 다음 라운드를 시작해요</div>'}</div>`;
+    if (isHost) { $('btnNext').onclick = () => { veiled = true; startRound(g.round + 1, g.scores || {}); }; $('btnEnd').onclick = () => roomRef().update({ status: 'lobby', game: null }); }
+    if (!g._shown) { g._shown = true; if ((g.liarWin && me) || (!g.liarWin && !me)) confetti(); }
+    veiled = true;
+  }
+}
+
+function tally() {
+  const g = room.game; if (!isHost || g.phase !== 'vote') return;
+  const t = {}; for (const v of Object.values(g.votes || {})) t[v] = (t[v] || 0) + 1;
+  g.tally = t;
+  const max = Math.max(0, ...Object.values(t));
+  const top = Object.keys(t).filter(k => t[k] === max);
+  const caught = max > 0 && top.length === 1 && !!g.liars[top[0]];
+  g.caught = caught;
+  if (caught) { g.phase = 'liarGuess'; }
+  else { g.liarWin = true; g.phase = 'result'; addScores(g); }
+  commit(g);
+}
+function addScores(g) {
+  const s = g.scores || {};
+  for (const k of Object.keys(room.players)) {
+    const liar = !!g.liars[k];
+    if (g.liarWin) { if (liar) s[k] = (s[k] || 0) + (g.caught ? 1 : 2); }
+    else { if (!liar) s[k] = (s[k] || 0) + 1; }
+  }
+  g.scores = s;
+}
+function confetti() {
+  const em = ['🎉', '✨', '🎊', '⭐', '💜'];
+  for (let i = 0; i < 40; i++) { const s = document.createElement('span'); s.className = 'confetti'; s.textContent = em[i % em.length]; s.style.left = Math.random() * 100 + 'vw'; s.style.animationDuration = 1.8 + Math.random() * 1.5 + 's'; s.style.animationDelay = Math.random() * .6 + 's'; document.body.appendChild(s); setTimeout(() => s.remove(), 4000); }
+}
+
+// ── 규칙 그림 ──
+const HOWTO = `
+  <div class="step"><div class="no">1</div><div><h4>모두 같은 제시어, 한 명만 라이어</h4>
+    <p>카테고리는 다 같이 보고, 제시어는 라이어만 몰라요. 라이어는 <b>아는 척</b>해야 해요.</p>
+    <div class="demo"><div class="mini word">🍕<br>피자</div><div class="mini word">🍕<br>피자</div><div class="mini word">🍕<br>피자</div><div class="mini liar">🤥<br>라이어</div><span class="lbl">카테고리: 음식</span></div></div></div>
+  <div class="step"><div class="no">2</div><div><h4>카드는 나만 보기</h4>
+    <p>카드를 누르면 보이고, 다시 누르면 가려져요. 옆 사람에게 들키지 마세요.</p>
+    <div class="demo"><div class="mini hid">👆</div><span class="arrow">➜</span><div class="mini word">🍕<br>피자</div><span class="arrow">➜</span><div class="mini hid">가림</div></div></div></div>
+  <div class="step"><div class="no">3</div><div><h4>순서대로 한마디씩 힌트</h4>
+    <p>너무 쉬우면 라이어가 눈치채고, 너무 어려우면 시민이 의심받아요.</p>
+    <div class="demo"><span class="bubble">"이탈리아에서 왔어요"</span><span class="bubble">"둥글어요"</span><span class="bubble">"…치즈?"</span><span class="lbl">🤔 누가 라이어?</span></div></div></div>
+  <div class="step"><div class="no">4</div><div><h4>투표 → 라이어의 역전 기회</h4>
+    <p>토론 후 라이어라고 생각하는 사람에게 투표. <b>잡히면</b> 라이어가 제시어를 맞힐 기회가 있어요 — 맞히면 라이어 승리! 안 잡히면 그냥 라이어 승리.</p>
+    <div class="demo"><span class="lbl">🗳️ 투표</span><span class="arrow">➜</span><span class="lbl">🤥 잡힘</span><span class="arrow">➜</span><span class="lbl">제시어 9개 중 고르기</span></div></div></div>
+  <div class="step"><div class="no">5</div><div><h4>점수</h4>
+    <p>시민 승리: 시민 각 +1 · 라이어 안 잡힘: 라이어 +2 · 잡혔지만 제시어 맞힘: 라이어 +1. 라운드마다 라이어가 바뀌어요.</p></div></div>`;
+$('howtoHome').innerHTML = $('howtoModal').innerHTML = HOWTO;
+</script>
+</body>
+</html>

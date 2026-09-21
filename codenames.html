@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 코드네임</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1f2a44; --navy-dark: #121a2e; --cream: #fff3d6; --ink: #2a2118; --gold: #ffd36b;
+  --wood: #8a5a2b; --wood-dark: #5c3a1a;
+  --red: #e5484d; --red-dark: #a52b30; --blue: #3b82f6; --blue-dark: #1d4ed8;
+  --beige: #d9c7a3; --beige-dark: #a08e68; --black: #151515;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'Jua', 'Malgun Gothic', sans-serif; color: #fff; -webkit-user-select: none; user-select: none;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%) fixed;
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {   /* 은은한 격자 테이블 무늬 */
+  content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .6;
+  background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.toast {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px); z-index: 50;
+  background: var(--cream); color: var(--ink); padding: 10px 22px; border-radius: 999px; font-size: 15px;
+  box-shadow: 0 6px 0 var(--wood-dark), 0 10px 20px rgba(0,0,0,.3); opacity: 0; transition: all .25s; pointer-events: none;
+  max-width: 92vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.screen { display: none; max-width: 520px; margin: 0 auto; padding: 18px 14px 40px; position: relative; }
+.screen.active { display: block; }
+.screen-game { max-width: 560px; padding-top: 12px; }
+
+.title { text-align: center; margin: 28px 0 4px; font-size: 38px; text-shadow: 3px 3px 0 #0a0f1c; letter-spacing: 1px; }
+.sub { text-align: center; opacity: .85; font-size: 15px; margin-bottom: 22px; }
+.card {
+  background: var(--cream); color: var(--ink); border-radius: 20px; padding: 18px; margin-bottom: 14px;
+  border: 4px solid #fff; box-shadow: 0 6px 0 var(--wood-dark), 0 12px 24px rgba(0,0,0,.35);
+}
+.card h3 { font-size: 15px; color: #8a5a2a; margin-bottom: 10px; }
+.input {
+  width: 100%; padding: 12px 14px; border: 3px solid #e6c58f; border-radius: 12px; font-size: 18px; font-family: inherit;
+  color: var(--ink); background: #fff; outline: none;
+}
+.input:focus { border-color: var(--wood); }
+.row { display: flex; gap: 8px; margin-top: 10px; }
+.btn {
+  padding: 12px 20px; border: 3px solid #fff; border-radius: 999px; font-family: inherit; font-size: 17px; cursor: pointer;
+  background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
+.btn.green { background: #5cb85c; box-shadow: 0 4px 0 #3a7f3a; }
+.btn.green:active { box-shadow: 0 1px 0 #3a7f3a; }
+.btn.blue { background: var(--blue); box-shadow: 0 4px 0 var(--blue-dark); }
+.btn.blue:active { box-shadow: 0 1px 0 var(--blue-dark); }
+.btn.red { background: var(--red); box-shadow: 0 4px 0 var(--red-dark); }
+.btn.red:active { box-shadow: 0 1px 0 var(--red-dark); }
+.btn.gold { background: var(--gold); color: var(--ink); box-shadow: 0 4px 0 #b8892a; }
+.btn.gold:active { box-shadow: 0 1px 0 #b8892a; }
+.btn.ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 14px; padding: 8px 14px; }
+.btn.ghost:active { box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.btn.light { background: #fff; color: #8a5a2a; box-shadow: 0 4px 0 #b8834a; font-size: 14px; padding: 8px 14px; }
+.btn.light:active { box-shadow: 0 1px 0 #b8834a; }
+.btn.sm { font-size: 14px; padding: 8px 14px; }
+.btn.wide { width: 100%; }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.code-big { font-family: 'Orbitron', sans-serif; font-size: 34px; letter-spacing: .25em; text-align: center; color: var(--wood-dark); margin: 6px 0; }
+.hint { font-size: 14px; opacity: .9; margin-top: 6px; text-align: center; }
+
+/* ── 대기실: 팀 박스 ── */
+.tbox { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; border: 3px solid #f2d7d8; }
+.tbox.blue { border-color: #cfe0fb; }
+.tbox h4 { font-size: 15px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--red-dark); }
+.tbox.blue h4 { color: var(--blue-dark); }
+.tbox h4 .cnt { margin-left: auto; font-size: 12px; opacity: .7; }
+.plist { display: flex; flex-direction: column; gap: 6px; }
+.pitem { display: flex; align-items: center; gap: 8px; background: #fff7ea; border-radius: 12px; padding: 7px 10px; font-size: 16px; border: 2px solid transparent; }
+.pitem.me { border-color: var(--gold); background: #fff3d0; }
+.pitem .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: #ffe0b3; flex: none; }
+.pitem .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pitem .sp { margin-left: auto; display: flex; gap: 4px; flex: none; }
+.tag { font-size: 12px; background: var(--wood); color: #fff; border-radius: 8px; padding: 2px 8px; flex: none; }
+.tag.crown { background: var(--gold); color: var(--ink); }
+.ib { border: 2px solid #e6c58f; background: #fff; border-radius: 10px; font-family: inherit; font-size: 13px; padding: 4px 8px; cursor: pointer; color: #6a4a2a; }
+.ib.on { background: var(--gold); border-color: #d9a83a; color: var(--ink); }
+.ib:active { transform: translateY(1px); }
+.empty { font-size: 13px; color: #a08e68; padding: 6px 2px; }
+
+/* ── 게임 화면 ── */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.chip { background: rgba(0,0,0,.28); border-radius: 999px; padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+.chip b { font-family: 'Orbitron', sans-serif; letter-spacing: .15em; font-size: 13px; }
+.scores { display: flex; gap: 8px; margin-bottom: 8px; }
+.score { flex: 1; text-align: center; border-radius: 14px; padding: 8px 6px; font-size: 17px; border: 3px solid rgba(255,255,255,.18); background: rgba(0,0,0,.25); transition: all .2s; }
+.score.red { background: rgba(229,72,77,.35); } .score.blue { background: rgba(59,130,246,.35); }
+.score.turn { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.22); }
+.score small { display: block; font-size: 11px; opacity: .8; }
+.banner {
+  text-align: center; font-size: 18px; padding: 10px 14px; border-radius: 16px; margin: 0 0 8px;
+  background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.15); line-height: 1.35;
+}
+.banner.mine { background: var(--gold); color: var(--ink); border-color: #fff; animation: glow 1.2s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 0 3px rgba(255,211,107,.25); } to { box-shadow: 0 0 0 8px rgba(255,211,107,.55); } }
+.hintbox { text-align: center; padding: 8px 10px; border-radius: 16px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.12); margin-bottom: 8px; min-height: 52px; display: grid; place-items: center; }
+.hintbox .big { font-size: 26px; letter-spacing: .02em; }
+.hintbox .big.red { color: #ff9a9d; } .hintbox .big.blue { color: #9cc3ff; }
+.hintbox .sub2 { font-size: 13px; opacity: .8; margin: 0; }
+.hintbox .wait { font-size: 16px; opacity: .8; }
+
+.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 6px 0 10px; perspective: 900px; }
+.wcard {
+  position: relative; aspect-ratio: 1.4; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 3px 4px; overflow: hidden; background: linear-gradient(180deg, #fffaf0 0%, #f1e6cc 100%); color: var(--ink);
+  box-shadow: 0 4px 0 #b9ad93, 0 6px 10px rgba(0,0,0,.35); border: 3px solid transparent;
+  font-size: clamp(12px, 3.7vw, 17px); line-height: 1.15; word-break: keep-all; transition: transform .12s, opacity .2s;
+}
+.wcard .w { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wcard .sk { font-size: 18px; line-height: 1; }
+.wcard.pick { cursor: pointer; }
+.wcard.pick:hover { transform: translateY(-2px); }
+.wcard.sel { outline: 4px solid var(--gold); outline-offset: -1px; transform: translateY(-4px) scale(1.05); z-index: 2; animation: bob .7s ease-in-out infinite alternate; }
+@keyframes bob { from { transform: translateY(-3px) scale(1.05); } to { transform: translateY(-7px) scale(1.05); } }
+.wcard.flip { animation: flip .6s ease; }
+@keyframes flip { 0% { transform: rotateY(0); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+.wcard.dim { opacity: .5; }
+/* 팀장 키 (얇은 색 테두리 + 점) */
+.key-red { border-color: var(--red) !important; } .key-blue { border-color: var(--blue) !important; }
+.key-neutral { border-color: #c9b58a !important; } .key-assassin { border-color: var(--black) !important; }
+.key-red::after, .key-blue::after, .key-neutral::after, .key-assassin::after {
+  content: ''; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px #fff;
+}
+.key-red::after { background: var(--red); } .key-blue::after { background: var(--blue); }
+.key-neutral::after { background: var(--beige); } .key-assassin::after { background: var(--black); }
+/* 공개된 카드 */
+.rv-red { background: var(--red) !important; color: #fff !important; box-shadow: 0 4px 0 var(--red-dark), 0 6px 10px rgba(0,0,0,.35) !important; border-color: transparent !important; }
+.rv-blue { background: var(--blue) !important; color: #fff !important; box-shadow: 0 4px 0 var(--blue-dark), 0 6px 10px rgba(0,0,0,.35) !important; border-color: transparent !important; }
+.rv-neutral { background: var(--beige) !important; color: #6b5a3a !important; box-shadow: 0 4px 0 var(--beige-dark), 0 6px 10px rgba(0,0,0,.35) !important; border-color: transparent !important; }
+.rv-assassin { background: var(--black) !important; color: #fff !important; box-shadow: 0 4px 0 #000, 0 6px 10px rgba(0,0,0,.45) !important; border-color: transparent !important; }
+.rv-red::after, .rv-blue::after, .rv-neutral::after, .rv-assassin::after { display: none; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 6px 0 10px; }
+.confirmbar { width: 100%; background: var(--gold); color: var(--ink); border-radius: 16px; padding: 10px 12px; text-align: center; font-size: 16px; }
+.confirmbar .row { justify-content: center; }
+.hintform { margin: 0 0 10px; padding: 14px; }
+.numrow { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; margin: 8px 0 10px; }
+.num { height: 40px; border-radius: 9px; border: 2px solid #e6c58f; background: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; color: var(--ink); }
+.num.on { background: var(--gold); border-color: #d9a83a; box-shadow: 0 2px 0 #b8892a; }
+.num:active { transform: translateY(1px); }
+.log { background: rgba(0,0,0,.28); border-radius: 14px; padding: 8px 12px; font-size: 13px; line-height: 1.5; min-height: 54px; opacity: .95; margin-bottom: 10px; }
+.log div:first-child { color: var(--gold); }
+
+.teams { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tcol { background: rgba(0,0,0,.25); border-radius: 14px; padding: 8px; border: 2px solid transparent; min-width: 0; }
+.tcol.red { border-color: rgba(229,72,77,.6); } .tcol.blue { border-color: rgba(59,130,246,.6); }
+.tcol.turn { background: rgba(255,255,255,.08); }
+.tcol h4 { font-size: 13px; margin-bottom: 5px; opacity: .9; }
+.pchip { display: inline-flex; align-items: center; gap: 3px; background: rgba(255,255,255,.12); border-radius: 999px; padding: 3px 9px; font-size: 13px; margin: 2px; max-width: 100%; }
+.pchip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pchip.me { outline: 2px solid var(--gold); }
+.pchip.spy { background: rgba(255,211,107,.25); }
+
+/* 모달 */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 40; padding: 14px; }
+.modal.show { display: flex; }
+.modal .card { width: 100%; max-width: 440px; margin: 0; max-height: 88vh; overflow-y: auto; }
+
+/* 결과 */
+.confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 45; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+.winbox { text-align: center; padding: 26px 10px; }
+.winbox h1 { font-size: 38px; text-shadow: 3px 3px 0 #e0c48a; margin-bottom: 8px; }
+.winbox .reason { font-size: 17px; color: #5a4a3a; line-height: 1.5; }
+.winbox .final { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.winbox .final div { border-radius: 12px; padding: 8px 14px; color: #fff; font-size: 15px; }
+.winbox .final .r { background: var(--red); } .winbox .final .b { background: var(--blue); }
+
+/* 어떻게 하나요 */
+.howto { display: flex; flex-direction: column; gap: 12px; }
+.step { background: #fff; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.step .no { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.step .body { flex: 1; min-width: 0; }
+.step h4 { font-size: 16px; color: var(--navy); margin-bottom: 4px; }
+.step p { font-size: 13.5px; line-height: 1.55; color: #5a4a3a; }
+.step p b { color: #c0392b; }
+.step p b.bl { color: var(--blue-dark); }
+.demo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+.mini {
+  position: relative; width: 58px; height: 40px; border-radius: 7px; display: grid; place-items: center; font-size: 12.5px; flex: none;
+  background: linear-gradient(180deg, #fffaf0, #f1e6cc); color: var(--ink); box-shadow: 0 3px 0 #b9ad93; border: 2px solid transparent; overflow: hidden;
+}
+.mini::after { width: 7px !important; height: 7px !important; top: 3px !important; right: 3px !important; }
+.demo .arrow { font-size: 18px; color: var(--wood); padding: 0 2px; }
+.demo .lbl { font-size: 12px; color: #8a5a2a; background: #fff3d6; border-radius: 8px; padding: 2px 8px; }
+.demo .bub { font-size: 13px; background: var(--navy); color: #fff; border-radius: 10px; padding: 4px 10px; }
+.demo .ok { color: #2e7a58; font-size: 13px; } .demo .bad { color: #c0392b; font-size: 13px; }
+.demo .sc { border-radius: 8px; padding: 3px 9px; color: #fff; font-size: 12px; }
+.demo .sc.r { background: var(--red); } .demo .sc.b { background: var(--blue); }
+.tip { background: #fff8e6; border: 2px dashed #e6c58f; border-radius: 12px; padding: 8px 12px; font-size: 13px; color: #6a4a2a; margin-top: 8px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- 홈 -->
+<section class="screen active" id="home">
+  <div class="title">🕵️ 코드네임</div>
+  <div class="sub">단어 연상 팀 대결 · 4~8명 · 친구와 링크로 바로</div>
+  <div class="card">
+    <h3>닉네임</h3>
+    <input class="input" id="nick" placeholder="닉네임 (2~8자)" maxlength="8">
+    <div class="row">
+      <button class="btn green wide" id="btnCreate">방 만들기</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>코드로 참가</h3>
+    <input class="input" id="joinCode" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:.2em;font-family:'Orbitron'">
+    <div class="row"><button class="btn blue wide" id="btnJoin">참가하기</button></div>
+  </div>
+  <div class="card">
+    <h3>❓ 어떻게 하나요? — 3분이면 배워요</h3>
+    <div class="howto" id="howtoHome"></div>
+  </div>
+</section>
+
+<!-- 대기실 -->
+<section class="screen" id="lobby">
+  <div class="title" style="font-size:28px;margin-top:10px">대기실</div>
+  <div class="card" style="text-align:center">
+    <h3>방 코드 — 친구에게 알려주세요</h3>
+    <div class="code-big" id="lobbyCode">------</div>
+    <div class="row" style="justify-content:center">
+      <button class="btn blue" id="btnCopyLink">🔗 링크 복사</button>
+      <button class="btn light" id="btnCopyCode">코드 복사</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>팀 나누기 <span id="lobbyCount"></span></h3>
+    <div class="tbox red"><h4>🔴 빨강 팀 <span class="cnt" id="redCnt"></span></h4><div class="plist" id="redList"></div></div>
+    <div class="tbox blue"><h4>🔵 파랑 팀 <span class="cnt" id="blueCnt"></span></h4><div class="plist" id="blueList"></div></div>
+    <div class="row" id="hostTools" style="justify-content:center">
+      <button class="btn light" id="btnShuffle">🔀 팀 섞기</button>
+      <button class="btn light" id="btnRandSpy">👑 팀장 랜덤</button>
+    </div>
+    <div class="hint" id="lobbyHint" style="color:#8a5a2a"></div>
+  </div>
+  <div class="row">
+    <button class="btn green wide" id="btnStart" disabled>게임 시작</button>
+  </div>
+  <div class="hint" id="startHint"></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveLobby">나가기</button></div>
+</section>
+
+<!-- 게임 -->
+<section class="screen screen-game" id="game">
+  <div class="top">
+    <div class="chip">방 <b id="gameCode"></b></div>
+    <div class="chip" id="roundChip">1판</div>
+    <button class="btn ghost" id="btnRules">❓ 규칙</button>
+    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+  </div>
+  <div class="scores">
+    <div class="score red" id="scoreRed"></div>
+    <div class="score blue" id="scoreBlue"></div>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div class="hintbox" id="hintbox"></div>
+  <div class="board" id="board"></div>
+  <div id="hintForm" class="card hintform" style="display:none">
+    <h3>👑 팀장 — 힌트를 주세요 (단어 하나 + 숫자)</h3>
+    <input class="input" id="hintWord" placeholder="힌트 단어 (예: 바다)" maxlength="12">
+    <div class="numrow" id="numRow"></div>
+    <button class="btn green wide" id="btnHint">💡 힌트 주기</button>
+  </div>
+  <div class="actions" id="actions"></div>
+  <div class="log" id="log"></div>
+  <div class="teams" id="teams"></div>
+</section>
+
+<!-- 결과 -->
+<section class="screen" id="end">
+  <div class="card winbox">
+    <h1 id="winTitle">🏆</h1>
+    <p class="reason" id="winText"></p>
+    <div class="final" id="finalScore"></div>
+  </div>
+  <div class="row"><button class="btn green wide" id="btnAgain">다시 하기</button></div>
+  <div class="hint" id="endHint"></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveEnd">나가기</button></div>
+</section>
+
+<!-- 규칙 -->
+<div class="modal" id="rulesModal">
+  <div class="card">
+    <h3>❓ 어떻게 하나요?</h3>
+    <div class="howto" id="howtoModal"></div>
+    <button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const ROOT = 'games';                 // 규칙상 열린 경로. 다른 게임과 안 겹치게 cn_ 접두
+const rpath = c => `${ROOT}/cn_${c}`;
+
+// ── 유틸 ──
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐨', '🐯', '🐰', '🐻'];
+const avatarOf = k => AVATARS[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATARS.length];
+const TN = { red: '🔴 빨강', blue: '🔵 파랑' };
+const other = t => t === 'red' ? 'blue' : 'red';
+const numLabel = n => n === 'inf' ? '∞' : String(n);
+
+// ── 단어 은행 (~300 · 동물/음식/장소/물건/직업/자연/스포츠/문화) ──
+const WORDS = [...new Set([
+  // 동물
+  '고양이','강아지','호랑이','사자','코끼리','기린','원숭이','토끼','거북이','펭귄','고래','상어','문어','오징어','독수리','참새','비둘기','까마귀','부엉이','여우','늑대','곰','판다','캥거루','악어','개구리','뱀','나비','벌','개미','거미','달팽이','소','돼지','말','양','염소','닭','오리','공룡','용','다람쥐','햄스터','사슴','낙타','돌고래',
+  // 음식
+  '김치','라면','피자','치킨','떡볶이','김밥','초밥','햄버거','파스타','삼겹살','불고기','비빔밥','된장','고추','마늘','양파','감자','고구마','당근','수박','사과','바나나','딸기','포도','복숭아','레몬','오렌지','토마토','계란','우유','치즈','버터','빵','케이크','초콜릿','사탕','아이스크림','커피','녹차','맥주','소주','와인','콜라','꿀','설탕','소금','국수','만두','호떡','붕어빵','팥빙수','쌀','밥',
+  // 장소
+  '학교','병원','공항','시장','은행','공원','도서관','박물관','영화관','교회','절','궁전','성','감옥','공장','회사','카페','식당','호텔','놀이공원','동물원','수족관','경찰서','소방서','우체국','지하철','항구','섬','사막','정글','북극','남극','파리','런던','서울','제주도','뉴욕','이집트','로마','한강','부산','화장실','부엌','옥상','지하실','무대','운동장',
+  // 물건
+  '우산','열쇠','가방','모자','신발','안경','시계','반지','목걸이','지갑','휴대폰','컴퓨터','텔레비전','냉장고','세탁기','에어컨','선풍기','침대','의자','책상','거울','창문','문','계단','사다리','망치','칼','가위','바늘','실','연필','지우개','공책','편지','봉투','우표','상자','병','컵','접시','숟가락','젓가락','냄비','총','폭탄','화살','방패','왕관','보석','동전','카드','주사위','풍선','인형','로봇','자동차','자전거','오토바이','기차','배','비행기','로켓','헬리콥터','트럭','버스','택시','우주선','잠수함','낙하산','카메라','라디오','피아노','기타','북','바이올린','마이크','촛불','램프','이불','베개','수건','비누','칫솔','약','주사','붕대','마스크',
+  // 직업·인물
+  '의사','간호사','경찰','소방관','선생님','요리사','가수','배우','화가','작가','기자','판사','변호사','군인','해적','마법사','왕','여왕','공주','왕자','광대','스파이','도둑','탐정','농부','어부','우주인','과학자','운전사','조종사','마술사','닌자','사무라이','천사','악마','유령','좀비','뱀파이어','마녀','대통령','사장','아기','할머니','할아버지','쌍둥이','신부','거인','난쟁이','인어','외계인','영웅','기사',
+  // 자연
+  '바다','강','산','숲','호수','폭포','화산','지진','태풍','번개','비','눈','바람','구름','무지개','해','달','별','지구','화성','우주','은하','불','물','흙','돌','모래','얼음','나무','꽃','장미','벚꽃','해바라기','선인장','버섯','풀','잎','뿌리','씨앗','봄','여름','가을','겨울','아침','밤','그림자','안개','파도','동굴','절벽','계곡','들판','하늘','금','은','다이아몬드','석유','철',
+  // 스포츠
+  '축구','야구','농구','배구','테니스','골프','수영','마라톤','권투','태권도','유도','스키','스케이트','볼링','당구','낚시','등산','양궁','펜싱','체조','요가','서핑','경마','올림픽','메달','심판','골','공','라켓','헬멧','달리기','줄넘기','씨름',
+  // 문화·기타
+  '영화','드라마','음악','노래','춤','그림','사진','책','시','소설','만화','게임','연극','오페라','콘서트','축제','결혼식','생일','크리스마스','설날','추석','할로윈','선물','파티','가면','마법','보물','지도','퍼즐','비밀','꿈','사랑','전쟁','평화','법','돈','세금','시간','역사','과학','수학','언어','한글','뉴스','광고','인터넷','로또','태극기','트로피'
+])];
+
+// ── 상태 ──
+let myNick = '', myKey = '', code = '', isHost = false, room = null;
+let listeners = [];
+let sel = null;           // 선택한 카드 index (2단계 확인용)
+let prevRevealed = null;  // 뒤집기 애니메이션용
+let prevTurnId = null;
+let hintNum = 1;          // 힌트 숫자 선택값 (0~9 | 'inf')
+let discoSet = false;     // onDisconnect 등록 여부
+
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+function roomRef() { return db.ref(rpath(code)); }
+
+// ── 홈 ──
+(function init() {
+  const saved = localStorage.getItem('cn_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+  $('numRow').innerHTML = [...Array(10).keys()].map(n => `<button class="num" data-n="${n}">${n}</button>`).join('') + `<button class="num" data-n="inf">∞</button>`;
+  $('numRow').querySelectorAll('.num').forEach(b => b.onclick = () => { hintNum = b.dataset.n === 'inf' ? 'inf' : +b.dataset.n; paintNum(); });
+  paintNum();
+})();
+function paintNum() { $('numRow').querySelectorAll('.num').forEach(b => b.classList.toggle('on', (b.dataset.n === 'inf' ? 'inf' : +b.dataset.n) === hintNum)); }
+function getNick() {
+  const n = $('nick').value.trim();
+  if (n.length < 2) { toast('닉네임을 2자 이상 입력해 주세요'); return null; }
+  localStorage.setItem('cn_nick', n);
+  return n;
+}
+function pickTeam(players) {   // 인원이 적은 팀으로 (같으면 랜덤)
+  let r = 0, b = 0; for (const p of Object.values(players || {})) { if (p.team === 'red') r++; else if (p.team === 'blue') b++; }
+  return r < b ? 'red' : b < r ? 'blue' : (Math.random() < .5 ? 'red' : 'blue');
+}
+$('btnCreate').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  myNick = n; myKey = sanitizeKey(n); code = genCode(); isHost = true;
+  await roomRef().set({ host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby',
+    players: { [myKey]: { nick: n, joinedAt: Date.now(), team: pickTeam({}), spy: false } } });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  const n = getNick(); if (!n) return;
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const snap = await db.ref(rpath(c)).once('value');
+  const r = snap.val();
+  if (!r) return toast('방을 찾을 수 없어요');
+  if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
+  const k = sanitizeKey(n);
+  const already = r.players && r.players[k];
+  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 재접속 가능)');
+  if (!already && Object.keys(r.players || {}).length >= 12) return toast('정원(12명)이 찼어요');
+  myNick = n; myKey = k; code = c; isHost = r.host === k;
+  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: n, joinedAt: Date.now(), team: pickTeam(r.players), spy: false });
+  enterRoom();
+};
+
+// ── 방 입장: 구독 ──
+function enterRoom() {
+  offAll();
+  sel = null; prevRevealed = null; prevTurnId = null; discoSet = false;
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); leave(false); return; }
+    isHost = room.host === myKey;
+    if (room.status === 'lobby') { setDisco(true); renderLobby(); }
+    else { setDisco(false); if (room.status === 'playing') renderGame(); else if (room.status === 'ended') renderEnd(); }
+  });
+  listeners.push(() => ref.off('value', cb));
+  listeners.push(() => setDisco(false));
+}
+// 대기실에서 끊기면 자동 퇴장 (호스트가 나가면 방 삭제). 게임 중엔 재접속 가능하도록 해제
+function setDisco(on) {
+  if (on === discoSet) return;
+  discoSet = on;
+  const ref = isHost ? roomRef() : db.ref(`${rpath(code)}/players/${myKey}`);
+  if (on) ref.onDisconnect().remove();
+  else { roomRef().onDisconnect().cancel(); db.ref(`${rpath(code)}/players/${myKey}`).onDisconnect().cancel(); }
+}
+function leave(confirmIt = true) {
+  if (confirmIt && !confirm('방을 나갈까요?')) return;
+  offAll();
+  if (room) {
+    if (isHost) roomRef().remove();
+    else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove();
+  }
+  room = null; code = ''; isHost = false; sel = null; prevRevealed = null; prevTurnId = null;
+  show('home');
+}
+$('btnLeaveLobby').onclick = () => leave();
+$('btnLeaveGame').onclick = () => leave();
+$('btnLeaveEnd').onclick = () => leave();
+
+// ── 대기실 ──
+function teamOf(t) { return Object.entries(room.players || {}).filter(([, p]) => p.team === t).sort((a, b) => a[1].joinedAt - b[1].joinedAt); }
+function startCheck() {
+  const r = teamOf('red'), b = teamOf('blue');
+  if (r.length < 2 || b.length < 2) return '각 팀 2명 이상 필요해요 (팀장 1 + 팀원 1)';
+  if (r.filter(([, p]) => p.spy).length !== 1) return '🔴 빨강 팀장을 정해주세요 (👑)';
+  if (b.filter(([, p]) => p.spy).length !== 1) return '🔵 파랑 팀장을 정해주세요 (👑)';
+  return null;
+}
+function renderLobby() {
+  show('lobby');
+  $('lobbyCode').textContent = code;
+  const total = Object.keys(room.players || {}).length;
+  $('lobbyCount').textContent = `${total}명`;
+  for (const t of ['red', 'blue']) {
+    const ps = teamOf(t);
+    $(t + 'Cnt').textContent = `${ps.length}명`;
+    $(t + 'List').innerHTML = ps.map(([k, p]) => {
+      const me = k === myKey;
+      const btns = [];
+      if (me) btns.push(`<button class="ib" data-act="switch">↔ ${t === 'red' ? '파랑' : '빨강'}으로</button>`);
+      if (isHost) btns.push(`<button class="ib ${p.spy ? 'on' : ''}" data-act="spy" data-k="${esc(k)}" title="팀장 지정">👑</button>`);
+      return `<div class="pitem ${me ? 'me' : ''}"><span class="av">${avatarOf(k)}</span><span class="nm">${esc(p.nick)}${me ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</span>
+        ${p.spy ? '<span class="tag crown">👑 팀장</span>' : ''}${k === room.host ? '<span class="tag">방장</span>' : ''}<span class="sp">${btns.join('')}</span></div>`;
+    }).join('') || '<div class="empty">아직 아무도 없어요</div>';
+  }
+  document.querySelectorAll('[data-act="switch"]').forEach(b => b.onclick = switchTeam);
+  document.querySelectorAll('[data-act="spy"]').forEach(b => b.onclick = () => setSpy(b.dataset.k));
+  $('hostTools').style.display = isHost ? '' : 'none';
+  $('lobbyHint').textContent = isHost ? '내 줄의 ↔ 로 팀 이동 · 👑 를 눌러 각 팀 팀장(힌트 주는 사람) 지정' : '내 줄의 ↔ 로 팀을 옮길 수 있어요. 팀장은 방장이 정해요';
+  const reason = startCheck();
+  $('btnStart').style.display = isHost ? '' : 'none';
+  $('btnStart').disabled = !!reason;
+  $('startHint').textContent = isHost ? (reason || '준비 완료! 시작을 누르세요') : (reason ? reason : '방장이 시작하면 자동으로 넘어가요');
+}
+function switchTeam() {
+  const me = room.players[myKey]; if (!me) return;
+  roomRef().update({ [`players/${myKey}/team`]: other(me.team), [`players/${myKey}/spy`]: false });
+}
+function setSpy(k) {
+  if (!isHost) return;
+  const p = room.players[k]; if (!p) return;
+  const up = {};
+  for (const [kk, pp] of Object.entries(room.players)) if (pp.team === p.team) up[`players/${kk}/spy`] = kk === k ? !p.spy : false;
+  roomRef().update(up);
+}
+$('btnShuffle').onclick = () => {
+  if (!isHost) return;
+  const keys = shuffle(Object.keys(room.players));
+  const first = Math.random() < .5 ? 'red' : 'blue';
+  const up = {};
+  keys.forEach((k, i) => { up[`players/${k}/team`] = i % 2 === 0 ? first : other(first); up[`players/${k}/spy`] = false; });
+  // 팀장도 랜덤으로 한 명씩
+  for (const t of ['red', 'blue']) { const ks = keys.filter((k, i) => (i % 2 === 0 ? first : other(first)) === t); if (ks.length) up[`players/${ks[Math.floor(Math.random() * ks.length)]}/spy`] = true; }
+  roomRef().update(up); toast('팀과 팀장을 섞었어요');
+};
+$('btnRandSpy').onclick = () => {
+  if (!isHost) return;
+  const up = {};
+  for (const t of ['red', 'blue']) { const ks = teamOf(t).map(e => e[0]); const pick = ks[Math.floor(Math.random() * ks.length)]; ks.forEach(k => up[`players/${k}/spy`] = k === pick); }
+  roomRef().update(up); toast('팀장을 랜덤으로 정했어요');
+};
+$('btnCopyLink').onclick = () => copyText(location.href.split('?')[0] + '?room=' + code, '링크를 복사했어요');
+$('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
+function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
+
+// ── 게임 시작 (방장) ──
+$('btnStart').onclick = () => startGame(1);
+$('btnAgain').onclick = () => { if (isHost) startGame((room.game && room.game.round || 0) + 1); else toast('방장만 다시 시작할 수 있어요'); };
+function startGame(round) {
+  const reason = startCheck(); if (reason) return toast(reason);
+  const words = shuffle([...WORDS]).slice(0, 25);
+  const start = Math.random() < .5 ? 'red' : 'blue';
+  const key = shuffle([...Array(9).fill(start), ...Array(8).fill(other(start)), ...Array(7).fill('neutral'), 'assassin']);
+  const game = {
+    round, words, key, revealed: Array(25).fill(0), start, turn: start, phase: 'hint', hint: null, guessesLeft: 0, turnGuesses: 0,
+    remaining: { [start]: 9, [other(start)]: 8 }, winner: null, winReason: null,
+    log: [`🎲 ${TN[start]} 팀이 먼저 시작해요 (카드 9장)`]
+  };
+  roomRef().update({ status: 'playing', game, expiresAt: Date.now() + 2 * 3600e3 });
+}
+function addLog(game, text) { game.log = [text, ...(game.log || [])].slice(0, 8); }
+function endTurn(game) { game.turn = other(game.turn); game.phase = 'hint'; game.hint = null; game.guessesLeft = 0; game.turnGuesses = 0; }
+function commit(game) { roomRef().update({ game }); }
+const nickOf = k => (room && room.players && room.players[k] ? room.players[k].nick : k);
+
+// ── 게임 화면 렌더 ──
+function renderGame() {
+  show('game');
+  const g = room.game; if (!g) return;
+  const me = (room.players || {})[myKey] || {};
+  const myTeam = me.team, amSpy = !!me.spy, t = g.turn;
+  const myTurn = myTeam === t;
+  const canPick = g.phase === 'guess' && myTurn && !amSpy && !g.winner;
+  const myAction = !g.winner && ((g.phase === 'hint' && amSpy && myTurn) || canPick);
+  const turnId = `${g.round}-${t}-${g.phase}`;
+  if (turnId !== prevTurnId) { sel = null; prevTurnId = turnId; }
+  if (sel !== null && g.revealed[sel]) sel = null;
+
+  $('gameCode').textContent = code;
+  $('roundChip').textContent = `${g.round}판`;
+  for (const tt of ['red', 'blue']) {
+    const el = $(tt === 'red' ? 'scoreRed' : 'scoreBlue');
+    el.className = `score ${tt}` + (t === tt && !g.winner ? ' turn' : '');
+    el.innerHTML = `${TN[tt]} 남은 <b>${g.remaining[tt]}</b><small>${tt === g.start ? '선공' : '후공'}${myTeam === tt ? ' · 우리 팀' : ''}</small>`;
+  }
+
+  // 배너
+  const b = $('banner');
+  b.className = 'banner' + (myAction ? ' mine' : '');
+  if (g.winner) b.textContent = `🏁 ${TN[g.winner]} 팀 승리!`;
+  else if (!myTeam) b.textContent = '👀 관전 중';
+  else if (g.phase === 'hint') b.textContent = myAction ? '💡 내 차례! 팀원에게 힌트를 주세요' : myTurn ? `⏳ 우리 팀장(${esc(spyNick(t))})이 힌트를 고민 중…` : `⏳ ${TN[t]} 팀장이 힌트를 고민 중…`;
+  else b.textContent = myAction ? '🔍 카드를 골라 뒤집으세요!' : myTurn ? '🤫 우리 팀원들이 추측 중… (팀장은 조용히!)' : `👀 ${TN[t]} 팀이 추측 중…`;
+
+  // 힌트 박스
+  const hb = $('hintbox');
+  if (g.phase === 'guess' && g.hint) {
+    const left = g.guessesLeft < 0 ? '무제한' : `${g.guessesLeft}번 남음`;
+    hb.innerHTML = `<div><div class="big ${t}">${TN[t].slice(0, 2)} 힌트: ${esc(g.hint.word)} · ${numLabel(g.hint.num)}</div><p class="sub2">${esc(spyNick(t))} 팀장 · 추측 ${left}</p></div>`;
+  } else if (g.winner) hb.innerHTML = `<div class="wait">게임 종료</div>`;
+  else hb.innerHTML = `<div class="wait">${TN[t]} 팀 힌트 기다리는 중…</div>`;
+
+  // 보드 (비팀장에겐 절대 키 색을 그리지 않음)
+  $('board').innerHTML = g.words.map((w, i) => {
+    const rv = !!g.revealed[i], k = g.key[i];
+    const cls = ['wcard', rv ? 'rv-' + k : '', amSpy && !rv ? 'key-' + k : '', amSpy && rv ? 'dim' : '', canPick && !rv ? 'pick' : '', sel === i ? 'sel' : ''].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-i="${i}">${rv && k === 'assassin' ? '<span class="sk">☠️</span>' : ''}<span class="w">${esc(w)}</span></div>`;
+  }).join('');
+  document.querySelectorAll('.wcard.pick').forEach(el => el.onclick = () => { sel = sel === +el.dataset.i ? null : +el.dataset.i; renderGame(); });
+  // 뒤집기 애니메이션
+  if (prevRevealed) g.revealed.forEach((r, i) => { if (r && !prevRevealed[i]) { const el = document.querySelector(`.wcard[data-i="${i}"]`); if (el) el.classList.add('flip'); } });
+  prevRevealed = g.revealed.map(x => !!x);
+
+  // 힌트 폼 / 액션
+  $('hintForm').style.display = (g.phase === 'hint' && amSpy && myTurn && !g.winner) ? '' : 'none';
+  const A = $('actions'); A.innerHTML = '';
+  if (canPick) {
+    if (sel !== null) {
+      A.innerHTML = `<div class="confirmbar">"${esc(g.words[sel])}" 카드를 뒤집을까요?<div class="row"><button class="btn green sm" id="btnConfirm">✅ 뒤집기</button><button class="btn light sm" id="btnCancel">취소</button></div></div>`;
+      $('btnConfirm').onclick = () => reveal(sel);
+      $('btnCancel').onclick = () => { sel = null; renderGame(); };
+    }
+    A.insertAdjacentHTML('beforeend', `<button class="btn ghost" id="btnEndTurn">✋ 턴 종료</button>`);
+    $('btnEndTurn').onclick = () => { const gg = room.game; if (gg.phase !== 'guess' || gg.turn !== myTeam) return; addLog(gg, `✋ ${myNick} 이(가) ${TN[gg.turn]} 팀 턴을 마쳤어요`); endTurn(gg); commit(gg); };
+  }
+
+  $('log').innerHTML = (g.log || []).slice(0, 4).map(l => `<div>${esc(l)}</div>`).join('') || '<div>게임 시작!</div>';
+
+  // 팀 칩
+  $('teams').innerHTML = ['red', 'blue'].map(tt => `<div class="tcol ${tt}${t === tt && !g.winner ? ' turn' : ''}"><h4>${TN[tt]} 팀</h4>${teamOf(tt).map(([k, p]) =>
+    `<div class="pchip${k === myKey ? ' me' : ''}${p.spy ? ' spy' : ''}">${p.spy ? '👑' : avatarOf(k)}<span>${esc(p.nick)}</span></div>`).join('') || '<div class="empty" style="color:#aaa">—</div>'}</div>`).join('');
+
+  // 승부가 나면 잠깐 카드를 보여준 뒤 결과 화면으로
+  if (g.winner && !renderGame._endT) { renderGame._endT = setTimeout(() => { renderGame._endT = null; if (room && room.status === 'playing' && room.game && room.game.winner) roomRef().update({ status: 'ended' }); }, 1600); }
+}
+function spyNick(t) { const e = teamOf(t).find(([, p]) => p.spy); return e ? e[1].nick : '?'; }
+
+// ── 힌트 주기 (팀장) ──
+$('btnHint').onclick = () => {
+  const g = room.game; const me = room.players[myKey] || {};
+  if (!(g.phase === 'hint' && me.spy && me.team === g.turn) || g.winner) return;
+  const word = $('hintWord').value.trim();
+  if (!word) return toast('힌트 단어를 입력해 주세요');
+  if (/\s/.test(word)) return toast('힌트는 한 단어로!');
+  if (g.words.some((w, i) => !g.revealed[i] && w === word)) return toast('보드에 있는 단어는 힌트로 쓸 수 없어요');
+  g.hint = { word, num: hintNum, by: myKey };
+  g.phase = 'guess';
+  g.guessesLeft = (hintNum === 'inf' || hintNum === 0) ? -1 : hintNum + 1;
+  g.turnGuesses = 0;
+  addLog(g, `💡 ${TN[g.turn]} 힌트: ${word} · ${numLabel(hintNum)}`);
+  $('hintWord').value = '';
+  commit(g);
+};
+
+// ── 카드 뒤집기 (팀원) ──
+function reveal(i) {
+  const g = room.game; const me = room.players[myKey] || {};
+  if (!g || g.winner || g.phase !== 'guess' || g.revealed[i]) return;
+  const t = g.turn, opp = other(t);
+  if (me.team !== t || me.spy) return;
+  sel = null;
+  g.revealed[i] = 1; g.turnGuesses = (g.turnGuesses || 0) + 1;
+  const k = g.key[i], w = g.words[i];
+  if (k === t) {
+    g.remaining[t]--;
+    addLog(g, `✅ ${myNick}: "${w}" — ${TN[t]} 카드! 계속 가요`);
+    if (g.remaining[t] <= 0) { g.winner = t; g.winReason = `${TN[t]} 팀이 카드를 모두 찾았어요!`; addLog(g, `🏆 ${TN[t]} 팀 승리!`); }
+    else if (g.guessesLeft > 0) { g.guessesLeft--; if (g.guessesLeft === 0) { addLog(g, `⏱ 추측 횟수를 다 썼어요 → ${TN[opp]} 턴`); endTurn(g); } }
+  } else if (k === 'neutral') {
+    addLog(g, `😐 ${myNick}: "${w}" — 중립 카드. ${TN[opp]} 턴`); endTurn(g);
+  } else if (k === opp) {
+    g.remaining[opp]--;
+    addLog(g, `💥 ${myNick}: "${w}" — 상대(${TN[opp]}) 카드! ${TN[opp]} 턴`);
+    if (g.remaining[opp] <= 0) { g.winner = opp; g.winReason = `${TN[t]} 팀이 ${TN[opp]} 팀의 마지막 카드를 대신 찾아줬어요…`; addLog(g, `🏆 ${TN[opp]} 팀 승리!`); }
+    else endTurn(g);
+  } else {
+    g.winner = opp; g.winReason = `${TN[t]} 팀이 암살자 "${w}" 를 뒤집었어요 ☠️`;
+    addLog(g, `☠️ ${myNick}: "${w}" — 암살자! ${TN[t]} 팀 즉시 패배`);
+  }
+  commit(g);
+}
+
+// ── 규칙 모달 ──
+$('btnRules').onclick = () => $('rulesModal').classList.add('show');
+$('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
+$('rulesModal').addEventListener('click', e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); });
+
+// ── 결과 ──
+function renderEnd() {
+  show('end');
+  const g = room.game; const me = (room.players || {})[myKey] || {};
+  const win = g && g.winner;
+  const mine = win && me.team === win;
+  $('winTitle').textContent = win ? (mine ? '🏆 우리 팀 승리!' : `${TN[win].slice(0, 2)} ${win === 'red' ? '빨강' : '파랑'} 팀 승리`) : '🏁 게임 끝';
+  $('winText').textContent = (g && g.winReason) || '';
+  $('finalScore').innerHTML = g ? `<div class="r">🔴 남은 ${g.remaining.red}</div><div class="b">🔵 남은 ${g.remaining.blue}</div>` : '';
+  $('btnAgain').style.display = isHost ? '' : 'none';
+  $('endHint').textContent = isHost ? '다시 하기: 새 단어·새 정답판, 팀은 그대로' : '방장이 다시 시작하면 이어져요 (팀은 그대로)';
+  if (mine && !renderEnd._c) { renderEnd._c = true; confetti(); setTimeout(() => renderEnd._c = false, 3000); }
+}
+function confetti() {
+  const em = ['🎉', '✨', '🎊', '⭐', '💛'];
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('span'); s.className = 'confetti'; s.textContent = em[i % em.length];
+    s.style.left = Math.random() * 100 + 'vw'; s.style.animationDuration = 1.8 + Math.random() * 1.5 + 's'; s.style.animationDelay = Math.random() * .6 + 's';
+    document.body.appendChild(s); setTimeout(() => s.remove(), 4000);
+  }
+}
+
+// ── 어떻게 하나요 (홈 + 규칙 모달 공용) ──
+const HOWTO = `
+  <div class="step"><div class="no">1</div><div class="body">
+    <h4>팀장만 색을 본다</h4>
+    <p>단어 카드 25장. 각 팀 <b>팀장(👑)</b>만 어떤 카드가 <b>우리 팀</b>·<b class="bl">상대 팀</b>·중립·<b>암살자</b>인지 볼 수 있어요. 팀원 눈엔 그냥 단어뿐!</p>
+    <div class="demo"><div class="mini key-red">바다</div><div class="mini key-blue">사과</div><div class="mini key-neutral">의자</div><div class="mini key-assassin">유령</div><span class="lbl">← 팀장 눈</span>
+      <span class="arrow" style="margin-left:6px"></span><div class="mini">바다</div><div class="mini">사과</div><span class="lbl">← 팀원 눈</span></div>
+  </div></div>
+  <div class="step"><div class="no">2</div><div class="body">
+    <h4>힌트 = 단어 하나 + 숫자</h4>
+    <p>팀장은 우리 팀 카드 여러 장을 한 번에 떠올리게 하는 <b>단어 하나</b>와, 관련된 <b>카드 수</b>를 말해요. 보드에 있는 단어는 금지!</p>
+    <div class="demo"><span class="bub">🔴 힌트: 물 · 2</span><span class="arrow">➜</span><div class="mini key-red">바다</div><div class="mini key-red">파도</div><span class="lbl">숫자+1 번까지 추측 가능</span></div>
+  </div></div>
+  <div class="step"><div class="no">3</div><div class="body">
+    <h4>카드 뒤집기 결과 3가지</h4>
+    <p><b>우리 팀 카드</b> → 계속 추측 (언제든 "턴 종료" 가능)<br><b style="color:#a08e68">중립 카드</b> → 턴 종료<br><b class="bl">상대 팀 카드</b> → 턴 종료 + 상대가 한 장 득점</p>
+    <div class="demo"><div class="mini rv-red">바다</div><span class="ok">계속!</span><span class="arrow" style="margin-left:6px"></span><div class="mini rv-neutral">의자</div><span class="bad">턴 끝</span><span class="arrow" style="margin-left:6px"></span><div class="mini rv-blue">사과</div><span class="bad">턴 끝+상대 득점</span></div>
+  </div></div>
+  <div class="step"><div class="no">4</div><div class="body">
+    <h4>암살자는 즉시 패배 ☠️</h4>
+    <p>검은 카드 1장이 숨어 있어요. 뒤집는 순간 그 팀은 <b>바로 패배</b>. 팀장은 암살자와 겹치는 힌트를 피해야 해요.</p>
+    <div class="demo"><div class="mini">유령</div><span class="arrow">➜</span><div class="mini rv-assassin">☠️ 유령</div><span class="bad">뒤집은 팀 즉시 패배</span></div>
+  </div></div>
+  <div class="step"><div class="no">5</div><div class="body">
+    <h4>먼저 다 찾는 팀 승리</h4>
+    <p>선공 팀은 <b>9장</b>, 후공 팀은 <b class="bl">8장</b>. 자기 팀 카드를 <b>모두</b> 뒤집으면 승리! 힌트 → 추측 → 상대 팀 힌트 → … 순서로 돌아가요.</p>
+    <div class="demo"><span class="sc r">🔴 남은 0 🏆</span><span class="sc b">🔵 남은 3</span></div>
+    <div class="tip">💡 4명이면 팀당 팀장 1 + 팀원 1. 팀원이 여럿이면 상의해서 한 명이 카드를 누르세요 (누르고 "뒤집기" 확인).</div>
+  </div></div>`;
+$('howtoHome').innerHTML = HOWTO; $('howtoModal').innerHTML = HOWTO;
+</script>
+</body>
+</html>
