@@ -16,13 +16,13 @@
   #gameBox { position: relative; }
   #game { display: block; cursor: crosshair; touch-action: none; }
   #menuBtn {
-    position: absolute; right: 14px; bottom: 26px;
+    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
     padding: 5px 14px; border: 3px solid #fff; border-radius: 999px;
     background: #ffefd0; color: #8a5a2a; font-size: 15px; font-family: inherit;
     cursor: pointer; box-shadow: 0 3px 0 #9c6532;
   }
   #menuBtn:hover { background: #fff; }
-  #menuBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+  #menuBtn:active { transform: translate(-50%, 2px); box-shadow: 0 1px 0 #9c6532; }
 
   .overlay {
     position: absolute; inset: 0;
@@ -78,21 +78,22 @@
       <div class="mode" id="modeClassic">
         <div class="ic">🍒</div>
         <div class="nm">클래식</div>
-        <div class="ds">끝없이 쌓기<br>랜덤 스킬</div>
+        <div class="ds">끝없이 쌓기<br>최고 점수 도전</div>
       </div>
       <div class="mode" id="modeRogue">
         <div class="ic">🎲</div>
         <div class="nm">로그라이크</div>
-        <div class="ds">스테이지 목표 달성<br>유물 3택1 · 저주</div>
+        <div class="ds">점수마다 유물 3택1<br>대신 저주가 쌓임</div>
       </div>
     </div>
     <p class="small" id="records"></p>
   </div>
 
   <div id="cards" class="overlay" hidden>
-    <h2 id="cardsTitle">Stage 1 클리어!</h2>
+    <h2 id="cardsTitle">🎁 유물 획득!</h2>
     <p class="small">유물 하나를 고르세요 (1 / 2 / 3)</p>
     <div class="cards" id="cardList"></div>
+    <p class="small" id="cardsCurse"></p>
   </div>
 
   <div id="over" class="overlay" hidden>
@@ -110,7 +111,7 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  const W = 460, H = 905;                       // 게임 좌표계
+  const W = 460, H = 850;                       // 게임 좌표계
   const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
   const BOX = { l: 22, r: 438, t: 260, b: 765 };  // 상자 안쪽 영역 (l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
@@ -120,15 +121,6 @@
   const DROP_COOLDOWN = 250;                    // ms — 클릭 후 다음 과일까지
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
 
-  // 스킬: 합체 N번마다 랜덤으로 하나 지급 (슬롯 1개), 효과도 랜덤
-  const SKILLS = [
-    { key: 'shake',   name: '흔들기',     icon: '↔',  desc: '상자를 흔들어 정리' },
-    { key: 'boom',    name: '랜덤 폭발',  icon: '💥', desc: '과일 3개가 무작위로 펑' },
-    { key: 'rainbow', name: '무지개 과일', icon: '🌈', desc: '아무 과일과도 합쳐짐' },
-    { key: 'shrink',  name: '작아지기',   icon: '🔻', desc: '모든 과일이 한 단계 작아짐' },
-    { key: 'big',     name: '큰 과일',    icon: '🎁', desc: '손에 든 과일이 큰 과일로' },
-  ];
-  const SKILL_X = 230, SKILL_Y = 850, SKILL_R = 30;
   const SHAKE_TIME = 700;                       // ms
 
   const FRUITS = [
@@ -155,7 +147,8 @@
     restitution: 0.05,
     inertiaMul: 0.15,           // 낮을수록 잘 돈다
     scoreMul: 1,
-    skillEvery: 6,              // 합체 N번마다 스킬
+    friction: 0.3,              // 과일 마찰 (높으면 덜 굴러 안정적으로 쌓임)
+    combo: false,               // 3초 안에 연속 합체 시 점수 ×1.5
     deadTime: 1000,             // 게임오버 유예 ms
     boxScale: 1,                // 상자 폭 배율
     chainPop: 0,                // 합체 시 주변 하나 펑 확률
@@ -173,8 +166,8 @@
     { key: 'rainbow',   icon: '🌈', name: '무지개 주기', desc: '합체 15번마다 무지개 과일',         apply: c => { c.rainbowEvery = 15; } },
     { key: 'wideBox',   icon: '📏', name: '넓은 상자',   desc: '상자 폭 +10%',                     apply: c => { c.boxScale += 0.10; } },
     { key: 'grace',     icon: '⏳', name: '유예 시간',   desc: '게임오버 판정 +1.5초',             apply: c => { c.deadTime += 1500; } },
-    { key: 'greedy',    icon: '💰', name: '욕심쟁이',    desc: '점수 ×1.5, 대신 스킬 게이지 느림',  apply: c => { c.scoreMul *= 1.5; c.skillEvery += 3; } },
-    { key: 'fastSkill', icon: '⚡', name: '빠른 스킬',   desc: '스킬 게이지 2칸 빨리 참',           apply: c => { c.skillEvery = Math.max(3, c.skillEvery - 2); } },
+    { key: 'combo',     icon: '🔥', name: '콤보',        desc: '3초 안에 연속 합체하면 점수 ×1.5', apply: c => { c.combo = true; } },
+    { key: 'sticky',    icon: '🍡', name: '찰떡',        desc: '과일이 덜 굴러 안정적으로 쌓임',    apply: c => { c.friction = 0.7; c.inertiaMul *= 2; } },
     { key: 'bigBonus',  icon: '🏆', name: '큰 합체 보너스', desc: '배 이상 합체 점수 2배',          apply: c => { c.bigBonus = true; } },
     { key: 'slowFall',  icon: '🎈', name: '느린 낙하',   desc: '중력 −25%, 조준이 쉬움',           apply: c => { c.gravity *= 0.75; } },
     { key: 'magnet',    icon: '🧲', name: '자석',        desc: '같은 과일끼리 가까우면 서로 끌림',  apply: c => { c.magnet = true; } },
@@ -187,26 +180,9 @@
     { key: 'bouncy',  icon: '🏀', name: '통통',      desc: '과일이 잘 튕김',              apply: c => { c.restitution = 0.5; } },
     { key: 'fog',     icon: '🌫️', name: '안개',      desc: 'Next 가 안 보임',             apply: c => { c.fogNext = true; } },
   ];
-  function makeGoal(stage) {
-    const types = stage === 1 ? ['score'] : ['score', 'make', 'merges', 'survive'];
-    const type = pick(types);
-    if (type === 'score')   return { type, target: 350 + 250 * stage };
-    if (type === 'merges')  return { type, target: 12 + 6 * stage };
-    if (type === 'survive') return { type, target: 40 + 10 * stage };
-    return { type, target: Math.min(10, 4 + Math.ceil(stage / 1.5)) };   // make: 이 단계 과일 만들기
-  }
-  function goalText(g) {
-    if (g.type === 'score')   return `${g.target}점 모으기`;
-    if (g.type === 'merges')  return `합체 ${g.target}번`;
-    if (g.type === 'survive') return `${g.target}초 버티기`;
-    return `${FRUITS[g.target].name} 만들기`;
-  }
-  function goalProgress(g) {
-    if (g.type === 'score')   return [stageScore, g.target];
-    if (g.type === 'merges')  return [stageMerges, g.target];
-    if (g.type === 'survive') return [Math.floor(stageTime / 1000), g.target];
-    return [stageMade >= g.target ? 1 : 0, 1];
-  }
+  // 유물 지급 점수: 500, 750, 1050, 1500, 2200, 3200, 4650, ... (×1.45)
+  const milestoneTarget = i => Math.round(500 * Math.pow(1.45, i) / 50) * 50;
+  const WATERMELON_BONUS = 100;     // 수박 두 개가 닿아 사라질 때 보너스
 
   // ── DOM ──────────────────────────────────────────────
   const canvas = document.getElementById('game');
@@ -251,7 +227,7 @@
     const b = Bodies.circle(x, y, f.r, {
       label: 'fruit',
       restitution: cfg.restitution,   // 튕김 최소 (고무 느낌 제거)
-      friction: 0.3,                  // 마찰이 있어야 굴러간다
+      friction: cfg.friction,         // 마찰이 있어야 굴러간다
       frictionStatic: 0.5,
       frictionAir: 0.002,             // 각속도에도 적용 — 낮을수록 오래 돈다 (속도 상한은 MAX_SPEED가 담당)
       density: 0.0012,
@@ -268,7 +244,8 @@
   let mode = 'classic';
   let cfg = { ...BASE_CFG };
   let score = 0, best = +(localStorage.getItem('suika_best') || 0);
-  let rogueBest = JSON.parse(localStorage.getItem('suika_rogue_best') || '{"stage":0,"score":0}');
+  let rogueBest = JSON.parse(localStorage.getItem('suika_rogue_best') || '{"score":0,"melons":0}');
+  if (rogueBest.melons === undefined) rogueBest = { score: 0, melons: 0 };
   let current = null;       // 손에 쥐고 있는 과일 level
   let nextQueue = [];       // 다음 과일들
   let mouseX = W / 2, mouseY = 0;
@@ -277,14 +254,14 @@
   let paused = true;        // 오버레이 떠 있을 때 물리 정지
   let mergeQueue = [];
   let effects = [];
-  let shakeUntil = 0;                     // 흔들기 진행 중
-  let skill = null;                       // 슬롯에 든 스킬 (SKILLS 원소) 또는 null
-  let mergeCount = 0;                     // 스킬 지급 카운터
+  let shakeUntil = 0;                     // 흔들기(지진) 진행 중
+  let mergeCount = 0;                     // 무지개 주기 카운터
+  let lastMergeAt = 0;                    // 콤보 판정용
   let toast = null;                       // { text, t } 화면 안내
   let holdWild = false;                   // 손에 든 과일이 무지개
-  // 로그라이크 런 상태
-  let stage = 1, relics = [], curse = null, goal = null;
-  let stageScore = 0, stageMerges = 0, stageMade = 0, stageTime = 0, lastQuake = 0;
+  // 런 상태 (클래식도 시간/수박 수는 셈)
+  let relics = [], curses = [], milestoneIdx = 0;
+  let melons = 0, runTime = 0, lastQuake = 0;
 
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const randLevel = () => cfg.minDrop + Math.floor(Math.random() * (cfg.maxDrop - cfg.minDrop + 1));
@@ -297,14 +274,13 @@
 
   function addScore(gain) {
     score += gain;
-    stageScore += gain;
     if (mode === 'classic' && score > best) { best = score; localStorage.setItem('suika_best', best); }
   }
 
   function computeCfg() {
     const c = { ...BASE_CFG };
     for (const r of relics) r.apply(c);
-    if (curse) curse.apply(c);
+    for (const r of curses) r.apply(c);
     c.boxScale = Math.max(0.6, Math.min(1.3, c.boxScale));
     return c;
   }
@@ -315,6 +291,13 @@
     BOX.r = Math.round(BOX_CX + w / 2);
     buildWalls();
     engine.gravity.y = cfg.gravity;
+    for (const b of fruitsInBox()) {   // 상자가 좁아졌으면 벽 안으로
+      const r = FRUITS[b.level].r;
+      const x = Math.max(BOX.l + r + 1, Math.min(BOX.r - r - 1, b.position.x));
+      if (x !== b.position.x) Body.setPosition(b, { x, y: b.position.y });
+    }
+    while (nextQueue.length < cfg.nextCount) nextQueue.push(randLevel());
+    if (nextQueue.length > cfg.nextCount) nextQueue.length = cfg.nextCount;
   }
 
   function clearBoard() {
@@ -331,103 +314,63 @@
   function newGame(m) {
     mode = m;
     score = 0; gameOver = false;
-    skill = null; mergeCount = 0; toast = null;
-    stage = 1; relics = []; curse = null; goal = null;
+    mergeCount = 0; lastMergeAt = 0; toast = null;
+    relics = []; curses = []; milestoneIdx = 0;
+    melons = 0; runTime = 0; lastQuake = performance.now();
     applyCfg();
     clearBoard();
-    if (mode === 'rogue') setupStage();
+    if (mode === 'rogue') showToast(`${milestoneTarget(0)}점에서 첫 유물!`, 2500);
     startEl.hidden = true; cardsEl.hidden = true; overEl.hidden = true;
     paused = false;
   }
 
-  // ── 로그라이크 스테이지 ──────────────────────────────
-  function setupStage() {
-    applyCfg();
-    clearBoard();
-    goal = makeGoal(stage);
-    stageScore = 0; stageMerges = 0; stageMade = 0; stageTime = 0;
-    lastQuake = performance.now();
-    showToast(`Stage ${stage} — ${goalText(goal)}` + (curse ? `  (${curse.icon} ${curse.name})` : ''), 3000);
+  function showToast(text, ms = 1800) { toast = { text, t: performance.now(), ms }; }
+
+  // ── 로그라이크: 점수 마일스톤마다 유물 3택1, 두 번째부터는 저주도 하나 ──
+  function checkMilestone() {
+    if (mode !== 'rogue' || paused || gameOver) return;
+    if (score >= milestoneTarget(milestoneIdx)) offerRelics();
   }
 
-  function stageClear() {
+  function offerRelics() {
     paused = true;
     const pool = RELICS.filter(r => !relics.includes(r));
     const offer = [];
     while (offer.length < 3 && pool.length) offer.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-    if (!offer.length) { nextStage(); return; }
-    document.getElementById('cardsTitle').textContent = `Stage ${stage} 클리어!`;
+    const cursePool = CURSES.filter(c => !curses.includes(c));
+    const pendingCurse = milestoneIdx >= 1 && cursePool.length ? pick(cursePool) : null;
+    if (!offer.length) { takeRelic(null, pendingCurse); return; }
+    document.getElementById('cardsTitle').textContent = `🎁 ${milestoneTarget(milestoneIdx)}점 달성 — 유물 획득!`;
+    document.getElementById('cardsCurse').innerHTML = pendingCurse
+      ? `⚠️ 대신 저주가 붙습니다: <b>${pendingCurse.icon} ${pendingCurse.name}</b> — ${pendingCurse.desc}`
+      : '첫 유물은 저주 없이!';
     const list = document.getElementById('cardList');
     list.innerHTML = '';
     offer.forEach((r, i) => {
       const el = document.createElement('div');
       el.className = 'card';
       el.innerHTML = `<div class="ic">${r.icon}</div><div class="nm">${r.name}</div><div class="ds">${r.desc}</div><div class="key">[${i + 1}]</div>`;
-      el.onclick = () => { relics.push(r); nextStage(); };
+      el.onclick = () => takeRelic(r, pendingCurse);
       list.appendChild(el);
     });
     cardsEl.hidden = false;
     cardsEl._offer = offer;
+    cardsEl._curse = pendingCurse;
   }
 
-  function nextStage() {
+  function takeRelic(relic, pendingCurse) {
     cardsEl.hidden = true;
-    stage++;
-    curse = pick(CURSES);
-    setupStage();
+    if (relic) relics.push(relic);
+    if (pendingCurse) curses.push(pendingCurse);
+    milestoneIdx++;
+    applyCfg();                      // 상자는 그대로, 규칙만 갱신
+    const parts = [];
+    if (relic) parts.push(`${relic.icon} ${relic.name}`);
+    if (pendingCurse) parts.push(`${pendingCurse.icon} ${pendingCurse.name}`);
+    showToast(parts.join('  +  ') + `  · 다음 유물 ${milestoneTarget(milestoneIdx)}점`, 3000);
     paused = false;
   }
 
-  function checkGoal() {
-    if (mode !== 'rogue' || !goal || paused || gameOver) return;
-    const [v, t] = goalProgress(goal);
-    if (v >= t) { showToast('🎉 목표 달성!'); stageClear(); }
-  }
-
-  // ── 스킬 ─────────────────────────────────────────────
-  function grantSkill() {
-    if (skill) return;                              // 슬롯이 차 있으면 다음 기회에
-    skill = pick(SKILLS);
-    showToast(skill.icon + ' ' + skill.name + ' 획득! (Space)');
-  }
-  function showToast(text, ms = 1800) { toast = { text, t: performance.now(), ms }; }
-
-  function useSkill() {
-    if (!skill || gameOver || paused) return;
-    const now = performance.now();
-    const k = skill.key;
-    if (k === 'shake') {
-      shakeUntil = now + SHAKE_TIME;
-    } else if (k === 'boom') {                      // 무작위 3개 펑
-      const list = fruitsInBox();
-      for (let i = 0; i < 3 && list.length; i++) {
-        const idx = Math.floor(Math.random() * list.length);
-        const b = list.splice(idx, 1)[0];
-        Composite.remove(world, b);
-        effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: now, pop: true });
-      }
-    } else if (k === 'rainbow') {                   // 손에 든 과일이 무지개로
-      if (current === null) { current = nextQueue.shift(); nextQueue.push(randLevel()); }
-      holdWild = true;
-    } else if (k === 'shrink') {                    // 전부 한 단계 작아짐 (체리는 사라짐)
-      for (const b of fruitsInBox()) {
-        if (b.wild) continue;
-        const lv = b.level - 1;
-        Composite.remove(world, b);
-        effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: now, pop: lv < 0 });
-        if (lv < 0) continue;
-        const nb = makeFruit(b.position.x, b.position.y, lv);
-        Body.setVelocity(nb, b.velocity);
-        Composite.add(world, nb);
-      }
-    } else if (k === 'big') {                       // 손에 든 과일이 5~7단계로
-      if (current === null) { current = nextQueue.shift(); nextQueue.push(randLevel()); }
-      current = 5 + Math.floor(Math.random() * 3);
-      holdWild = false;
-    }
-    showToast(skill.icon + ' ' + skill.name + '!');
-    skill = null;
-  }
 
   function drop() {
     if (!canDrop || gameOver || paused || current === null) return;
@@ -447,11 +390,11 @@
 
   function endGame() {
     gameOver = true;
-    let text = `점수 ${score}`;
+    let text = `점수 ${score} · 🍉 ${melons}개 · ⏱ ${fmtTime(runTime)}`;
     if (mode === 'rogue') {
-      text = `Stage ${stage} 도달 · 점수 ${score}<br><span class="small">유물: ${relics.map(r => r.icon).join(' ') || '없음'}</span>`;
-      if (stage > rogueBest.stage || (stage === rogueBest.stage && score > rogueBest.score)) {
-        rogueBest = { stage, score };
+      text += `<br><span class="small">유물: ${relics.map(r => r.icon).join(' ') || '없음'}   저주: ${curses.map(c => c.icon).join(' ') || '없음'}</span>`;
+      if (score > rogueBest.score) {
+        rogueBest = { score, melons };
         localStorage.setItem('suika_rogue_best', JSON.stringify(rogueBest));
         text += '<br><span class="small">🏅 최고 기록 갱신!</span>';
       }
@@ -472,9 +415,9 @@
         mergeQueue.push([a, b, other.level + 1]);
         continue;
       }
-      if (a.level !== b.level || a.level >= FRUITS.length - 1) continue;
+      if (a.level !== b.level) continue;
       a.merging = b.merging = true;
-      mergeQueue.push([a, b, a.level + 1]);
+      mergeQueue.push([a, b, a.level >= FRUITS.length - 1 ? -1 : a.level + 1]);   // -1 = 수박 둘 소멸
     }
   });
 
@@ -511,18 +454,25 @@
       const y = (a.position.y + b.position.y) / 2;
       Composite.remove(world, a);
       Composite.remove(world, b);
+      if (lv < 0) {   // 수박 + 수박 → 펑, 보너스
+        for (const o of [a, b]) effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[10].r, t: performance.now(), pop: true });
+        addScore(Math.round(WATERMELON_BONUS * cfg.scoreMul));
+        showToast(`🍉🍉 수박 소멸! +${Math.round(WATERMELON_BONUS * cfg.scoreMul)}`);
+        continue;
+      }
       const nb = makeFruit(x, y, lv);
       Body.setVelocity(nb, { x: (a.velocity.x + b.velocity.x) / 2, y: (a.velocity.y + b.velocity.y) / 2 });
       Body.setAngularVelocity(nb, (a.angularVelocity + b.angularVelocity) / 2 + (Math.random() - 0.5) * 0.2);
       Composite.add(world, nb);
+      const now = performance.now();
       let gain = FRUITS[lv].score * cfg.scoreMul;
       if (cfg.bigBonus && lv >= 6) gain *= 2;
+      if (cfg.combo && now - lastMergeAt < 3000) { gain *= 1.5; effects.push({ x, y, r: FRUITS[lv].r * 1.3, t: now }); }
+      lastMergeAt = now;
       addScore(Math.round(gain));
-      effects.push({ x, y, r: FRUITS[lv].r, t: performance.now() });
-      stageMerges++;
-      stageMade = Math.max(stageMade, lv);
+      effects.push({ x, y, r: FRUITS[lv].r, t: now });
+      if (lv === FRUITS.length - 1) { melons++; showToast(`🍉 수박 완성! (${melons}개)`); }
       mergeCount++;
-      if (mergeCount % cfg.skillEvery === 0) grantSkill();
       if (cfg.rainbowEvery && mergeCount % cfg.rainbowEvery === 0) { holdWild = true; showToast('🌈 무지개 과일!'); }
       if (cfg.chainPop && Math.random() < cfg.chainPop) {   // 연쇄 폭발: 근처 작은 과일 하나 펑
         const near = fruitsInBox().filter(o => o !== nb && o.level <= 4 && Math.hypot(o.position.x - x, o.position.y - y) < 130);
@@ -554,23 +504,18 @@
     const rect = canvas.getBoundingClientRect();
     return { x: (e.clientX - rect.left) / rect.width * W, y: (e.clientY - rect.top) / rect.height * H };
   }
-  function onSkillSlot(x, y) {
-    const dx = x - SKILL_X, dy = y - SKILL_Y;
-    return dx * dx + dy * dy <= (SKILL_R + 8) * (SKILL_R + 8);
-  }
   canvas.addEventListener('pointermove', e => { const g = toGame(e); mouseX = g.x; mouseY = g.y; });
   canvas.addEventListener('pointerdown', e => {
     const g = toGame(e); mouseX = g.x; mouseY = g.y;
-    if (onSkillSlot(g.x, g.y)) { useSkill(); return; }
     if (g.y < BOX.b) drop();
   });
   window.addEventListener('keydown', e => {
     if (!cardsEl.hidden) {   // 유물 고르기: 1/2/3
       const i = ['Digit1', 'Digit2', 'Digit3'].indexOf(e.code);
-      if (i >= 0 && cardsEl._offer && cardsEl._offer[i]) { relics.push(cardsEl._offer[i]); nextStage(); }
+      if (i >= 0 && cardsEl._offer && cardsEl._offer[i]) takeRelic(cardsEl._offer[i], cardsEl._curse);
       return;
     }
-    if (e.code === 'Space') { e.preventDefault(); useSkill(); }
+    if (e.code === 'Space') { e.preventDefault(); drop(); }
     if (e.code === 'ArrowLeft') mouseX -= 12;
     if (e.code === 'ArrowRight') mouseX += 12;
     if (e.code === 'ArrowDown' || e.code === 'Enter') drop();
@@ -578,7 +523,7 @@
   function showMenu() {
     paused = true;
     document.getElementById('records').innerHTML =
-      `클래식 최고 ${best}점 · 로그라이크 최고 Stage ${rogueBest.stage} (${rogueBest.score}점)`;
+      `클래식 최고 ${best}점 · 로그라이크 최고 ${rogueBest.score}점 (🍉 ${rogueBest.melons}개)`;
     overEl.hidden = true; cardsEl.hidden = true; startEl.hidden = false;
   }
   document.getElementById('menuBtn').onclick = showMenu;
@@ -633,6 +578,11 @@
       c.beginPath(); c.arc(0, r * 0.3, r * 0.1, 0.3, Math.PI - 0.3); c.stroke();
     }
     c.restore();
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   }
 
   function outlinedText(text, x, y, size, align = 'center') {
@@ -718,8 +668,7 @@
     outlinedText('Score', 75, 24, 20);
     bubble(75, 68, 34);
     outlinedText(String(score), 75, 70, 26);
-    if (mode === 'rogue') outlinedText(`Stage ${stage}`, 75, 113, 14);
-    else outlinedText('Best ' + best, 75, 113, 14);
+    outlinedText('Best ' + (mode === 'rogue' ? rogueBest.score : best), 75, 113, 14);
     outlinedText('Next', 375, 24, 20);
     pill(300, 42, 150, 52, 26);
     // 다음 과일들: 앞쪽일수록 크게 (5개면 촘촘하게)
@@ -740,12 +689,19 @@
         ctx.fillText('›', (nx[i] + nx[i + 1]) / 2, 68);
       }
     }
-    // 로그라이크: 목표 / 저주 / 유물
-    if (mode === 'rogue' && goal) {
-      const [v, t] = goalProgress(goal);
-      const prog = goal.type === 'make' ? (v ? '✓' : '') : `${v}/${t}`;
-      outlinedText(`🎯 ${goalText(goal)}  ${prog}`, 230, 22, 15);
-      if (curse) outlinedText(`${curse.icon} 저주: ${curse.name}`, 230, 44, 13);
+    // 가운데 상단: 시간 · 수박 수 / 로그라이크는 다음 유물까지
+    outlinedText(`⏱ ${fmtTime(runTime)}   🍉 ${melons}`, 230, 22, 15);
+    if (mode === 'rogue') {
+      const t = milestoneTarget(milestoneIdx);
+      outlinedText(`🎁 다음 유물 ${Math.min(score, t)}/${t}`, 230, 44, 13);
+      // 진행 바
+      const gw = 120, gx = 230 - gw / 2, gy = 54;
+      ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(gx, gy, gw, 6);
+      ctx.fillStyle = '#ffd36b'; ctx.fillRect(gx, gy, gw * Math.min(1, score / t), 6);
+      if (curses.length) {
+        ctx.font = '14px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('저주 ' + curses.map(c => c.icon).join(' '), 230, 72);
+      }
       if (relics.length) {
         ctx.font = '15px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         const rx = 450 - relics.length * 17;
@@ -816,37 +772,6 @@
       ctx.globalAlpha = 1;
     }
 
-    // 스킬 슬롯 (1개)
-    {
-      const x = SKILL_X, y = SKILL_Y, has = !!skill;
-      const glow = has ? 0.5 + 0.5 * Math.sin(performance.now() / 150) : 0;
-      if (has) {
-        ctx.beginPath(); ctx.arc(x, y, SKILL_R + 6 + glow * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,230,150,${0.25 + glow * 0.25})`; ctx.fill();
-      }
-      ctx.beginPath(); ctx.arc(x, y, SKILL_R, 0, Math.PI * 2);
-      ctx.fillStyle = has ? 'rgba(255,255,255,.75)' : 'rgba(255,255,255,.18)'; ctx.fill();
-      ctx.lineWidth = 3; ctx.strokeStyle = has ? '#fff' : 'rgba(255,255,255,.4)';
-      ctx.setLineDash(has ? [] : [6, 5]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      if (has) {
-        ctx.font = '26px "Segoe UI Emoji", sans-serif'; ctx.fillStyle = '#6a4a2a';
-        ctx.fillText(skill.icon, x, y + 1);
-        outlinedText(skill.name + ' (Space)', x, y + SKILL_R + 13, 14);
-      } else {
-        ctx.font = '13px Jua, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.55)';
-        ctx.fillText('스킬', x, y);
-        const left = cfg.skillEvery - (mergeCount % cfg.skillEvery);
-        outlinedText('합체 ' + left + '번 더', x, y + SKILL_R + 13, 13);
-      }
-      // 진행 게이지
-      const gw = 90, gx = x - 150 - gw / 2, gy = y - 5;
-      ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(gx, gy, gw, 10);
-      ctx.fillStyle = '#ffd36b'; ctx.fillRect(gx, gy, gw * ((mergeCount % cfg.skillEvery) / cfg.skillEvery), 10);
-      ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2; ctx.strokeRect(gx, gy, gw, 10);
-      outlinedText('다음 스킬', gx + gw / 2, gy - 12, 12);
-    }
-
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
@@ -863,7 +788,7 @@
   // ── 루프: 고정 스텝, 실제 경과시간만큼 따라잡기 (탭 상태와 무관하게 일정한 속도) ──
   const STEP = 1000 / 60;
   let acc = 0, last = performance.now();
-  window.suika = { engine, FRUITS, get state() { return { mode, cfg, stage, relics, curse, goal, score, stageScore, stageMerges, stageMade, stageTime, paused, gameOver }; }, newGame, stageClear, nextStage };   // 디버그/튜닝용
+  window.suika = { engine, FRUITS, get state() { return { mode, cfg, relics, curses, milestoneIdx, score, melons, runTime, paused, gameOver }; }, newGame, offerRelics, takeRelic };   // 디버그/튜닝용
   applyCfg();
   clearBoard();
   showMenu();
@@ -873,12 +798,12 @@
     last = now;
     const running = !paused && !gameOver;
     while (acc >= STEP) {
-      if (running) { Engine.update(engine, STEP); stageTime += STEP; }
+      if (running) { Engine.update(engine, STEP); runTime += STEP; }
       acc -= STEP;
     }
     if (running) {
       if (cfg.quakeEvery && now - lastQuake > cfg.quakeEvery) { lastQuake = now; shakeUntil = now + SHAKE_TIME; showToast('🌋 지진!'); }
-      checkGoal();
+      checkMilestone();
     }
     render();
   }, STEP);
