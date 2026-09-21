@@ -171,7 +171,7 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  const W = 460, H = 940;                       // 게임 좌표계
+  const W = 460, H = 955;                       // 게임 좌표계
   const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
   const BOX = { l: 22, r: 438, t: 260, b: 825 };  // 상자 안쪽 영역 (높이 565 — 원작보다 넉넉하게; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
@@ -1291,39 +1291,49 @@
       outlinedText(`🔥 ${comboCount} 콤보`, W / 2, msgY, 16 + Math.min(8, comboCount));
     }
 
-    // 상자 아래 줄: 유물(왼쪽) · 저주(오른쪽) — 로그라이크만
+    // 상자 아래: 유물 15종 전체(보유한 것만 켜짐 + 레벨 점) / 저주 6종 — 로그라이크만
     if (mode === 'rogue') {
-      const ry = BOX.b + 20;
-      ctx.textBaseline = 'middle';
-      if (relics.length) {
-        ctx.textAlign = 'left';
-        let rx = BOX.l + 4;
-        outlinedText('유물', rx, ry, 12, 'left'); rx += 30;
-        for (const r of relics) {
-          ctx.font = '16px "Segoe UI Emoji", sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-          ctx.fillText(r.def.icon, rx, ry);
-          if (r.level > 1) { ctx.font = '11px Jua, sans-serif'; ctx.fillText(String(r.level), rx + 15, ry + 8); }
-          rx += 23;
+      const ry = BOX.b + 18, step = 27, x0 = 30;
+      ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+      RELICS.forEach((d, i) => {
+        const lv = relicLevel(d.key), x = x0 + i * step;
+        if (lv) {   // 보유: 밝은 배경 칩
+          ctx.fillStyle = 'rgba(255,255,255,.28)';
+          ctx.beginPath(); ctx.roundRect(x - 12, ry - 12, 24, 30, 7); ctx.fill();
         }
-      }
-      if (curses.length) {
-        let cx = BOX.r - 4;
-        for (let i = curses.length - 1; i >= 0; i--) {
-          ctx.font = '16px "Segoe UI Emoji", sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right';
-          ctx.fillText(curses[i].icon, cx, ry); cx -= 22;
+        ctx.globalAlpha = lv ? 1 : 0.3;
+        ctx.font = '16px "Segoe UI Emoji", sans-serif'; ctx.fillStyle = '#fff';
+        ctx.fillText(d.icon, x, ry);
+        ctx.globalAlpha = 1;
+        for (let k = 0; k < MAX_RELIC_LV; k++) {   // 레벨 점
+          ctx.beginPath(); ctx.arc(x - 7 + k * 7, ry + 13, 2.4, 0, Math.PI * 2);
+          ctx.fillStyle = k < lv ? '#ffd36b' : 'rgba(255,255,255,.25)'; ctx.fill();
         }
-        outlinedText('저주', cx - 2, ry, 12, 'right');
+      });
+      const cy = ry + 32;
+      outlinedText('저주', 44, cy, 12);
+      CURSES.forEach((c, i) => {
+        const on = curses.includes(c), x = 80 + i * 30;
+        if (on) { ctx.fillStyle = 'rgba(255,80,80,.35)'; ctx.beginPath(); ctx.roundRect(x - 13, cy - 12, 26, 24, 7); ctx.fill(); }
+        ctx.globalAlpha = on ? 1 : 0.3;
+        ctx.font = '16px "Segoe UI Emoji", sans-serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+        ctx.fillText(c.icon, x, cy);
+        ctx.globalAlpha = 1;
+      });
+      if (cfg.synergies && cfg.synergies.length) {
+        ctx.font = '15px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
+        ctx.fillText('✨ ' + cfg.synergies.map(sy => sy.icon).join(' '), BOX.r - 4, cy);
       }
     }
 
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
-      drawFruit(ctx, ex, 880, i, 0, 12 / FRUITS[i].r);
+      drawFruit(ctx, ex, 896, i, 0, 12 / FRUITS[i].r);
       if (i < FRUITS.length - 1) {
         ctx.fillStyle = 'rgba(255,255,255,.7)';
         ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', ex + 20, 880);
+        ctx.fillText('›', ex + 20, 896);
       }
       ex += 40;
     }
