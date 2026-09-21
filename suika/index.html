@@ -101,9 +101,7 @@
   }
   .card:hover { transform: translateY(-4px); background: #fff; }
   #cards.locked .card { opacity: .55; pointer-events: none; transform: none; }
-  #cardsLock { width: 200px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.25); overflow: hidden; }
-  #cardsLock div { height: 100%; background: #ffd36b; width: 100%; transform-origin: left; }
-  @keyframes lockbar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  #cardsNote.ready { color: #b8f5c0; }
   .card .ic { font-size: 38px; }
   .card .nm { font-size: 17px; margin-top: 4px; }
   .card .ds { font-size: 12px; color: #9a7a5a; margin-top: 6px; line-height: 1.4; }
@@ -147,7 +145,6 @@
     <p class="small">유물 하나를 고르세요 (1 / 2 / 3)</p>
     <div class="cards" id="cardList"></div>
     <p class="small" id="cardsNote"></p>
-    <div id="cardsLock"><div></div></div>
   </div>
 
   <div id="over" class="overlay" hidden>
@@ -488,7 +485,8 @@
     while (offer.length < 3 && pool.length) offer.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     if (!offer.length) { paused = false; return; }
     document.getElementById('cardsTitle').textContent = `🎁 ${reason || '유물 획득!'}`;
-    document.getElementById('cardsNote').textContent = '레벨형은 다시 고르면 강해지고, ⚡즉시형은 고르는 순간 발동해요';
+    const note = document.getElementById('cardsNote');
+    note.className = 'small'; note.textContent = '🔒 잠시만요… (연타 방지)';
     const list = document.getElementById('cardList');
     list.innerHTML = '';
     offer.forEach((d, i) => {
@@ -511,9 +509,12 @@
     // 연타 방지: 1.8초 동안 선택 잠금 (막 클릭하다 모르고 고르는 것 방지)
     cardsReadyAt = performance.now() + CARD_LOCK_MS;
     cardsEl.classList.add('locked');
-    const bar = document.querySelector('#cardsLock div');
-    bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = `lockbar ${CARD_LOCK_MS}ms linear forwards`;
-    setTimeout(() => { if (!cardsEl.hidden) cardsEl.classList.remove('locked'); }, CARD_LOCK_MS);
+    setTimeout(() => {
+      if (cardsEl.hidden) return;
+      cardsEl.classList.remove('locked');
+      note.className = 'small ready';
+      note.textContent = '✅ 천천히 읽고 고르세요 — 시간 제한 없음. 레벨형은 다시 고르면 강해지고, ⚡즉시형은 바로 발동';
+    }, CARD_LOCK_MS);
   }
 
   function takeRelic(def) {
