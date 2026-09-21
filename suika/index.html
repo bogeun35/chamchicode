@@ -117,7 +117,7 @@
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const DROP_Y = 185;                           // 손에 든 과일 중심 높이
-  const DEAD_Y = BOX.t + 4;                     // 이 선 위에 과일이 머물면 게임 오버
+  const deadY = () => BOX.t + 4 - cfg.ceilingOffset;   // 이 선 위에 과일이 머물면 게임 오버 (천장 유물/저주로 오르내림)
   const DROP_COOLDOWN = 250;                    // ms — 클릭 후 다음 과일까지
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
 
@@ -145,40 +145,50 @@
     nextCount: 3,               // 미리보기 개수
     gravity: 2.0,
     restitution: 0.05,
+    friction: 0.3,              // 과일 마찰 (높으면 덜 굴러 안정적으로 쌓임)
     inertiaMul: 0.15,           // 낮을수록 잘 돈다
     scoreMul: 1,
-    friction: 0.3,              // 과일 마찰 (높으면 덜 굴러 안정적으로 쌓임)
-    combo: false,               // 3초 안에 연속 합체 시 점수 ×1.5
     deadTime: 1000,             // 게임오버 유예 ms
     boxScale: 1,                // 상자 폭 배율
-    chainPop: 0,                // 합체 시 주변 하나 펑 확률
+    ceilingOffset: 0,           // 게임오버 선 이동 (+ 위로 = 여유, − 아래로 = 압박)
+    melonBonus: 0,              // 수박 만들 때 추가 점수
+    combo: false,               // 3초 안에 연속 합체 시 점수 ×1.5
+    chainPop: 0,                // 합체 시 근처 작은 과일 하나 펑 확률
     rainbowEvery: 0,            // 합체 N번마다 무지개 (0=없음)
+    cleanupEvery: 0,            // 합체 N번마다 체리·딸기 전부 삭제 (0=없음)
     magnet: false,              // 같은 과일끼리 끌림
+    insurance: false,           // 게임오버 1회 방어
     quakeEvery: 0,              // ms 마다 지진 (0=없음)
+    cherryRainEvery: 0,         // ms 마다 체리 3개 낙하 (0=없음)
+    hurryMs: 0,                 // 이 시간 안에 안 떨어뜨리면 자동 낙하 (0=없음)
+    dropJitter: 0,              // 떨어뜨릴 때 좌우 오차 px
     fogNext: false,             // Next 가림
-    bigBonus: false,            // 배 이상 합체 점수 2배
   };
+  // 유물: 전부 "더 오래 버티기 / 수박 더 만들기" 에 직접 도움되는 것만
   const RELICS = [
-    { key: 'noCherry',  icon: '🍓', name: '체리 졸업',   desc: '체리가 더 이상 안 나옴',           apply: c => { c.minDrop = Math.max(c.minDrop, 1); } },
-    { key: 'light',     icon: '🪶', name: '가벼운 과일', desc: '과일이 훨씬 잘 굴러감',             apply: c => { c.inertiaMul *= 0.5; } },
-    { key: 'next5',     icon: '🔮', name: '미리보기 5개', desc: 'Next 를 5개까지 보여줌',           apply: c => { c.nextCount = 5; } },
-    { key: 'chainPop',  icon: '💣', name: '연쇄 폭발',   desc: '합체할 때 12% 확률로 옆 과일 펑',   apply: c => { c.chainPop += 0.12; } },
-    { key: 'rainbow',   icon: '🌈', name: '무지개 주기', desc: '합체 15번마다 무지개 과일',         apply: c => { c.rainbowEvery = 15; } },
-    { key: 'wideBox',   icon: '📏', name: '넓은 상자',   desc: '상자 폭 +10%',                     apply: c => { c.boxScale += 0.10; } },
-    { key: 'grace',     icon: '⏳', name: '유예 시간',   desc: '게임오버 판정 +1.5초',             apply: c => { c.deadTime += 1500; } },
-    { key: 'combo',     icon: '🔥', name: '콤보',        desc: '3초 안에 연속 합체하면 점수 ×1.5', apply: c => { c.combo = true; } },
-    { key: 'sticky',    icon: '🍡', name: '찰떡',        desc: '과일이 덜 굴러 안정적으로 쌓임',    apply: c => { c.friction = 0.7; c.inertiaMul *= 2; } },
-    { key: 'bigBonus',  icon: '🏆', name: '큰 합체 보너스', desc: '배 이상 합체 점수 2배',          apply: c => { c.bigBonus = true; } },
-    { key: 'slowFall',  icon: '🎈', name: '느린 낙하',   desc: '중력 −25%, 조준이 쉬움',           apply: c => { c.gravity *= 0.75; } },
-    { key: 'magnet',    icon: '🧲', name: '자석',        desc: '같은 과일끼리 가까우면 서로 끌림',  apply: c => { c.magnet = true; } },
+    { key: 'noCherry',  icon: '🍓', name: '체리 졸업',    desc: '체리가 안 나옴 → 자잘한 과일이 줄어듦',        apply: c => { c.minDrop = Math.max(c.minDrop, 1); } },
+    { key: 'next5',     icon: '🔮', name: '미리보기 5개',  desc: 'Next 를 5개까지 보고 자리 계획',               apply: c => { c.nextCount = 5; } },
+    { key: 'wideBox',   icon: '📏', name: '넓은 상자',     desc: '상자 폭 +10% → 더 많이 쌓임',                  apply: c => { c.boxScale += 0.10; } },
+    { key: 'ceiling',   icon: '⬆️', name: '높은 천장',     desc: '게임오버 선이 40px 위로 올라감',               apply: c => { c.ceilingOffset += 40; } },
+    { key: 'insurance', icon: '🛡️', name: '보험',          desc: '게임오버 1번 막아줌 (위쪽 과일 전부 삭제)',    apply: c => { c.insurance = true; } },
+    { key: 'cleanup',   icon: '🧹', name: '청소',          desc: '합체 20번마다 체리·딸기가 전부 사라짐',        apply: c => { c.cleanupEvery = 20; } },
+    { key: 'chainPop',  icon: '💣', name: '연쇄 폭발',     desc: '합체할 때 15% 확률로 옆의 작은 과일 펑',       apply: c => { c.chainPop += 0.15; } },
+    { key: 'rainbow',   icon: '🌈', name: '무지개 주기',   desc: '합체 12번마다 아무 과일과 합쳐지는 무지개',    apply: c => { c.rainbowEvery = 12; } },
+    { key: 'magnet',    icon: '🧲', name: '자석',          desc: '같은 과일끼리 가까우면 서로 끌려 합쳐짐',      apply: c => { c.magnet = true; } },
+    { key: 'antiSlip',  icon: '🧱', name: '미끄럼 방지',   desc: '과일이 덜 굴러 무너지지 않고 쌓임',            apply: c => { c.friction = 0.7; c.inertiaMul *= 2; } },
+    { key: 'melonBonus',icon: '🍉', name: '수박 보너스',   desc: '수박 만들 때마다 +200점 (유물이 빨리 옴)',     apply: c => { c.melonBonus += 200; } },
+    { key: 'combo',     icon: '🔥', name: '콤보',          desc: '3초 안에 연속 합체하면 점수 ×1.5',             apply: c => { c.combo = true; } },
   ];
+  // 저주: 전부 눈에 보이는 불이익
   const CURSES = [
-    { key: 'narrow',  icon: '📐', name: '좁은 상자', desc: '상자 폭 −15%',               apply: c => { c.boxScale -= 0.15; } },
-    { key: 'heavy',   icon: '⬇️', name: '강한 중력', desc: '중력 +40%',                  apply: c => { c.gravity *= 1.4; } },
-    { key: 'bigOnly', icon: '🍊', name: '큰 과일만', desc: '포도~사과만 나옴',            apply: c => { c.minDrop = Math.max(c.minDrop, 2); c.maxDrop = 5; } },
-    { key: 'quake',   icon: '🌋', name: '지진',      desc: '20초마다 상자가 흔들림',      apply: c => { c.quakeEvery = 20000; } },
-    { key: 'bouncy',  icon: '🏀', name: '통통',      desc: '과일이 잘 튕김',              apply: c => { c.restitution = 0.5; } },
-    { key: 'fog',     icon: '🌫️', name: '안개',      desc: 'Next 가 안 보임',             apply: c => { c.fogNext = true; } },
+    { key: 'narrow',     icon: '📐', name: '좁은 상자',    desc: '상자 폭 −15%',                          apply: c => { c.boxScale -= 0.15; } },
+    { key: 'lowCeiling', icon: '⬇️', name: '낮은 천장',    desc: '게임오버 선이 40px 내려옴',              apply: c => { c.ceilingOffset -= 40; } },
+    { key: 'bigOnly',    icon: '🍊', name: '큰 과일만',    desc: '포도~사과만 나와서 금방 참',             apply: c => { c.minDrop = Math.max(c.minDrop, 2); c.maxDrop = 5; } },
+    { key: 'cherryRain', icon: '🍒', name: '체리 비',      desc: '15초마다 체리 3개가 떨어짐',             apply: c => { c.cherryRainEvery = 15000; } },
+    { key: 'hurry',      icon: '⏱', name: '재촉',         desc: '4초 안에 안 떨어뜨리면 자동 낙하',       apply: c => { c.hurryMs = 4000; } },
+    { key: 'shakyHand',  icon: '🫨', name: '떨리는 손',    desc: '떨어뜨릴 때 좌우로 ±25px 빗나감',        apply: c => { c.dropJitter = 25; } },
+    { key: 'quake',      icon: '🌋', name: '지진',         desc: '20초마다 상자가 흔들림',                 apply: c => { c.quakeEvery = 20000; } },
+    { key: 'fog',        icon: '🌫️', name: '안개',         desc: 'Next 가 안 보임',                        apply: c => { c.fogNext = true; } },
   ];
   // 유물 지급 점수: 500, 750, 1050, 1500, 2200, 3200, 4650, ... (×1.45)
   const milestoneTarget = i => Math.round(500 * Math.pow(1.45, i) / 50) * 50;
@@ -261,7 +271,9 @@
   let holdWild = false;                   // 손에 든 과일이 무지개
   // 런 상태 (클래식도 시간/수박 수는 셈)
   let relics = [], curses = [], milestoneIdx = 0;
-  let melons = 0, runTime = 0, lastQuake = 0;
+  let melons = 0, runTime = 0, lastQuake = 0, lastRain = 0;
+  let insuranceUsed = false;
+  let holdSince = 0;                      // 손에 든 과일을 잡은 시각 (재촉 저주용)
 
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const randLevel = () => cfg.minDrop + Math.floor(Math.random() * (cfg.maxDrop - cfg.minDrop + 1));
@@ -316,7 +328,8 @@
     score = 0; gameOver = false;
     mergeCount = 0; lastMergeAt = 0; toast = null;
     relics = []; curses = []; milestoneIdx = 0;
-    melons = 0; runTime = 0; lastQuake = performance.now();
+    melons = 0; runTime = 0; lastQuake = lastRain = performance.now();
+    insuranceUsed = false; holdSince = 0;
     applyCfg();
     clearBoard();
     if (mode === 'rogue') showToast(`${milestoneTarget(0)}점에서 첫 유물!`, 2500);
@@ -374,9 +387,11 @@
 
   function drop() {
     if (!canDrop || gameOver || paused || current === null) return;
-    const x = clampX(mouseX, current);
+    const jitter = cfg.dropJitter ? (Math.random() * 2 - 1) * cfg.dropJitter : 0;
+    const x = clampX(mouseX + jitter, current);
     const b = makeFruit(x, DROP_Y, current);
     if (holdWild) { b.wild = true; holdWild = false; }
+    holdSince = 0;
     Body.setVelocity(b, { x: 0, y: 4 });   // 바로 떨어지기 시작 (반응 빠르게)
     Composite.add(world, b);
     current = null;
@@ -386,6 +401,28 @@
       nextQueue.push(randLevel());
       canDrop = true;
     }, DROP_COOLDOWN);
+  }
+
+  function useInsurance() {
+    insuranceUsed = true;
+    const now = performance.now();
+    for (const b of fruitsInBox()) {
+      if (b.position.y < BOX.t + 220) {
+        Composite.remove(world, b);
+        effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: now, pop: true });
+      } else b.deadSince = 0;
+    }
+    showToast('🛡️ 보험 발동! 위쪽 과일 삭제', 2500);
+  }
+
+  function rainCherries(n) {
+    for (let i = 0; i < n; i++) {
+      const x = BOX.l + 40 + Math.random() * (BOX.r - BOX.l - 80);
+      const b = makeFruit(x, DROP_Y - 30 - i * 30, 0);
+      Body.setVelocity(b, { x: (Math.random() - 0.5) * 2, y: 3 });
+      Composite.add(world, b);
+    }
+    showToast('🍒 체리 비!');
   }
 
   function endGame() {
@@ -466,13 +503,24 @@
       Composite.add(world, nb);
       const now = performance.now();
       let gain = FRUITS[lv].score * cfg.scoreMul;
-      if (cfg.bigBonus && lv >= 6) gain *= 2;
       if (cfg.combo && now - lastMergeAt < 3000) { gain *= 1.5; effects.push({ x, y, r: FRUITS[lv].r * 1.3, t: now }); }
       lastMergeAt = now;
       addScore(Math.round(gain));
       effects.push({ x, y, r: FRUITS[lv].r, t: now });
-      if (lv === FRUITS.length - 1) { melons++; showToast(`🍉 수박 완성! (${melons}개)`); }
+      if (lv === FRUITS.length - 1) {
+        melons++;
+        if (cfg.melonBonus) addScore(Math.round(cfg.melonBonus * cfg.scoreMul));
+        showToast(`🍉 수박 완성! (${melons}개)` + (cfg.melonBonus ? ` +${cfg.melonBonus}` : ''));
+      }
       mergeCount++;
+      if (cfg.cleanupEvery && mergeCount % cfg.cleanupEvery === 0) {   // 청소: 체리·딸기 전부 삭제
+        let n = 0;
+        for (const o of fruitsInBox()) if (o.level <= 1 && !o.wild) {
+          Composite.remove(world, o); n++;
+          effects.push({ x: o.position.x, y: o.position.y, r: FRUITS[o.level].r, t: now, pop: true });
+        }
+        if (n) showToast(`🧹 청소! 작은 과일 ${n}개 삭제`);
+      }
       if (cfg.rainbowEvery && mergeCount % cfg.rainbowEvery === 0) { holdWild = true; showToast('🌈 무지개 과일!'); }
       if (cfg.chainPop && Math.random() < cfg.chainPop) {   // 연쇄 폭발: 근처 작은 과일 하나 펑
         const near = fruitsInBox().filter(o => o !== nb && o.level <= 4 && Math.hypot(o.position.x - x, o.position.y - y) < 130);
@@ -490,9 +538,12 @@
     for (const b of fruitsInBox()) {
       const top = b.position.y - FRUITS[b.level].r;
       const settled = b.speed < 0.8 && now - b.born > 600;
-      if (top < DEAD_Y && settled) {
+      if (top < deadY() && settled) {
         if (!b.deadSince) b.deadSince = now;
-        else if (now - b.deadSince > cfg.deadTime) { endGame(); break; }
+        else if (now - b.deadSince > cfg.deadTime) {
+          if (cfg.insurance && !insuranceUsed) useInsurance(); else endGame();
+          break;
+        }
       } else {
         b.deadSince = 0;
       }
@@ -718,9 +769,9 @@
 
     // 게임오버 선 (아주 연하게)
     ctx.setLineDash([8, 8]);
-    ctx.strokeStyle = 'rgba(220,90,60,.35)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(BOX.l, DEAD_Y); ctx.lineTo(BOX.r, DEAD_Y); ctx.stroke();
+    ctx.strokeStyle = cfg.ceilingOffset ? 'rgba(220,60,60,.75)' : 'rgba(220,90,60,.35)';
+    ctx.lineWidth = cfg.ceilingOffset ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(BOX.l, deadY()); ctx.lineTo(BOX.r, deadY()); ctx.stroke();
     ctx.setLineDash([]);
 
     // 손에 쥔 과일 + 구름 + 가이드
@@ -732,6 +783,11 @@
       ctx.beginPath(); ctx.moveTo(x, DROP_Y + r); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
       drawCloud(x, DROP_Y - r - 16);
       drawFruit(ctx, x, DROP_Y, current, 0, 1, holdWild);
+      if (cfg.hurryMs && holdSince) {   // 재촉: 남은 시간 링
+        const f = Math.min(1, (performance.now() - holdSince) / cfg.hurryMs);
+        ctx.beginPath(); ctx.arc(x, DROP_Y, r + 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - f));
+        ctx.strokeStyle = f > 0.7 ? 'rgba(255,80,80,.9)' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 4; ctx.stroke();
+      }
     } else if (!gameOver) {
       drawCloud(clampX(mouseX, 2), DROP_Y - FRUITS[2].r - 16);
     }
@@ -803,6 +859,9 @@
     }
     if (running) {
       if (cfg.quakeEvery && now - lastQuake > cfg.quakeEvery) { lastQuake = now; shakeUntil = now + SHAKE_TIME; showToast('🌋 지진!'); }
+      if (cfg.cherryRainEvery && now - lastRain > cfg.cherryRainEvery) { lastRain = now; rainCherries(3); }
+      if (current !== null && !holdSince) holdSince = now;
+      if (cfg.hurryMs && current !== null && holdSince && now - holdSince > cfg.hurryMs) { showToast('⏱ 재촉!'); drop(); }
       checkMilestone();
     }
     render();
