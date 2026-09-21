@@ -366,6 +366,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="davinci" onclick="navigate('davinci')">
+      <span class="nav-icon">🕵️</span>
+      <span>다빈치 코드</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
       <span class="nav-icon">🗺️</span>
       <span>배그 맵</span>
@@ -434,6 +440,11 @@ body::after {
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
+        <div class="landing-card" onclick="navigate('davinci')">
+          <div class="landing-card-icon">🕵️</div>
+          <div class="landing-card-title">다빈치 코드</div>
+          <div class="landing-card-desc">숫자 추리 보드게임<br>2~4명 · 링크로 바로 참가</div>
+        </div>
         <div class="landing-card" onclick="navigate('suika')">
           <div class="landing-card-icon">🍉</div>
           <div class="landing-card-title">수박게임</div>
@@ -491,6 +502,11 @@ body::after {
   <!-- 수박게임 iframe -->
   <div class="page-frame" id="page-suika">
     <iframe src="suika/index.html" id="iframe-suika"></iframe>
+  </div>
+
+  <!-- 다빈치 코드 iframe -->
+  <div class="page-frame" id="page-davinci">
+    <iframe src="davinci.html" id="iframe-davinci" allow="clipboard-write"></iframe>
   </div>
 
   <!-- PUBG Map iframe -->
