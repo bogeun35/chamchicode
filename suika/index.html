@@ -137,9 +137,9 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  const W = 460, H = 850;                       // 게임 좌표계
+  const W = 460, H = 910;                       // 게임 좌표계
   const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
-  const BOX = { l: 22, r: 438, t: 260, b: 765 };  // 상자 안쪽 영역 (l/r 은 상자 폭에 따라 바뀜)
+  const BOX = { l: 22, r: 438, t: 260, b: 825 };  // 상자 안쪽 영역 (높이 565 — 원작보다 넉넉하게; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const DROP_Y = 185;                           // 손에 든 과일 중심 높이
@@ -1187,11 +1187,11 @@
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
-      drawFruit(ctx, ex, 796, i, 0, 12 / FRUITS[i].r);
+      drawFruit(ctx, ex, 856, i, 0, 12 / FRUITS[i].r);
       if (i < FRUITS.length - 1) {
         ctx.fillStyle = 'rgba(255,255,255,.7)';
         ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', ex + 20, 796);
+        ctx.fillText('›', ex + 20, 856);
       }
       ex += 40;
     }
