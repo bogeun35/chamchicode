@@ -212,125 +212,113 @@
     deadTime: 1000,             // 게임오버 유예 ms
     boxScale: 1,                // 상자 폭 배율
     ceilingOffset: 0,           // 상자 윗변 이동 px (+ 위로 = 상자가 커짐, − 아래로 = 낮아짐)
-    melonRainbow: false,        // 수박 만들면 무지개 (시너지)
     cherryRate: 1,              // 체리 등장 확률 (0~1)
-    strawberryRate: 1,          // 딸기 등장 확률 (시너지)
-    cleanupPlus: 0,             // 파인애플 청소 범위 +N 단계 (시너지)
-    upgradeHand: false,         // 한라봉 향기가 손에 든 과일도 키움 (시너지)
-    insuranceCap: 0,            // 보험 충전 상한 (0 = 보험 없음)
+    strawberryRate: 1,          // 딸기 등장 확률 (0~1)
+    shockRadius: 0,             // 합체 충격파: 반경 안 체리·딸기 삭제 (0=없음)
+    melonBlast: 0,              // 수박 폭발 반경 (0=없음)
+    melonBlastLevel: 2,         // 수박 폭발이 지우는 최대 단계 (2=포도까지)
     magnet: false,              // 같은 과일끼리 끌림
-    magnetReach: 1,             // 자석 범위 배율
+    magnetRange: 0,             // 자석 범위 px (두 과일 표면 사이 거리)
+    promoteChance: 0,           // 떨어뜨리는 과일이 한 단계 커질 확률
+    promoteRainbow: 0,          // 승급 발동 시 무지개가 될 확률 (시너지)
+    rainbowEvery: 0,            // 합체 N번마다 무지개 (0=없음)
+    swapUses: 0,                // 손에 든 과일 ↔ Next 교체 횟수 (999=무제한)
+    dropSpeed: 4,               // 떨어뜨릴 때 초기 속도
+    insuranceCap: 0,            // 보험 개수
     comboWindow: 3000,          // 콤보 표시 인정 간격 ms
     dropJitter: 0,              // 떨어뜨릴 때 좌우 오차 px
     fogNext: false,             // Next 가림
+    fogHand: false,             // 손에 든 과일도 가림
   };
-  // 유물: 전부 "더 오래 버티기 / 수박 더 만들기" 에 직접 도움되는 것만
-  // 유물: 같은 걸 다시 고르면 Lv.2 → Lv.3 으로 강해진다.
-  //  - fruit 가 있는 유물 = 그 과일을 "만들 때" 발동 (onMake)
-  //  - 없는 유물 = 상시 효과 (apply 는 cfg 절대값 설정)
+  // 유물: 전부 "항상 켜져 있고 수치로 체감되는" 것. 같은 걸 다시 고르면 Lv.2 → Lv.3 (각 레벨 apply 는 절대값)
   const MAX_RELIC_LV = 3;
   const RELICS = [
-    // ── 과일 유물 (만들 때 발동) ──
-    { key: 'strawberry', fruit: 1, icon: '🍓', name: '딸기 청소', levels: [
-      { desc: '딸기 만들면 옆 체리 1개 삭제',              onMake: e => { popNear(e, 120, b => b.level === 0, 1); } },
-      { desc: '딸기 만들면 옆 체리 2개 삭제',              onMake: e => { popNear(e, 140, b => b.level === 0, 2); } },
-      { desc: '딸기 만들면 근처 체리 전부 삭제',           onMake: e => { popNear(e, 170, b => b.level === 0, 9); } },
-    ] },
-    { key: 'grape', fruit: 2, icon: '🍇', name: '포도 폭탄', levels: [
-      { desc: '포도 만들면 30% 확률로 옆 작은 과일 1개 펑',  onMake: e => { if (Math.random() < 0.3) popNear(e, 130, b => b.level <= 1, 1); } },
-      { desc: '포도 만들면 60% 확률로 펑',                   onMake: e => { if (Math.random() < 0.6) popNear(e, 130, b => b.level <= 1, 1); } },
-      { desc: '포도 만들면 항상 옆 작은 과일 2개 펑',        onMake: e => { popNear(e, 150, b => b.level <= 1, 2); } },
-    ] },
-    { key: 'dekopon', fruit: 3, icon: '🍊', name: '한라봉 향기', levels: [
-      { desc: '한라봉 만들면 Next 1번이 한 단계 커짐',        onMake: e => { upgradeNext(1); } },
-      { desc: '한라봉 만들면 Next 2개가 한 단계 커짐',        onMake: e => { upgradeNext(2); } },
-      { desc: '한라봉 만들면 Next 전부 한 단계 커짐',         onMake: e => { upgradeNext(9); } },
-    ] },
-    { key: 'persimmon', fruit: 4, icon: '🟠', name: '감 자석', levels: [
-      { desc: '감 만들면 3초간 다른 감을 끌어당김 (가까운 것)', onMake: e => { magnetBurst(4, 3000, 1); } },
-      { desc: '끌어당기는 범위 2배',                          onMake: e => { magnetBurst(4, 3000, 2); } },
-      { desc: '상자 안 어디든 끌어당김',                      onMake: e => { magnetBurst(4, 3000, 6); } },
-    ] },
-    { key: 'apple', fruit: 5, icon: '🍎', name: '사과 정리', levels: [
-      { desc: '사과 만들면 상자에서 가장 작은 과일 1개 삭제', onMake: e => { popSmallest(1); } },
-      { desc: '가장 작은 과일 2개 삭제',                      onMake: e => { popSmallest(2); } },
-      { desc: '가장 작은 과일 3개 삭제',                      onMake: e => { popSmallest(3); } },
-    ] },
-    { key: 'pear', fruit: 6, icon: '🍐', name: '배 흔들기', levels: [
-      { desc: '배 만들면 상자가 살짝 흔들려 정리됨',           onMake: e => { shakeBox(0.6); } },
-      { desc: '배 만들면 세게 흔들림',                        onMake: e => { shakeBox(1.0); } },
-      { desc: '세게 흔들리고 근처 체리·딸기 삭제',            onMake: e => { shakeBox(1.0); popNear(e, 150, b => b.level <= 1, 9); } },
-    ] },
-    { key: 'peach', fruit: 7, icon: '🍑', name: '복숭아 무지개', levels: [
-      { desc: '복숭아 만들면 30% 확률로 다음 과일이 무지개',   onMake: e => { if (Math.random() < 0.3) giveRainbow(); } },
-      { desc: '60% 확률로 무지개',                            onMake: e => { if (Math.random() < 0.6) giveRainbow(); } },
-      { desc: '복숭아 만들면 항상 무지개',                    onMake: e => { giveRainbow(); } },
-    ] },
-    { key: 'pineapple', fruit: 8, icon: '🍍', name: '파인애플 청소', levels: [
-      { desc: '파인애플 만들면 상자 안 체리 전부 삭제',        onMake: e => { popFruits(b => b.level <= 0 + cleanupPlus(), '🍍 청소!'); } },
-      { desc: '체리·딸기 전부 삭제',                          onMake: e => { popFruits(b => b.level <= 1 + cleanupPlus(), '🍍 청소!'); } },
-      { desc: '체리·딸기·포도 전부 삭제',                     onMake: e => { popFruits(b => b.level <= 2 + cleanupPlus(), '🍍 청소!'); } },
-    ] },
-    { key: 'melon', fruit: 9, icon: '🍈', name: '멜론 보험', levels: [
-      { desc: '멜론 만들면 보험 1개 충전 (최대 1개) — 게임오버를 막아줌', apply: c => { c.insuranceCap = 1; }, onMake: e => { chargeInsurance(); } },
-      { desc: '보험 최대 2개',                                 apply: c => { c.insuranceCap = 2; }, onMake: e => { chargeInsurance(); } },
-      { desc: '보험 최대 3개',                                 apply: c => { c.insuranceCap = 3; }, onMake: e => { chargeInsurance(); } },
-    ] },
-    { key: 'watermelon', fruit: 10, icon: '🍉', name: '수박 파티', levels: [
-      { desc: '수박 만들면 주변 과일 1개가 한 단계 커짐',      onMake: e => { upgradeNear(e, 170, 1); } },
-      { desc: '주변 과일 2개가 한 단계 커짐',                  onMake: e => { upgradeNear(e, 190, 2); } },
-      { desc: '주변 과일 3개 업 + 상자 안 체리 전부 삭제',     onMake: e => { upgradeNear(e, 210, 3); popFruits(b => b.level === 0, '🍉 수박 파티!'); } },
-    ] },
-    // ── 상시 유물 ──
-    { key: 'cherry', icon: '🍒', name: '체리 다이어트', levels: [
-      { desc: '체리가 절반만 나옴',                 apply: c => { c.cherryRate = 0.5; } },
-      { desc: '체리가 더 이상 안 나옴',              apply: c => { c.cherryRate = 0; } },
-      { desc: '상자 안 체리가 전부 사라짐',          apply: c => { c.cherryRate = 0; }, once: () => popFruits(b => b.level === 0, '🍒 체리 전부 삭제!') },
-    ] },
-    { key: 'next', icon: '🔮', name: '미리보기', levels: [
-      { desc: 'Next 4개',                            apply: c => { c.nextCount = 4; } },
-      { desc: 'Next 5개',                            apply: c => { c.nextCount = 5; } },
-      { desc: 'Next 6개',                            apply: c => { c.nextCount = 6; } },
-    ] },
     { key: 'wideBox', icon: '📏', name: '넓은 상자', levels: [
-      { desc: '상자 폭 +6%',                         apply: c => { c.boxScale += 0.06; } },
-      { desc: '상자 폭 +12%',                        apply: c => { c.boxScale += 0.12; } },
-      { desc: '상자 폭 +18%',                        apply: c => { c.boxScale += 0.18; } },
+      { desc: '상자 폭 +8%',                             apply: c => { c.boxScale += 0.08; } },
+      { desc: '상자 폭 +16%',                            apply: c => { c.boxScale += 0.16; } },
+      { desc: '상자 폭 +24%',                            apply: c => { c.boxScale += 0.24; } },
     ] },
     { key: 'ceiling', icon: '⬆️', name: '높은 천장', levels: [
-      { desc: '상자가 20px 높아짐',                   apply: c => { c.ceilingOffset += 20; } },
-      { desc: '상자가 40px 높아짐',                   apply: c => { c.ceilingOffset += 40; } },
-      { desc: '상자가 60px 높아짐',                   apply: c => { c.ceilingOffset += 60; } },
+      { desc: '상자가 25px 높아짐',                       apply: c => { c.ceilingOffset += 25; } },
+      { desc: '상자가 50px 높아짐',                       apply: c => { c.ceilingOffset += 50; } },
+      { desc: '상자가 75px 높아짐',                       apply: c => { c.ceilingOffset += 75; } },
     ] },
-    { key: 'antiSlip', icon: '🧱', name: '미끄럼 방지', levels: [
-      { desc: '과일이 덜 굴러 안정적으로 쌓임',      apply: c => { c.friction = 0.5; c.inertiaMul = 0.25; } },
-      { desc: '거의 안 굴러감',                      apply: c => { c.friction = 0.7; c.inertiaMul = 0.4; } },
-      { desc: '놓은 자리에 딱 멈춤',                 apply: c => { c.friction = 0.9; c.inertiaMul = 0.7; } },
+    { key: 'cherry', icon: '🍒', name: '체리 다이어트', levels: [
+      { desc: '체리가 절반만 나옴',                       apply: c => { c.cherryRate = 0.5; } },
+      { desc: '체리가 더 이상 안 나옴',                    apply: c => { c.cherryRate = 0; } },
+      { desc: '상자 안 체리가 전부 사라짐',                apply: c => { c.cherryRate = 0; }, once: () => popFruits(b => b.level === 0, '🍒 체리 전부 삭제!') },
+    ] },
+    { key: 'strawberry', icon: '🍓', name: '딸기 다이어트', levels: [
+      { desc: '딸기가 절반만 나옴',                       apply: c => { c.strawberryRate = 0.5; } },
+      { desc: '딸기가 더 이상 안 나옴',                    apply: c => { c.strawberryRate = 0; } },
+      { desc: '상자 안 딸기가 전부 사라짐',                apply: c => { c.strawberryRate = 0; }, once: () => popFruits(b => b.level === 1, '🍓 딸기 전부 삭제!') },
+    ] },
+    { key: 'shock', icon: '💣', name: '합체 충격파', levels: [
+      { desc: '합체할 때마다 반경 60px 안 체리·딸기 삭제',  apply: c => { c.shockRadius = 60; } },
+      { desc: '반경 90px',                                apply: c => { c.shockRadius = 90; } },
+      { desc: '반경 120px',                               apply: c => { c.shockRadius = 120; } },
+    ] },
+    { key: 'melonBlast', icon: '💥', name: '수박 폭발', levels: [
+      { desc: '수박 생기면 반경 150px 안 체리~포도 삭제',   apply: c => { c.melonBlast = 150; } },
+      { desc: '반경 250px',                               apply: c => { c.melonBlast = 250; } },
+      { desc: '상자 전체',                                apply: c => { c.melonBlast = 9999; } },
+    ] },
+    { key: 'magnet', icon: '🧲', name: '자석', levels: [
+      { desc: '같은 과일이 40px 안이면 끌려서 합쳐짐',      apply: c => { c.magnet = true; c.magnetRange = 40; } },
+      { desc: '80px',                                     apply: c => { c.magnet = true; c.magnetRange = 80; } },
+      { desc: '120px',                                    apply: c => { c.magnet = true; c.magnetRange = 120; } },
+    ] },
+    { key: 'promote', icon: '⏫', name: '승급', levels: [
+      { desc: '떨어뜨리는 과일이 15% 확률로 한 단계 큼',    apply: c => { c.promoteChance = 0.15; } },
+      { desc: '30% 확률',                                 apply: c => { c.promoteChance = 0.30; } },
+      { desc: '50% 확률',                                 apply: c => { c.promoteChance = 0.50; } },
+    ] },
+    { key: 'rainbow', icon: '🌈', name: '무지개', levels: [
+      { desc: '합체 20번마다 무지개 과일 (아무거나 합쳐짐)', apply: c => { c.rainbowEvery = 20; } },
+      { desc: '12번마다',                                 apply: c => { c.rainbowEvery = 12; } },
+      { desc: '6번마다',                                  apply: c => { c.rainbowEvery = 6; } },
+    ] },
+    { key: 'swap', icon: '🔄', name: '교체', levels: [
+      { desc: '손에 든 과일 ↔ Next 1번 교체 (C키 / Next 클릭) 3회', apply: c => { c.swapUses = 3; } },
+      { desc: '교체 10회',                                apply: c => { c.swapUses = 10; } },
+      { desc: '교체 무제한',                              apply: c => { c.swapUses = 999; } },
+    ] },
+    { key: 'precision', icon: '🎯', name: '정밀 낙하', levels: [
+      { desc: '과일이 튕기지 않음',                        apply: c => { c.restitution = 0; c.friction = 0.5; } },
+      { desc: '+ 낙하 속도 2배',                          apply: c => { c.restitution = 0; c.friction = 0.5; c.dropSpeed = 10; } },
+      { desc: '+ 놓은 자리에서 굴러가지 않음',              apply: c => { c.restitution = 0; c.friction = 0.8; c.dropSpeed = 10; c.inertiaMul = 0.6; } },
+    ] },
+    { key: 'insurance', icon: '🛡️', name: '보험', levels: [
+      { desc: '게임오버 1번 막아줌 (위쪽 과일 삭제)',       apply: c => { c.insuranceCap = 1; } },
+      { desc: '2번',                                      apply: c => { c.insuranceCap = 2; } },
+      { desc: '3번',                                      apply: c => { c.insuranceCap = 3; } },
     ] },
   ];
-  // 저주: 전부 눈에 보이는 불이익
+  // 저주: 전부 즉시 체감되는 불이익
   const CURSES = [
-    { key: 'narrow',     icon: '📐', name: '좁은 상자',    desc: '상자 폭 −15%',                          apply: c => { c.boxScale -= 0.15; } },
-    { key: 'lowCeiling', icon: '⬇️', name: '낮은 천장',    desc: '상자가 40px 낮아짐',                     apply: c => { c.ceilingOffset -= 40; } },
-    { key: 'bigOnly',    icon: '🍊', name: '큰 과일만',    desc: '포도~사과만 나와서 금방 참',             apply: c => { c.minDrop = Math.max(c.minDrop, 2); c.maxDrop = 5; } },
-    { key: 'shakyHand',  icon: '🫨', name: '떨리는 손',    desc: '떨어뜨릴 때 좌우로 ±25px 빗나감',        apply: c => { c.dropJitter = 25; } },
-    { key: 'slippery',   icon: '🧊', name: '미끄럼',      desc: '과일이 너무 잘 굴러 쌓은 게 무너짐',      apply: c => { c.friction = 0.08; c.inertiaMul = 0.08; } },
-    { key: 'fog',        icon: '🌫️', name: '안개',         desc: 'Next 가 안 보임',                        apply: c => { c.fogNext = true; } },
+    { key: 'narrow',     icon: '📐', name: '좁은 상자',  desc: '상자 폭 −15%',                          apply: c => { c.boxScale -= 0.15; } },
+    { key: 'lowCeiling', icon: '⬇️', name: '낮은 천장',  desc: '상자가 40px 낮아짐',                     apply: c => { c.ceilingOffset -= 40; } },
+    { key: 'slippery',   icon: '🧊', name: '미끄럼',     desc: '과일이 너무 잘 굴러 쌓은 게 무너짐',      apply: c => { c.friction = 0.08; c.inertiaMul = 0.08; } },
+    { key: 'bouncy',     icon: '🏀', name: '통통',       desc: '떨어뜨리면 튕겨서 자리를 못 잡음',        apply: c => { c.restitution = 0.55; } },
+    { key: 'shakyHand',  icon: '🫨', name: '떨리는 손',  desc: '떨어뜨릴 때 좌우로 ±45px 빗나감',         apply: c => { c.dropJitter = 45; } },
+    { key: 'fog',        icon: '🌫️', name: '안개',       desc: 'Next 도, 손에 든 과일도 안 보임',         apply: c => { c.fogNext = true; c.fogHand = true; } },
+    { key: 'bigOnly',    icon: '🍊', name: '큰 과일만',  desc: '포도~사과만 나와서 금방 참 (PHASE 3+)',   apply: c => { c.minDrop = Math.max(c.minDrop, 2); c.maxDrop = 5; }, minPhase: 3 },
   ];
-  // 시너지: 유물/저주 조합이 갖춰지면 자동 발동 ("이 조합 미쳤다" 용)
   const SYNERGIES = [
-    { keys: ['grape', 'pineapple'],     icon: '🧨', name: '대청소',      desc: '파인애플 청소가 한 단계 더 큰 과일까지 치움', apply: c => { c.cleanupPlus = 1; } },
-    { keys: ['peach', 'watermelon'],    icon: '🌈', name: '무지개 수박', desc: '수박 만들면 다음 과일이 무지개',              apply: c => { c.melonRainbow = true; } },
-    { keys: ['melon', 'ceiling'],       icon: '🏰', name: '철벽',        desc: '보험 최대 개수 +1',                          apply: c => { c.insuranceCap += 1; } },
-    { keys: ['cherry', 'strawberry'],   icon: '🌱', name: '작은 것부터', desc: '딸기도 절반만 나옴',                         apply: c => { c.strawberryRate = 0.5; } },
-    { keys: ['dekopon', 'next'],        icon: '🔭', name: '선견지명',    desc: '한라봉 향기가 손에 든 과일도 키움',          apply: c => { c.upgradeHand = true; } },
-    { keys: ['wideBox', 'narrow'],      icon: '🪄', name: '상쇄',        desc: '좁은 상자 저주가 무효 + 보너스 +5%',         apply: c => { c.boxScale += 0.20; } },
+    { keys: ['magnet', 'shock'],        icon: '🕳️', name: '블랙홀',      desc: '충격파 반경 2배',                    apply: c => { c.shockRadius *= 2; } },
+    { keys: ['melonBlast', 'shock'],    icon: '🧨', name: '대폭발',      desc: '수박 폭발이 감까지 삭제',             apply: c => { c.melonBlastLevel = 4; } },
+    { keys: ['promote', 'rainbow'],     icon: '🎇', name: '무지개 승급', desc: '승급 발동 시 30% 확률로 무지개',      apply: c => { c.promoteRainbow = 0.3; } },
+    { keys: ['magnet', 'precision'],    icon: '🎯', name: '스나이퍼',    desc: '자석 범위 +50%',                     apply: c => { c.magnetRange *= 1.5; } },
+    { keys: ['insurance', 'ceiling'],   icon: '🏰', name: '철벽',        desc: '보험 +1',                            apply: c => { c.insuranceCap += 1; } },
+    { keys: ['wideBox', 'narrow'],      icon: '🪄', name: '상쇄',        desc: '좁은 상자 저주가 무효 + 보너스 +5%',  apply: c => { c.boxScale += 0.20; } },
   ];
 
   // 유물 지급: 페이즈마다 "새 과일 첫 달성" 에 하나씩. PHASE 1 은 포도부터, 페이즈가 오를수록 시작 단계가 높아짐.
   // 수박 = 페이즈 업: 유물 + (PHASE 2 부터) 저주 하나
   const phase = () => melons + 1;
-  const phaseStartLevel = () => Math.min(8, 2 + melons * 2);   // P1 포도, P2 감, P3 배, P4+ 파인애플
+  // 페이즈별로 유물을 주는 "첫 달성" 단계: P1 포도·감·배·파인애플·멜론, P2 감·배·파인애플·멜론, P3 배·…, P4+ 파인애플·멜론
+  const relicLevelsForPhase = () => [2, 4, 6, 8, 9].filter(lv => lv >= Math.min(8, 2 + melons * 2));
+  const phaseStartLevel = () => relicLevelsForPhase()[0];
   const WATERMELON_BONUS = 100;     // 수박 두 개가 닿아 사라질 때 보너스
 
   // ── DOM ──────────────────────────────────────────────
@@ -421,7 +409,7 @@
   const MELON_GROW = 0.94, MIN_FRUIT_SCALE = 0.55;
   const fr = b => b.circleRadius || FRUITS[b.level].r;   // 몸체 실제 반지름
   let insuranceCharges = 0;               // 보험 충전 개수 (멜론 보험)
-  let burst = null;                       // 감 자석: { level, until, reach }
+  let swapsUsed = 0;                      // 교체 사용 횟수
   // 연출/기록
   let floaters = [];                      // 떠오르는 점수 텍스트
   let particles = [];                     // 합체 조각 / 색종이
@@ -515,7 +503,7 @@
     mergeCount = 0; lastMergeAt = 0; toast = null;
     relics = []; curses = []; relicCount = 0; reached = new Set(); offerQueue = [];
     melons = 0; runTime = 0; fruitScale = 1;
-    insuranceCharges = 0; burst = null;
+    insuranceCharges = 0; swapsUsed = 0;
     floaters = []; particles = []; shakeMag = 0; comboCount = 0; bestLevelMade = 0; danger = false;
     recordBefore = { ...curBest() };
     sfx('click');
@@ -530,7 +518,7 @@
 
   // ── 로그라이크: 새 과일 첫 달성 / 수박마다 유물 3택1, 짝수 번째 유물엔 저주 하나 ──
   function nextRelicHint() {
-    for (let lv = phaseStartLevel(); lv <= 9; lv++) if (!reached.has(lv)) return `${FRUITS[lv].name} 만들기`;
+    for (const lv of relicLevelsForPhase()) if (!reached.has(lv)) return `${FRUITS[lv].name} 만들기`;
     return `🍉 수박 → PHASE ${phase() + 1}`;
   }
   function checkMilestone() {
@@ -545,7 +533,7 @@
     const pool = RELICS.filter(d => relicLevel(d.key) < MAX_RELIC_LV);
     const offer = [];
     while (offer.length < 3 && pool.length) offer.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-    const cursePool = CURSES.filter(c => !curses.includes(c));
+    const cursePool = CURSES.filter(c => !curses.includes(c) && (!c.minPhase || phase() >= c.minPhase));
     const pendingCurse = entry.curse && cursePool.length ? pick(cursePool) : null;   // 페이즈 업(수박)에만 저주
     if (!offer.length) { takeRelic(null, pendingCurse); return; }
     document.getElementById('cardsTitle').textContent = `🎁 ${reason || '유물 획득!'}`;
@@ -587,6 +575,7 @@
     relicCount++;
     applyCfg();                      // 상자는 그대로, 규칙만 갱신
     if (got) { const lvDef = def.levels[got.level - 1]; if (lvDef.once) lvDef.once(); }   // 즉시 효과 (Lv.3 체리 삭제 등)
+    if (cfg.insuranceCap) insuranceCharges = cfg.insuranceCap;                               // 보험은 획득/강화 시 가득
     const parts = [];
     if (got) parts.push(`${def.icon} ${def.name} Lv.${got.level}`);
     if (pendingCurse) { parts.push(`${pendingCurse.icon} ${pendingCurse.name}`); sfx('curse'); }
@@ -603,11 +592,17 @@
   function drop() {
     if (!canDrop || gameOver || paused || current === null) return;
     const jitter = cfg.dropJitter ? (Math.random() * 2 - 1) * cfg.dropJitter : 0;
+    if (cfg.promoteChance && !holdWild && current < 9 && Math.random() < cfg.promoteChance) {   // 승급
+      current++;
+      floatText(clampX(mouseX, current), dropY() - 50, `⏫ ${FRUITS[current].name}!`, '#ffd36b', 18);
+      sfx('relic');
+      if (cfg.promoteRainbow && Math.random() < cfg.promoteRainbow) giveRainbow();
+    }
     const x = clampX(mouseX + jitter, current);
     const b = makeFruit(x, dropY(), current);
     if (holdWild) { b.wild = true; holdWild = false; }
     b.dropped = true;
-    Body.setVelocity(b, { x: 0, y: 4 });   // 바로 떨어지기 시작 (반응 빠르게)
+    Body.setVelocity(b, { x: 0, y: cfg.dropSpeed });   // 바로 떨어지기 시작 (반응 빠르게)
     Composite.add(world, b);
     sfx('drop', { level: current });
     current = null;
@@ -619,64 +614,31 @@
     }, DROP_COOLDOWN);
   }
 
-  // ── 과일 유물 효과 헬퍼 ──
-  function popSmallest(n) {
-    const list = fruitsInBox().filter(b => !b.wild).sort((a, b) => a.level - b.level || b.position.y - a.position.y);
-    let k = 0;
-    for (const b of list.slice(0, n)) {
-      Composite.remove(world, b); k++;
-      effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: performance.now(), pop: true });
-      spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 8);
-    }
-    if (k) { showToast(`🍎 사과 정리! 작은 과일 ${k}개 삭제`); sfx('pop'); }
-  }
-  function popNear(e, radius, test, maxN) {
-    const near = fruitsInBox().filter(b => b !== e.body && !b.wild && test(b) && Math.hypot(b.position.x - e.x, b.position.y - e.y) < radius);
-    near.sort((a, b) => Math.hypot(a.position.x - e.x, a.position.y - e.y) - Math.hypot(b.position.x - e.x, b.position.y - e.y));
+  // ── 유물 효과 헬퍼 ──
+  function popNear(x, y, radius, test, maxN, quiet) {
+    const near = fruitsInBox().filter(b => !b.wild && test(b) && Math.hypot(b.position.x - x, b.position.y - y) < radius);
+    near.sort((a, b) => Math.hypot(a.position.x - x, a.position.y - y) - Math.hypot(b.position.x - x, b.position.y - y));
     let n = 0;
     for (const b of near.slice(0, maxN)) {
       Composite.remove(world, b); n++;
-      effects.push({ x: b.position.x, y: b.position.y, r: FRUITS[b.level].r, t: performance.now(), pop: true });
+      effects.push({ x: b.position.x, y: b.position.y, r: fr(b), t: performance.now(), pop: true });
       spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 8);
     }
-    if (n) sfx('pop');
+    if (n && !quiet) sfx('pop');
     return n;
-  }
-  function upgradeNext(n) {
-    let done = 0;
-    for (let i = 0; i < nextQueue.length && done < n; i++) if (nextQueue[i] < 4) { nextQueue[i]++; done++; }
-    if (cfg.upgradeHand && current !== null && current < 4) { current++; done++; }
-    if (done) { showToast(`🍊 한라봉 향기! 다음 과일 ${done}개가 커짐`); sfx('relic'); }
-  }
-  function upgradeNear(e, radius, maxN) {
-    const near = fruitsInBox().filter(b => b !== e.body && !b.wild && b.level < 9 && Math.hypot(b.position.x - e.x, b.position.y - e.y) < radius);
-    near.sort((a, b) => Math.hypot(a.position.x - e.x, a.position.y - e.y) - Math.hypot(b.position.x - e.x, b.position.y - e.y));
-    for (const b of near.slice(0, maxN)) {
-      const nb = makeFruit(b.position.x, b.position.y, b.level + 1);
-      Composite.remove(world, b); Composite.add(world, nb);
-      effects.push({ x: nb.position.x, y: nb.position.y, r: FRUITS[nb.level].r, t: performance.now() });
-      spawnParticles(nb.position.x, nb.position.y, '#fff', 10);
-    }
-    if (near.length) { showToast('🍉 수박 축제! 주변 과일이 커짐'); sfx('rainbow'); }
-  }
-  function magnetBurst(level, ms, reach) {
-    burst = { level, until: performance.now() + ms, reach };
-    showToast(`🧲 ${FRUITS[level].name} 자석!`, 1500);
-  }
-  function shakeBox(power) {
-    shakeUntil = performance.now() + SHAKE_TIME;
-    shakePower = power;
-    sfx('shake');
   }
   function giveRainbow() {
     holdWild = true;
     showToast('🌈 무지개 과일!'); sfx('rainbow');
   }
-  function chargeInsurance() {
-    if (insuranceCharges < cfg.insuranceCap) { insuranceCharges++; showToast(`🛡️ 보험 충전! (${insuranceCharges}/${cfg.insuranceCap})`, 2200); sfx('relic'); }
-    else showToast('🛡️ 보험이 이미 가득');
+  function swapHand() {
+    if (gameOver || paused || current === null || !nextQueue.length) return;
+    if (!cfg.swapUses || swapsUsed >= cfg.swapUses) { if (cfg.swapUses) showToast('🔄 교체 횟수를 다 썼어요'); return; }
+    swapsUsed++;
+    const t = current; current = nextQueue[0]; nextQueue[0] = t;
+    showToast(`🔄 교체! (${cfg.swapUses >= 999 ? '무제한' : (cfg.swapUses - swapsUsed) + '회 남음'})`, 1200);
+    sfx('click');
   }
-  const cleanupPlus = () => cfg.cleanupPlus || 0;
 
   function popFruits(test, msg) {
     const now = performance.now();
@@ -795,16 +757,13 @@
     const shaking = now < shakeUntil;
     const kick = shaking ? Math.sin((shakeUntil - now) / SHAKE_TIME * Math.PI * 6) * 1.6 * shakePower : 0;
     const list = fruitsInBox();
-    // 자석: 감 자석 버스트 (3초간 특정 단계끼리 끌림)
-    const bursting = burst && now < burst.until;
-    if (cfg.magnet || bursting) {
+    // 자석: 같은 과일끼리 표면 거리가 magnetRange 안이면 서로 끌림
+    if (cfg.magnet) {
       for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
         const a = list[i], b = list[j];
         if (a.level !== b.level || a.wild || b.wild) continue;
-        const viaBurst = bursting && a.level === burst.level;
-        if (!cfg.magnet && !viaBurst) continue;
         const dx = b.position.x - a.position.x, dy = b.position.y - a.position.y;
-        const d = Math.hypot(dx, dy), reach = (fr(a) * 2 + 90 * fruitScale) * (viaBurst ? burst.reach : cfg.magnetReach);
+        const d = Math.hypot(dx, dy), reach = fr(a) + fr(b) + cfg.magnetRange * fruitScale;
         if (d < 1 || d > reach) continue;
         const k = 0.00015 / d;
         Body.applyForce(a, a.position, { x: dx * k * a.mass, y: dy * k * a.mass });
@@ -858,6 +817,7 @@
       if (comboCount >= 2) floatText(x, y - FRUITS[lv].r * 0.6 - 26, `${comboCount} 콤보!`, '#ff9f43', 15 + Math.min(10, comboCount) * 1.2);
       if (lv >= 6) shakeMag = Math.max(shakeMag, (lv - 5) * 1.6);
       sfx('merge', { level: lv, combo: comboCount });
+      if (cfg.shockRadius) popNear(x, y, cfg.shockRadius * fruitScale + fr(nb), b => b !== nb && b.level <= 1, 99, true);   // 합체 충격파
       if (lv === FRUITS.length - 1) {
         melons++;
         if (fruitScale > MIN_FRUIT_SCALE) {   // 상자 성장: 모든 과일이 6% 작아짐 (= 폭·높이 +6%)
@@ -865,24 +825,22 @@
           for (const o of fruitsInBox()) { Body.scale(o, MELON_GROW, MELON_GROW); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
           floatText(W / 2, BOX.t + 150, `📦 상자 성장! +${Math.round((1 / fruitScale - 1) * 100)}%`, '#9be8a8', 20);
         }
-        if (cfg.melonRainbow) giveRainbow();
+        if (cfg.melonBlast) {   // 수박 폭발
+          const n = popNear(x, y, cfg.melonBlast * fruitScale + fr(nb), b => b !== nb && b.level <= cfg.melonBlastLevel, 99);
+          if (n) floatText(x, y - 90, `💥 수박 폭발! ${n}개 삭제`, '#ff9f43', 22);
+        }
         shakeMag = 10; confetti(80); sfx('melon');
         // 페이즈 업: 첫 달성 기록 리셋 (시작 단계가 올라감), 배너
         reached = new Set();
         floatText(W / 2, BOX.t + 200, `PHASE ${phase()}`, '#fff', 44);
         showToast(`🍉 수박 ${melons}개! PHASE ${phase()} 시작 — ${FRUITS[phaseStartLevel()].name}부터 유물`, 3500);
         if (mode === 'rogue') offerQueue.push({ reason: `🍉 PHASE ${phase()} 돌입!`, curse: phase() >= 2 });
-      } else if (mode === 'rogue' && lv >= phaseStartLevel() && !reached.has(lv)) {
+      } else if (mode === 'rogue' && relicLevelsForPhase().includes(lv) && !reached.has(lv)) {
         reached.add(lv);
         offerQueue.push({ reason: `${FRUITS[lv].name} 첫 달성!`, curse: false });
       }
       mergeCount++;
-      // 과일 유물 발동: 이 단계 과일을 만들었을 때
-      for (const r of relics) {
-        if (r.def.fruit !== lv) continue;
-        const L = r.def.levels[r.level - 1];
-        if (L.onMake) L.onMake({ x, y, lv, body: nb });
-      }
+      if (cfg.rainbowEvery && mergeCount % cfg.rainbowEvery === 0) giveRainbow();
     }
     mergeQueue = [];
 
@@ -914,6 +872,7 @@
   canvas.addEventListener('pointermove', e => { const g = toGame(e); mouseX = g.x; mouseY = g.y; });
   canvas.addEventListener('pointerdown', e => {
     const g = toGame(e); mouseX = g.x; mouseY = g.y;
+    if (g.x >= 300 && g.x <= 450 && g.y >= 42 && g.y <= 94) { swapHand(); return; }   // Next 클릭 = 교체
     if (g.y < BOX.b) drop();
   });
   // 첫 입력에서 오디오 시작 (브라우저 자동재생 정책)
@@ -952,6 +911,7 @@
       return;
     }
     if (e.code === 'Space') { e.preventDefault(); drop(); }
+    if (e.code === 'KeyC') swapHand();
     if (e.code === 'ArrowLeft') mouseX -= 12;
     if (e.code === 'ArrowRight') mouseX += 12;
     if (e.code === 'ArrowDown' || e.code === 'Enter') drop();
@@ -962,15 +922,15 @@
   function openCodex() {
     if (!codexEl.hidden) return;
     const body = document.getElementById('codexBody');
-    let html = '<h3>유물 (같은 걸 다시 고르면 레벨 업)</h3>';
-    const fruitRelics = RELICS.filter(d => d.fruit !== undefined), passive = RELICS.filter(d => d.fruit === undefined);
+    let html = '<h3>유물 (같은 걸 다시 고르면 레벨 업 · 전부 상시 효과)</h3>';
+    const fruitRelics = RELICS, passive = [];
     const item = d => {
       const lv = relicLevel(d.key);
-      const tag = d.fruit !== undefined ? `${FRUITS[d.fruit].name} 만들 때` : '상시';
+      const tag = '상시';
       const lvs = d.levels.map((L, i) => `<div class="lv ${i + 1 === lv ? 'cur' : i + 1 < lv ? 'done' : ''}">Lv.${i + 1} ${L.desc}</div>`).join('');
       return `<div class="cx-item ${lv ? 'on' : ''}"><div class="ic">${d.icon}</div><div><div class="nm">${d.name}${lv ? ` Lv.${lv}` : ''}<span class="tag">${tag}</span></div><div class="lvs">${lvs}</div></div></div>`;
     };
-    html += fruitRelics.map(item).join('') + '<h3>상시 유물</h3>' + passive.map(item).join('');
+    html += fruitRelics.map(item).join('');
     html += '<h3>저주 (페이즈 오를 때 하나씩)</h3>' + CURSES.map(c => {
       const on = curses.includes(c);
       return `<div class="cx-item ${on ? 'on' : ''}"><div class="ic">${c.icon}</div><div><div class="nm">${c.name}</div><div class="lvs">${c.desc}</div></div></div>`;
@@ -1185,6 +1145,7 @@
       outlinedText(`🎁 다음 유물: ${nextRelicHint()}`, 210, gy + gh / 2 + 1, 12);
     }
     if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), 210, 68, 15);
+    if (cfg.swapUses) outlinedText(`🔄 ${cfg.swapUses >= 999 ? '∞' : cfg.swapUses - swapsUsed}`, 375, 104, 12);
 
     // 흔들기 중이면 상자째로 살짝 흔들림
     const shakeNow = performance.now();
@@ -1214,7 +1175,12 @@
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(x, dropY() + r); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
       drawCloud(x, dropY() - r - 16);
-      drawFruit(ctx, x, dropY(), current, 0, fruitScale, holdWild);
+      if (cfg.fogHand && !holdWild) {   // 안개: 손에 든 과일 가림
+        ctx.beginPath(); ctx.arc(x, dropY(), r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(200,200,200,.85)'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#999'; ctx.stroke();
+        ctx.fillStyle = '#666'; ctx.font = `${Math.max(14, r)}px Jua, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('?', x, dropY() + 2);
+      } else drawFruit(ctx, x, dropY(), current, 0, fruitScale, holdWild);
     } else if (!gameOver) {
       drawCloud(clampX(mouseX, 2), dropY() - FRUITS[2].r * fruitScale - 16);
     }
@@ -1293,7 +1259,7 @@
 
     // 상자 아래: 유물 15종 전체(보유한 것만 켜짐 + 레벨 점) / 저주 6종 — 로그라이크만
     if (mode === 'rogue') {
-      const ry = BOX.b + 18, step = 27, x0 = 30;
+      const ry = BOX.b + 18, step = 33, x0 = 40;
       ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
       RELICS.forEach((d, i) => {
         const lv = relicLevel(d.key), x = x0 + i * step;
