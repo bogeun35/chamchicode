@@ -1072,19 +1072,25 @@
     bubble(75, 68, 34 + pulse * 6);
     outlinedText(`🍉${melons}`, 75, 70, 24 + pulse * 4);
     outlinedText(`${score}점 · Best 🍉${curBest().melons}`, 75, 113, 12);
-    outlinedText('Next', 375, 24, 20);
+    outlinedText('현재 › 다음', 375, 24, 17);
     pill(300, 42, 150, 52, 26);
-    // 다음 과일들: 앞쪽일수록 크게 (5개면 촘촘하게)
-    const n = nextQueue.length;
-    const nx = n > 5 ? [314, 340, 366, 390, 412, 434] : n > 3 ? [318, 348, 378, 406, 432] : [328, 378, 424];
-    const nk = n > 5 ? [16, 12, 10, 9, 8, 8] : n > 3 ? [18, 13, 11, 10, 9] : [22, 16, 13];
+    // 맨 왼쪽 = 지금 손에 든 과일(크게, 밝은 칩), 그 다음부터 Next 순서
+    const shown = [current !== null ? current : nextQueue[0], ...(current !== null ? nextQueue : nextQueue.slice(1))].slice(0, 6);
+    const n = shown.length;
+    const left = 322, right = 436, gap = n > 1 ? (right - left) / (n - 1) : 0;
     for (let i = 0; i < n; i++) {
-      const lv = nextQueue[i];
-      drawFruit(ctx, nx[i], 68, lv, 0, Math.min(1, nk[i] / FRUITS[lv].r));
-      if (i < n - 1 && n <= 3) {
-        ctx.fillStyle = 'rgba(255,255,255,.8)';
+      const lv = shown[i], x = left + i * gap;
+      const size = i === 0 ? 21 : Math.max(8, 16 - (i - 1) * 2 - (n > 4 ? 2 : 0));
+      if (i === 0) {   // 현재: 칩 배경
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.beginPath(); ctx.arc(x, 68, 24, 0, Math.PI * 2); ctx.fill();
+      }
+      if (i === 0 && holdWild) drawFruit(ctx, x, 68, 0, 0, size / FRUITS[0].r, true);
+      else drawFruit(ctx, x, 68, lv, 0, Math.min(1, size / FRUITS[lv].r));
+      if (i === 0 && n > 1) {
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
         ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', (nx[i] + nx[i + 1]) / 2, 68);
+        ctx.fillText('›', x + gap / 2, 68);
       }
     }
     // 가운데 상단 (x 130~290): 시간·수박 / 다음 유물 게이지 — 이 아래(100~240)는 구름 전용으로 비움
@@ -1102,7 +1108,7 @@
     ctx.save();
     ctx.translate(shakeOff, 0);
     drawBox();
-    drawShelf();
+    if (mode === 'rogue') drawShelf();
 
     // 게임오버 선 (위험하면 빨갛게 깜빡)
     const blink = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 120) : 0;
