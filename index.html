@@ -390,6 +390,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="rummikub" onclick="navigate('rummikub')">
+      <span class="nav-icon">🔢</span>
+      <span>루미큐브</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
       <span class="nav-icon">🗺️</span>
       <span>배그 맵</span>
@@ -473,6 +479,11 @@ body::after {
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
         </div>
+        <div class="landing-card" onclick="navigate('rummikub')">
+          <div class="landing-card-icon">🔢</div>
+          <div class="landing-card-title">루미큐브</div>
+          <div class="landing-card-desc">같은 숫자 · 연속 숫자 묶기<br>2~4명 · 첫 등록 30점</div>
+        </div>
         <div class="landing-card" onclick="navigate('davinci')">
           <div class="landing-card-icon">🕵️</div>
           <div class="landing-card-title">다빈치 코드</div>
@@ -555,6 +566,11 @@ body::after {
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
     <iframe src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 루미큐브 iframe -->
+  <div class="page-frame" id="page-rummikub">
+    <iframe src="rummikub.html" id="iframe-rummikub" allow="clipboard-write"></iframe>
   </div>
 
   <!-- PUBG Map iframe -->
