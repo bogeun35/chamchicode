@@ -395,7 +395,7 @@ const SAVE_KEY = 'tuna_save_v3';
 function fresh() { return { ending: 0, gold: 0, dia: 0, xp: 0, lv: 1, tree: { root: 1 }, powers: {}, pups: {}, base: { power: 0, net: 0 }, captains: { chamchi: 1 }, captain: 'chamchi', relics: {}, mastery: {}, counts: {}, map: 0, voyages: 0, best: 0, totalGold: 0, tab: 'tree', started: Date.now(), playTime: 0 }; }
 let S = fresh();
 function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { try { S.savedAt = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 
 // ═══════════ 계산 ═══════════
 const own = id => !!S.tree[id];
@@ -800,7 +800,7 @@ function renderPanel() {
       const info = () => { const lv = S.relics[id] || 0; showSheet(lv ? r.icon : '❔', lv ? `${r.name} ${lv}/10` : '??? 아직 발견 못 함', lv ? `${r.u} — 지금 ×${lv}` : '항해 중 물고기가 떨어뜨려요. 그물로 주우세요', !lv || lv >= 10 ? null : relicUpCost(id)); };
       bindBuy(el, () => { const lv = S.relics[id] || 0; return lv > 0 && lv < 10 && canPay(relicUpCost(id)); }, () => { pay(relicUpCost(id)); S.relics[id]++; refreshEff(); Sound.play('correct'); renderPort(); info(); }, info); });
   } else if (t === 'etc') {
-    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['항해 횟수', S.voyages], ['최고 수확', '💰' + fmt(Math.floor(S.best))], ['누적 골드', '💰' + fmt(Math.floor(S.totalGold))], ['잡은 물고기', fmt(Object.values(S.counts).reduce((a, b) => a + b, 0))], ['해금한 특성', `${Object.keys(S.tree).length - 1}개`], ['스킬', `${skDone()}개`], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'], ['항해 횟수', S.voyages], ['최고 수확', '💰' + fmt(Math.floor(S.best))], ['누적 골드', '💰' + fmt(Math.floor(S.totalGold))], ['잡은 물고기', fmt(Object.values(S.counts).reduce((a, b) => a + b, 0))], ['해금한 특성', `${Object.keys(S.tree).length - 1}개`], ['스킬', `${skDone()}개`], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
       <h3>💾 저장</h3><div class="card">자동 저장돼요. 다른 기기로 옮기려면 내보내기 → 가져오기.<div class="row"><button class="btn light" id="btnExport">📤 내보내기</button><button class="btn light" id="btnImport">📥 가져오기</button><button class="btn light" id="btnReset" style="margin-left:auto;color:#c0392b">🗑 초기화</button></div></div>
       <h3>❓ 어떻게 하나요?</h3><div class="howto">
         <div class="step"><div class="no">1</div><p><b>🎣 출항</b>을 누르면 20초 항해가 시작돼요. <b>그물(원)</b>이 손가락·마우스를 따라다녀요 — 물고기 떼 위에 올려두면 저절로 잡혀요.</p></div>
@@ -849,8 +849,10 @@ document.addEventListener('keydown', e => { if (e.code === 'Escape' && V) endVoy
 
 // ═══════════ 시작 ═══════════
 load(); refreshEff(); if (!mapUnlocked(S.map)) S.map = 0; setTab(S.tab || 'tree');
-setInterval(() => { if (!V) { save(); renderTop(); } }, 5000);
+// 저장: 5초마다 · 창 닫을 때 · 화면 숨길 때 · 허브에서 다른 페이지로 갈 때(iframe 언로드)
+setInterval(() => { save(); if (!V) renderTop(); }, 5000);
 window.addEventListener('beforeunload', save);
+window.addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 window.tuna = { get S() { return S; }, get V() { return V; }, castPower, TREE, FISH, MAPS, power, netR, eff, fishArt, catArt, save, startVoyage, endVoyage, renderPort, cheat: (g, d, xp) => { S.gold += g || 0; S.dia += d || 0; if (xp) addXp(xp); renderPort(); } };
 </script>
