@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="rock" onclick="navigate('rock')">
+      <span class="nav-icon">🪐</span>
+      <span>스페이스 록</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="tuna" onclick="navigate('tuna')">
       <span class="nav-icon">🐟</span>
       <span>참치 타이쿤</span>
@@ -485,6 +491,11 @@ body::after {
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
         </div>
+        <div class="landing-card" onclick="navigate('rock')">
+          <div class="landing-card-icon">🪐</div>
+          <div class="landing-card-title">스페이스 록 브레이커</div>
+          <div class="landing-card-desc">소행성 채굴 → 플링코 가공<br>기술 트리로 끝없이 성장</div>
+        </div>
         <div class="landing-card" onclick="navigate('tuna')">
           <div class="landing-card-icon">🐟</div>
           <div class="landing-card-title">참치 타이쿤</div>
@@ -577,6 +588,11 @@ body::after {
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
     <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 스페이스 록 브레이커 iframe -->
+  <div class="page-frame" id="page-rock">
+    <iframe data-src="rock.html" id="iframe-rock" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 참치 타이쿤 iframe -->
