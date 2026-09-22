@@ -38,6 +38,14 @@ button { font-family: inherit; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .depth { position: absolute; left: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 13px; color: var(--dim); }
 .depth b { color: var(--amber); font-size: 17px; }
+.timer { position: absolute; left: 50%; transform: translateX(-50%); top: 8px; z-index: 4; background: rgba(42,28,60,.92); border: 2px solid var(--gold); border-radius: 10px; padding: 3px 16px; font-size: 12px; color: var(--dim); text-align: center; display: none; }
+.timer.show { display: block; }
+.timer b { display: block; font-size: 26px; color: var(--gold); line-height: 1.1; }
+.timer.low { border-color: var(--pink); } .timer.low b { color: var(--pink); }
+.digbtn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; border: 3px solid var(--gold); border-radius: 14px; background: linear-gradient(180deg, #4a3566, #2a1c3c); color: var(--ink); font-size: 21px; padding: 14px 30px; cursor: pointer; animation: gl 1.4s ease-in-out infinite alternate; }
+@keyframes gl { from { box-shadow: 0 0 0 0 rgba(255,211,107,.6); } to { box-shadow: 0 0 0 14px rgba(255,211,107,0); } }
+.digbtn:active { transform: translate(-50%, -50%) translateY(3px); animation: none; }
+.digbtn.hide { display: none; }
 .smelt { position: absolute; right: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 12px; color: var(--dim); min-width: 132px; }
 .smelt .q { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
 .smelt .q span { font-size: 11px; }
@@ -122,6 +130,8 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
   <div class="dig">
     <canvas id="cv"></canvas>
     <div class="depth">깊이 <b id="depth">1</b>m<span id="depthNext" style="font-size:11px"></span></div>
+    <div class="timer" id="timerBox"><b id="timer">20.0</b><span>초</span></div>
+    <button class="digbtn" id="btnDig">⛏️ 채굴 시작</button>
     <div class="smelt" id="smeltBox"></div>
   </div>
   <div class="panel" id="panel"></div>
@@ -186,6 +196,7 @@ const CARDS = [
   { id: 'deep', n: '깊은 곳의 부름', ic: '🕳️', ds: '더 깊은 광석이 나올 확률 +12%', r: 2, k: 'deep', v: .12 },
   { id: 'relic', n: '보물 감각', ic: '🏺', ds: '유물 발견 확률 +60%', r: 2, k: 'relicf', v: .6 },
   { id: 'xp', n: '경험의 곡괭이', ic: '📗', ds: '경험치 +25%', r: 1, k: 'xp', v: .25 },
+  { id: 'time', n: '느긋한 시계', ic: '⏱️', ds: '채굴 시간 +4초', r: 2, k: 'time', v: 4 },
   { id: 'mine', n: '일꾼 고용', ic: '🏚️', ds: '광산 생산 +40%', r: 2, k: 'mineb', v: .4 },
   { id: 'bigdmg', n: '산을 부수는 일격', ic: '🌋', ds: '곡괭이 피해 +45%', r: 3, k: 'dmg', v: .45 },
   { id: 'bigspd', n: '초고속 채굴', ic: '🌀', ds: '채굴 속도 +35%', r: 3, k: 'spd', v: .35 },
@@ -202,6 +213,7 @@ const RELICS = [
   { id: 'map', n: '광산 지도', ic: '🗺️', ds: '깊은 광석 확률 +15%', k: 'deep', v: .15 },
   { id: 'bell', n: '작업 종', ic: '🔔', ds: '광산 생산 +50%', k: 'mineb', v: .5 },
   { id: 'book', n: '광부 일지', ic: '📔', ds: '경험치 +30%', k: 'xp', v: .3 },
+  { id: 'watch', n: '멈춘 회중시계', ic: '⏰', ds: '채굴 시간 +5초', k: 'time', v: 5 },
   { id: 'core', n: '별의 조각', ic: '🌟', ds: '모든 효과 +8%', k: 'all', v: .08 },
 ];
 const relicById = Object.fromEntries(RELICS.map(r => [r.id, r]));
@@ -210,12 +222,12 @@ const P = (k, v, ic, n) => ({ t: 'p', k, v, ic, n });
 const SPOKES = [
   { m: 'stone', d: [0, -1], nodes: [P('dmg', .2, '💪', '피해 +20%'), P('spd', .15, '⚡', '속도 +15%'), P('dmg', .25, '💪', '피해 +25%'), P('picks', 1, '⛏️', '곡괭이 +1'), P('dmg', .35, '💪', '피해 +35%'), P('spd', .25, '⚡', '속도 +25%'), P('dmg', .5, '💪', '피해 +50%')] },
   { m: 'copper', d: [1, 0], nodes: [P('qty', .25, '⛏️', '광석 +25%'), P('area', .1, '🔦', '영역 +10%'), P('qty', .35, '⛏️', '광석 +35%'), P('deep', .1, '🕳️', '깊은 광석 +10%'), P('qty', .5, '⛏️', '광석 +50%'), P('area', .15, '🔦', '영역 +15%')] },
-  { m: 'iron', d: [0, 1], nodes: [P('smelt', .3, '🔥', '제련 +30%'), P('val', .2, '💰', '주괴 산출 +20%'), P('smelt', .4, '🔥', '제련 +40%'), { t: 'mine', ic: '🏚️', n: '광산 해금' }, P('mineb', .5, '🏚️', '광산 +50%'), P('mineb', .8, '🏚️', '광산 +80%')] },
+  { m: 'iron', d: [0, 1], nodes: [P('time', 3, '⏱️', '채굴 시간 +3초'), P('smelt', .3, '🔥', '제련 +30%'), P('val', .2, '💰', '주괴 산출 +20%'), P('smelt', .4, '🔥', '제련 +40%'), { t: 'mine', ic: '🏚️', n: '광산 해금' }, P('mineb', .5, '🏚️', '광산 +50%'), P('mineb', .8, '🏚️', '광산 +80%')] },
   { m: 'silver', d: [-1, 0], nodes: [P('crit', .05, '🎯', '치명타 +5%'), P('xp', .2, '📗', '경험치 +20%'), P('crit', .07, '🎯', '치명타 +7%'), P('relicf', .4, '🏺', '유물 확률 +40%'), P('crit', .1, '🎯', '치명타 +10%'), P('xp', .35, '📗', '경험치 +35%')] },
-  { m: 'gold', d: [1, 1], nodes: [P('dmg', .4, '💪', '피해 +40%'), P('picks', 1, '⛏️', '곡괭이 +1'), P('area', .2, '🔦', '영역 +20%'), P('boom', .3, '💥', '연쇄 붕괴 +30%'), P('picks', 2, '⛏️', '곡괭이 +2')] },
+  { m: 'gold', d: [1, 1], nodes: [P('time', 5, '⏱️', '채굴 시간 +5초'), P('dmg', .4, '💪', '피해 +40%'), P('picks', 1, '⛏️', '곡괭이 +1'), P('area', .2, '🔦', '영역 +20%'), P('boom', .3, '💥', '연쇄 붕괴 +30%'), P('picks', 2, '⛏️', '곡괭이 +2')] },
   { m: 'mith', d: [-1, 1], nodes: [P('deep', .15, '🕳️', '깊은 광석 +15%'), P('val', .4, '💰', '주괴 산출 +40%'), P('qty', .8, '⛏️', '광석 +80%'), P('dmg', .8, '💪', '피해 +80%'), P('all', .15, '🌟', '모든 효과 +15%')] },
 ];
-const SIDE = [['dmg', .12, '💪', '피해 +12%'], ['spd', .1, '⚡', '속도 +10%'], ['qty', .15, '⛏️', '광석 +15%'], ['smelt', .2, '🔥', '제련 +20%'], ['area', .07, '🔦', '영역 +7%'], ['crit', .03, '🎯', '치명타 +3%'], ['xp', .15, '📗', '경험치 +15%'], ['val', .15, '💰', '주괴 +15%']];
+const SIDE = [['time', 2, '⏱️', '채굴 시간 +2초'], ['dmg', .12, '💪', '피해 +12%'], ['spd', .1, '⚡', '속도 +10%'], ['qty', .15, '⛏️', '광석 +15%'], ['smelt', .2, '🔥', '제련 +20%'], ['area', .07, '🔦', '영역 +7%'], ['crit', .03, '🎯', '치명타 +3%'], ['xp', .15, '📗', '경험치 +15%'], ['val', .15, '💰', '주괴 +15%']];
 const TREE = [], TREE_BY = {}, C = { x: 8, y: 7 };
 (function build() {
   let si = 0;
@@ -241,7 +253,7 @@ const TW = Math.max(...TREE.map(n => n.x)) + 1, TH = Math.max(...TREE.map(n => n
 
 // ═══════════ 상태 ═══════════
 const SAVE_KEY = 'mine_save_v1';
-function fresh() { return { bars: {}, ore: {}, lv: 1, xp: 0, tp: 0, talents: {}, talentLv: 0, tree: { core: 1 }, pick: 'wood', relics: {}, depth: 1, broken: 0, mineOn: 0, tab: 'tree', found: {}, playTime: 0, savedAt: 0, last: Date.now(), started: Date.now() }; }
+function fresh() { return { bars: {}, ore: {}, lv: 1, xp: 0, tp: 0, talents: {}, talentLv: 0, tree: { core: 1 }, pick: 'wood', relics: {}, depth: 1, broken: 0, mineOn: 0, tab: 'tree', found: {}, playTime: 0, savedAt: 0, last: Date.now(), started: Date.now(), runs: 0, bestRun: 0 }; }
 let S = fresh();
 function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
 function save() { try { S.savedAt = Date.now(); S.last = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
@@ -249,7 +261,7 @@ function save() { try { S.savedAt = Date.now(); S.last = Date.now(); localStorag
 // ═══════════ 계산 ═══════════
 const own = id => !!S.tree[id];
 function eff() {
-  const e = { dmg: 0, spd: 0, area: 0, qty: 0, smelt: 0, crit: 0, picks: 0, boom: 0, deep: 0, relicf: 0, xp: 0, mineb: 0, val: 0, all: 0 };
+  const e = { dmg: 0, spd: 0, area: 0, qty: 0, smelt: 0, crit: 0, picks: 0, boom: 0, deep: 0, relicf: 0, xp: 0, mineb: 0, val: 0, all: 0, time: 0 };
   for (const id in S.tree) { const n = TREE_BY[id]; if (n && n.t === 'p') e[n.k] += n.v; }
   for (const id in S.talents) { const c = CARDS.find(x => x.id === id); if (c) e[c.k] += c.v * S.talents[id]; }
   for (const id in S.relics) { const r = relicById[id]; if (r) e[r.k] += r.v * S.relics[id]; }
@@ -269,6 +281,7 @@ const oreQty = () => Math.max(1, Math.round((1 + S.depth * .04) * (1 + E.qty) * 
 const smeltSpeed = () => (1 + E.smelt);
 const barYield = () => 1 + E.val;
 const mineRate = () => S.mineOn ? (0.5 + S.depth * .02) * (1 + E.mineb) : 0;
+const digTime = () => 20 + E.time;   // 한 번 내려갈 때 주어지는 시간(초)
 const depthNeed = d => Math.round(12 + d * 2.2);
 function vis(n) { return own(n.id) || n.link.some(own); }
 function canPay(cost) { for (const k in cost) if ((S.bars[k] || 0) < cost[k]) return false; return true; }
@@ -291,9 +304,11 @@ function breakRock(rk, chain) {
   const i = rocks.indexOf(rk); if (i < 0) return; rocks.splice(i, 1);
   S.broken++;
   const q = oreQty(); S.ore[rk.m.id] = (S.ore[rk.m.id] || 0) + q;
+  if (RUN) { RUN.ore[rk.m.id] = (RUN.ore[rk.m.id] || 0) + q; RUN.oreN += q; RUN.broke++; }
   if (!S.found[rk.m.id]) { S.found[rk.m.id] = 1; toast(`✨ 새 광석 발견: ${rk.m.n}`); }
   smeltQ.push({ m: rk.m, q, t: 0, need: rk.m.smelt });
-  addXp(2 * Math.pow(1.35, rk.m.d > 1 ? MATS.indexOf(rk.m) : 0) * (1 + E.xp));
+  const xpGain = 2 * Math.pow(1.35, MATS.indexOf(rk.m)) * (1 + E.xp);
+  addXp(xpGain); if (RUN) RUN.xp += xpGain;
   texts.push({ x: rk.x, y: rk.y, s: '+' + fmt(q), c: rk.m.c, t: 0, sz: 18 + Math.min(24, Math.log10(Math.max(1, q * rk.m.v)) * 7), vx: rnd(-18, 18) });
   for (let k = 0; k < 10; k++) parts.push({ x: rk.x, y: rk.y, vx: rnd(-120, 120), vy: rnd(-140, 60), t: 0, life: rnd(.4, .8), c: rk.m.c, r: rnd(2, 5) });
   Sound.play('tap');
@@ -314,10 +329,15 @@ function addXp(n) {
 }
 function tick(dt) {
   S.playTime += dt;
+  if (RUN) {
+    RUN.left -= dt;
+    const tb = $('timerBox'); $('timer').textContent = Math.max(0, RUN.left).toFixed(1); tb.classList.toggle('low', RUN.left <= 5);
+    if (RUN.left <= 0) { endDig(); return; }
+  }
   // 채굴 영역 안 바위마다 곡괭이 소환
   const R = areaR(), per = picksPer(), rate = spd() * 2.4, dm = dmg();
   hammers.length = 0;
-  if (cursor.on) {
+  if (cursor.on && RUN) {
     for (const rk of rocks) {
       if (Math.hypot(rk.x - cursor.x, rk.y - cursor.y) > R + rk.r * .5) continue;
       for (let i = 0; i < per; i++) hammers.push({ rk, i, per });
@@ -356,6 +376,28 @@ function tick(dt) {
   texts = texts.filter(t => t.t < 1.15);
 }
 let mineAcc = 0;
+// 한 번 내려가면 제한 시간 동안만 캘 수 있음 (참치 타이쿤과 같은 구조)
+let RUN = null;
+function startDig() {
+  RUN = { left: digTime(), max: digTime(), ore: {}, oreN: 0, broke: 0, xp: 0, relics: [] };
+  rocks.length = 0; fillRocks();
+  $('btnDig').classList.add('hide'); $('timerBox').classList.add('show');
+  S.runs++; Sound.play('deal'); Sound.init();
+}
+function endDig() {
+  if (!RUN) return;
+  const r = RUN; RUN = null; cursor.on = false;
+  $('btnDig').classList.remove('hide'); $('timerBox').classList.remove('show');
+  Sound.play('win'); save();
+  const list = Object.entries(r.ore).map(([id, q]) => ({ m: matById[id], q })).filter(x => x.m);
+  const val = list.reduce((a, x) => a + x.m.v * x.q, 0);
+  if (val > S.bestRun) S.bestRun = val;
+  showModal(`<h2>⛏️ 채굴 종료</h2>
+    <div class="res"><div>깊이<b>${S.depth}m</b></div><div>부순 바위<b>${r.broke}</b></div><div>캔 광석<b>${fmt(r.oreN)}</b></div><div>경험치<b>+${fmt(Math.round(r.xp))}</b></div></div>
+    ${list.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:8px 0">${list.map(x => `<span style="font-size:12px;background:#1f1430;border-radius:6px;padding:3px 9px;color:${x.m.c}">${x.m.n} ×${fmt(x.q)}</span>`).join('')}</div>
+      <p>🔥 제련소로 들어갔어요 — 잠시 뒤 주괴가 됩니다</p>` : '<p>아무것도 못 캤어요… 곡괭이부터 올려 볼까요?</p>'}
+    <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); startDig();">⛏️ 한 번 더</button><button class="btn" onclick="hideModal()">업그레이드하기</button></div>`);
+}
 function draw() {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b3a'); g.addColorStop(1, '#140d20');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -481,11 +523,12 @@ function renderPanel() {
       <h3>💎 광석 도감 ${Object.keys(S.found).length} / ${MATS.length}</h3><div class="cards">` +
       MATS.map(m => { const f = S.found[m.id]; return `<div class="cd ${f ? '' : 'lock'}"><div class="ic" style="color:${m.c}">●</div><div class="nm" style="color:${f ? m.c : ''}">${f ? m.n : '???'}</div><div class="ds">${f ? `깊이 ${m.d}m+ · 제련 ${m.smelt}초` : `깊이 ${m.d}m 이상`}</div><div class="cost">${f ? '주괴 ' + fmt(S.bars[m.id] || 0) : ''}</div></div>`; }).join('') + '</div>';
   } else if (t === 'cfg') {
-    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko') : '-'], ['깊이', S.depth + 'm'], ['레벨', S.lv], ['특성 레벨', S.talentLv], ['곡괭이', curPick().n], ['유물', Object.keys(S.relics).length + '개'], ['해금한 스킬', (Object.keys(S.tree).length - 1) + '개'], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
-      <h3>⛏️ 현재 능력</h3><div class="card">${[['곡괭이 피해', fmt(Math.round(dmg()))], ['초당 타격', (spd() * 2.4 * picksPer()).toFixed(1) + '회'], ['채굴 영역', Math.round(areaR()) + 'px'], ['바위당 곡괭이', picksPer() + '자루'], ['치명타', Math.round(E.crit * 100) + '%'], ['광석 수량', '+' + Math.round(E.qty * 100) + '%'], ['제련 속도', '×' + smeltSpeed().toFixed(2)], ['바위 체력', fmt(Math.round(rockHp()))]].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko') : '-'], ['채굴 횟수', S.runs || 0], ['채굴 시간', digTime() + '초'], ['깊이', S.depth + 'm'], ['레벨', S.lv], ['특성 레벨', S.talentLv], ['곡괭이', curPick().n], ['유물', Object.keys(S.relics).length + '개'], ['해금한 스킬', (Object.keys(S.tree).length - 1) + '개'], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      <h3>⛏️ 현재 능력</h3><div class="card">${[['곡괭이 피해', fmt(Math.round(dmg()))], ['초당 타격', (spd() * 2.4 * picksPer()).toFixed(1) + '회'], ['채굴 영역', Math.round(areaR()) + 'px'], ['바위당 곡괭이', picksPer() + '자루'], ['채굴 시간', digTime() + '초'], ['치명타', Math.round(E.crit * 100) + '%'], ['광석 수량', '+' + Math.round(E.qty * 100) + '%'], ['제련 속도', '×' + smeltSpeed().toFixed(2)], ['바위 체력', fmt(Math.round(rockHp()))]].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
       <h3>💾 저장</h3><div class="card">자동 저장됩니다.<div class="row"><button class="btn" id="btnExport">📤 내보내기</button><button class="btn" id="btnImport">📥 가져오기</button><button class="btn" id="btnReset" style="margin-left:auto;color:var(--pink)">🗑 초기화</button></div></div>
       <h3>❓ 어떻게 하나요?</h3>
-      <div class="step"><div class="no">1</div><p><b>커서(손가락)를 바위 위에 올려두면</b> 자동으로 캐집니다. 노란 원이 <b>채굴 영역</b>이고, 영역 안 바위마다 <b>⛏️ 곡괭이가 소환</b>돼서 대신 때려요.</p></div>
+      <div class="step"><div class="no">1</div><p><b>⛏️ 채굴 시작</b>을 누르면 제한 시간이 돌아갑니다. 그 동안 <b>커서(손가락)를 바위 위에 올려두면</b> 자동으로 캐져요. 노란 원이 <b>채굴 영역</b>이고, 영역 안 바위마다 <b>⛏️ 곡괭이가 소환</b>돼서 대신 때립니다.</p></div>
+      <div class="step"><div class="no">+</div><p>시간이 끝나면 결과 정산 → 업그레이드 → 다시 내려가기. <b>채굴 시간</b>은 스킬·카드·유물로 늘려요.</p></div>
       <div class="step"><div class="no">2</div><p>바위를 깨면 <b>광석</b>이 나오고 자동으로 <b>🔥 제련소</b>로 들어가 <b>주괴</b>가 됩니다. 주괴가 이 게임의 돈이에요.</p></div>
       <div class="step"><div class="no">3</div><p>주괴로 <b>🌳 스킬 트리</b>를 해금. 갈래마다 <b>필요한 주괴 종류가 달라요</b> (돌·구리·철·은·금·미스릴). 안 가본 곳은 보이지 않아요.</p></div>
       <div class="step"><div class="no">4</div><p><b>⛏️ 곡괭이 제작</b> — 재료를 모아 더 좋은 곡괭이로 갈아타면 피해·속도·영역이 확 올라요.</p></div>
@@ -545,6 +588,7 @@ function offline() {
 
 // ═══════════ 시작 ═══════════
 load(); refresh(); resize(); offline(); setTab(S.tab || 'tree'); fillRocks();
+$('btnDig').onclick = () => startDig();
 requestAnimationFrame(loop);
 setInterval(() => { save(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);

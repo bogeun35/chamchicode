@@ -500,6 +500,7 @@ function update(dt) {
     if (Math.hypot(rk.x - sh.x, rk.y - sh.y) < rk.r + 12) hitShip();
     if (rk.elec) { rk.zap -= dt; if (rk.zap <= 0) { rk.zap = 2.4; if (Math.hypot(rk.x - sh.x, rk.y - sh.y) < 160) { R.fx.push({ type: 'bolt', x1: rk.x, y1: rk.y, x2: sh.x, y2: sh.y, t: 0, life: .25 }); hitShip(); } } }
   }
+  if (!R) return;   // 충돌로 원정이 끝났으면 즉시 중단
   if (R.rocks.length < want) spawnRock();
   if (Math.random() < boxChance() * dt * .6 && R.boxes.length < 3) spawnBox(Math.random() < .45 ? 'loot' : 'weapon');
   // 사격 — 연료가 곧 탄약
