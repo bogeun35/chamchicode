@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>참스코드 참치 타이쿤</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #2a2118; --cream: #fff8ec; --paper: #fffdf7; --line: #e6d9bd; --brown: #8a5a2a; --brown-dark: #5c3a1a;
+  --sea1: #bfe8ff; --sea2: #7fcbff; --sea3: #3f8fd8; --sea4: #2b6fb5; --coral: #ff8fab; --gold: #ffd36b; --mint: #8fe0c0; --lav: #c9b8ff; --peach: #ffc9a3; --green: #5cb85c; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+  background: linear-gradient(180deg, var(--sea1) 0%, var(--sea2) 38%, var(--sea3) 100%); background-attachment: fixed; }
+button { font-family: inherit; }
+.toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-24px); z-index: 90; background: var(--cream); color: var(--ink); padding: 10px 20px; border-radius: 999px; font-size: 15px; box-shadow: 0 5px 0 var(--brown-dark), 0 10px 20px rgba(0,0,0,.25); opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.app { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1fr; }
+@media (max-width: 899px) { .left, .right { display: contents; } }   /* 모바일: HUD·탭이 페이지 전체 기준으로 sticky */
+@media (min-width: 900px) {
+  .app { grid-template-columns: 1.1fr 1fr; gap: 14px; padding: 12px; height: 100vh; }
+  .left { position: sticky; top: 12px; height: calc(100vh - 24px); display: flex; flex-direction: column; }
+  .left .scene { flex: 1; min-height: 360px; }
+  .right { height: calc(100vh - 24px); display: flex; flex-direction: column; }
+  .right .panel { flex: 1; overflow-y: auto; }
+}
+
+/* HUD */
+.hud { position: sticky; top: 0; z-index: 20; background: var(--cream); border-bottom: 4px solid #fff; box-shadow: 0 4px 0 var(--brown-dark), 0 8px 16px rgba(0,0,0,.15); padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+@media (min-width: 900px) { .hud { position: relative; border-radius: 18px; border: 4px solid #fff; } }
+.hud .big { font-size: 30px; line-height: 1; white-space: nowrap; }
+.hud .big small { font-size: 18px; margin-left: 2px; }
+.hud .sub { font-size: 13px; color: var(--brown); margin-top: 3px; }
+.hud .cans { margin-left: auto; text-align: right; font-size: 14px; color: var(--brown); white-space: nowrap; }
+.hud .cans b { display: block; font-size: 20px; color: var(--ink); }
+.buffs { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 14px 0; min-height: 6px; }
+.buff { background: var(--gold); color: var(--ink); border: 2px solid #fff; border-radius: 999px; padding: 3px 10px; font-size: 13px; box-shadow: 0 3px 0 #c9a13d; animation: pulse 1.2s ease-in-out infinite alternate; }
+@keyframes pulse { to { transform: scale(1.04); } }
+
+/* 바다 장면 */
+.scene { position: relative; height: 300px; overflow: hidden; border-radius: 0 0 24px 24px; background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 40%); }
+@media (min-width: 900px) { .scene { border-radius: 22px; margin-top: 12px; background: rgba(255,255,255,.12); border: 4px solid rgba(255,255,255,.5); } }
+.sun { position: absolute; top: 18px; right: 26px; width: 54px; height: 54px; border-radius: 50%; background: #ffe58a; box-shadow: 0 0 0 10px rgba(255,229,138,.25); }
+.cloud { position: absolute; background: #fff; border-radius: 999px; opacity: .9; animation: drift linear infinite; }
+.cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+.cloud.c1 { width: 70px; height: 24px; top: 30px; left: -80px; animation-duration: 48s; } .cloud.c1::before { width: 30px; height: 30px; left: 12px; top: -14px; } .cloud.c1::after { width: 22px; height: 22px; left: 38px; top: -8px; }
+.cloud.c2 { width: 50px; height: 18px; top: 74px; left: -60px; animation-duration: 70s; animation-delay: -30s; } .cloud.c2::before { width: 22px; height: 22px; left: 10px; top: -10px; } .cloud.c2::after { width: 16px; height: 16px; left: 28px; top: -6px; }
+@keyframes drift { to { transform: translateX(calc(100vw + 120px)); } }
+.wave { position: absolute; left: -10%; width: 120%; height: 80px; bottom: 0; background: rgba(255,255,255,.22); border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.wave.w2 { bottom: -22px; height: 70px; background: rgba(255,255,255,.18); animation: sway 5s ease-in-out infinite alternate; }
+.wave.w1 { bottom: -34px; animation: sway 7s ease-in-out infinite alternate-reverse; }
+@keyframes sway { to { transform: translateX(-24px); } }
+.tunawrap { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(62vw, 250px); cursor: pointer; transition: transform .06s; touch-action: manipulation; }
+.tunawrap.hit { transform: translate(-50%, -50%) scale(1.08, .9); }
+.tunawrap svg { width: 100%; display: block; filter: drop-shadow(0 8px 0 rgba(0,0,0,.12)); animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-8px) rotate(-2deg); } }
+.tunawrap .eyes-happy { display: none; } .tunawrap.happy .eyes-happy { display: block; } .tunawrap.happy .eyes-normal { display: none; }
+.combo { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); font-size: 22px; color: #fff; text-shadow: 2px 2px 0 var(--brown-dark); opacity: 0; transition: opacity .2s; pointer-events: none; }
+.combo.on { opacity: 1; }
+.combo b { color: var(--gold); font-size: 30px; }
+.fleet { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; padding: 0 10px; pointer-events: none; }
+.fl { position: relative; font-size: 26px; animation: bob 3s ease-in-out infinite; }
+.fl.new { animation: popin .5s ease; }
+@keyframes popin { from { transform: scale(0); } 60% { transform: scale(1.3); } to { transform: scale(1); } }
+.fl i { position: absolute; right: -8px; bottom: -2px; font-style: normal; font-size: 11px; background: var(--cream); color: var(--ink); border-radius: 999px; padding: 0 5px; border: 2px solid #fff; font-family: inherit; }
+.float { position: absolute; font-size: 22px; color: #fff; text-shadow: 2px 2px 0 var(--brown-dark); pointer-events: none; animation: floatup 1s ease-out forwards; z-index: 5; }
+@keyframes floatup { to { transform: translateY(-90px) scale(1.25); opacity: 0; } }
+.bubble { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.8); pointer-events: none; animation: rise 1.4s ease-out forwards; }
+@keyframes rise { to { transform: translateY(-140px) translateX(var(--dx)); opacity: 0; } }
+.golden { position: absolute; width: 96px; cursor: pointer; z-index: 8; animation: gswim 13s linear forwards, bob 1.2s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(255,211,107,.9)); }
+.golden svg { width: 100%; display: block; }
+@keyframes gswim { from { left: -110px; } to { left: 110%; } }
+.hint { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); background: rgba(0,0,0,.35); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 14px; white-space: nowrap; pointer-events: none; }
+
+/* 탭 + 패널 */
+.tabs { position: sticky; top: var(--hudH, 66px); z-index: 15; display: flex; gap: 4px; padding: 8px 8px 0; background: linear-gradient(180deg, var(--sea2), rgba(127,203,255,0)); }
+@media (min-width: 900px) { .tabs { position: relative; top: 0; padding: 0 0 8px; background: none; } }
+.tab { flex: 1; border: 3px solid #fff; border-bottom: none; border-radius: 14px 14px 0 0; background: rgba(255,255,255,.55); color: var(--brown); padding: 9px 4px; font-size: 14px; cursor: pointer; position: relative; white-space: nowrap; }
+.tab.on { background: var(--cream); color: var(--ink); }
+.tab .dot { position: absolute; top: -6px; right: -4px; width: 14px; height: 14px; border-radius: 50%; background: var(--coral); border: 2px solid #fff; display: none; }
+.tab.alert .dot { display: block; animation: pulse .8s ease-in-out infinite alternate; }
+.panel { background: var(--cream); border: 4px solid #fff; border-radius: 0 0 20px 20px; margin: 0 8px 70px; padding: 12px; box-shadow: 0 6px 0 var(--brown-dark), 0 12px 24px rgba(0,0,0,.2); min-height: 300px; }
+@media (min-width: 900px) { .panel { margin: 0; border-radius: 20px; } }
+.panel h3 { font-size: 15px; color: var(--brown); margin: 4px 0 8px; }
+.modes { display: flex; gap: 6px; margin-bottom: 10px; }
+.mode { flex: 1; border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 6px; font-size: 14px; cursor: pointer; color: var(--brown); }
+.mode.on { background: var(--sea3); color: #fff; border-color: #fff; }
+.gen { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 3px solid #fff; border-radius: 16px; padding: 8px 10px; margin-bottom: 8px; box-shadow: 0 3px 0 var(--line); }
+.gen .ic { font-size: 30px; width: 44px; text-align: center; flex: none; }
+.gen .nm { font-size: 17px; display: flex; align-items: center; gap: 6px; }
+.gen .nm .cnt { font-size: 13px; background: var(--sea3); color: #fff; border-radius: 999px; padding: 1px 8px; }
+.gen .ds { font-size: 12px; color: var(--brown); }
+.gen .mid { flex: 1; min-width: 0; }
+.gen .buy { flex: none; min-width: 92px; border: 3px solid #fff; border-radius: 14px; padding: 7px 8px; font-size: 14px; cursor: pointer; background: #cfcfcf; color: #6a6a6a; box-shadow: 0 4px 0 #9a9a9a; text-align: center; line-height: 1.15; transition: transform .06s; }
+.gen .buy small { display: block; font-size: 11px; }
+.gen .buy.ok { background: var(--green); color: #fff; box-shadow: 0 4px 0 #3a7f3a; }
+.gen .buy.ok:active { transform: translateY(3px); box-shadow: 0 1px 0 #3a7f3a; }
+.gen.locked { opacity: .6; filter: grayscale(.6); }
+.gen.locked .ic { filter: blur(3px); }
+.ups { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.up { background: var(--paper); border: 3px solid #fff; border-radius: 16px; padding: 10px; box-shadow: 0 3px 0 var(--line); cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: transform .06s; }
+.up .ic { font-size: 26px; }
+.up .nm { font-size: 15px; line-height: 1.15; }
+.up .ds { font-size: 12px; color: var(--brown); flex: 1; }
+.up .cost { font-size: 14px; color: #6a6a6a; }
+.up.ok { border-color: var(--gold); box-shadow: 0 3px 0 #c9a13d; } .up.ok .cost { color: #2e7d32; }
+.up.ok:active { transform: translateY(2px); }
+.up.bought { opacity: .55; cursor: default; }
+.achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.ach { background: var(--paper); border: 3px solid #fff; border-radius: 16px; padding: 8px 6px; text-align: center; box-shadow: 0 3px 0 var(--line); }
+.ach .ic { font-size: 26px; }
+.ach .nm { font-size: 13px; line-height: 1.15; margin-top: 2px; }
+.ach .ds { font-size: 11px; color: var(--brown); margin-top: 2px; }
+.ach.lock { opacity: .5; } .ach.lock .ic { filter: grayscale(1); }
+.ach.got { border-color: var(--gold); background: #fff8dc; }
+.card { background: var(--paper); border: 3px solid #fff; border-radius: 16px; padding: 12px; margin-bottom: 10px; box-shadow: 0 3px 0 var(--line); font-size: 15px; line-height: 1.5; }
+.card b.big { font-size: 26px; display: block; }
+.btn { border: 3px solid #fff; border-radius: 999px; padding: 11px 18px; font-size: 16px; cursor: pointer; background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
+.btn.green { background: var(--green); box-shadow: 0 4px 0 #3a7f3a; } .btn.green:active { box-shadow: 0 1px 0 #3a7f3a; }
+.btn.blue { background: var(--sea3); box-shadow: 0 4px 0 var(--sea4); } .btn.blue:active { box-shadow: 0 1px 0 var(--sea4); }
+.btn.light { background: #fff; color: var(--brown); box-shadow: 0 4px 0 #b8834a; font-size: 14px; padding: 8px 14px; } .btn.light:active { box-shadow: 0 1px 0 #b8834a; }
+.btn.wide { width: 100%; } .btn:disabled { opacity: .45; cursor: default; transform: none; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.stat { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.stat:last-child { border-bottom: none; }
+.howto { display: flex; flex-direction: column; gap: 8px; }
+.step { display: flex; gap: 10px; align-items: flex-start; background: var(--paper); border-radius: 14px; padding: 10px; border: 3px solid #fff; }
+.step .no { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--sea3); color: #fff; display: grid; place-items: center; font-size: 14px; }
+.step p { font-size: 14px; line-height: 1.45; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 95; padding: 16px; }
+.modal.show { display: flex; }
+.modal .box { background: var(--cream); border: 4px solid #fff; border-radius: 22px; padding: 20px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 8px 0 var(--brown-dark), 0 16px 32px rgba(0,0,0,.3); animation: popin .35s ease; }
+.modal .box h2 { font-size: 22px; margin-bottom: 8px; }
+.modal .box .big { font-size: 34px; margin: 6px 0; }
+.modal .box p { font-size: 15px; color: var(--brown); line-height: 1.5; }
+.confetti { position: fixed; top: -30px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 96; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <div class="left">
+    <div class="hud">
+      <div>
+        <div class="big"><span id="tuna">0</span><small>🐟</small></div>
+        <div class="sub">초당 <b id="tps">0</b> · 탭당 <b id="cpc">1</b></div>
+      </div>
+      <div class="cans" id="cansHud" title="참치 캔: 환생하면 얻는 영구 보너스">🥫 참치 캔<b id="cans">0</b></div>
+    </div>
+    <div class="buffs" id="buffs"></div>
+    <div class="scene" id="scene">
+      <div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div>
+      <div class="wave w1"></div><div class="wave w2"></div>
+      <div class="combo" id="combo"></div>
+      <div class="tunawrap" id="tunaBtn">
+        <svg viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
+          <path d="M206 80 L252 46 L240 80 L252 114 Z" fill="#7cc0ee"/>
+          <ellipse cx="112" cy="82" rx="104" ry="54" fill="#a3d5ff"/>
+          <path d="M24 92 Q112 150 206 90 Q112 112 24 92 Z" fill="#fff6e0"/>
+          <path d="M92 30 Q118 0 152 32 Q120 20 92 30 Z" fill="#7cc0ee"/>
+          <path d="M108 104 Q124 132 148 112 Q126 116 108 104 Z" fill="#7cc0ee"/>
+          <g class="eyes-normal"><ellipse cx="44" cy="74" rx="4.5" ry="7" fill="#2a2118"/><ellipse cx="68" cy="74" rx="4.5" ry="7" fill="#2a2118"/></g>
+          <g class="eyes-happy" fill="none" stroke="#2a2118" stroke-width="3.5" stroke-linecap="round"><path d="M38 76 Q44 68 50 76"/><path d="M62 76 Q68 68 74 76"/></g>
+          <circle cx="36" cy="88" r="6" fill="#ffb3c1" opacity=".8"/><circle cx="76" cy="88" r="6" fill="#ffb3c1" opacity=".8"/>
+          <path d="M52 88 Q56 92 60 88" fill="none" stroke="#2a2118" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hint" id="hint">👆 참치를 탭해서 잡아요!</div>
+      <div class="fleet" id="fleet"></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="tabs">
+      <button class="tab on" data-tab="shop">🛒 생산<span class="dot"></span></button>
+      <button class="tab" data-tab="ups">⬆️ 강화<span class="dot"></span></button>
+      <button class="tab" data-tab="ach">🏆 업적<span class="dot"></span></button>
+      <button class="tab" data-tab="prestige">🥫 환생<span class="dot"></span></button>
+      <button class="tab" data-tab="etc">⚙️<span class="dot"></span></button>
+    </div>
+    <div class="panel" id="panel"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script src="party-sound.js"></script>
+<script>
+'use strict';
+Sound.theme('lounge'); Sound.scene('game');
+const $ = id => document.getElementById(id);
+const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구', '간', '정', '재', '극'];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 0) return '-' + fmt(-n);
+  if (n < 1e4) return n % 1 && n < 10 ? (+n.toFixed(2)).toString() : n % 1 && n < 100 ? n.toFixed(1) : Math.floor(n).toLocaleString();
+  const u = Math.floor(Math.log10(n) / 4);
+  if (u >= UNITS.length) return n.toExponential(2).replace('+', '');
+  const v = n / Math.pow(10, u * 4);
+  return (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)).replace(/\.0+$|(\.\d)0$/, '$1') + UNITS[u];
+}
+function fmtTime(s) { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분 ${s % 60}초` : `${s}초`; }
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
+
+// ───────── 데이터 ─────────
+const GROW = 1.15;
+const GENS = [
+  { id: 'rod', name: '낚싯대', icon: '🎣', cost: 15, prod: 0.15, desc: '한 마리씩 차근차근', ups: ['튼튼한 낚싯줄', '싱싱한 미끼', '자동 릴', '전설의 낚싯대'] },
+  { id: 'cat', name: '고양이 어부', icon: '🐱', cost: 100, prod: 1.2, desc: '참치를 사랑하는 낚시 고양이', ups: ['장화 신은 고양이', '고양이 낚시 학교', '츄르 보너스', '고양이 대장'] },
+  { id: 'boat', name: '나룻배', icon: '🛶', cost: 1100, prod: 9, desc: '조금 더 멀리 나가요', ups: ['가벼운 노', '작은 돛', '방수 페인트', '나룻배 함대'] },
+  { id: 'net', name: '그물', icon: '🕸️', cost: 12000, prod: 50, desc: '한 번에 왕창', ups: ['촘촘한 그물', '이중 그물', '자동 감기', '황금 그물'] },
+  { id: 'ship', name: '어선', icon: '🚤', cost: 130000, prod: 280, desc: '엔진 달린 진짜 배', ups: ['터보 엔진', '어군 탐지기', '냉장 선실', '어선 선단'] },
+  { id: 'farm', name: '양식장', icon: '🐠', cost: 1.4e6, prod: 1500, desc: '참치를 직접 키워요', ups: ['영양 사료', '수온 조절', '자동 급식', '초대형 가두리'] },
+  { id: 'factory', name: '참치 공장', icon: '🏭', cost: 2e7, prod: 8200, desc: '캔이 착착 나와요', ups: ['컨베이어 벨트', '로봇 팔', '3교대 근무', '완전 자동화'] },
+  { id: 'market', name: '수산시장', icon: '🏪', cost: 3.3e8, prod: 46000, desc: '참치 붐이 왔어요', ups: ['새벽 경매', '참치 축제', '전국 체인', '세계 수출'] },
+  { id: 'trawler', name: '원양어선', icon: '🚢', cost: 5.1e9, prod: 270000, desc: '태평양을 누벼요', ups: ['위성 항법', '초대형 그물', '모선 지원', '북극 항로'] },
+  { id: 'freezer', name: '냉동창고', icon: '🧊', cost: 7.5e10, prod: 1.7e6, desc: '영하 60도의 보물창고', ups: ['급속 냉동', '자동 창고', '얼음 왕국', '절대영도'] },
+  { id: 'lab', name: '해양연구소', icon: '🔬', cost: 1e12, prod: 1.05e7, desc: '참치의 비밀을 연구', ups: ['참치 유전자', '인공 해류', '참치 복제', '심해 탐사'] },
+  { id: 'planet', name: '참치 행성', icon: '🪐', cost: 1.4e13, prod: 6.8e7, desc: '바다로만 이루어진 행성', ups: ['우주 어선', '궤도 양식장', '은하 참치 조약', '참치 우주'] },
+];
+const GEN_UP_AT = [5, 25, 75, 200], GEN_UP_COST = [12, 150, 3000, 80000];
+const CLICK_UPS = [
+  { id: 'c1', name: '튼튼한 손가락', icon: '👆', desc: '탭 참치 ×2', cost: 100, mult: 2 },
+  { id: 'c2', name: '양손 낚시', icon: '🙌', desc: '탭 참치 ×2', cost: 4000, mult: 2 },
+  { id: 'c3', name: '황금 낚싯바늘', icon: '🪝', desc: '탭할 때 초당 생산의 1% 추가', cost: 1e5, pct: 0.01 },
+  { id: 'c4', name: '참치 감지 레이더', icon: '📡', desc: '탭 참치 ×2 + 초당 생산의 1%', cost: 1e7, mult: 2, pct: 0.01 },
+  { id: 'c5', name: '천 개의 손', icon: '🖐️', desc: '탭할 때 초당 생산의 2% 추가', cost: 1e9, pct: 0.02 },
+  { id: 'c6', name: '참치 텔레파시', icon: '🔮', desc: '탭 참치 ×3 + 초당 생산의 2%', cost: 1e11, mult: 3, pct: 0.02 },
+  { id: 'c7', name: '손끝의 우주', icon: '🌌', desc: '탭할 때 초당 생산의 5% 추가', cost: 1e14, pct: 0.05 },
+];
+const GLOBAL_UPS = [
+  { id: 'g1', name: '참치 김밥 열풍', icon: '🍙', desc: '모든 생산 ×1.5', cost: 5e5, mult: 1.5, req: 2e5 },
+  { id: 'g2', name: '참치 축제', icon: '🎪', desc: '모든 생산 ×1.5', cost: 5e7, mult: 1.5, req: 2e7 },
+  { id: 'g3', name: '참치의 날 제정', icon: '📅', desc: '모든 생산 ×2', cost: 5e9, mult: 2, req: 2e9 },
+  { id: 'g4', name: '참치 올림픽', icon: '🏅', desc: '모든 생산 ×2', cost: 5e11, mult: 2, req: 2e11 },
+  { id: 'g5', name: '우주 참치 조약', icon: '🛸', desc: '모든 생산 ×3', cost: 5e13, mult: 3, req: 2e13 },
+  { id: 'g6', name: '참치 신화', icon: '⚡', desc: '모든 생산 ×3', cost: 5e15, mult: 3, req: 2e15 },
+];
+const CAN_SHOP = [
+  { id: 'k1', name: '낚싯대 세트', icon: '🎁', desc: '환생하면 낚싯대 10개를 들고 시작', cost: 1 },
+  { id: 'k2', name: '든든한 도시락', icon: '🍱', desc: '오프라인 수익 50% → 100%', cost: 3 },
+  { id: 'k3', name: '황금 미끼', icon: '✨', desc: '황금 참치가 2배 자주 나타나요', cost: 5 },
+  { id: 'k4', name: '캔따개', icon: '🥫', desc: '참치 캔 하나당 +1% → +2%', cost: 8 },
+  { id: 'k5', name: '긴 잠', icon: '🌙', desc: '오프라인 최대 8시간 → 24시간', cost: 12 },
+  { id: 'k6', name: '황금 참치 시계', icon: '⏱️', desc: '황금 참치 효과 지속 2배', cost: 20 },
+  { id: 'k7', name: '자동 낚시 로봇', icon: '🤖', desc: '1초마다 저절로 한 번 탭', cost: 35 },
+  { id: 'k8', name: '참치 왕관', icon: '👑', desc: '모든 생산 ×2 (영구)', cost: 60 },
+];
+const ACHS = [];
+[[100, '첫 어획'], [1e4, '만 마리'], [1e6, '백만 참치'], [1e8, '억대 어부'], [1e10, '참치 재벌'], [1e12, '조 단위'], [1e14, '바다의 주인'], [1e16, '경 참치']].forEach(([n, nm], i) => ACHS.push({ id: 'tot' + i, icon: ['🐟', '🐟', '🐠', '💰', '💎', '👑', '🌊', '🌍'][i], name: nm, desc: `누적 ${fmt(n)}마리`, ok: s => s.lifetime + s.total >= n }));
+[[100, '손가락 준비운동'], [1000, '연타의 달인'], [1e4, '탭 마스터'], [1e5, '손가락에 불'], [1e6, '백만 탭']].forEach(([n, nm], i) => ACHS.push({ id: 'clk' + i, icon: '👆', name: nm, desc: `${fmt(n)}번 탭`, ok: s => s.clicks >= n }));
+GENS.forEach(g => { ACHS.push({ id: g.id + '10', icon: g.icon, name: g.name + ' 마니아', desc: `${g.name} 10개`, ok: s => (s.gens[g.id] || 0) >= 10 }); ACHS.push({ id: g.id + '100', icon: g.icon, name: g.name + ' 제국', desc: `${g.name} 100개`, ok: s => (s.gens[g.id] || 0) >= 100 }); });
+[[1, '반짝!'], [7, '행운의 7'], [27, '황금 사냥꾼']].forEach(([n, nm], i) => ACHS.push({ id: 'gold' + i, icon: '⭐', name: nm, desc: `황금 참치 ${n}마리`, ok: s => s.golden >= n }));
+[[1, '새 출발'], [3, '삼세판'], [10, '환생의 달인']].forEach(([n, nm], i) => ACHS.push({ id: 'pre' + i, icon: '🥫', name: nm, desc: `환생 ${n}번`, ok: s => s.prestiges >= n }));
+[[1000, '천 마리 공장'], [1e6, '초당 백만'], [1e9, '초당 십억'], [1e12, '초당 일조']].forEach(([n, nm], i) => ACHS.push({ id: 'tps' + i, icon: '⚡', name: nm, desc: `초당 ${fmt(n)}`, ok: s => tps() >= n }));
+ACHS.push({ id: 'combo', icon: '🔥', name: '불타는 손가락', desc: '연타 50콤보', ok: s => s.maxCombo >= 50 });
+
+// ───────── 상태 ─────────
+const SAVE_KEY = 'tuna_save_v1';
+function fresh() { return { tuna: 0, total: 0, lifetime: 0, clicks: 0, gens: {}, ups: {}, achs: {}, cans: 0, canUps: {}, golden: 0, prestiges: 0, maxCombo: 0, playTime: 0, last: Date.now(), buffs: {}, mode: 1, started: Date.now() }; }
+let S = fresh();
+function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
+function save() { S.last = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+
+// ───────── 계산 ─────────
+const has = id => !!S.ups[id];
+const canHas = id => !!S.canUps[id];
+const achCount = () => Object.keys(S.achs).length;
+function genMult(g) { let m = 1; GEN_UP_AT.forEach((_, i) => { if (has(g.id + '_' + i)) m *= 2; }); return m; }
+function globalMult(withBuff = true) {
+  let m = 1;
+  GLOBAL_UPS.forEach(u => { if (has(u.id)) m *= u.mult; });
+  m *= 1 + achCount() * 0.01;
+  m *= 1 + S.cans * (canHas('k4') ? 0.02 : 0.01);
+  if (canHas('k8')) m *= 2;
+  if (withBuff && buffOn('frenzy')) m *= 7;
+  return m;
+}
+function genRate(g) { return (S.gens[g.id] || 0) * g.prod * genMult(g) * globalMult(); }
+function tps() { return GENS.reduce((a, g) => a + genRate(g), 0); }
+function clickPower() {
+  let base = 1, pct = 0;
+  CLICK_UPS.forEach(u => { if (has(u.id)) { if (u.mult) base *= u.mult; if (u.pct) pct += u.pct; } });
+  let v = base * globalMult() + tps() * pct;
+  if (buffOn('click')) v *= 50;
+  return v;
+}
+function costOf(g, k) { const n = S.gens[g.id] || 0; return g.cost * Math.pow(GROW, n) * (Math.pow(GROW, k) - 1) / (GROW - 1); }
+function maxBuy(g) { const n = S.gens[g.id] || 0; const k = Math.floor(Math.log(S.tuna * (GROW - 1) / (g.cost * Math.pow(GROW, n)) + 1) / Math.log(GROW)); return Math.max(0, k); }
+function buyCount(g) { return S.mode === 'max' ? Math.max(1, maxBuy(g)) : S.mode; }
+function buffOn(k) { return (S.buffs[k] || 0) > Date.now(); }
+function cansFor(lifetime) { return Math.floor(Math.cbrt(lifetime / 1e8)); }
+function newCans() { return Math.max(0, cansFor(S.lifetime + S.total) - cansFor(S.lifetime)); }
+function lastOwned() { let o = -1; GENS.forEach((g, i) => { if ((S.gens[g.id] || 0) > 0) o = i; }); return o; }
+function genVisible(i) { return i <= lastOwned() + 1 || S.total >= GENS[i].cost * 0.3; }
+function genTeaser(i) { return !genVisible(i) && (i === 0 || genVisible(i - 1)); }
+
+// ───────── 행동 ─────────
+let combo = 0, comboT = 0;
+function earn(n) { S.tuna += n; S.total += n; }
+function tap(x, y, auto) {
+  const now = Date.now();
+  if (!auto) { combo = now - comboT < 700 ? combo + 1 : 1; comboT = now; if (combo > S.maxCombo) S.maxCombo = combo; }
+  const cm = combo >= 10 ? 1 + Math.min(combo, 100) / 100 : 1;
+  const v = clickPower() * (auto ? 1 : cm);
+  earn(v); if (!auto) S.clicks++;
+  const w = $('tunaBtn');
+  if (!auto) {
+    w.classList.add('hit', 'happy'); clearTimeout(tap._t); tap._t = setTimeout(() => w.classList.remove('hit', 'happy'), 130);
+    Sound.play('bubble', { pitch: Math.min(combo, 40) / 40 });
+    floatText('+' + fmt(v), x, y); bubbles(x, y);
+    const c = $('combo'); if (combo >= 10) { c.innerHTML = `<b>${combo}</b> 연타! ×${cm.toFixed(2)}`; c.classList.add('on'); }
+    $('hint').style.display = S.clicks > 4 ? 'none' : '';
+  }
+  dirty = true;
+}
+function floatText(t, x, y) { const sc = $('scene'), r = sc.getBoundingClientRect(); const e = document.createElement('div'); e.className = 'float'; e.textContent = t; e.style.left = (x - r.left - 20 + (Math.random() * 30 - 15)) + 'px'; e.style.top = (y - r.top - 30) + 'px'; sc.appendChild(e); setTimeout(() => e.remove(), 1000); }
+function bubbles(x, y) { const sc = $('scene'), r = sc.getBoundingClientRect(); for (let i = 0; i < 3; i++) { const b = document.createElement('div'); b.className = 'bubble'; const s = 6 + Math.random() * 10; b.style.width = b.style.height = s + 'px'; b.style.left = (x - r.left + Math.random() * 40 - 20) + 'px'; b.style.top = (y - r.top + Math.random() * 20) + 'px'; b.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px'); sc.appendChild(b); setTimeout(() => b.remove(), 1400); } }
+function buyGen(g) {
+  const k = buyCount(g), c = costOf(g, k); if (S.tuna < c) { Sound.play('error'); return; }
+  const first = !(S.gens[g.id] > 0);
+  S.tuna -= c; S.gens[g.id] = (S.gens[g.id] || 0) + k;
+  Sound.play('coin'); dirty = true; structural = true;
+  if (first) { toast(`${g.icon} ${g.name} 첫 구매! 이제 저절로 참치가 잡혀요`); }
+  renderFleet(first ? g.id : null);
+}
+function buyUp(u, kind) {
+  if (has(u.id) || S.tuna < u.cost) { Sound.play('error'); return; }
+  S.tuna -= u.cost; S.ups[u.id] = 1; Sound.play('correct'); toast(`⬆️ ${u.name}: ${u.desc}`); dirty = true; structural = true;
+}
+function buyCan(u) {
+  if (canHas(u.id) || S.cans < u.cost) { Sound.play('error'); return; }
+  S.cans -= u.cost; S.canUps[u.id] = 1; Sound.play('meld'); toast(`🥫 ${u.name} 획득!`); dirty = true; structural = true;
+}
+function doPrestige() {
+  const n = newCans(); if (n < 1) return;
+  const keep = { lifetime: S.lifetime + S.total, cans: S.cans + n, canUps: S.canUps, achs: S.achs, golden: S.golden, prestiges: S.prestiges + 1, clicks: S.clicks, maxCombo: S.maxCombo, playTime: S.playTime, started: S.started, mode: S.mode };
+  S = Object.assign(fresh(), keep);
+  if (canHas('k1')) S.gens.rod = 10;
+  save(); Sound.play('win'); confetti(); structural = true; dirty = true; setTab('shop'); renderFleet();
+  showModal(`<h2>♻️ 환생!</h2><div class="big">🥫 +${n}</div><p>참치 캔 ${S.cans}개 → 모든 생산 +${S.cans * (canHas('k4') ? 2 : 1)}%<br>바다는 다시 잠잠해졌지만, 당신은 더 강해졌어요.</p><div class="row" style="justify-content:center"><button class="btn green" onclick="hideModal()">다시 시작!</button></div>`);
+}
+function checkAchs() {
+  let got = 0;
+  ACHS.forEach(a => { if (!S.achs[a.id] && a.ok(S)) { S.achs[a.id] = 1; got++; toast(`🏆 업적 달성: ${a.name} (생산 +1%)`); } });
+  if (got) { Sound.play('meld'); structural = true; if (tab !== 'ach') document.querySelector('[data-tab="ach"]').classList.add('alert'); }
+}
+
+// ───────── 황금 참치 ─────────
+let goldenAt = 0;
+function scheduleGolden() { const base = 90 + Math.random() * 150; goldenAt = Date.now() + base * 1000 / (canHas('k3') ? 2 : 1); }
+function spawnGolden() {
+  const sc = $('scene'); if (sc.querySelector('.golden')) { scheduleGolden(); return; }
+  const e = document.createElement('div'); e.className = 'golden'; e.style.top = (20 + Math.random() * 55) + '%';
+  e.innerHTML = `<svg viewBox="0 0 260 160"><path d="M206 80 L252 46 L240 80 L252 114 Z" fill="#f0b429"/><ellipse cx="112" cy="82" rx="104" ry="54" fill="#ffd36b"/><path d="M24 92 Q112 150 206 90 Q112 112 24 92 Z" fill="#fff3c4"/><path d="M92 30 Q118 0 152 32 Q120 20 92 30 Z" fill="#f0b429"/><ellipse cx="44" cy="74" rx="4.5" ry="7" fill="#2a2118"/><ellipse cx="68" cy="74" rx="4.5" ry="7" fill="#2a2118"/><circle cx="36" cy="88" r="6" fill="#ffb3c1" opacity=".8"/><circle cx="76" cy="88" r="6" fill="#ffb3c1" opacity=".8"/><path d="M52 88 Q56 92 60 88" fill="none" stroke="#2a2118" stroke-width="2.5" stroke-linecap="round"/><text x="150" y="60" font-size="26">✨</text></svg>`;
+  e.onpointerdown = ev => { ev.stopPropagation(); catchGolden(ev.clientX, ev.clientY); e.remove(); };
+  sc.appendChild(e); Sound.play('turn'); toast('⭐ 황금 참치가 지나가요! 빨리 탭!');
+  setTimeout(() => e.remove(), 13500);
+  scheduleGolden();
+}
+function catchGolden(x, y) {
+  S.golden++; const dur = canHas('k6') ? 2 : 1; const r = Math.random();
+  if (r < 0.45) { const v = Math.min(S.tuna * 0.15, tps() * 900) + 13; earn(v); floatText('🍀 +' + fmt(v), x, y); toast(`🍀 행운 참치! 🐟 +${fmt(v)}`); }
+  else if (r < 0.8) { S.buffs.frenzy = Date.now() + 77000 * dur; toast(`🌊 참치 폭풍! ${77 * dur}초 동안 생산 ×7`); }
+  else { S.buffs.click = Date.now() + 13000 * dur; toast(`👆 탭 광란! ${13 * dur}초 동안 탭 ×50`); }
+  Sound.play('meld'); confetti(18); dirty = true; structural = true;
+}
+
+// ───────── 렌더 ─────────
+let tab = 'shop', dirty = true, structural = true, upsKey = '';
+function setTab(t) { tab = t; document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); document.querySelector(`[data-tab="${t}"]`).classList.remove('alert'); structural = true; renderPanel(); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { Sound.play('click'); setTab(b.dataset.tab); });
+function renderPanel() {
+  const P = $('panel');
+  if (tab === 'shop') {
+    const vk = GENS.map((g, i) => genVisible(i) ? 'v' : genTeaser(i) ? 't' : '-').join('');
+    if (vk !== renderPanel._vk) { renderPanel._vk = vk; structural = true; }
+    if (structural || !P.querySelector('.modes')) {
+      P.innerHTML = `<div class="modes">${[1, 10, 100, 'max'].map(m => `<button class="mode ${S.mode === m ? 'on' : ''}" data-m="${m}">${m === 'max' ? 'MAX' : '×' + m}</button>`).join('')}</div>` +
+        GENS.map((g, i) => genVisible(i) ? `<div class="gen ${(S.gens[g.id] || 0) ? '' : 'first'}" id="g-${g.id}"><div class="ic">${g.icon}</div><div class="mid"><div class="nm">${g.name} <span class="cnt">${S.gens[g.id] || 0}</span></div><div class="ds"><span class="rate"></span></div></div><button class="buy"><span class="k"></span><small class="c"></small></button></div>`
+          : genTeaser(i) ? `<div class="gen locked" id="g-${g.id}"><div class="ic">${g.icon}</div><div class="mid"><div class="nm">???</div><div class="ds">${fmt(g.cost * 0.3)}마리를 모으면 보여요</div></div></div>` : '').join('');
+      P.querySelectorAll('.mode').forEach(b => b.onclick = () => { S.mode = b.dataset.m === 'max' ? 'max' : +b.dataset.m; Sound.play('tap'); structural = true; renderPanel(); });
+      GENS.forEach(g => { const el = P.querySelector(`#g-${g.id} .buy`); if (el) el.onclick = () => buyGen(g); });
+    }
+    GENS.forEach(g => {
+      const el = P.querySelector(`#g-${g.id}`); if (!el || el.classList.contains('locked')) return;
+      const n = S.gens[g.id] || 0, k = buyCount(g), c = costOf(g, k);
+      el.querySelector('.cnt').textContent = n;
+      el.querySelector('.rate').textContent = n ? `초당 ${fmt(genRate(g))} (개당 ${fmt(g.prod * genMult(g) * globalMult())})` : `개당 초당 ${fmt(g.prod * genMult(g) * globalMult())}`;
+      const b = el.querySelector('.buy'); b.classList.toggle('ok', S.tuna >= c); b.querySelector('.k').textContent = (S.mode === 'max' ? `×${k}` : `×${k}`); b.querySelector('.c').textContent = '🐟 ' + fmt(c);
+    });
+  } else if (tab === 'ups') {
+    const avail = [];
+    GENS.forEach(g => GEN_UP_AT.forEach((at, i) => { const id = g.id + '_' + i; if (!has(id) && (S.gens[g.id] || 0) >= at) avail.push({ id, name: g.ups[i], icon: g.icon, desc: `${g.name} 생산 ×2`, cost: g.cost * GEN_UP_COST[i] }); }));
+    CLICK_UPS.forEach((u, i) => { if (!has(u.id) && (i === 0 || has(CLICK_UPS[i - 1].id))) avail.push(u); });
+    GLOBAL_UPS.forEach(u => { if (!has(u.id) && S.total >= u.req) avail.push(u); });
+    avail.sort((a, b) => a.cost - b.cost);
+    const key = avail.map(u => u.id).join(',');
+    if (structural || key !== upsKey || !P.querySelector('.ups')) {
+      upsKey = key;
+      const bought = Object.keys(S.ups).length;
+      P.innerHTML = `<h3>⬆️ 강화 — 살 수 있는 것 ${avail.length}개 · 구매함 ${bought}개</h3>` + (avail.length ? `<div class="ups">${avail.map(u => `<div class="up" data-id="${u.id}"><div class="ic">${u.icon}</div><div class="nm">${u.name}</div><div class="ds">${u.desc}</div><div class="cost">🐟 ${fmt(u.cost)}</div></div>`).join('')}</div>` : `<div class="card">아직 살 수 있는 강화가 없어요.<br>생산자를 5 · 25 · 75 · 200개 모으면 전용 강화가 열려요!</div>`);
+      P.querySelectorAll('.up').forEach(el => el.onclick = () => { const u = avail.find(x => x.id === el.dataset.id); buyUp(u); });
+    }
+    P.querySelectorAll('.up').forEach(el => { const u = avail.find(x => x.id === el.dataset.id); el.classList.toggle('ok', !!u && S.tuna >= u.cost); });
+  } else if (tab === 'ach') {
+    if (structural || !P.querySelector('.achs')) {
+      P.innerHTML = `<h3>🏆 업적 ${achCount()} / ${ACHS.length} · 업적 하나당 생산 +1% (지금 +${achCount()}%)</h3><div class="achs">${ACHS.map(a => `<div class="ach ${S.achs[a.id] ? 'got' : 'lock'}"><div class="ic">${a.icon}</div><div class="nm">${a.name}</div><div class="ds">${a.desc}</div></div>`).join('')}</div>`;
+    }
+  } else if (tab === 'prestige') {
+    const n = newCans(), pct = canHas('k4') ? 2 : 1;
+    if (structural || !P.querySelector('#preBtn')) {
+      P.innerHTML = `<div class="card"><b class="big">🥫 참치 캔 <span id="preCans">${S.cans}</span>개</b>모든 생산 <b id="preBonus">+${S.cans * pct}%</b> (캔 하나당 +${pct}%)</div>
+        <div class="card">지금 환생하면 <b class="big" id="preNew">🥫 +${n}</b><span id="preNext"></span><br><small style="color:var(--brown)">환생하면 참치·생산자·강화는 사라지고 캔·업적·캔 상점은 남아요. 캔은 누적 참치의 세제곱근으로 늘어나요 (1억 → 1캔, 8억 → 2캔, 1000억 → 10캔…)</small>
+        <div class="row"><button class="btn green wide" id="preBtn" ${n < 1 ? 'disabled' : ''}>♻️ 환생하기</button></div></div>
+        <h3>🥫 캔 상점 (영구 보너스)</h3><div class="ups">${CAN_SHOP.map(u => `<div class="up ${canHas(u.id) ? 'bought' : ''}" data-id="${u.id}"><div class="ic">${u.icon}</div><div class="nm">${u.name}</div><div class="ds">${u.desc}</div><div class="cost">${canHas(u.id) ? '✅ 보유' : '🥫 ' + u.cost}</div></div>`).join('')}</div>`;
+      $('preBtn').onclick = () => { if (newCans() < 1) return; if (confirm(`환생할까요? 참치 캔 +${newCans()}개를 얻고 처음부터 시작해요.`)) doPrestige(); };
+      P.querySelectorAll('.up').forEach(el => el.onclick = () => { const u = CAN_SHOP.find(x => x.id === el.dataset.id); if (!canHas(u.id)) buyCan(u); });
+    }
+    $('preNew').textContent = `🥫 +${n}`; $('preBtn').disabled = n < 1;
+    const cur = S.lifetime + S.total, nextAt = Math.pow(cansFor(S.lifetime) + n + 1, 3) * 1e8;
+    $('preNext').textContent = ` 다음 캔까지 🐟 ${fmt(Math.max(0, nextAt - cur))}`;
+    P.querySelectorAll('.up').forEach(el => { const u = CAN_SHOP.find(x => x.id === el.dataset.id); el.classList.toggle('ok', !canHas(u.id) && S.cans >= u.cost); });
+  } else if (tab === 'etc') {
+    if (structural || !P.querySelector('#btnExport')) {
+      P.innerHTML = `<h3>📊 기록</h3><div class="card" id="stats"></div>
+        <h3>💾 저장</h3><div class="card">10초마다 이 기기에 자동 저장돼요. 다른 기기로 옮기려면 내보내기 → 가져오기.<div class="row"><button class="btn light" id="btnExport">📤 내보내기(복사)</button><button class="btn light" id="btnImport">📥 가져오기</button><button class="btn light" id="btnReset" style="margin-left:auto;color:#c0392b">🗑 초기화</button></div></div>
+        <h3>❓ 어떻게 하나요?</h3><div class="howto">
+          <div class="step"><div class="no">1</div><p><b>참치를 탭</b>하면 참치가 잡혀요. 빠르게 연타하면 <b>콤보</b>로 더 많이!</p></div>
+          <div class="step"><div class="no">2</div><p>모은 참치로 <b>🛒 생산자</b>(낚싯대, 고양이 어부, 어선…)를 사면 <b>가만히 있어도</b> 초당 참치가 늘어나요. 살수록 비싸지지만 숫자는 계속 커져요.</p></div>
+          <div class="step"><div class="no">3</div><p>생산자를 5·25·75·200개 모으면 <b>⬆️ 강화</b>가 열려요 — 생산 ×2. 탭 강화, 전체 ×2 강화도 있어요.</p></div>
+          <div class="step"><div class="no">4</div><p>가끔 <b>⭐ 황금 참치</b>가 헤엄쳐 지나가요. 탭하면 참치 보너스 / 생산 ×7 / 탭 ×50 중 하나!</p></div>
+          <div class="step"><div class="no">5</div><p><b>🏆 업적</b> 하나당 생산 +1%. 그냥 하다 보면 쌓여요.</p></div>
+          <div class="step"><div class="no">6</div><p>참치가 1억을 넘으면 <b>🥫 환생</b>할 수 있어요. 처음부터 다시 하지만 <b>참치 캔</b>이 남아 영구 보너스 + 캔 상점(자동 탭, 오프라인 2배…)이 열려요.</p></div>
+          <div class="step"><div class="no">7</div><p>게임을 꺼도 <b>오프라인 수익</b>이 쌓여요 (기본 8시간, 50%). 다음에 들어오면 한 번에 받아요.</p></div>
+        </div>`;
+      $('btnExport').onclick = () => { save(); const s = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); navigator.clipboard.writeText(s).then(() => toast('저장 코드를 복사했어요')).catch(() => prompt('복사해 주세요', s)); };
+      $('btnImport').onclick = () => { const s = prompt('저장 코드를 붙여넣어 주세요'); if (!s) return; try { const v = JSON.parse(decodeURIComponent(escape(atob(s.trim())))); if (!v || typeof v.tuna !== 'number') throw 0; S = Object.assign(fresh(), v); save(); location.reload(); } catch (e) { toast('코드가 올바르지 않아요'); } };
+      $('btnReset').onclick = () => { if (confirm('정말 처음부터? 캔·업적까지 전부 사라져요.') && confirm('진짜로요? 되돌릴 수 없어요.')) { localStorage.removeItem(SAVE_KEY); S = fresh(); location.reload(); } };
+    }
+    $('stats').innerHTML = [['누적 참치', fmt(S.lifetime + S.total)], ['이번 생 참치', fmt(S.total)], ['탭 횟수', fmt(S.clicks)], ['최고 연타', S.maxCombo], ['황금 참치', S.golden], ['환생', S.prestiges], ['플레이 시간', fmtTime(S.playTime)], ['시작한 날', new Date(S.started).toLocaleDateString('ko')]].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('');
+  }
+  structural = false;
+}
+function renderFleet(newId) {
+  const F = $('fleet');
+  F.innerHTML = GENS.filter(g => (S.gens[g.id] || 0) > 0).map(g => `<div class="fl ${g.id === newId ? 'new' : ''}" style="animation-delay:${Math.random() * -3}s">${g.icon}<i>${fmt(S.gens[g.id])}</i></div>`).join('');
+}
+function renderHud() {
+  $('tuna').textContent = fmt(Math.floor(S.tuna)); $('tps').textContent = fmt(tps()); $('cpc').textContent = fmt(clickPower()); $('cans').textContent = S.cans;
+  const b = [], now = Date.now();
+  if (buffOn('frenzy')) b.push(`🌊 생산 ×7 · ${Math.ceil((S.buffs.frenzy - now) / 1000)}초`);
+  if (buffOn('click')) b.push(`👆 탭 ×50 · ${Math.ceil((S.buffs.click - now) / 1000)}초`);
+  $('buffs').innerHTML = b.map(t => `<span class="buff">${t}</span>`).join('');
+  document.title = `🐟 ${fmt(Math.floor(S.tuna))} · 참치 타이쿤`;
+  // 탭 알림: 환생 가능 / 살 수 있는 강화
+  document.querySelector('[data-tab="prestige"]').classList.toggle('alert', newCans() >= 1 && tab !== 'prestige');
+}
+function showModal(html) { $('modalBox').innerHTML = html; $('modal').classList.add('show'); }
+function hideModal() { $('modal').classList.remove('show'); }
+function confetti(n = 40) { const em = ['🐟', '✨', '🎉', '⭐', '💙']; for (let i = 0; i < n; i++) { const s = document.createElement('span'); s.className = 'confetti'; s.textContent = em[i % em.length]; s.style.left = Math.random() * 100 + 'vw'; s.style.animationDuration = 1.8 + Math.random() * 1.5 + 's'; s.style.animationDelay = Math.random() * .5 + 's'; document.body.appendChild(s); setTimeout(() => s.remove(), 4000); } }
+
+// ───────── 루프 ─────────
+let lastT = Date.now(), saveT = 0, autoT = 0, achT = 0;
+function loop() {
+  const now = Date.now(), dt = Math.min(1, (now - lastT) / 1000); lastT = now;
+  earn(tps() * dt); S.playTime += dt;
+  if (combo && now - comboT > 900) { combo = 0; $('combo').classList.remove('on'); }
+  if (canHas('k7') && now - autoT >= 1000) { autoT = now; tap(0, 0, true); }
+  if (now >= goldenAt) spawnGolden();
+  if (now - achT > 1000) { achT = now; checkAchs(); }
+  renderHud(); renderPanel();
+  if (now - saveT > 10000) { saveT = now; save(); }
+  dirty = false;
+}
+function offline() {
+  const gap = Math.min(Date.now() - (S.last || Date.now()), (canHas('k5') ? 24 : 8) * 3600e3);
+  if (gap < 30000) return;
+  const rate = tps(); if (rate <= 0) return;
+  const v = rate * gap / 1000 * (canHas('k2') ? 1 : 0.5); earn(v);
+  showModal(`<h2>🌙 잠든 사이에…</h2><div class="big">🐟 +${fmt(v)}</div><p>${fmtTime(gap / 1000)} 동안 ${canHas('k2') ? '100%' : '50%'} 속도로 잡았어요<br><small>(캔 상점에서 오프라인 수익을 올릴 수 있어요)</small></p><div class="row" style="justify-content:center"><button class="btn green" onclick="hideModal()">받기!</button></div>`);
+  Sound.play('phase');
+}
+
+// ───────── 시작 ─────────
+load(); offline(); scheduleGolden(); renderFleet(); setTab('shop');
+$('hint').style.display = S.clicks > 4 ? 'none' : '';
+const fitHud = () => document.documentElement.style.setProperty('--hudH', document.querySelector('.hud').offsetHeight + 'px'); fitHud(); window.addEventListener('resize', fitHud);
+$('tunaBtn').addEventListener('pointerdown', e => { e.preventDefault(); tap(e.clientX, e.clientY); });
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) hideModal(); });
+document.addEventListener('keydown', e => { if (e.code === 'Space' && !e.repeat) { e.preventDefault(); const r = $('tunaBtn').getBoundingClientRect(); tap(r.left + r.width / 2, r.top + r.height / 2); } });
+window.addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else lastT = Date.now(); });
+setInterval(loop, 100);
+window.tuna = { get S() { return S; }, tps, clickPower, fmt, GENS, save, cheat: n => { earn(n); dirty = true; } };
+</script>
+</body>
+</html>

@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="tuna" onclick="navigate('tuna')">
+      <span class="nav-icon">🐟</span>
+      <span>참치 타이쿤</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="suika" onclick="navigate('suika')">
       <span class="nav-icon">🍉</span>
       <span>수박게임</span>
@@ -479,6 +485,11 @@ body::after {
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
         </div>
+        <div class="landing-card" onclick="navigate('tuna')">
+          <div class="landing-card-icon">🐟</div>
+          <div class="landing-card-title">참치 타이쿤</div>
+          <div class="landing-card-desc">탭해서 잡고, 사서 불리고<br>숫자가 끝없이 커지는 방치형</div>
+        </div>
         <div class="landing-card" onclick="navigate('rummikub')">
           <div class="landing-card-icon">🔢</div>
           <div class="landing-card-title">루미큐브</div>
@@ -566,6 +577,11 @@ body::after {
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
     <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 참치 타이쿤 iframe -->
+  <div class="page-frame" id="page-tuna">
+    <iframe data-src="tuna.html" id="iframe-tuna" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 루미큐브 iframe -->

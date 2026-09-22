@@ -178,6 +178,10 @@
     whoosh: function (g, t) { noise(g, { t: t, type: 'bandpass', f: 600, f1: 3000, bend: 0.15, q: 0.9, vol: 0.34, d: 0.18, a: 0.01 }); return t + 0.22; },
     // 제출 (상행 슉 + 띵)
     submit: function (g, t) { osc(g, { t: t, f: 500, f1: 1300, bend: 0.12, vol: 0.12, d: 0.14, a: 0.005 }); bell(g, { t: t + 0.12, f: mtof(88), vol: 0.14, d: 0.35, partial: 3, pgain: 0.2, verb: 0.25 }); return t + 0.5; },
+    // 뽀글 (클리커 탭) — opt.pitch 0..1 로 점점 높아짐
+    bubble: function (g, t, o) { var k = clamp(+o.pitch || 0, 0, 1), f = (520 + k * 700) * rnd(0.97, 1.03); osc(g, { t: t, f: f * 0.7, f1: f, bend: 0.04, vol: 0.16, d: 0.07, a: 0.002 }); osc(g, { t: t, f: f * 2.5, vol: 0.03, d: 0.02, a: 0.001 }); return t + 0.1; },
+    // 동전/구매 (짧은 두 음)
+    coin: function (g, t) { bell(g, { t: t, f: mtof(88), vol: 0.16, d: 0.1, partial: 3, pgain: 0.2 }); bell(g, { t: t + 0.07, f: mtof(95), vol: 0.18, d: 0.32, partial: 3, pgain: 0.2, verb: 0.2 }); return t + 0.45; },
     // 카드 확인 (살짝 뒤집는 소리)
     peek: function (g, t) { noise(g, { t: t, type: 'bandpass', f: 1200, f1: 3000, bend: 0.07, q: 0.9, vol: 0.09, d: 0.08, a: 0.008 }); return t + 0.1; }
   };
