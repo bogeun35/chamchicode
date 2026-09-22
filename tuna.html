@@ -207,12 +207,15 @@ button { font-family: inherit; }
 Sound.theme('lounge'); Sound.scene('game');
 const $ = id => document.getElementById(id);
 const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
+// 한국식: 소수점 없이 만·억·조 (1만 8,500 · 4200만 · 34억 · 1조 2,300억)
 function fmt(n) {
   if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
-  if (n < 1e4) return n % 1 && n < 10 ? (+n.toFixed(1)).toString() : Math.floor(n).toLocaleString();
+  n = Math.floor(n);
+  if (n < 10000) return n.toLocaleString();
   const u = Math.floor(Math.log10(n) / 4); if (u >= UNITS.length) return n.toExponential(2).replace('+', '');
-  const v = n / Math.pow(10, u * 4);
-  return (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)).replace(/\.0+$|(\.\d)0$/, '$1') + UNITS[u];
+  const p = Math.pow(10, u * 4), head = Math.floor(n / p), rest = Math.floor((n % p) / Math.pow(10, (u - 1) * 4));
+  if (head >= 1000 || rest === 0) return head.toLocaleString() + UNITS[u];
+  return head + UNITS[u] + ' ' + rest.toLocaleString() + (u >= 2 ? UNITS[u - 1] : '');
 }
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
 const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
@@ -571,18 +574,25 @@ function castPower(id) {
   return false;
 }
 function shake(a) { V.shk = Math.max(V.shk || 0, a); }
+// 획득 숫자: 액수가 클수록 크고 뜨겁게 (작은 +3 → 거대한 +1.2억)
+function num(x, y, g, o) {
+  o = o || {}; const mag = Math.log10(Math.max(1, g));
+  const sz = Math.round(20 + Math.min(44, mag * 6.5)) * (o.crit ? 1.25 : 1) * (o.boss ? 1.35 : 1);
+  const c = mag < 2 ? '#ffffff' : mag < 3.5 ? '#fff4c4' : mag < 5 ? '#ffe066' : mag < 7 ? '#ffc247' : mag < 9 ? '#ff9f43' : '#ff7ab8';
+  return { x, y, s: '+' + fmt(g), c, t: 0, sz, vx: rnd(-26, 26), glow: mag >= 5 };
+}
 function coins(x, y, n, c) { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(90, 320); V.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, t: 0, life: rnd(.5, .9), c: c || '#ffd36b', r: rnd(3, 7) }); } }
 function catchFish(fs) {
   const f = fs.f; const crit = Math.random() < 0.05 + E.crit;
   let g = f.gold * (1 + E.gold + (V.map.mod.gold || 0)) * masteryMult(f) * (crit ? 3 : 1) * (fs.tank ? 1.6 : 1);
   if (fs.src) g *= 1 + 0.2 * pupLv(fs.src, 4);
   S.gold += g; S.totalGold += g; V.gold += g; V.caught++; S.counts[f.id] = (S.counts[f.id] || 0) + 1;
-  if (E.per10 && V.caught % 10 === 0) { const d = Math.round(E.per10); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 40, s: '💎+' + d, c: '#9fe9ff', t: 0 }); }
+  if (E.per10 && V.caught % 10 === 0) { const d = Math.round(E.per10); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 40, s: '💎 ' + d, c: '#9fe9ff', t: 0, sz: 22 }); }
   const xp = f.xp * (1 + E.xp); addXp(xp); V.xp += xp;
-  const diaChance = (f.i >= 6 ? 0.25 : 0.03) * (1 + E.dia + (V.map.mod.dia || 0)); if (Math.random() < diaChance) { const d = Math.max(1, Math.ceil(f.i / 4)); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 26, s: '💎+' + d, c: '#9fe9ff', t: 0 }); }
+  const diaChance = (f.i >= 6 ? 0.25 : 0.03) * (1 + E.dia + (V.map.mod.dia || 0)); if (Math.random() < diaChance) { const d = Math.max(1, Math.ceil(f.i / 4)); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 26, s: '💎 ' + d, c: '#9fe9ff', t: 0, sz: 22 }); }
   if (Math.random() < 0.006 * (1 + E.relic) * (f.i >= 8 ? 2 : 1)) V.relicsOnScreen.push({ x: fs.x, y: fs.y, id: pick(RELICS).id, t: 0 });
-  V.texts.push({ x: fs.x, y: fs.y - 10, s: (crit ? '💥 ' : '') + '+' + fmt(g), c: crit ? '#ffe066' : '#fff8d0', t: 0, big: crit || f.i >= 8, huge: fs.boss || crit, vx: rnd(-26, 26) });
-  if (xp >= 1) V.texts.push({ x: fs.x + rnd(-24, 24), y: fs.y + 14, s: '+' + fmt(xp), c: '#9fe0a8', t: -.12, vx: rnd(-18, 18) });
+  V.texts.push(num(fs.x, fs.y - 10, g, { crit, boss: fs.boss }));
+  if (xp >= 1) V.texts.push({ x: fs.x + rnd(-24, 24), y: fs.y + 14, s: '+' + fmt(xp), c: '#9fe0a8', t: -.12, vx: rnd(-18, 18), sz: 20 });
   coins(fs.x, fs.y, fs.boss ? 30 : crit ? 18 : f.i >= 8 ? 12 : 6);
   const cg = $('curGoldV'); if (cg) { cg.classList.remove('pop'); void cg.offsetWidth; cg.classList.add('pop'); }
   if (crit) { shake(7); V.flash = .25; } if (fs.boss) { shake(18); confetti(18); Sound.play('win'); V.flash = .4; }
@@ -592,8 +602,8 @@ function catchFish(fs) {
 }
 function openChest(x, y) {
   const r = Math.random();
-  if (r < .5) { const g = Math.max(30, cps0() * 12) * rnd(.8, 1.4) * (1 + E.gold); S.gold += g; S.totalGold += g; V.gold += g; V.texts.push({ x, y, s: '🎁 💰+' + fmt(g), c: '#ffd36b', t: 0, big: 1 }); }
-  else if (r < .85) { const d = Math.max(2, Math.round(3 + V.map.fish[0] / 2)) * (1 + E.dia | 0) + 2; S.dia += d; V.dia += d; V.texts.push({ x, y, s: '🎁 💎+' + d, c: '#9fe9ff', t: 0, big: 1 }); }
+  if (r < .5) { const g = Math.max(30, cps0() * 12) * rnd(.8, 1.4) * (1 + E.gold); S.gold += g; S.totalGold += g; V.gold += g; V.texts.push(num(x, y, g, { boss: 1 })); }
+  else if (r < .85) { const d = Math.max(2, Math.round(3 + V.map.fish[0] / 2)) * (1 + E.dia | 0) + 2; S.dia += d; V.dia += d; V.texts.push({ x, y, s: '💎 ' + d, c: '#9fe9ff', t: 0, sz: 30 }); }
   else { const pool2 = RELICS.filter(r2 => !S.relics[r2.id]); collectRelic((pool2.length ? pick(pool2) : pick(RELICS)).id); }
   Sound.play('coin'); V.fx.push({ type: 'boom', x, y, t: 0, life: .5 }); coins(x, y, 22); shake(9);
 }
@@ -651,9 +661,14 @@ function draw() {
   ctx.globalAlpha = 1;
   // 텍스트 (크게)
   ctx.textAlign = 'center';
-  for (const tx of V.texts) { if (tx.t < 0) continue; const k = Math.min(1, tx.t * 7), sc = (tx.huge ? 1.5 : 1) * (0.55 + k * 0.5 + Math.max(0, .2 - tx.t) * 1.2);
-    ctx.globalAlpha = Math.min(1, (1.25 - tx.t) * 1.8); ctx.font = `${Math.round((tx.big ? 32 : 23) * sc)}px Jua`;
-    ctx.lineWidth = 7; ctx.strokeStyle = '#4a2f12'; ctx.strokeText(tx.s, tx.x, tx.y); ctx.fillStyle = tx.c; ctx.fillText(tx.s, tx.x, tx.y); }
+  for (const tx of V.texts) { if (tx.t < 0) continue;
+    const k = Math.min(1, tx.t * 7), pop = 0.55 + k * 0.5 + Math.max(0, .2 - tx.t) * 1.2;
+    const base = tx.sz || (tx.big ? 32 : 23), size = Math.round(base * pop);
+    ctx.globalAlpha = Math.min(1, (1.25 - tx.t) * 1.8); ctx.font = `${size}px Jua`;
+    if (tx.glow) { ctx.shadowColor = tx.c; ctx.shadowBlur = 18; }
+    const w = ctx.measureText(tx.s).width, px = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, tx.x)), py = Math.max(size, tx.y);
+    ctx.lineWidth = Math.max(5, size * .22); ctx.strokeStyle = '#4a2f12'; ctx.strokeText(tx.s, px, py);
+    ctx.fillStyle = tx.c; ctx.fillText(tx.s, px, py); ctx.shadowBlur = 0; }
   ctx.globalAlpha = 1;
   if (V.flash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.flash * .5})`; ctx.fillRect(0, 0, W, H); }
   ctx.restore();
