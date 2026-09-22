@@ -389,10 +389,23 @@ function renderGame() {
     B.className = 'banner' + (me ? ' hot' : '');
     B.textContent = me ? '🤥 잡혔어요! 제시어를 맞히면 역전 승리' : `🤥 라이어(${Object.keys(g.liars).map(nickOf).join(', ')})가 제시어를 추측 중…`;
     S.innerHTML = `<div class="card">
-      <div style="text-align:center;color:#8a5a2a;font-size:14px;margin-bottom:8px">카테고리: ${esc(g.category)} — 제시어는?</div>
-      <div class="words">${g.options.map(w => `<button class="wbtn" data-w="${esc(w)}" ${me ? '' : 'disabled style="opacity:.55"'}>${esc(w)}</button>`).join('')}</div>
+      <div style="text-align:center;color:#8a5a2a;font-size:14px;margin-bottom:10px">카테고리 <b>${esc(g.category)}</b> · ${g.word.length}글자</div>
+      ${me ? `<input class="input" id="guessInput" maxlength="12" placeholder="제시어를 직접 입력하세요" autocomplete="off">
+        <div class="row"><button class="btn purple wide" id="btnGuess">✍️ 이걸로 답하기</button></div>
+        <div style="font-size:12px;color:#8a5a2a;text-align:center;margin-top:8px">띄어쓰기는 무시해요 · 한 번만 낼 수 있어요</div>`
+      : `<div style="text-align:center;font-size:16px;padding:14px 0">🤫 라이어가 답을 적는 중…</div>
+         <div style="font-size:13px;color:#8a5a2a;text-align:center">보기 없이 직접 적어야 해요</div>`}
     </div>`;
-    if (me) S.querySelectorAll('.wbtn').forEach(b => b.onclick = () => { const gg = room.game; gg.liarGuess = b.dataset.w; gg.liarWin = b.dataset.w === gg.word; gg.phase = 'result'; addScores(gg); commit(gg); });
+    if (me) {
+      const inp = $('guessInput'); setTimeout(() => inp.focus(), 150);
+      const send = () => {
+        const v = inp.value.trim(); if (!v) return toast('제시어를 입력해 주세요');
+        const norm = x => x.replace(/\s/g, '').toLowerCase();
+        const gg = room.game; gg.liarGuess = v; gg.liarWin = norm(v) === norm(gg.word); gg.phase = 'result'; addScores(gg); commit(gg);
+      };
+      $('btnGuess').onclick = send;
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+    }
     return;
   }
 
@@ -404,7 +417,7 @@ function renderGame() {
       <h2>${g.liarWin ? '🤥 라이어 승리' : '🎉 시민 승리'}</h2>
       <div style="color:#8a5a2a">제시어</div><div class="big">${esc(g.word)}</div>
       <div style="margin-top:8px">라이어는 <b style="color:#c0392b">${esc(liarNames)}</b> ${g.caught ? '— 잡혔' : '— 안 잡혔'}${g.caught ? (g.liarWin ? '지만 제시어를 맞혔어요!' : '고 제시어도 틀렸어요') : '어요'}</div>
-      ${g.liarGuess ? `<div style="font-size:14px;color:#8a5a2a;margin-top:4px">라이어의 추측: ${esc(g.liarGuess)}</div>` : ''}
+      ${g.liarGuess ? `<div style="font-size:15px;margin-top:6px">라이어가 적은 답: <b style="color:${g.liarWin ? '#2e7d32' : '#c0392b'}">${esc(g.liarGuess)}</b> ${g.liarWin ? '⭕' : '❌'}</div>` : ''}
       <div style="font-size:13px;color:#8a5a2a;margin-top:10px">투표 결과</div><div class="score">${tallyHtml || '<span class="s">기권</span>'}</div>
       <div style="font-size:13px;color:#8a5a2a;margin-top:10px">누적 점수</div>
       <div class="score">${keys.map(k => `<span class="s">${avatarOf(k)} ${esc(nickOf(k))} ${(g.scores || {})[k] || 0}점</span>`).join('')}</div>
