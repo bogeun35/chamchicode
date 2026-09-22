@@ -225,6 +225,10 @@ Sound.theme('lounge'); Sound.scene('game');
 const $ = id => document.getElementById(id);
 const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
 // 한국식: 소수점 없이 만·억·조 (1만 8,500 · 4200만 · 34억 · 1조 2,300억)
+// 디버그: 콘솔에서 tuna.speed(4) — 게임 시간만 배속 (테스트용)
+let __spd = 1, __spReal = performance.now(), __spGame = __spReal;
+const __now = () => { const t = performance.now(); return __spGame + (t - __spReal) * __spd; };
+function setSpeed(n) { __spGame = __now(); __spReal = performance.now(); __spd = Math.max(.25, Math.min(30, +n || 1)); return '⏩ 배속 ×' + __spd; }
 function fmt(n) {
   if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
   n = Math.floor(n);
@@ -486,12 +490,12 @@ function startVoyage() {
   for (let i = 0; i < 6; i++) { spawnFish(); const f = V.fish[V.fish.length - 1]; f.x = rnd(40, W - 40); }
   $('capPortrait').innerHTML = catArt(CAPTAINS.find(c => c.id === S.captain), 56);
   renderPbar(); Sound.theme('playful'); Sound.play('deal');
-  lastF = performance.now(); clearInterval(startVoyage._iv); startVoyage._iv = setInterval(tick, 16); requestAnimationFrame(frame);
+  lastF = __now(); clearInterval(startVoyage._iv); startVoyage._iv = setInterval(tick, 16); requestAnimationFrame(frame);
 }
 function renderPbar() { $('pbar').innerHTML = Object.keys(POWERS).map(id => `<div class="ps ${powerUnlocked(id) ? '' : 'lock'}" id="ps-${id}">${POWERS[id].icon}<div class="cd" id="cd-${id}" style="display:none"></div></div>`).join(''); }
 // 로직은 setInterval(백그라운드에서도 실시간 유지), 그리기는 rAF
 function tick() {
-  if (!V) return; const now = performance.now(); let dt = Math.min(2, (now - lastF) / 1000); lastF = now;
+  if (!V) return; const now = __now(); let dt = Math.min(2, (now - lastF) / 1000); lastF = now;
   while (dt > 0 && V) { const step = Math.min(0.05, dt); dt -= step; update(step); }
 }
 function frame() { if (!V) return; draw(); requestAnimationFrame(frame); }
@@ -879,7 +883,7 @@ setInterval(() => { save(); if (!V) renderTop(); }, 5000);
 window.addEventListener('beforeunload', save);
 window.addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.tuna = { get S() { return S; }, get V() { return V; }, castPower, TREE, TREE_BY, FISH, MAPS, power, netR, eff, fishArt, catArt, save, startVoyage, endVoyage, renderPort, buyNode, own, vis, cheat: (g, d, xp) => { S.gold += g || 0; S.dia += d || 0; if (xp) addXp(xp); renderPort(); } };
+window.tuna = { speed: setSpeed, get S() { return S; }, get V() { return V; }, castPower, TREE, TREE_BY, FISH, MAPS, power, netR, eff, fishArt, catArt, save, startVoyage, endVoyage, renderPort, buyNode, own, vis, cheat: (g, d, xp) => { S.gold += g || 0; S.dia += d || 0; if (xp) addXp(xp); renderPort(); } };
 </script>
 </body>
 </html>

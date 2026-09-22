@@ -133,6 +133,10 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 Sound.theme('lounge'); Sound.scene('game');
 const $ = id => document.getElementById(id);
 const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
+// 디버그: 콘솔에서 shelldiver.speed(4) — 게임 시간만 배속 (테스트용)
+let __spd = 1, __spReal = performance.now(), __spGame = __spReal;
+const __now = () => { const t = performance.now(); return __spGame + (t - __spReal) * __spd; };
+function setSpeed(n) { __spGame = __now(); __spReal = performance.now(); __spd = Math.max(.25, Math.min(30, +n || 1)); return '⏩ 배속 ×' + __spd; }
 function fmt(n) {
   if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
   n = Math.floor(n);
@@ -339,7 +343,7 @@ function dive() {
   for (let i = 0; i < Math.round(E('robot')); i++) D.robots.push({ a: i * 2 + 1, cd: 0 });
   for (let i = 0; i < 6; i++) spawnJelly();
   for (let i = 0; i < 3; i++) spawnBlock();
-  S.dives++; Sound.play('deal'); lastF = performance.now();
+  S.dives++; Sound.play('deal'); lastF = __now();
   clearInterval(dive._iv); dive._iv = setInterval(tick, 16); requestAnimationFrame(frame);
 }
 function spawnJelly() {
@@ -356,7 +360,7 @@ function spawnBlock() {
   const m = pool[Math.min(pool.length - 1, Math.floor(Math.random() * pool.length))];
   D.blocks.push({ m, x: rnd(40, W - 40), y: rnd(70, H - 50), hp: 8 * Math.pow(2.4, m.b), max: 8 * Math.pow(2.4, m.b), r: 20, hit: 0 });
 }
-function tick() { if (!D) return; const now = performance.now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && D) { const st = Math.min(.05, dt); dt -= st; update(st); } }
+function tick() { if (!D) return; const now = __now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && D) { const st = Math.min(.05, dt); dt -= st; update(st); } }
 function frame() { if (!D) return; draw(); requestAnimationFrame(frame); }
 function shake(a) { if (D) D.shk = Math.max(D.shk || 0, a); }
 function catchJelly(jl) {
@@ -600,7 +604,7 @@ function sellTick(dt) {
     }
   }
 }
-setInterval(() => { if (!D) sellTick(.1); }, 100);
+setInterval(() => { if (!D) sellTick(.1 * __spd); }, 100);
 
 // ═══ UI ═══
 let sel = null;
@@ -705,7 +709,7 @@ load(); setTab(S.tab || 'tree');
 setInterval(() => { save(); if (!D) renderTop(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.shelldiver = { get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, buyNode, unlocked, nodeCost, canPay, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); } };
+window.shelldiver = { speed: setSpeed, get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, buyNode, unlocked, nodeCost, canPay, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); } };
 </script>
 </body>
 </html>

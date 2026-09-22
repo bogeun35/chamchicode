@@ -164,6 +164,10 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 Sound.theme('spy'); Sound.scene('game');
 const $ = id => document.getElementById(id);
 const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
+// 디버그: 콘솔에서 rock.speed(4) — 게임 시간만 배속 (테스트용)
+let __spd = 1, __spReal = performance.now(), __spGame = __spReal;
+const __now = () => { const t = performance.now(); return __spGame + (t - __spReal) * __spd; };
+function setSpeed(n) { __spGame = __now(); __spReal = performance.now(); __spd = Math.max(.25, Math.min(30, +n || 1)); return '⏩ 배속 ×' + __spd; }
 function fmt(n) {
   if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
   n = Math.floor(n);
@@ -403,7 +407,7 @@ function launch() {
   for (let i = 0; i < 6; i++) spawnRock();
   if (hasP('supply') && Math.random() < .5) spawnBox('weapon');
   $('btnWarp').classList.remove('show');
-  Sound.play('deal'); lastF = performance.now();
+  Sound.play('deal'); lastF = __now();
   clearInterval(launch._iv); launch._iv = setInterval(tick, 16); requestAnimationFrame(frame);
 }
 function spawnRock(kind) {
@@ -419,7 +423,7 @@ function spawnRock(kind) {
   if (boss) { Sound.play('boom'); R.texts.push({ x: W / 2, y: 110, s: '☄️ 보스 소행성!', c: '#ff6b8a', t: 0, sz: 28 }); }
 }
 function spawnBox(type) { R.boxes.push({ x: rnd(60, W - 60), y: rnd(90, H - 70), vx: rnd(-16, 16), vy: rnd(-16, 16), type, t: 0, hp: rockHp(R.sector) * (type === 'loot' ? 1.2 : .8), r: 22 }); }
-function tick() { if (!R) return; const now = performance.now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && R) { const st = Math.min(.05, dt); dt -= st; update(st); } }
+function tick() { if (!R) return; const now = __now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && R) { const st = Math.min(.05, dt); dt -= st; update(st); } }
 function frame() { if (!R) return; draw(); requestAnimationFrame(frame); }
 function hurtRock(rk, d) { rk.hp -= d; rk.hit = .2; if (E('fdmg')) addFuel(d * E('fdmg')); if (rk.hp <= 0) killRock(rk); }
 function killRock(rk) {
@@ -694,7 +698,7 @@ function runPlinko(list, r) {
   const perDrop = 1 + E('pdrop'), cash = (S.loot.cash || 0) * 25;
   const up = oreUnlocked();
   function step() {
-    for (let k = 0; k < (window.__fastPlinko || 3); k++) {
+    for (let k = 0; k < (window.__fastPlinko || Math.round(3 * __spd)); k++) {
       dropT -= 1 / 180;
       if (queue.length && dropT <= 0) { dropT = dropIv; for (let d = 0; d < perDrop && queue.length; d++) { const q = queue.shift(); balls.push({ x: Wp / 2 + rnd(-8, 8), y: 5, vx: rnd(-25, 25), vy: 0, o: q.o, mul: q.mul, bonus: 0, hits: {}, age: 0 }); } }
       for (const b of balls) {
@@ -885,7 +889,7 @@ load(); setTab(S.tab || 'tree');
 setInterval(() => { save(); if (!R) renderTop(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.rock = { get S() { return S; }, get R() { return R; }, TREE, TREE_BY, ORES, LOOT, ARTI, E, lv, zones, launch, endRun, warp, unlocked, nodeCost, buyNode, renderBase, setTab, save, cheat: (c, k, e) => { S.cred += c || 0; S.keys += k || 0; S.ess += e || 0; renderBase(); } };
+window.rock = { speed: setSpeed, get S() { return S; }, get R() { return R; }, TREE, TREE_BY, ORES, LOOT, ARTI, E, lv, zones, launch, endRun, warp, unlocked, nodeCost, buyNode, renderBase, setTab, save, cheat: (c, k, e) => { S.cred += c || 0; S.keys += k || 0; S.ess += e || 0; renderBase(); } };
 </script>
 </body>
 </html>
