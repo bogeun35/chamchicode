@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="shell" onclick="navigate('shell')">
+      <span class="nav-icon">🐢</span>
+      <span>쉘다이버</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="mine" onclick="navigate('mine')">
       <span class="nav-icon">⛏️</span>
       <span>킵 온 마이닝</span>
@@ -497,6 +503,11 @@ body::after {
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
         </div>
+        <div class="landing-card" onclick="navigate('shell')">
+          <div class="landing-card-icon">🐢</div>
+          <div class="landing-card-title">쉘다이버</div>
+          <div class="landing-card-desc">산소 안에 해파리 잡아 팔기<br>버블건·상점·스킬 트리</div>
+        </div>
         <div class="landing-card" onclick="navigate('mine')">
           <div class="landing-card-icon">⛏️</div>
           <div class="landing-card-title">킵 온 마이닝</div>
@@ -599,6 +610,11 @@ body::after {
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
     <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 쉘다이버 iframe -->
+  <div class="page-frame" id="page-shell">
+    <iframe data-src="shell.html" id="iframe-shell" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 킵 온 마이닝 iframe -->

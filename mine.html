@@ -29,7 +29,9 @@ button { font-family: inherit; }
 .bar.pop { animation: pop .3s ease; }
 @keyframes pop { 45% { transform: scale(1.14); } }
 .menu { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
-.mb { width: 44px; height: 44px; border: 2px solid var(--line); border-radius: 11px; background: rgba(42,28,60,.92); color: var(--ink); font-size: 20px; cursor: pointer; position: relative; padding: 0; }
+.mb { width: 52px; height: 48px; border: 2px solid var(--line); border-radius: 11px; background: rgba(42,28,60,.92); color: var(--ink); cursor: pointer; position: relative; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; line-height: 1; }
+.mb i { font-style: normal; font-size: 19px; } .mb em { font-style: normal; font-size: 9.5px; color: var(--dim); margin-top: 2px; }
+.mb.on em { color: var(--gold); }
 .mb.on { border-color: var(--gold); background: #3a2750; }
 .mb .dot { position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); display: none; }
 .mb.alert .dot { display: block; animation: blink 1s infinite; } @keyframes blink { 50% { opacity: .25; } }
@@ -122,12 +124,12 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
       <div class="bars" id="bars"></div>
     </div>
     <div class="menu">
-      <button class="mb on" data-tab="tree" title="스킬 트리">🌳<span class="dot"></span></button>
-      <button class="mb" data-tab="pick" title="곡괭이 제작">⛏️<span class="dot"></span></button>
-      <button class="mb" data-tab="talent" title="특성">🃏<span class="dot"></span></button>
-      <button class="mb" data-tab="relic" title="유물">🏺<span class="dot"></span></button>
-      <button class="mb" data-tab="mine" title="광산(방치)">🏚️<span class="dot"></span></button>
-      <button class="mb" data-tab="cfg" title="기록·도움말">⚙️<span class="dot"></span></button>
+      <button class="mb on" data-tab="tree"><i>🌳</i><em>스킬</em><span class="dot"></span></button>
+      <button class="mb" data-tab="pick"><i>⛏️</i><em>곡괭이</em><span class="dot"></span></button>
+      <button class="mb" data-tab="talent"><i>🃏</i><em>특성</em><span class="dot"></span></button>
+      <button class="mb" data-tab="relic"><i>🏺</i><em>유물</em><span class="dot"></span></button>
+      <button class="mb" data-tab="mine"><i>🏚️</i><em>광산</em><span class="dot"></span></button>
+      <button class="mb" data-tab="cfg"><i>⚙️</i><em>기록</em><span class="dot"></span></button>
     </div>
   </div>
   <div class="dig" id="digView">
@@ -408,7 +410,7 @@ function endDig() {
     <div class="res"><div>깊이<b>${S.depth}m</b></div><div>부순 바위<b>${r.broke}</b></div><div>캔 광석<b>${fmt(r.oreN)}</b></div><div>경험치<b>+${fmt(Math.round(r.xp))}</b></div></div>
     ${list.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:8px 0">${list.map(x => `<span style="font-size:12px;background:#1f1430;border-radius:6px;padding:3px 9px;color:${x.m.c}">${x.m.n} ×${fmt(x.q)}</span>`).join('')}</div>
       <p>🔥 제련소로 들어갔어요 — 잠시 뒤 주괴가 됩니다</p>` : '<p>아무것도 못 캤어요… 곡괭이부터 올려 볼까요?</p>'}
-    <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); startDig();">⛏️ 한 번 더</button><button class="btn" onclick="hideModal()">업그레이드하기</button></div>`);
+    <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); startDig();">⛏️ 한 번 더</button><button class="btn hot" onclick="hideModal(); setTab('tree');">🌳 스킬 트리</button>${S.tp ? `<button class="btn hot" onclick="hideModal(); offerCards();">🃏 특성 카드 ${S.tp}</button>` : ''}<button class="btn" onclick="hideModal(); setTab('pick');">⛏️ 곡괭이</button></div>`);
 }
 function draw() {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b3a'); g.addColorStop(1, '#140d20');
