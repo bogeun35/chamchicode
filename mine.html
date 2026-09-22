@@ -168,13 +168,13 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 // 광석 → 제련 → 주괴
 const MATS = [
   { id: 'stone', n: '돌', c: '#8c8598', v: 1, d: 1, smelt: 1.2 },
-  { id: 'copper', n: '구리', c: '#e08a4a', v: 5, d: 8, smelt: 1.6 },
-  { id: 'iron', n: '철', c: '#b8c2d8', v: 26, d: 25, smelt: 2.2 },
-  { id: 'silver', n: '은', c: '#e8eef8', v: 140, d: 60, smelt: 3 },
-  { id: 'gold', n: '금', c: '#ffd36b', v: 800, d: 120, smelt: 4 },
-  { id: 'mith', n: '미스릴', c: '#7fd8ff', v: 4800, d: 220, smelt: 5.5 },
-  { id: 'obsid', n: '흑요석', c: '#b58cff', v: 30000, d: 380, smelt: 7 },
-  { id: 'star', n: '별철', c: '#ff8fc7', v: 200000, d: 600, smelt: 9 },
+  { id: 'copper', n: '구리', c: '#e08a4a', v: 5, d: 3, smelt: 1.6 },
+  { id: 'iron', n: '철', c: '#b8c2d8', v: 26, d: 7, smelt: 2.2 },
+  { id: 'silver', n: '은', c: '#e8eef8', v: 140, d: 12, smelt: 3 },
+  { id: 'gold', n: '금', c: '#ffd36b', v: 800, d: 18, smelt: 4 },
+  { id: 'mith', n: '미스릴', c: '#7fd8ff', v: 4800, d: 26, smelt: 5.5 },
+  { id: 'obsid', n: '흑요석', c: '#b58cff', v: 30000, d: 36, smelt: 7 },
+  { id: 'star', n: '별철', c: '#ff8fc7', v: 200000, d: 48, smelt: 9 },
 ];
 const matById = Object.fromEntries(MATS.map(m => [m.id, m]));
 // 곡괭이 (재료로 제작)
@@ -283,12 +283,12 @@ const picksPer = () => 1 + Math.floor(E.picks);
 const rockHp = () => 6 * Math.pow(1.055, S.depth) * Math.pow(1.11, S.talentLv);
 const xpNeed = lv => Math.floor(30 * Math.pow(1.17, lv - 1));
 const matForDepth = () => { const av = MATS.filter(m => m.d <= S.depth); let i = av.length - 1; while (i > 0 && Math.random() > .3 + E.deep) i--; return av[i]; };
-const oreQty = () => Math.max(1, Math.round((1 + S.depth * .04) * (1 + E.qty) * rnd(.85, 1.15)));
+const oreQty = () => Math.max(1, Math.round((1 + S.depth * .12) * (1 + E.qty) * rnd(.85, 1.15)));
 const smeltSpeed = () => (1 + E.smelt);
 const barYield = () => 1 + E.val;
 const mineRate = () => S.mineOn ? (0.5 + S.depth * .02) * (1 + E.mineb) : 0;
 const digTime = () => 20 + E.time;   // 한 번 내려갈 때 주어지는 시간(초)
-const depthNeed = d => Math.round(12 + d * 2.2);
+const depthNeed = d => Math.round(6 + d * .8);
 function vis(n) { return own(n.id) || n.link.some(own); }
 function canPay(cost) { for (const k in cost) if ((S.bars[k] || 0) < cost[k]) return false; return true; }
 function payCost(cost) { for (const k in cost) S.bars[k] -= cost[k]; }
@@ -607,7 +607,7 @@ requestAnimationFrame(loop);
 setInterval(() => { save(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.mine = { get S() { return S; }, get rocks() { return rocks; }, TREE, MATS, PICKS, CARDS, eff, offerCards, save, cheat: (m, n) => { MATS.forEach(x => S.bars[x.id] = (S.bars[x.id] || 0) + (n || 1000)); S.tp += m || 0; refresh(); renderPanel(); } };
+window.mine = { get S() { return S; }, get rocks() { return rocks; }, get RUN() { return RUN; }, TREE, MATS, PICKS, CARDS, eff, offerCards, save, startDig, endDig, buyNode, vis, canPay, nodeCost: n => n.cost, cheat: (m, n) => { MATS.forEach(x => S.bars[x.id] = (S.bars[x.id] || 0) + (n || 1000)); S.tp += m || 0; refresh(); renderPanel(); } };
 </script>
 </body>
 </html>

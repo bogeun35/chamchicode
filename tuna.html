@@ -267,10 +267,10 @@ FISH.forEach((f, i) => { f.i = i; f.hp = 5 * Math.pow(1.6, i); f.gold = 2 * Math
 const fishById = Object.fromEntries(FISH.map(f => [f.id, f]));
 const MAPS = [
   { id: 'rock', name: '갯바위', icon: '🪨', bg: ['#8fd3ff', '#3f8fd8', '#1e5a9e'], fish: [0, 1, 2, 3, 4, 5], deco: 'rock', mod: {}, note: '잔잔한 기본 어장' },
-  { id: 'coral', name: '산호초', icon: '🪸', bg: ['#7fd8e8', '#2aa0c8', '#136a95'], fish: [2, 3, 4, 5, 6, 7, 8, 9], deco: 'coral', mod: { spawn: .35, chest: .5 }, note: '물고기가 30% 더 많이 몰려요' },
-  { id: 'wreck', name: '난파선', icon: '⚓', bg: ['#5f9fd8', '#2a6fb8', '#12345e'], fish: [6, 7, 8, 9, 10, 11, 12, 13], deco: 'wreck', mod: { chest: 2.2, dia: .4 }, note: '보물상자 3배 · 다이아 +40%' },
-  { id: 'deep', name: '심해', icon: '🌑', bg: ['#3a4f8a', '#1e2a5a', '#0a1030'], fish: [10, 11, 12, 13, 14, 15, 16, 17], deco: 'deep', mod: { dark: 1, gold: .4, slow: .75 }, note: '깜깜해서 그물 주변만 보여요 · 골드 +40%' },
-  { id: 'fantasy', name: '환상의 바다', icon: '✨', bg: ['#c9a8ff', '#7b5fc8', '#2a1a5a'], fish: [14, 15, 16, 17, 18, 19], deco: 'fantasy', mod: { gold: .9, rare: .6, spark: 1 }, note: '골드 +90% · 희귀·보스가 자주 나와요' },
+  { id: 'coral', name: '산호초', icon: '🪸', bg: ['#7fd8e8', '#2aa0c8', '#136a95'], fish: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], deco: 'coral', mod: { spawn: .35, chest: .5 }, note: '물고기가 30% 더 많이 몰려요' },
+  { id: 'wreck', name: '난파선', icon: '⚓', bg: ['#5f9fd8', '#2a6fb8', '#12345e'], fish: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], deco: 'wreck', mod: { chest: 2.2, dia: .4 }, note: '보물상자 3배 · 다이아 +40%' },
+  { id: 'deep', name: '심해', icon: '🌑', bg: ['#3a4f8a', '#1e2a5a', '#0a1030'], fish: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], deco: 'deep', mod: { dark: 1, gold: .4, slow: .75 }, note: '깜깜해서 그물 주변만 보여요 · 골드 +40%' },
+  { id: 'fantasy', name: '환상의 바다', icon: '✨', bg: ['#c9a8ff', '#7b5fc8', '#2a1a5a'], fish: [11, 12, 13, 14, 15, 16, 17, 18, 19], deco: 'fantasy', mod: { gold: .9, rare: .6, spark: 1 }, note: '골드 +90% · 희귀·보스가 자주 나와요' },
 ];
 // 능력 4종 × 스킬 5개 = 20스킬. 앞 스킬을 찍어야 다음이 열림(need: 앞 스킬 index, nl: 필요 레벨)
 const POWERS = {
@@ -879,7 +879,7 @@ setInterval(() => { save(); if (!V) renderTop(); }, 5000);
 window.addEventListener('beforeunload', save);
 window.addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.tuna = { get S() { return S; }, get V() { return V; }, castPower, TREE, FISH, MAPS, power, netR, eff, fishArt, catArt, save, startVoyage, endVoyage, renderPort, cheat: (g, d, xp) => { S.gold += g || 0; S.dia += d || 0; if (xp) addXp(xp); renderPort(); } };
+window.tuna = { get S() { return S; }, get V() { return V; }, castPower, TREE, TREE_BY, FISH, MAPS, power, netR, eff, fishArt, catArt, save, startVoyage, endVoyage, renderPort, buyNode, own, vis, cheat: (g, d, xp) => { S.gold += g || 0; S.dia += d || 0; if (xp) addXp(xp); renderPort(); } };
 </script>
 </body>
 </html>

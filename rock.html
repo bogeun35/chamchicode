@@ -363,18 +363,18 @@ function E(k) { let t = 0; for (const n of TREE) if (n.k === k) t += n.v * lv(n.
 function artiB(k) { let t = 0; for (const id in S.arti) { const a = artiById[id]; if (a && (a.k === k || a.k === 'all')) t += a.v * S.arti[id] * (hasP('ancient') ? 2 : 1); } return t; }
 function nodeCost(n) { let c = n.cost * Math.pow(n.growth, lv(n.id)); if (S.arti.ai) c *= .9; if (hasP('discount')) c *= .8; return Math.ceil(c); }
 const unlocked = n => n.id === 'core' || n.link.some(l => lv(l) > 0);
-const gunDmg = () => (1 + E('gdmg') * (hasP('double') ? 2 : 1)) * (1 + artiB('arrow') + artiB('all'));
+const gunDmg = () => (2 + E('gdmg') * (hasP('double') ? 2 : 1)) * (1 + artiB('arrow') + artiB('all'));
 const gunRate = () => 1.6 * (1 + E('grate') + artiB('amp') * .1 + artiB('all'));
 const gunCount = () => 1 + E('guns');
 const gunCost = () => Math.max(.15, (1 - Math.min(.5, E('gcost'))) * (hasP('gunfuel') ? .5 : 1) * Math.max(.3, 1 - E('fburn')));
-const maxFuel = () => Math.round((20 + E('fuel') * (hasP('fuelclone') ? 2 : 1)) * (1 + artiB('ai') + artiB('all')));
+const maxFuel = () => Math.round((30 + E('fuel') * (hasP('fuelclone') ? 2 : 1)) * (1 + artiB('ai') + artiB('all')));
 const maxShield = () => E('shield');
-const magnetR = () => 70 * (1 + E('mag')) * (1 + artiB('all'));
+const magnetR = () => 140 * (1 + E('mag')) * (1 + artiB('all'));
 const critC = () => E('crit');
 const spawnMul = () => 1 + E('spawn') + artiB('gem') + artiB('all');
 const shipSpeed = () => 3.2 * (1 + E('speed') + artiB('arrow') + artiB('all'));
-const quotaFor = s => Math.max(3, Math.round((5 + s * 1.5) * (1 - Math.min(.5, E('qcut')))));
-const rockHp = s => 4 * Math.pow(1.32, s - 1) * (1 - Math.min(.5, artiB('skull')));
+const quotaFor = s => Math.max(4, Math.round((4 + s * 3) * (1 - Math.min(.5, E('qcut')))));
+const rockHp = s => 3 * Math.pow(1.16, s - 1) * (1 - Math.min(.5, artiB('skull')));
 const hasWarp = () => E('warp') > 0 || hasP('fuelclone');
 const oreUnlocked = () => ORES.filter((o, i) => E('ore' + (i + 1)) > 0);
 function oreForSector(s) {
@@ -384,7 +384,7 @@ function oreForSector(s) {
   return av[i];
 }
 const ammoUnlocked = () => Object.keys(AMMO).filter(a => E('am_' + a) > 0 || (hasP('armory') && S.stash['am_' + a]));
-const boxChance = () => .04 + E('wbox') + ammoUnlocked().length * .05;
+const boxChance = () => .12 + E('wbox') + ammoUnlocked().length * .05;
 
 // ═══ 원정 ═══
 const cv = $('cv'), ctx = cv.getContext('2d');
@@ -397,7 +397,7 @@ function addFuel(n) { if (R) R.fuel = Math.min(maxFuel(), R.fuel + n); }
 
 function launch() {
   screen('exp'); resize();
-  R = { t: 0, fuel: maxFuel(), shield: maxShield(), inv: 0, sector: S.sector, quota: quotaFor(S.sector), got: 0, killed: 0,
+  R = { t: 0, fuel: maxFuel(), shield: maxShield(), inv: 0, sector: 1, quota: quotaFor(1), got: 0, killed: 0,
     rocks: [], bullets: [], drops: [], fx: [], parts: [], texts: [], mines: [], boxes: [], ore: {}, oreN: 0, keys: 0, cred: 0,
     ship: { x: W / 2, y: H * .6, a: -Math.PI / 2 }, aim: { x: W / 2, y: H * .45 }, gcd: 0, ammo: null, ammoT: 0, warpReady: false, shk: 0, ended: false };
   for (let i = 0; i < 6; i++) spawnRock();
@@ -418,15 +418,15 @@ function spawnRock(kind) {
   R.rocks.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, hp, max: hp, r, pts, rot: rnd(0, 6.28), vr: rnd(-.5, .5), elec, boss, hit: 0, zap: rnd(1, 3) });
   if (boss) { Sound.play('boom'); R.texts.push({ x: W / 2, y: 110, s: '☄️ 보스 소행성!', c: '#ff6b8a', t: 0, sz: 28 }); }
 }
-function spawnBox(type) { R.boxes.push({ x: rnd(60, W - 60), y: rnd(90, H - 70), vx: rnd(-16, 16), vy: rnd(-16, 16), type, t: 0, hp: rockHp(R.sector) * (type === 'loot' ? 2 : 1.2), r: 20 }); }
+function spawnBox(type) { R.boxes.push({ x: rnd(60, W - 60), y: rnd(90, H - 70), vx: rnd(-16, 16), vy: rnd(-16, 16), type, t: 0, hp: rockHp(R.sector) * (type === 'loot' ? 1.2 : .8), r: 22 }); }
 function tick() { if (!R) return; const now = performance.now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && R) { const st = Math.min(.05, dt); dt -= st; update(st); } }
 function frame() { if (!R) return; draw(); requestAnimationFrame(frame); }
 function hurtRock(rk, d) { rk.hp -= d; rk.hit = .2; if (E('fdmg')) addFuel(d * E('fdmg')); if (rk.hp <= 0) killRock(rk); }
 function killRock(rk) {
   const i = R.rocks.indexOf(rk); if (i < 0) return; R.rocks.splice(i, 1);
   R.killed++; S.destroyed++;
-  if (E('fkill')) addFuel(E('fkill'));
-  let n = 1 + (Math.random() < E('dup') ? 1 : 0) + (rk.boss ? 6 : 0);
+  addFuel(1 + E('fkill'));   // 기본 회복 1 + 업그레이드
+  let n = 3 + Math.floor(R.sector / 2) + (Math.random() < E('dup') ? 1 : 0) + (rk.boss ? 10 : 0);   // 광석은 여러 개 떨어짐
   for (let k = 0; k < n; k++) {
     let o = oreForSector(R.sector);
     if (E('goldrush') && Math.random() < E('goldrush') && oreUnlocked().includes(oreById.gold)) o = oreById.gold;
@@ -563,7 +563,9 @@ function update(dt) {
   const mr = magnetR();
   for (const d of R.drops) {
     d.t += dt; const dist = Math.hypot(d.x - sh.x, d.y - sh.y);
-    if (dist < mr) { const a = Math.atan2(sh.y - d.y, sh.x - d.x), pull = 260 * (1 - dist / mr) + 90; d.vx += Math.cos(a) * pull * dt * 4; d.vy += Math.sin(a) * pull * dt * 4; }
+    const a = Math.atan2(sh.y - d.y, sh.x - d.x);
+    const pull = dist < mr ? 260 * (1 - dist / mr) + 90 : 55;   // 범위 밖에서도 약하게 끌려옴
+    d.vx += Math.cos(a) * pull * dt * 4; d.vy += Math.sin(a) * pull * dt * 4;
     d.x += d.vx * dt; d.y += d.vy * dt; d.vx *= .985; d.vy *= .985;
     if (dist < 20) { d.dead = 1; collect(d.o, d.x, d.y); }
   }
@@ -650,7 +652,7 @@ cv.addEventListener('pointerdown', e => { if (!R) return; const b = cv.getBoundi
 const PIN_ROWS = 9;
 function zones() {
   const n = PIN_ROWS + 1, out = [];
-  for (let i = 0; i < n; i++) { const d = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2); out.push({ m: Math.round((0.5 + Math.pow(d, 2.3) * 4.5) * 10) / 10, worm: false }); }
+  for (let i = 0; i < n; i++) { const d = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2); out.push({ m: Math.round((1 + Math.pow(d, 2.2) * 5) * 10) / 10, worm: false }); }
   let seed = 11;
   const nx = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
   for (let k = 0; k < (S.loot.zone || 0) + E('pzone'); k++) out[Math.floor(nx() * n)].m += 1;
@@ -692,11 +694,13 @@ function runPlinko(list, r) {
   const perDrop = 1 + E('pdrop'), cash = (S.loot.cash || 0) * 25;
   const up = oreUnlocked();
   function step() {
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < (window.__fastPlinko || 3); k++) {
       dropT -= 1 / 180;
-      if (queue.length && dropT <= 0) { dropT = dropIv; for (let d = 0; d < perDrop && queue.length; d++) { const q = queue.shift(); balls.push({ x: Wp / 2 + rnd(-8, 8), y: 5, vx: rnd(-25, 25), vy: 0, o: q.o, mul: q.mul, bonus: 0, hits: {} }); } }
+      if (queue.length && dropT <= 0) { dropT = dropIv; for (let d = 0; d < perDrop && queue.length; d++) { const q = queue.shift(); balls.push({ x: Wp / 2 + rnd(-8, 8), y: 5, vx: rnd(-25, 25), vy: 0, o: q.o, mul: q.mul, bonus: 0, hits: {}, age: 0 }); } }
       for (const b of balls) {
         if (b.done) continue;
+        b.age = (b.age || 0) + 1 / 180;
+        if (b.age > 6) { b.y = Hp - 27; }   // 핀 사이에 끼면 강제로 떨어뜨림
         b.vy += 640 / 180; b.x += b.vx / 180; b.y += b.vy / 180;
         for (const p of pegs) {
           if (Math.hypot(b.x - p.x, b.y - p.y) >= 9) continue;
@@ -704,7 +708,7 @@ function runPlinko(list, r) {
           b.x = p.x + Math.cos(a) * 9; b.y = p.y + Math.sin(a) * 9;
           b.vx = Math.cos(a) * 155 + rnd(-35, 35); b.vy = Math.abs(Math.sin(a)) * 95 + 45;
           if (p.rank && !b.hits[p.i]) { b.hits[p.i] = 1; b.bonus += p.rank; }
-          if (p.kind === 1 && !b.duped) { b.duped = 1; balls.push({ x: b.x + 6, y: b.y, vx: -b.vx, vy: b.vy, o: b.o, mul: b.mul, bonus: b.bonus, hits: {} }); }
+          if (p.kind === 1 && !b.duped) { b.duped = 1; balls.push({ x: b.x + 6, y: b.y, vx: -b.vx, vy: b.vy, o: b.o, mul: b.mul, bonus: b.bonus, hits: {}, age: 0 }); }
           if (p.kind === 2) { const i2 = up.indexOf(b.o); if (i2 >= 0 && i2 < up.length - 1) b.o = up[i2 + 1]; }
         }
         if (b.x < 5) { b.x = 5; b.vx = Math.abs(b.vx); } if (b.x > Wp - 5) { b.x = Wp - 5; b.vx = -Math.abs(b.vx); }
@@ -748,7 +752,7 @@ function renderTop() {
   renderTop._c = c;
   $('cred').textContent = c; $('keys').textContent = S.keys; $('ess').textContent = S.ess;
   $('curEss').style.display = (S.ess > 0 || S.maxSector >= 9) ? '' : 'none';
-  $('sub').textContent = `구역 ${S.sector} (최고 ${S.maxSector}) · 연료 ${maxFuel()} · 포 ${gunCount()}문 · 피해 ${fmt(gunDmg())}`;
+  $('sub').textContent = `최고 ${S.maxSector}구역 · 연료 ${maxFuel()} · 포 ${gunCount()}문 · 피해 ${fmt(gunDmg())}`;
   const treeOk = TREE.some(n => !n.root && unlocked(n) && lv(n.id) < n.max && S.cred >= nodeCost(n));
   document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
   document.querySelector('[data-tab="loot"]').classList.toggle('alert', S.keys > 0 && S.tab !== 'loot');
@@ -881,7 +885,7 @@ load(); setTab(S.tab || 'tree');
 setInterval(() => { save(); if (!R) renderTop(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.rock = { get S() { return S; }, get R() { return R; }, TREE, TREE_BY, ORES, LOOT, ARTI, E, lv, zones, launch, endRun, warp, renderBase, setTab, save, cheat: (c, k, e) => { S.cred += c || 0; S.keys += k || 0; S.ess += e || 0; renderBase(); } };
+window.rock = { get S() { return S; }, get R() { return R; }, TREE, TREE_BY, ORES, LOOT, ARTI, E, lv, zones, launch, endRun, warp, unlocked, nodeCost, buyNode, renderBase, setTab, save, cheat: (c, k, e) => { S.cred += c || 0; S.keys += k || 0; S.ess += e || 0; renderBase(); } };
 </script>
 </body>
 </html>

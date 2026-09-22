@@ -149,9 +149,9 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 // ═══ 바이옴 · 해파리 · 자원 (원작 구성) ═══
 const BIOMES = [
   { id: 'shallows', n: '얕은 바다', ic: '🏝️', bg: ['#8fe0ff', '#2f9fd0', '#146b96'], need: 0 },
-  { id: 'glacial', n: '빙하 속 심해', ic: '🧊', bg: ['#cfefff', '#5fb0d8', '#1e5f88'], need: 400 },
-  { id: 'swamp', n: '늪지대 수역', ic: '🌿', bg: ['#a8d89a', '#4a8f5c', '#1e4a38'], need: 6000 },
-  { id: 'magma', n: '용암 심연', ic: '🌋', bg: ['#ffb08a', '#d0552f', '#5a1a12'], need: 90000 },
+  { id: 'glacial', n: '빙하 속 심해', ic: '🧊', bg: ['#cfefff', '#5fb0d8', '#1e5f88'], need: 150 },
+  { id: 'swamp', n: '늪지대 수역', ic: '🌿', bg: ['#a8d89a', '#4a8f5c', '#1e4a38'], need: 3500 },
+  { id: 'magma', n: '용암 심연', ic: '🌋', bg: ['#ffb08a', '#d0552f', '#5a1a12'], need: 50000 },
 ];
 // 해파리 등급 — 일반/은/황금/에메랄드/무지개
 const GRADE = [
@@ -295,8 +295,8 @@ function canPay(n) { if (S.shell < nodeCost(n)) return false; if (n.mat && (S.ma
 const matNeed = n => Math.ceil(3 * Math.pow(1.8, lv(n.id)));
 const maxOxy = () => 30 + E('oxy') + (S.oxyPerm || 0);
 const oxyBurn = () => Math.max(.35, 2 * (1 - Math.min(.7, E('oxyburn'))));
-const bagSlots = () => 2 + E('slots');
-const slotCap = () => 3 + E('slotcap');
+const bagSlots = () => 3 + E('slots');
+const slotCap = () => 4 + E('slotcap');
 const bagMax = () => bagSlots() * slotCap();
 const bDmg = () => (1 + E('bdmg')) * (1 + maxOxy() * E('bdmgoxy') / 100);
 const bRate = () => 2.4 * (1 + E('brate'));
@@ -304,7 +304,7 @@ const bCap = () => 6 + E('bcap');
 const bReload = () => 1.6 / (1 + E('breload'));
 const pickupR = () => 60 * (1 + E('pickup'));
 const swimSpeed = () => 3.4 * (1 + E('speed'));
-const storeSlots = () => 2 + E('sslots');
+const storeSlots = () => 3 + E('sslots');
 const sellSpeed = () => 1.1 * (1 + E('sspeed'));
 const jellyVal = j => j.v * (1 + E('jval'));
 const hasPlasma = () => E('plasma') > 0;
@@ -705,7 +705,7 @@ load(); setTab(S.tab || 'tree');
 setInterval(() => { save(); if (!D) renderTop(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.shelldiver = { get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); } };
+window.shelldiver = { get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, buyNode, unlocked, nodeCost, canPay, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); } };
 </script>
 </body>
 </html>
