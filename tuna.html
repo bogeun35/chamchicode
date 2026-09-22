@@ -25,7 +25,15 @@ button { font-family: inherit; }
 .xpbar { width: 120px; height: 16px; background: #eadfc6; border-radius: 999px; overflow: hidden; position: relative; }
 .xpbar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #8fe0c0, #5cb85c); border-radius: 999px; transition: width .3s; }
 .xpbar span { position: absolute; inset: 0; font-size: 11px; text-align: center; line-height: 16px; color: var(--ink); }
-.cur { background: var(--cream); border: 3px solid #fff; border-radius: 999px; padding: 5px 12px; font-size: 15px; box-shadow: 0 3px 0 var(--brown-dark); white-space: nowrap; }
+.cur { background: var(--cream); border: 3px solid #fff; border-radius: 999px; padding: 5px 14px; font-size: 16px; box-shadow: 0 3px 0 var(--brown-dark); white-space: nowrap; }
+.cur b { font-size: 28px; letter-spacing: -.5px; }
+.cur.gold { padding: 4px 18px; }
+.gain { color: #2e7d32; font-size: 15px; margin-left: 4px; }
+.cur.gold { background: linear-gradient(180deg, #fff7d9, #ffe8a3); }
+.cur.dia { background: linear-gradient(180deg, #eaf8ff, #c9ecff); }
+.cur.bump { animation: bump .4s ease; }
+@keyframes bump { 40% { transform: scale(1.14); } }
+@media (max-width: 560px) { .top { gap: 4px; padding: 7px 5px; } .xpbar { width: 54px; } .xpbar span { font-size: 10px; } .lvl { padding: 3px 6px 3px 3px; } .lvl .n { width: 26px; height: 26px; font-size: 12px; } .cur { padding: 3px 9px; font-size: 12px; } .cur b { font-size: 22px; } }
 .menu { position: absolute; top: 56px; left: 0; right: 0; z-index: 5; display: flex; gap: 4px; padding: 4px 8px; overflow-x: auto; scrollbar-width: none; }
 .menu::-webkit-scrollbar { display: none; }
 .mb { flex: none; border: 3px solid #fff; border-radius: 14px; background: rgba(255,248,236,.85); color: var(--brown); padding: 6px 10px; font-size: 14px; cursor: pointer; box-shadow: 0 3px 0 var(--brown-dark); position: relative; white-space: nowrap; }
@@ -33,8 +41,7 @@ button { font-family: inherit; }
 .mb .dot { position: absolute; top: -6px; right: -5px; width: 13px; height: 13px; border-radius: 50%; background: var(--coral); border: 2px solid #fff; display: none; }
 .mb.alert .dot { display: block; animation: pulse .8s ease-in-out infinite alternate; }
 @keyframes pulse { to { transform: scale(1.15); } }
-.panel { position: absolute; top: 104px; left: 8px; right: 8px; bottom: 74px; background: rgba(255,248,236,.94); border: 4px solid #fff; border-radius: 20px; box-shadow: 0 6px 0 var(--brown-dark), 0 12px 24px rgba(0,0,0,.3); overflow: auto; padding: 12px; }
-@media (min-width: 760px) { .panel { left: 50%; transform: translateX(-50%); width: 740px; right: auto; } .top, .menu { left: 50%; transform: translateX(-50%); width: 756px; right: auto; } }
+.panel { position: absolute; top: 100px; left: 6px; right: 6px; bottom: 70px; background: rgba(255,248,236,.94); border: 4px solid #fff; border-radius: 20px; box-shadow: 0 6px 0 var(--brown-dark), 0 12px 24px rgba(0,0,0,.3); overflow: auto; padding: 12px 12px 64px; }
 .sail { position: absolute; right: 12px; bottom: 14px; z-index: 6; border: 4px solid #fff; border-radius: 999px; background: linear-gradient(180deg, #5cc6ff, #2f8fdc); color: #fff; font-size: 20px; padding: 12px 26px; cursor: pointer; box-shadow: 0 6px 0 #1f5f9a, 0 10px 20px rgba(0,0,0,.3); animation: pulse 1.4s ease-in-out infinite alternate; }
 .sail:active { transform: translateY(4px); box-shadow: 0 2px 0 #1f5f9a; }
 .mapbtn { position: absolute; left: 12px; bottom: 14px; z-index: 6; border: 3px solid #fff; border-radius: 999px; background: var(--cream); color: var(--ink); font-size: 15px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 0 var(--brown-dark); }
@@ -47,19 +54,28 @@ button { font-family: inherit; }
 .tn { position: absolute; width: 50px; height: 50px; border-radius: 12px; background: #3d5fb8; border: 3px solid #2a4a9a; display: grid; place-items: center; font-size: 22px; cursor: pointer; transition: transform .1s; box-shadow: 0 3px 0 #1a2f6e; }
 .tn.key { width: 58px; height: 58px; border-radius: 14px; font-size: 26px; }
 .tn.lock { filter: grayscale(.8) brightness(.55); cursor: default; }
+.tn .pr { position: absolute; left: 50%; transform: translateX(-50%); bottom: -16px; font-size: 11px; background: rgba(0,0,0,.6); color: #ffe9a8; border-radius: 999px; padding: 1px 6px; white-space: nowrap; }
+.tn.own .pr { display: none; }
 .tn.avail { background: #4a78d8; border-color: #8fc0ff; }
 .tn.avail::after { content: '+'; position: absolute; right: -6px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--green); color: #fff; font-size: 13px; line-height: 16px; text-align: center; border: 2px solid #fff; }
 .tn.ok { animation: pulse .9s ease-in-out infinite alternate; box-shadow: 0 0 0 3px rgba(255,211,107,.6), 0 3px 0 #1a2f6e; }
 .tn.own { background: linear-gradient(180deg, #ffe29a, #f0b429); border-color: #fff3c4; box-shadow: 0 3px 0 #a8791a; }
 .tn.sel { outline: 3px solid #fff; }
-.sheet { position: absolute; left: 10px; right: 10px; bottom: 10px; background: var(--cream); border: 3px solid #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 4px 0 var(--brown-dark), 0 8px 16px rgba(0,0,0,.3); display: none; align-items: center; gap: 10px; z-index: 3; }
+.sheet { position: absolute; left: 6px; right: 6px; bottom: 72px; background: var(--cream); border: 3px solid #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 4px 0 var(--brown-dark), 0 8px 16px rgba(0,0,0,.3); display: none; align-items: center; gap: 10px; z-index: 7; }
+.sheet .pz { text-align: right; white-space: nowrap; font-size: 15px; }
+.sheet .pz small { display: block; font-size: 11px; color: var(--brown); font-weight: normal; }
+.sheet .pz.ok { color: #2e7d32; } .sheet .pz.no { color: #c0392b; }
 .sheet.show { display: flex; }
 .sheet .ic { font-size: 30px; } .sheet .t { flex: 1; min-width: 0; } .sheet .nm { font-size: 16px; } .sheet .ds { font-size: 12px; color: var(--brown); }
 /* 카드 목록 */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .cd { background: var(--paper); border: 3px solid #fff; border-radius: 16px; padding: 10px; box-shadow: 0 3px 0 var(--line); display: flex; flex-direction: column; gap: 4px; cursor: pointer; position: relative; }
 .cd .ic { font-size: 28px; } .cd .nm { font-size: 15px; line-height: 1.15; } .cd .ds { font-size: 12px; color: var(--brown); flex: 1; } .cd .cost { font-size: 13px; color: #6a6a6a; }
-.cd.ok { border-color: var(--gold); box-shadow: 0 3px 0 var(--gold-dark); } .cd.ok .cost { color: #2e7d32; }
+.cd.ok { border-color: var(--green); box-shadow: 0 3px 0 #3a7f3a; background: #f4fff0; } .cd.ok .cost { color: #2e7d32; }
+.cd.ok::after, .sk.ok::after { content: '👆👆 더블클릭'; position: absolute; right: 6px; bottom: 6px; font-size: 10px; background: var(--green); color: #fff; border-radius: 999px; padding: 1px 7px; }
+.cd .cost.no { color: #c0392b; }
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .cd.lock { opacity: .55; } .cd.max { border-color: var(--purple); background: #f6f0ff; }
 .cd.on { border-color: var(--green); background: #f0fbe8; }
 .cd svg { display: block; margin: 0 auto; }
@@ -85,8 +101,15 @@ button { font-family: inherit; }
 .pw h4 { font-size: 16px; display: flex; gap: 8px; align-items: center; } .pw h4 small { margin-left: auto; font-size: 12px; color: var(--brown); font-weight: normal; }
 .pw p { font-size: 12px; color: var(--brown); margin: 4px 0 8px; }
 .pw .ups { display: flex; gap: 6px; flex-wrap: wrap; }
-.pu { flex: 1; min-width: 100px; background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-size: 12px; cursor: pointer; text-align: center; }
-.pu b { display: block; font-size: 13px; } .pu .c { color: #6a6a6a; } .pu.ok { border-color: var(--gold); } .pu.ok .c { color: #2e7d32; } .pu.max { border-color: var(--purple); }
+.sktree { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 460px; }
+.sk { position: relative; background: #fff; border: 3px solid var(--line); border-radius: 14px; padding: 7px 6px; font-size: 11px; text-align: center; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.sk .ic { font-size: 20px; } .sk .nm { font-size: 13px; line-height: 1.1; } .sk .lv { font-size: 11px; color: var(--sky-dark); } .sk .c { font-size: 11px; color: #6a6a6a; }
+.sk.pl { grid-column: 1; grid-row: 2; } .sk.pt { grid-column: 2; grid-row: 1; } .sk.pm { grid-column: 2; grid-row: 2; background: linear-gradient(180deg,#fff,#f3ecff); } .sk.pr { grid-column: 3; grid-row: 2; } .sk.pb { grid-column: 2; grid-row: 3; }
+.sk.ok { border-color: var(--green); background: #f4fff0; } .sk.ok .c { color: #2e7d32; }
+.sk.hid { border-style: dashed; border-color: #cfc7b4; background: #f3efe4; color: #a49a86; cursor: default; }
+.sk.hid .ic { filter: grayscale(1) opacity(.5); }
+.sk.maxed { border-color: var(--purple); background: #f6f0ff; }
+.sk .dot2 { position: absolute; left: 6px; top: 6px; font-size: 10px; color: var(--purple); }
 
 /* ── 항해 ── */
 #voyage { background: #1a4f8a; touch-action: none; }
@@ -96,8 +119,8 @@ button { font-family: inherit; }
 .vhud .timer { margin-left: auto; background: var(--cream); border: 3px solid #fff; border-radius: 999px; padding: 6px 14px; font-size: 20px; box-shadow: 0 3px 0 var(--brown-dark); min-width: 92px; text-align: center; }
 .vhud .timer.low { background: #ff6b6b; color: #fff; animation: pulse .5s ease-in-out infinite alternate; }
 @media (max-width: 520px) { .vhud { gap: 5px; } .vhud .xpbar { width: 58px; } .vhud .cur { padding: 4px 8px; font-size: 13px; } .vhud .timer { min-width: 64px; font-size: 16px; padding: 5px 8px; } .vhud .lvl .n { width: 28px; height: 28px; font-size: 13px; } .cap { top: 56px !important; width: 48px !important; height: 48px !important; } .cap svg { width: 42px !important; height: 42px !important; } }
-.cap { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 62px; height: 62px; border-radius: 50%; background: var(--cream); border: 3px solid var(--gold); box-shadow: 0 3px 0 var(--gold-dark); display: grid; place-items: center; z-index: 3; pointer-events: none; overflow: hidden; }
-.cap svg { width: 56px; height: 56px; }
+.cap { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); width: 54px; height: 54px; border-radius: 50%; background: var(--cream); border: 3px solid var(--gold); box-shadow: 0 3px 0 var(--gold-dark); display: grid; place-items: center; z-index: 3; pointer-events: none; overflow: hidden; }
+.cap svg { width: 48px; height: 48px; }
 .pbar { position: absolute; left: 56px; bottom: 12px; display: flex; gap: 6px; z-index: 3; pointer-events: none; }
 .ps { width: 46px; height: 46px; border-radius: 12px; background: rgba(0,0,0,.45); border: 2px solid rgba(255,255,255,.6); display: grid; place-items: center; font-size: 22px; position: relative; overflow: hidden; }
 .ps.lock { opacity: .4; } .ps .cd { position: absolute; inset: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 13px; display: grid; place-items: center; }
@@ -130,7 +153,7 @@ button { font-family: inherit; }
   <div class="stars"></div>
   <div class="top">
     <div class="lvl"><div class="n" id="lv">1</div><div class="xpbar"><i id="xpFill"></i><span id="xpTxt">0 / 50</span></div></div>
-    <div class="cur">💰 <b id="gold">0</b></div><div class="cur">💎 <b id="dia">0</b></div>
+    <div class="cur gold" id="curGold">💰 <b id="gold">0</b></div><div class="cur dia" id="curDia">💎 <b id="dia">0</b></div>
   </div>
   <div class="menu" id="menu">
     <button class="mb on" data-tab="tree">⭐ 특성<span class="dot"></span></button>
@@ -142,6 +165,7 @@ button { font-family: inherit; }
     <button class="mb" data-tab="etc">⚙️<span class="dot"></span></button>
   </div>
   <div class="panel" id="panel"></div>
+  <div class="sheet" id="sheet"></div>
   <button class="mapbtn" id="btnMap">📍 갯바위</button>
   <button class="sail" id="btnSail">🎣 출항!</button>
 </div>
@@ -150,7 +174,7 @@ button { font-family: inherit; }
   <canvas id="cv"></canvas>
   <div class="vhud">
     <div class="lvl"><div class="n" id="vlv">1</div><div class="xpbar"><i id="vxpFill"></i><span id="vxpTxt"></span></div></div>
-    <div class="cur">💰 <b id="vgold">0</b></div><div class="cur">💎 <b id="vdia">0</b></div>
+    <div class="cur gold">💰 <b id="vgold">0</b><span class="gain" id="vgain"></span></div><div class="cur dia">💎 <b id="vdia">0</b></div>
     <div class="timer" id="timer">20.0</div>
   </div>
   <div class="cap" id="capPortrait"></div>
@@ -180,53 +204,78 @@ const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math
 // ═══════════ 데이터 ═══════════
 // 어종 20 (티어 순). hp/골드/xp 는 티어로 계산
 const FISH = [
-  { id: 'anchovy', name: '멸치', shape: 'fish', c: '#c7dcea', s: .5, spd: 90, d: '작지만 바다의 시작' },
-  { id: 'sardine', name: '정어리', shape: 'fish', c: '#a9c8e8', s: .58, spd: 100, d: '떼로 다니는 걸 좋아해요' },
-  { id: 'clown', name: '흰동가리', shape: 'fish', c: '#ffa254', acc: '#fff', s: .55, spd: 80, d: '말미잘이 집이에요' },
-  { id: 'shrimp', name: '새우', shape: 'shrimp', c: '#ffc2b0', s: .55, spd: 70, d: '통통 튀는 분홍 친구' },
-  { id: 'mackerel', name: '고등어', shape: 'fish', c: '#7fb3e6', acc: '#3d6fa8', s: .7, spd: 120, d: '등에 물결무늬가 있어요' },
-  { id: 'puffer', name: '복어', shape: 'round', c: '#ffe08a', s: .7, spd: 50, d: '놀라면 뿡 부풀어요' },
-  { id: 'squid', name: '오징어', shape: 'squid', c: '#f3e0ff', s: .75, spd: 85, d: '다리가 열 개' },
-  { id: 'hairtail', name: '갈치', shape: 'long', c: '#e3e8f2', s: .95, spd: 110, d: '은빛 리본 같아요' },
-  { id: 'bream', name: '도미', shape: 'fish', c: '#ffb3b3', s: .8, spd: 75, d: '잔칫상의 주인공' },
-  { id: 'octopus', name: '문어', shape: 'octo', c: '#ff9fb5', s: .85, spd: 55, d: '머리가 아주 좋대요' },
-  { id: 'tuna', name: '참치', shape: 'fish', c: '#a3d5ff', s: 1, spd: 130, d: '참스코드의 마스코트!' },
-  { id: 'salmon', name: '연어', shape: 'fish', c: '#ffb28a', s: .9, spd: 95, d: '강을 거슬러 올라가요' },
-  { id: 'ray', name: '가오리', shape: 'ray', c: '#b5a0d8', s: 1.05, spd: 65, d: '바닷속을 날아다녀요' },
-  { id: 'swordfish', name: '황새치', shape: 'sword', c: '#8fb0d8', s: 1.1, spd: 150, d: '코가 칼처럼 길어요' },
-  { id: 'shark', name: '상어', shape: 'shark', c: '#b8c4d0', s: 1.25, spd: 100, d: '무서워 보이지만 착해요' },
-  { id: 'angler', name: '아귀', shape: 'angler', c: '#8a7aa8', s: .95, spd: 45, d: '머리의 등불로 유혹해요' },
-  { id: 'jelly', name: '빛해파리', shape: 'jelly', c: '#d6c9ff', s: .95, spd: 35, d: '어둠 속에서 은은하게' },
-  { id: 'giantsquid', name: '대왕오징어', shape: 'squid', c: '#ffb0c8', s: 1.4, spd: 60, d: '전설 속 크라켄?' },
-  { id: 'spacewhale', name: '우주 고래', shape: 'whale', c: '#9fb5ff', s: 1.6, spd: 40, d: '별을 먹고 자라요' },
-  { id: 'leviathan', name: '심연의 리바이어던', shape: 'levi', c: '#6f5fa8', acc: '#ffd36b', s: 1.9, spd: 50, d: '바다 가장 깊은 곳의 주인' },
+  { id: 'anchovy', name: '멸치', shape: 'fish', c: '#c7dcea', s: .5, spd: 90, d: '작지만 바다의 시작', beh: 'school' },
+  { id: 'sardine', name: '정어리', shape: 'fish', c: '#a9c8e8', s: .58, spd: 100, d: '떼로 다니는 걸 좋아해요', beh: 'school' },
+  { id: 'clown', name: '흰동가리', shape: 'fish', c: '#ffa254', acc: '#fff', s: .55, spd: 80, d: '말미잘이 집이에요', beh: 'shy' },
+  { id: 'shrimp', name: '새우', shape: 'shrimp', c: '#ffc2b0', s: .55, spd: 70, d: '통통 튀는 분홍 친구', beh: 'slow' },
+  { id: 'mackerel', name: '고등어', shape: 'fish', c: '#7fb3e6', acc: '#3d6fa8', s: .7, spd: 120, d: '등에 물결무늬가 있어요', beh: 'school' },
+  { id: 'puffer', name: '복어', shape: 'round', c: '#ffe08a', s: .7, spd: 50, d: '놀라면 뿡 부풀어요', beh: 'shy' },
+  { id: 'squid', name: '오징어', shape: 'squid', c: '#f3e0ff', s: .75, spd: 85, d: '다리가 열 개', beh: 'normal' },
+  { id: 'hairtail', name: '갈치', shape: 'long', c: '#e3e8f2', s: .95, spd: 110, d: '은빛 리본 같아요', beh: 'dart' },
+  { id: 'bream', name: '도미', shape: 'fish', c: '#ffb3b3', s: .8, spd: 75, d: '잔칫상의 주인공', beh: 'normal' },
+  { id: 'octopus', name: '문어', shape: 'octo', c: '#ff9fb5', s: .85, spd: 55, d: '머리가 아주 좋대요', beh: 'tank' },
+  { id: 'tuna', name: '참치', shape: 'fish', c: '#a3d5ff', s: 1, spd: 130, d: '참스코드의 마스코트!', beh: 'dart' },
+  { id: 'salmon', name: '연어', shape: 'fish', c: '#ffb28a', s: .9, spd: 95, d: '강을 거슬러 올라가요', beh: 'school' },
+  { id: 'ray', name: '가오리', shape: 'ray', c: '#b5a0d8', s: 1.05, spd: 65, d: '바닷속을 날아다녀요', beh: 'normal' },
+  { id: 'swordfish', name: '황새치', shape: 'sword', c: '#8fb0d8', s: 1.1, spd: 150, d: '코가 칼처럼 길어요', beh: 'dart' },
+  { id: 'shark', name: '상어', shape: 'shark', c: '#b8c4d0', s: 1.25, spd: 100, d: '무서워 보이지만 착해요', beh: 'tank' },
+  { id: 'angler', name: '아귀', shape: 'angler', c: '#8a7aa8', s: .95, spd: 45, d: '머리의 등불로 유혹해요', beh: 'tank' },
+  { id: 'jelly', name: '빛해파리', shape: 'jelly', c: '#d6c9ff', s: .95, spd: 35, d: '어둠 속에서 은은하게', beh: 'drift' },
+  { id: 'giantsquid', name: '대왕오징어', shape: 'squid', c: '#ffb0c8', s: 1.4, spd: 60, d: '전설 속 크라켄?', beh: 'tank' },
+  { id: 'spacewhale', name: '우주 고래', shape: 'whale', c: '#9fb5ff', s: 1.6, spd: 40, d: '별을 먹고 자라요', beh: 'boss' },
+  { id: 'leviathan', name: '심연의 리바이어던', shape: 'levi', c: '#6f5fa8', acc: '#ffd36b', s: 1.9, spd: 50, d: '바다 가장 깊은 곳의 주인', beh: 'boss' },
 ];
-FISH.forEach((f, i) => { f.i = i; f.hp = 5 * Math.pow(1.6, i); f.gold = 2 * Math.pow(2.2, i); f.xp = 2 * Math.pow(1.45, i); });
+const BEH = { school: { n: '떼로 몰려다녀요' }, shy: { n: '그물이 오면 도망가요' }, dart: { n: '갑자기 확 튀어나가요' }, tank: { n: '느리지만 튼튼하고 값져요' }, drift: { n: '둥실둥실 떠다녀요' }, slow: { n: '느긋해요' }, boss: { n: '👑 보스 — 아주 튼튼하고 큰 보상' }, normal: { n: '평범하게 헤엄쳐요' } };
+FISH.forEach((f, i) => { f.i = i; f.hp = 5 * Math.pow(1.6, i); f.gold = 2 * Math.pow(2.2, i); f.xp = 2 * Math.pow(1.45, i);
+  if (f.beh === 'tank') { f.hp *= 1.8; f.spd *= .7; } if (f.beh === 'boss') { f.hp *= 4; f.gold *= 3; f.xp *= 3; f.spd *= .8; } if (f.beh === 'slow' || f.beh === 'drift') f.spd *= .7; });
 const fishById = Object.fromEntries(FISH.map(f => [f.id, f]));
 const MAPS = [
-  { id: 'rock', name: '갯바위', icon: '🪨', bg: ['#8fd3ff', '#3f8fd8', '#1e5a9e'], fish: [0, 1, 2, 3, 4, 5], deco: 'rock' },
-  { id: 'coral', name: '산호초', icon: '🪸', bg: ['#7fd8e8', '#2aa0c8', '#136a95'], fish: [2, 3, 4, 5, 6, 7, 8, 9], deco: 'coral' },
-  { id: 'wreck', name: '난파선', icon: '⚓', bg: ['#5f9fd8', '#2a6fb8', '#12345e'], fish: [6, 7, 8, 9, 10, 11, 12, 13], deco: 'wreck' },
-  { id: 'deep', name: '심해', icon: '🌑', bg: ['#3a4f8a', '#1e2a5a', '#0a1030'], fish: [10, 11, 12, 13, 14, 15, 16, 17], deco: 'deep' },
-  { id: 'fantasy', name: '환상의 바다', icon: '✨', bg: ['#c9a8ff', '#7b5fc8', '#2a1a5a'], fish: [14, 15, 16, 17, 18, 19], deco: 'fantasy' },
+  { id: 'rock', name: '갯바위', icon: '🪨', bg: ['#8fd3ff', '#3f8fd8', '#1e5a9e'], fish: [0, 1, 2, 3, 4, 5], deco: 'rock', mod: {}, note: '잔잔한 기본 어장' },
+  { id: 'coral', name: '산호초', icon: '🪸', bg: ['#7fd8e8', '#2aa0c8', '#136a95'], fish: [2, 3, 4, 5, 6, 7, 8, 9], deco: 'coral', mod: { spawn: .35, chest: .5 }, note: '물고기가 30% 더 많이 몰려요' },
+  { id: 'wreck', name: '난파선', icon: '⚓', bg: ['#5f9fd8', '#2a6fb8', '#12345e'], fish: [6, 7, 8, 9, 10, 11, 12, 13], deco: 'wreck', mod: { chest: 2.2, dia: .4 }, note: '보물상자 3배 · 다이아 +40%' },
+  { id: 'deep', name: '심해', icon: '🌑', bg: ['#3a4f8a', '#1e2a5a', '#0a1030'], fish: [10, 11, 12, 13, 14, 15, 16, 17], deco: 'deep', mod: { dark: 1, gold: .4, slow: .75 }, note: '깜깜해서 그물 주변만 보여요 · 골드 +40%' },
+  { id: 'fantasy', name: '환상의 바다', icon: '✨', bg: ['#c9a8ff', '#7b5fc8', '#2a1a5a'], fish: [14, 15, 16, 17, 18, 19], deco: 'fantasy', mod: { gold: .9, rare: .6, spark: 1 }, note: '골드 +90% · 희귀·보스가 자주 나와요' },
 ];
+// 능력 4종 × 스킬 5개 = 20스킬. 앞 스킬을 찍어야 다음이 열림(need: 앞 스킬 index, nl: 필요 레벨)
 const POWERS = {
-  lightning: { name: '번개', icon: '⚡', d: '그물 근처 물고기에 번개 — 가까운 물고기로 연쇄', cd: 5, ups: [['피해', '피해 +40%', 5], ['연쇄', '연쇄 +1', 4], ['재사용', '대기 −12%', 5]] },
-  bomb: { name: '폭탄', icon: '💣', d: '그물 자리에 폭탄 — 3초 뒤 광역 폭발', cd: 8, ups: [['피해', '피해 +40%', 5], ['범위', '범위 +20%', 4], ['재사용', '대기 −12%', 5]] },
-  jet: { name: '물대포', icon: '💦', d: '벽에 튕기며 날아가는 물줄기, 2초', cd: 6, ups: [['피해', '피해 +40%', 5], ['속도', '지속 +0.5초', 4], ['재사용', '대기 −12%', 5]] },
-  enet: { name: '전기 그물', icon: '🕸️', d: '그물 자리에 전기 그물 — 2초 동안 지속 피해', cd: 7, ups: [['피해', '피해 +40%', 5], ['범위', '범위 +20%', 4], ['재사용', '대기 −12%', 5]] },
+  lightning: { name: '번개', icon: '⚡', d: '그물 근처에 번개가 떨어져 가까운 물고기로 연쇄돼요', cd: 5, sk: [
+    { p: 'pl', n: '전압 상승', ic: '⚡', ds: '피해 +40%', max: 5 },
+    { p: 'pt', n: '연쇄 확장', ic: '🔗', ds: '연쇄 대상 +1', max: 5, need: 0 },
+    { p: 'pr', n: '빠른 충전', ic: '🔁', ds: '재사용 −12%', max: 5, need: 1 },
+    { p: 'pm', n: '폭풍우', ic: '🌩️', ds: '번개가 두 갈래로 갈라져요', max: 1, need: 2, nl: 3 },
+    { p: 'pb', n: '감전 어획', ic: '💰', ds: '번개로 잡으면 골드 +20%', max: 5, need: 3 }] },
+  bomb: { name: '폭탄', icon: '💣', d: '그물 자리에 폭탄을 떨궈 3초 뒤 크게 터져요', cd: 8, sk: [
+    { p: 'pl', n: '고폭 화약', ic: '💥', ds: '피해 +40%', max: 5 },
+    { p: 'pt', n: '대형 폭탄', ic: '🎯', ds: '범위 +20%', max: 5, need: 0 },
+    { p: 'pr', n: '짧은 심지', ic: '🔁', ds: '재사용 −12%', max: 5, need: 1 },
+    { p: 'pm', n: '연쇄 폭발', ic: '🧨', ds: '터진 자리에 한 번 더 폭발!', max: 1, need: 2, nl: 3 },
+    { p: 'pb', n: '폭탄 어획', ic: '💰', ds: '폭탄으로 잡으면 골드 +20%', max: 5, need: 3 }] },
+  jet: { name: '물대포', icon: '💦', d: '벽에 튕기며 날아가는 물줄기를 쏴요', cd: 6, sk: [
+    { p: 'pl', n: '수압 강화', ic: '💧', ds: '피해 +40%', max: 5 },
+    { p: 'pt', n: '긴 사거리', ic: '📏', ds: '지속 +0.5초', max: 5, need: 0 },
+    { p: 'pr', n: '빠른 재장전', ic: '🔁', ds: '재사용 −12%', max: 5, need: 1 },
+    { p: 'pm', n: '난반사', ic: '🌀', ds: '튕길 때마다 피해 +25% 누적', max: 1, need: 2, nl: 3 },
+    { p: 'pb', n: '물대포 어획', ic: '💰', ds: '물대포로 잡으면 골드 +20%', max: 5, need: 3 }] },
+  enet: { name: '전기 그물', icon: '🕸️', d: '전기가 흐르는 그물을 쳐서 2초 동안 계속 지져요', cd: 7, sk: [
+    { p: 'pl', n: '고압 전류', ic: '⚡', ds: '피해 +40%', max: 5 },
+    { p: 'pt', n: '넓은 그물', ic: '🎯', ds: '범위 +20%', max: 5, need: 0 },
+    { p: 'pr', n: '빠른 재설치', ic: '🔁', ds: '재사용 −12%', max: 5, need: 1 },
+    { p: 'pm', n: '추적 그물', ic: '🧲', ds: '내 그물을 따라다녀요', max: 1, need: 2, nl: 3 },
+    { p: 'pb', n: '전기 어획', ic: '💰', ds: '전기 그물로 잡으면 골드 +20%', max: 5, need: 3 }] },
 };
+const SK_TOTAL = Object.values(POWERS).reduce((a, p) => a + p.sk.length, 0);
+// 선장마다 뚜렷한 플레이 스타일 (일부는 트레이드오프)
 const CAPTAINS = [
-  { id: 'chamchi', name: '참치', fur: '#d9a066', hat: 'pirate', lv: 1, gold: 0, sk: '골드 +10%', eff: { gold: .1 } },
-  { id: 'coco', name: '코코', fur: '#f2e6d8', hat: 'sailor', lv: 4, gold: 400, sk: '그물 크기 +20%', eff: { net: .2 } },
-  { id: 'nabi', name: '나비', fur: '#f5b6c8', hat: 'ribbon', lv: 8, gold: 3000, sk: '항해 시간 +5초', eff: { time: 5 } },
-  { id: 'cloud', name: '먹구름', fur: '#6b6b7b', hat: 'wizard', lv: 12, gold: 15000, sk: '능력 피해 +40%', eff: { pdmg: .4 } },
-  { id: 'cheese', name: '치즈', fur: '#ffcf6b', hat: 'crown', lv: 16, gold: 60000, sk: '다이아 획득 +50%', eff: { dia: .5 } },
-  { id: 'momo', name: '모모', fur: '#b8d4a8', hat: 'beanie', lv: 20, gold: 250000, sk: '경험치 +40%', eff: { xp: .4 } },
-  { id: 'eunbi', name: '은비', fur: '#c9c9d6', hat: 'captain', lv: 25, gold: 1e6, sk: '치명타 +10%', eff: { crit: .1 } },
-  { id: 'hodu', name: '호두', fur: '#a86a3d', hat: 'straw', lv: 32, gold: 5e6, sk: '물고기 출현 +30%', eff: { spawn: .3 } },
-  { id: 'bamtol', name: '밤톨', fur: '#4a3a3a', hat: 'bandana', lv: 40, gold: 2.5e7, sk: '유물 발견 ×2 · 유물 효과 +25%', eff: { relic: 1, relicpow: .25 } },
-  { id: 'daewang', name: '대왕', fur: '#ffffff', hat: 'admiral', lv: 50, gold: 1.2e8, sk: '낚시력 +50%', eff: { power: .5 } },
+  { id: 'chamchi', name: '참치', fur: '#d9a066', hat: 'pirate', lv: 1, gold: 0, sk: '골드 +10%', tip: '무난한 첫 선장', eff: { gold: .1 } },
+  { id: 'coco', name: '코코', fur: '#f2e6d8', hat: 'sailor', lv: 4, gold: 400, sk: '그물 크기 +25%', tip: '한 번에 많이 담기', eff: { net: .25 } },
+  { id: 'nabi', name: '나비', fur: '#f5b6c8', hat: 'ribbon', lv: 8, gold: 3000, sk: '항해 시간 +6초', tip: '느긋하게 오래', eff: { time: 6 } },
+  { id: 'cloud', name: '먹구름', fur: '#6b6b7b', hat: 'wizard', lv: 12, gold: 15000, sk: '능력 피해 +50% · 재사용 −10%', tip: '번개·폭탄 몰빵', eff: { pdmg: .5, cd: .1 } },
+  { id: 'cheese', name: '치즈', fur: '#ffcf6b', hat: 'crown', lv: 16, gold: 60000, sk: '💎 다이아 +100% · 골드 −30%', tip: '다이아 파밍', eff: { dia: 1, gold: -.3 } },
+  { id: 'momo', name: '모모', fur: '#b8d4a8', hat: 'beanie', lv: 20, gold: 250000, sk: '📗 경험치 +100% · 골드 −50%', tip: '레벨 빨리 올리기', eff: { xp: 1, gold: -.5 } },
+  { id: 'eunbi', name: '은비', fur: '#c9c9d6', hat: 'captain', lv: 25, gold: 1e6, sk: '치명타 +15% · 10마리마다 💎+1', tip: '한 방 노리기', eff: { crit: .15, per10: 1 } },
+  { id: 'hodu', name: '호두', fur: '#a86a3d', hat: 'straw', lv: 32, gold: 5e6, sk: '물고기 출현 +40% · 물고기 체력 −20%', tip: '떼로 쓸어담기', eff: { spawn: .4, soft: .2 } },
+  { id: 'bamtol', name: '밤톨', fur: '#4a3a3a', hat: 'bandana', lv: 40, gold: 2.5e7, sk: '🎁 보물상자·유물 2배 · 유물 효과 +25%', tip: '보물 사냥', eff: { relic: 1, relicpow: .25 } },
+  { id: 'daewang', name: '대왕', fur: '#ffffff', hat: 'admiral', lv: 50, gold: 1.2e8, sk: '낚시력 +60% · 그물 +10% · 치명타 +10%', tip: '끝판왕', eff: { power: .6, net: .1, crit: .1 } },
 ];
 const RELICS = [
   { id: 'bottle', name: '유리병', icon: '🍾', k: 'time', v: .5, u: '항해 시간 +0.5초' }, { id: 'beads', name: '마노 구슬', icon: '📿', k: 'gold', v: .03, u: '골드 +3%' },
@@ -324,7 +373,7 @@ function catArt(cp, w = 80) {
 
 // ═══════════ 상태 ═══════════
 const SAVE_KEY = 'tuna_save_v3';
-function fresh() { return { gold: 0, dia: 0, xp: 0, lv: 1, tree: { root: 1 }, powers: {}, pups: {}, base: { power: 0, net: 0 }, captains: { chamchi: 1 }, captain: 'chamchi', relics: {}, mastery: {}, counts: {}, map: 0, voyages: 0, best: 0, totalGold: 0, tab: 'tree', started: Date.now(), playTime: 0 }; }
+function fresh() { return { ending: 0, gold: 0, dia: 0, xp: 0, lv: 1, tree: { root: 1 }, powers: {}, pups: {}, base: { power: 0, net: 0 }, captains: { chamchi: 1 }, captain: 'chamchi', relics: {}, mastery: {}, counts: {}, map: 0, voyages: 0, best: 0, totalGold: 0, tab: 'tree', started: Date.now(), playTime: 0 }; }
 let S = fresh();
 function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
@@ -332,7 +381,7 @@ function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } cat
 // ═══════════ 계산 ═══════════
 const own = id => !!S.tree[id];
 function eff() {   // 모든 보너스 합산
-  const e = { gold: 0, dia: 0, xp: 0, time: 0, spawn: 0, power: 0, net: 0, crit: 0, relic: 0, pdmg: 0, cd: 0, rare: 0 };
+  const e = { gold: 0, dia: 0, xp: 0, time: 0, spawn: 0, power: 0, net: 0, crit: 0, relic: 0, pdmg: 0, cd: 0, rare: 0, soft: 0, per10: 0 };
   for (const id in S.tree) { const n = TREE_BY[id]; if (n && n.t === 'p') e[n.k] += n.v; }
   const cp = CAPTAINS.find(c => c.id === S.captain) || CAPTAINS[0]; let relicPow = 1 + (cp.eff.relicpow || 0);
   for (const k in cp.eff) if (k in e) e[k] += cp.eff[k];
@@ -350,7 +399,10 @@ const unlockedFish = () => FISH.filter(f => f.i === 0 || TREE.some(n => n.t === 
 const mapUnlocked = i => i === 0 || TREE.some(n => n.t === 'map' && n.map === i && own(n.id));
 const powerUnlocked = id => TREE.some(n => n.t === 'power' && n.power === id && own(n.id));
 const pupLv = (id, i) => (S.pups[id + i] || 0);
-const pupCost = (id, i) => ({ gold: Math.round(150 * Math.pow(3.2, pupLv(id, i)) * (1 + Object.keys(POWERS).indexOf(id))), dia: 5 + 8 * pupLv(id, i) });
+function skOpen(id, i) { const k = POWERS[id].sk[i]; return k.need == null || pupLv(id, k.need) >= (k.nl || 1); }
+const pupCost = (id, i) => { const k = POWERS[id].sk[i], pi = Object.keys(POWERS).indexOf(id), lv = pupLv(id, i);
+  return { gold: Math.round(120 * Math.pow(2.6, lv + i * .6) * Math.pow(2.2, pi) * (k.max === 1 ? 6 : 1)), dia: Math.round((3 + 5 * lv + 4 * i) * (k.max === 1 ? 4 : 1)) }; };
+const skDone = () => Object.keys(POWERS).reduce((a, id) => a + POWERS[id].sk.filter((k, i) => pupLv(id, i) > 0).length, 0);
 const baseCost = k => Math.round((k === 'power' ? 30 : 60) * Math.pow(k === 'power' ? 1.22 : 1.35, S.base[k]));
 const relicUpCost = id => ({ gold: Math.round(500 * Math.pow(2.6, (S.relics[id] || 1) - 1)), dia: 10 + 12 * ((S.relics[id] || 1) - 1) });
 const masteryCost = f => ({ gold: Math.round(f.gold * 40 * Math.pow(2.2, S.mastery[f.id] || 0)), dia: 2 + 3 * (S.mastery[f.id] || 0) + f.i });
@@ -374,7 +426,7 @@ function startVoyage() {
   const map = MAPS[S.map]; const pool = map.fish.filter(i => unlockedFish().some(f => f.i === i)).map(i => FISH[i]);
   pool.forEach(sprite);
   screen('voyage'); resize();
-  V = { map, pool, t: 0, left: voyTime(), fish: [], texts: [], fx: [], relicsOnScreen: [], gold: 0, dia: 0, xp: 0, caught: 0, best: null, net: { x: W / 2, y: H / 2 }, cd: {}, spawnT: 0, sndT: 0, ended: false, newRelics: [] };
+  V = { map, pool, t: 0, left: voyTime(), fish: [], texts: [], fx: [], parts: [], shk: 0, relicsOnScreen: [], chests: [], gold: 0, dia: 0, xp: 0, caught: 0, best: null, net: { x: W / 2, y: H / 2 }, cd: {}, spawnT: 0, chestT: rnd(4, 9), sndT: 0, ended: false, newRelics: [], bosses: 0 };
   for (const id in POWERS) V.cd[id] = 1 + Math.random();
   for (let i = 0; i < 6; i++) { spawnFish(); const f = V.fish[V.fish.length - 1]; f.x = rnd(40, W - 40); }
   $('capPortrait').innerHTML = catArt(CAPTAINS.find(c => c.id === S.captain), 56);
@@ -388,25 +440,38 @@ function tick() {
   while (dt > 0 && V) { const step = Math.min(0.05, dt); dt -= step; update(step); }
 }
 function frame() { if (!V) return; draw(); requestAnimationFrame(frame); }
+function addFish(f, x, y, dir) {
+  const sp = sprite(f), slow = V.map.mod.slow || 1;
+  const hp = f.hp * (1 - Math.min(.5, E.soft));
+  V.fish.push({ f, x, y, vx: dir * f.spd * slow * rnd(.85, 1.15), dir, hp, max: hp, w: sp.w, h: sp.h, ph: rnd(0, 6.28), hit: 0, jetT: 0, src: null, tank: f.beh === 'tank' || f.beh === 'boss', dartT: rnd(1, 4), dart: 0 });
+  return V.fish[V.fish.length - 1];
+}
 function spawnFish() {
-  const rareBoost = 1 + E.rare; const pool = V.pool;
-  const ws = pool.map((f, k) => Math.pow(0.62, k) * (k >= pool.length - 2 ? rareBoost : 1)); let t = ws.reduce((a, b) => a + b) * Math.random(); let f = pool[0];
+  const rareBoost = 1 + E.rare + (V.map.mod.rare || 0), pool = V.pool;
+  const ws = pool.map((f, k) => Math.pow(0.62, k) * (k >= pool.length - 2 ? rareBoost : 1) * (f.beh === 'boss' ? .25 : 1));
+  let t = ws.reduce((a, b) => a + b) * Math.random(), f = pool[0];
   for (let k = 0; k < pool.length; k++) { t -= ws[k]; if (t <= 0) { f = pool[k]; break; } }
-  const sp = sprite(f), dir = Math.random() < .5 ? 1 : -1, w = sp.w, h = sp.h;
-  V.fish.push({ f, x: dir > 0 ? -w : W + w, y: rnd(90, H - 70), vx: dir * f.spd * rnd(.8, 1.2), dir, hp: f.hp, max: f.hp, w, h, ph: rnd(0, 6.28), hit: 0, jetT: 0 });
+  const sp = sprite(f), dir = Math.random() < .5 ? 1 : -1, x0 = dir > 0 ? -sp.w : W + sp.w, y0 = rnd(100, H - 70);
+  if (f.beh === 'school') { const n = 3 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) addFish(f, x0 + dir * rnd(-90, 0) - i * dir * 8, y0 + rnd(-40, 40), dir); }
+  else if (f.beh === 'boss') { const b = addFish(f, x0, y0, dir); b.boss = 1; Sound.play('boom'); V.texts.push({ x: W / 2, y: 120, s: `👑 ${f.name} 등장!`, c: '#ffd36b', t: 0, big: 1 }); }
+  else addFish(f, x0, y0, dir);
 }
 function update(dt) {
   V.t += dt; V.left -= dt; S.playTime += dt;
   if (V.left <= 0) { endVoyage(); return; }
   // 스폰
   V.spawnT -= dt; const maxFish = 40;
-  if (V.spawnT <= 0 && V.fish.length < maxFish) { spawnFish(); V.spawnT = 0.45 / (1 + E.spawn); }
+  if (V.spawnT <= 0 && V.fish.length < maxFish) { spawnFish(); V.spawnT = 0.45 / (1 + E.spawn + (V.map.mod.spawn || 0)); }
   const P = power(), R = netR(), nx = V.net.x, ny = V.net.y;
   // 물고기 이동 + 그물 피해
   for (const fs of V.fish) {
-    fs.x += fs.vx * dt; fs.y += Math.sin(V.t * 1.7 + fs.ph) * 14 * dt; fs.hit = Math.max(0, fs.hit - dt);
+    const b = fs.f.beh; fs.hit = Math.max(0, fs.hit - dt);
     const d = Math.hypot(fs.x - nx, fs.y - ny);
-    if (d < R + fs.w * .3) { fs.hp -= P * dt; fs.hit = .4; }
+    if (b === 'dart') { fs.dartT -= dt; if (fs.dartT <= 0) { fs.dartT = rnd(2, 5); fs.dart = .6; } if (fs.dart > 0) fs.dart -= dt; }
+    if (b === 'shy' && d < R * 1.8) { const a = Math.atan2(fs.y - ny, fs.x - nx); fs.x += Math.cos(a) * fs.f.spd * 1.6 * dt; fs.y = Math.max(90, Math.min(H - 40, fs.y + Math.sin(a) * fs.f.spd * 1.6 * dt)); fs.scared = .5; }
+    else { fs.scared = Math.max(0, (fs.scared || 0) - dt); fs.x += fs.vx * (fs.dart > 0 ? 3 : 1) * dt; }
+    fs.y += Math.sin(V.t * (b === 'drift' ? .9 : 1.7) + fs.ph) * (b === 'drift' ? 34 : 14) * dt;
+    if (d < R + fs.w * .3) { fs.hp -= P * dt; fs.hit = .4; fs.src = null; }
   }
   // 능력
   for (const id in POWERS) {
@@ -417,46 +482,82 @@ function update(dt) {
   // 효과 처리
   for (const fx of V.fx) {
     fx.t += dt;
-    if (fx.type === 'bomb' && !fx.done && fx.t >= fx.fuse) { fx.done = true; fx.boom = 0.35; for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < fx.r + fs.w * .3) { fs.hp -= fx.dmg; fs.hit = .4; } Sound.play('boom'); }
-    if (fx.type === 'jet') { fx.x += fx.vx * dt; fx.y += fx.vy * dt; if (fx.x < 0 || fx.x > W) fx.vx *= -1; if (fx.y < 70 || fx.y > H) fx.vy *= -1; for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < 26 + fs.w * .3 && V.t - fs.jetT > 0.35) { fs.jetT = V.t; fs.hp -= fx.dmg; fs.hit = .4; } }
-    if (fx.type === 'enet') for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < fx.r + fs.w * .3) { fs.hp -= fx.dps * dt; fs.hit = .4; }
+    if (fx.type === 'bomb' && !fx.done && fx.t >= fx.fuse) { fx.done = true; fx.boom = 0.35; for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < fx.r + fs.w * .3) hurt(fs, fx.dmg, fx.id); Sound.play('boom'); shake(12); coins(fx.x, fx.y, 8, '#ffb35e');
+      if (fx.echo) V.fx.push({ type: 'bomb', id: fx.id, x: fx.x + rnd(-40, 40), y: fx.y + rnd(-40, 40), t: 0, life: 99, fuse: .5, r: fx.r * .8, dmg: fx.dmg * .6 }); }
+    if (fx.type === 'jet') { fx.x += fx.vx * dt; fx.y += fx.vy * dt; if (fx.x < 0 || fx.x > W) { fx.vx *= -1; if (fx.ramp) fx.ramp *= 1.25; } if (fx.y < 70 || fx.y > H) { fx.vy *= -1; if (fx.ramp) fx.ramp *= 1.25; }
+      for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < 26 + fs.w * .3 && V.t - fs.jetT > 0.35) { fs.jetT = V.t; hurt(fs, fx.dmg * (fx.ramp || 1), fx.id); } }
+    if (fx.type === 'enet') { if (fx.follow) { fx.x += (V.net.x - fx.x) * Math.min(1, dt * 6); fx.y += (V.net.y - fx.y) * Math.min(1, dt * 6); } for (const fs of V.fish) if (Math.hypot(fs.x - fx.x, fs.y - fx.y) < fx.r + fs.w * .3) hurt(fs, fx.dps * dt, fx.id); }
   }
   V.fx = V.fx.filter(fx => fx.type === 'bomb' ? !(fx.done && fx.boom !== undefined && (fx.boom -= dt) <= 0) : fx.t < fx.life);
   // 포획 / 이탈
   const alive = [];
   for (const fs of V.fish) { if (fs.hp <= 0) catchFish(fs); else if (fs.x < -fs.w - 40 || fs.x > W + fs.w + 40) {} else alive.push(fs); }
   V.fish = alive;
+  // 보물상자
+  V.chestT -= dt * (1 + (V.map.mod.chest || 0) + E.relic * .5);
+  if (V.chestT <= 0 && V.chests.length < 3) { V.chestT = rnd(7, 14); V.chests.push({ x: rnd(60, W - 60), y: rnd(120, H - 60), t: 0, ph: rnd(0, 6.28) }); }
+  for (const c of V.chests) { c.t += dt; c.y += Math.sin(V.t * 1.4 + c.ph) * 10 * dt; if (Math.hypot(c.x - nx, c.y - ny) < R + 22) { c.got = true; openChest(c.x, c.y); } }
+  V.chests = V.chests.filter(c => !c.got && c.t < 16);
   // 유물 아이템
   for (const r of V.relicsOnScreen) { r.y -= 22 * dt; r.t += dt; if (Math.hypot(r.x - nx, r.y - ny) < R + 16) { r.got = true; collectRelic(r.id); } }
   V.relicsOnScreen = V.relicsOnScreen.filter(r => !r.got && r.t < 14 && r.y > 40);
-  // 텍스트
-  for (const tx of V.texts) { tx.t += dt; tx.y -= 40 * dt; }
-  V.texts = V.texts.filter(tx => tx.t < 1);
+  // 텍스트 · 파티클 · 흔들림
+  for (const tx of V.texts) { tx.t += dt; tx.y -= 46 * dt; }
+  V.texts = V.texts.filter(tx => tx.t < 1.1);
+  for (const pt of V.parts) { pt.t += dt; pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vy += 620 * dt; }
+  V.parts = V.parts.filter(pt => pt.t < pt.life);
+  V.shk = Math.max(0, (V.shk || 0) - dt * 40);
   // HUD
   $('timer').textContent = V.left.toFixed(1); $('timer').classList.toggle('low', V.left <= 5);
-  $('vgold').textContent = fmt(Math.floor(S.gold)); $('vdia').textContent = fmt(S.dia); $('vlv').textContent = S.lv; $('vxpFill').style.width = (S.xp / xpNeed(S.lv) * 100) + '%'; $('vxpTxt').textContent = `${fmt(Math.floor(S.xp))} / ${fmt(xpNeed(S.lv))}`;
+  $('vgold').textContent = fmt(Math.floor(S.gold)); $('vgain').textContent = V.gold > 0 ? '+' + fmt(Math.floor(V.gold)) : ''; $('vdia').textContent = fmt(S.dia); $('vlv').textContent = S.lv; $('vxpFill').style.width = (S.xp / xpNeed(S.lv) * 100) + '%'; $('vxpTxt').textContent = `${fmt(Math.floor(S.xp))} / ${fmt(xpNeed(S.lv))}`;
   for (const id in POWERS) { const el = $('cd-' + id); if (!el) continue; const on = powerUnlocked(id) && V.cd[id] > 0.05; el.style.display = on ? '' : 'none'; if (on) el.textContent = V.cd[id].toFixed(1); }
 }
+function zap(id, x, y, chains, dmg, pts) {   // 번개 한 갈래
+  let cur = V.fish.filter(f => Math.hypot(f.x - x, f.y - y) < 300).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
+  const used = new Set();
+  for (let k = 0; k < chains && cur; k++) { hurt(cur, dmg, id); used.add(cur); pts.push({ x: cur.x, y: cur.y }); cur = V.fish.filter(f => !used.has(f) && Math.hypot(f.x - cur.x, f.y - cur.y) < 190).sort((a, b) => Math.hypot(a.x - cur.x, a.y - cur.y) - Math.hypot(b.x - cur.x, b.y - cur.y))[0]; }
+}
+function hurt(f, d, src) { f.hp -= d; f.hit = .4; if (src) f.src = src; }
 function castPower(id) {
-  const nx = V.net.x, ny = V.net.y, P = power(), dm = (1 + E.pdmg) * Math.pow(1.4, pupLv(id, 0));
-  const near = V.fish.filter(f => Math.hypot(f.x - nx, f.y - ny) < 260);
-  if (id === 'lightning') { if (!near.length) return false; let cur = near.sort((a, b) => Math.hypot(a.x - nx, a.y - ny) - Math.hypot(b.x - nx, b.y - ny))[0]; const pts = [{ x: nx, y: ny }]; const used = new Set(); for (let k = 0; k < 3 + pupLv(id, 1) && cur; k++) { cur.hp -= P * 4 * dm; cur.hit = .4; used.add(cur); pts.push({ x: cur.x, y: cur.y }); cur = V.fish.filter(f => !used.has(f) && Math.hypot(f.x - cur.x, f.y - cur.y) < 170).sort((a, b) => Math.hypot(a.x - cur.x, a.y - cur.y) - Math.hypot(b.x - cur.x, b.y - cur.y))[0]; } V.fx.push({ type: 'bolt', pts, t: 0, life: .3 }); Sound.play('tick'); return true; }
-  if (id === 'bomb') { if (!near.length) return false; V.fx.push({ type: 'bomb', x: nx, y: ny, t: 0, life: 99, fuse: 3, r: 120 * Math.pow(1.2, pupLv(id, 1)), dmg: P * 10 * dm }); return true; }
-  if (id === 'jet') { if (!near.length) return false; const a = rnd(0, 6.28); V.fx.push({ type: 'jet', x: nx, y: ny, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0, life: 2 + 0.5 * pupLv(id, 1), dmg: P * 2.5 * dm }); Sound.play('whoosh'); return true; }
-  if (id === 'enet') { if (!near.length) return false; V.fx.push({ type: 'enet', x: nx, y: ny, t: 0, life: 2, r: netR() * 1.1 * Math.pow(1.2, pupLv(id, 1)), dps: P * 2 * dm }); return true; }
+  const nx = V.net.x, ny = V.net.y, P = power(), dm = (1 + E.pdmg) * Math.pow(1.4, pupLv(id, 0)), spec = pupLv(id, 3) > 0;
+  const near = V.fish.filter(f => Math.hypot(f.x - nx, f.y - ny) < 300);
+  if (!near.length) return false;
+  if (id === 'lightning') {
+    const pts = [{ x: nx, y: ny }]; zap(id, nx, ny, 3 + pupLv(id, 1), P * 4 * dm, pts);
+    if (spec) { const p2 = [{ x: nx, y: ny }]; zap(id, nx + rnd(-60, 60), ny + rnd(-60, 60), 3 + pupLv(id, 1), P * 4 * dm, p2); V.fx.push({ type: 'bolt', pts: p2, t: 0, life: .3 }); }
+    V.fx.push({ type: 'bolt', pts, t: 0, life: .3 }); Sound.play('tick'); return true;
+  }
+  if (id === 'bomb') { V.fx.push({ type: 'bomb', id, x: nx, y: ny, t: 0, life: 99, fuse: 3, r: 120 * Math.pow(1.2, pupLv(id, 1)), dmg: P * 10 * dm, echo: spec }); return true; }
+  if (id === 'jet') { const a = rnd(0, 6.28); V.fx.push({ type: 'jet', id, x: nx, y: ny, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0, life: 2 + 0.5 * pupLv(id, 1), dmg: P * 2.5 * dm, ramp: spec ? 1 : 0 }); Sound.play('whoosh'); return true; }
+  if (id === 'enet') { V.fx.push({ type: 'enet', id, x: nx, y: ny, t: 0, life: 2, r: netR() * 1.1 * Math.pow(1.2, pupLv(id, 1)), dps: P * 2 * dm, follow: spec }); return true; }
   return false;
 }
+function shake(a) { V.shk = Math.max(V.shk || 0, a); }
+function coins(x, y, n, c) { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(90, 320); V.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, t: 0, life: rnd(.5, .9), c: c || '#ffd36b', r: rnd(3, 7) }); } }
 function catchFish(fs) {
   const f = fs.f; const crit = Math.random() < 0.05 + E.crit;
-  let g = f.gold * (1 + E.gold) * masteryMult(f) * (crit ? 3 : 1);
+  let g = f.gold * (1 + E.gold + (V.map.mod.gold || 0)) * masteryMult(f) * (crit ? 3 : 1) * (fs.tank ? 1.6 : 1);
+  if (fs.src) g *= 1 + 0.2 * pupLv(fs.src, 4);
   S.gold += g; S.totalGold += g; V.gold += g; V.caught++; S.counts[f.id] = (S.counts[f.id] || 0) + 1;
+  if (E.per10 && V.caught % 10 === 0) { const d = Math.round(E.per10); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 40, s: '💎+' + d, c: '#9fe9ff', t: 0 }); }
   const xp = f.xp * (1 + E.xp); addXp(xp); V.xp += xp;
-  const diaChance = (f.i >= 6 ? 0.25 : 0.03) * (1 + E.dia); if (Math.random() < diaChance) { const d = Math.max(1, Math.ceil(f.i / 4)); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 26, s: '💎+' + d, c: '#9fe9ff', t: 0 }); }
+  const diaChance = (f.i >= 6 ? 0.25 : 0.03) * (1 + E.dia + (V.map.mod.dia || 0)); if (Math.random() < diaChance) { const d = Math.max(1, Math.ceil(f.i / 4)); S.dia += d; V.dia += d; V.texts.push({ x: fs.x, y: fs.y - 26, s: '💎+' + d, c: '#9fe9ff', t: 0 }); }
   if (Math.random() < 0.006 * (1 + E.relic) * (f.i >= 8 ? 2 : 1)) V.relicsOnScreen.push({ x: fs.x, y: fs.y, id: pick(RELICS).id, t: 0 });
-  V.texts.push({ x: fs.x, y: fs.y - 10, s: (crit ? '💥 ' : '+') + fmt(g), c: crit ? '#ffd36b' : '#fff', t: 0, big: crit || f.i >= 10 });
+  V.texts.push({ x: fs.x, y: fs.y - 10, s: (crit ? '💥 ' : '💰 +') + fmt(g), c: crit ? '#ffd36b' : '#fff8d0', t: 0, big: crit || f.i >= 10, huge: fs.boss || crit });
+  coins(fs.x, fs.y, fs.boss ? 26 : crit ? 16 : f.i >= 8 ? 10 : 5);
+  if (crit) shake(6); if (fs.boss) { shake(16); confetti(16); Sound.play('win'); }
   if (!V.best || f.i > V.best.i) V.best = f;
+  if (f.id === 'leviathan' && !S.ending) { S.ending = Date.now(); V.ending = 1; }
   if (V.t - V.sndT > 0.07) { V.sndT = V.t; Sound.play(f.i >= 8 ? 'coin' : 'bubble', { pitch: Math.min(1, f.i / 12) }); }
 }
+function openChest(x, y) {
+  const r = Math.random();
+  if (r < .5) { const g = Math.max(30, cps0() * 12) * rnd(.8, 1.4) * (1 + E.gold); S.gold += g; S.totalGold += g; V.gold += g; V.texts.push({ x, y, s: '🎁 💰+' + fmt(g), c: '#ffd36b', t: 0, big: 1 }); }
+  else if (r < .85) { const d = Math.max(2, Math.round(3 + V.map.fish[0] / 2)) * (1 + E.dia | 0) + 2; S.dia += d; V.dia += d; V.texts.push({ x, y, s: '🎁 💎+' + d, c: '#9fe9ff', t: 0, big: 1 }); }
+  else { const pool2 = RELICS.filter(r2 => !S.relics[r2.id]); collectRelic((pool2.length ? pick(pool2) : pick(RELICS)).id); }
+  Sound.play('coin'); V.fx.push({ type: 'boom', x, y, t: 0, life: .5 }); coins(x, y, 22); shake(9);
+}
+function cps0() { return V.pool.reduce((a, f) => a + f.gold, 0) / V.pool.length * (1 + E.gold) * (1 + (V.map.mod.gold || 0)); }
 function collectRelic(id) {
   const r = relicById[id];
   if (!S.relics[id]) { S.relics[id] = 1; refreshEff(); V.newRelics.push(id); $('rpIc').textContent = r.icon; $('rpNm').textContent = `${r.name} 발견! — ${r.u}`; const p = $('relicpop'); p.classList.add('show'); clearTimeout(collectRelic._t); collectRelic._t = setTimeout(() => p.classList.remove('show'), 1800); Sound.play('meld'); }
@@ -464,6 +565,8 @@ function collectRelic(id) {
 }
 function draw() {
   if (!V) return;
+  ctx.save();
+  if (V.shk > .3) ctx.translate(rnd(-V.shk, V.shk), rnd(-V.shk, V.shk));
   const m = V.map, g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, m.bg[0]); g.addColorStop(.45, m.bg[1]); g.addColorStop(1, m.bg[2]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // 빛줄기 + 바닥 장식
@@ -476,26 +579,50 @@ function draw() {
   for (const fs of V.fish) {
     const sp = sprite(fs.f); if (!sp.img.complete) continue;
     ctx.save(); ctx.translate(fs.x, fs.y); if (fs.dir > 0) ctx.scale(-1, 1); ctx.drawImage(sp.img, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore();
-    if (fs.hp < fs.max) { const bw = Math.max(26, sp.w * .6); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(fs.x - bw / 2, fs.y - sp.h / 2 - 8, bw, 5); ctx.fillStyle = fs.hit ? '#ffd36b' : '#7dff8a'; ctx.fillRect(fs.x - bw / 2, fs.y - sp.h / 2 - 8, bw * Math.max(0, fs.hp / fs.max), 5); }
+    if (fs.hp < fs.max || fs.boss) { const bw = Math.max(30, sp.w * (fs.boss ? .9 : .6)); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(fs.x - bw / 2, fs.y - sp.h / 2 - 9, bw, fs.boss ? 7 : 5); ctx.fillStyle = fs.boss ? '#ff8fab' : fs.hit ? '#ffd36b' : '#7dff8a'; ctx.fillRect(fs.x - bw / 2, fs.y - sp.h / 2 - 9, bw * Math.max(0, fs.hp / fs.max), fs.boss ? 7 : 5); }
+    if (fs.boss) { ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.fillText('👑', fs.x, fs.y - sp.h / 2 - 14); }
+    if (fs.scared > 0) { ctx.font = '14px serif'; ctx.textAlign = 'center'; ctx.fillText('💨', fs.x - fs.dir * sp.w * .5, fs.y - sp.h * .4); }
   }
   // 효과
   for (const fx of V.fx) {
-    if (fx.type === 'bolt') { ctx.strokeStyle = 'rgba(255,255,255,' + (1 - fx.t / fx.life) + ')'; ctx.lineWidth = 4; ctx.shadowColor = '#7fd8ff'; ctx.shadowBlur = 16; ctx.beginPath(); fx.pts.forEach((p, i) => { const jx = i ? rnd(-6, 6) : 0, jy = i ? rnd(-6, 6) : 0; i ? ctx.lineTo(p.x + jx, p.y + jy) : ctx.moveTo(p.x, p.y); }); ctx.stroke(); ctx.shadowBlur = 0; }
-    if (fx.type === 'bomb') { if (!fx.done) { ctx.font = '30px serif'; ctx.textAlign = 'center'; ctx.fillText('💣', fx.x, fx.y + 10); ctx.fillStyle = '#fff'; ctx.font = '14px Jua'; ctx.fillText((fx.fuse - fx.t).toFixed(1), fx.x, fx.y - 22); } else { ctx.strokeStyle = 'rgba(255,200,80,' + (fx.boom / .35) + ')'; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (1.3 - fx.boom / .35), 0, 6.28); ctx.stroke(); } }
+    if (fx.type === 'bolt') { const a = 1 - fx.t / fx.life; ctx.shadowColor = '#7fd8ff'; ctx.shadowBlur = 30;
+      for (const [w, col] of [[14, `rgba(140,220,255,${a * .5})`], [7, `rgba(210,240,255,${a})`], [3, `rgba(255,255,255,${a})`]]) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); fx.pts.forEach((p, i) => { const jx = i ? rnd(-9, 9) : 0, jy = i ? rnd(-9, 9) : 0; i ? ctx.lineTo(p.x + jx, p.y + jy) : ctx.moveTo(p.x, p.y); }); ctx.stroke(); }
+      ctx.shadowBlur = 0; }
+    if (fx.type === 'bomb') { if (!fx.done) { ctx.font = '30px serif'; ctx.textAlign = 'center'; ctx.fillText('💣', fx.x, fx.y + 10); ctx.fillStyle = '#fff'; ctx.font = '14px Jua'; ctx.fillText((fx.fuse - fx.t).toFixed(1), fx.x, fx.y - 22); } else { const k = 1 - fx.boom / .35; ctx.fillStyle = `rgba(255,170,60,${(1 - k) * .45})`; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.4 + k), 0, 6.28); ctx.fill();
+      ctx.strokeStyle = `rgba(255,220,120,${1 - k})`; ctx.lineWidth = 14 * (1 - k) + 3; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.5 + k * .9), 0, 6.28); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,255,255,${(1 - k) * .8})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.2 + k * 1.15), 0, 6.28); ctx.stroke(); } }
     if (fx.type === 'jet') { ctx.fillStyle = 'rgba(160,230,255,.9)'; ctx.beginPath(); ctx.arc(fx.x, fx.y, 14, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(fx.x, fx.y); ctx.lineTo(fx.x - fx.vx * .06, fx.y - fx.vy * .06); ctx.stroke(); }
+    if (fx.type === 'boom') { ctx.strokeStyle = `rgba(255,211,107,${1 - fx.t / fx.life})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx.x, fx.y, 20 + fx.t * 140, 0, 6.28); ctx.stroke(); }
     if (fx.type === 'enet') { ctx.strokeStyle = 'rgba(200,150,255,.9)'; ctx.setLineDash([6, 6]); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r, 0, 6.28); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = 'rgba(180,120,255,.15)'; ctx.fill(); }
   }
+  // 보물상자
+  ctx.font = '32px serif'; ctx.textAlign = 'center';
+  for (const c of V.chests) { ctx.save(); ctx.globalAlpha = .55 + Math.sin(c.t * 5) * .25; ctx.fillStyle = '#ffd36b'; ctx.beginPath(); ctx.arc(c.x, c.y - 4, 26, 0, 6.28); ctx.fill(); ctx.restore(); ctx.fillText('🎁', c.x, c.y + 8); }
   // 유물
-  ctx.font = '28px serif'; ctx.textAlign = 'center'; for (const r of V.relicsOnScreen) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(r.x, r.y, 22 + Math.sin(r.t * 4) * 2, 0, 6.28); ctx.fill(); ctx.fillText(relicById[r.id].icon, r.x, r.y + 10); }
+  ctx.font = '28px serif'; for (const r of V.relicsOnScreen) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(r.x, r.y, 22 + Math.sin(r.t * 4) * 2, 0, 6.28); ctx.fill(); ctx.fillText(relicById[r.id].icon, r.x, r.y + 10); }
+  // 심해: 그물 주변만 밝게
+  if (V.map.mod.dark) { const gr = ctx.createRadialGradient(V.net.x, V.net.y, netR() * .6, V.net.x, V.net.y, netR() * 3.4); gr.addColorStop(0, 'rgba(0,0,20,0)'); gr.addColorStop(1, 'rgba(0,0,25,.82)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); }
+  if (V.map.mod.spark) { ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 16; i++) { const a = V.t * .6 + i * 2.1; ctx.globalAlpha = .3 + Math.abs(Math.sin(a)) * .6; ctx.beginPath(); ctx.arc((i * 137 + Math.sin(a) * 40) % W, (i * 211 + Math.cos(a) * 30) % H, 2.2, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1; }
   // 그물
   const R = netR(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3; ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.arc(V.net.x, V.net.y, R, 0, 6.28); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(V.net.x + i * R * .4, V.net.y - R); ctx.lineTo(V.net.x + i * R * .4, V.net.y + R); ctx.stroke(); ctx.beginPath(); ctx.moveTo(V.net.x - R, V.net.y + i * R * .4); ctx.lineTo(V.net.x + R, V.net.y + i * R * .4); ctx.stroke(); }
-  // 텍스트
-  ctx.textAlign = 'center'; for (const tx of V.texts) { ctx.globalAlpha = 1 - tx.t; ctx.font = (tx.big ? 22 : 16) + 'px Jua'; ctx.lineWidth = 4; ctx.strokeStyle = '#5c3a1a'; ctx.strokeText(tx.s, tx.x, tx.y); ctx.fillStyle = tx.c; ctx.fillText(tx.s, tx.x, tx.y); } ctx.globalAlpha = 1;
+  // 코인 파티클
+  for (const pt of V.parts) { ctx.globalAlpha = Math.max(0, 1 - pt.t / pt.life); ctx.fillStyle = pt.c; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.r, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  // 텍스트 (크게)
+  ctx.textAlign = 'center';
+  for (const tx of V.texts) { const k = Math.min(1, tx.t * 6), sc = tx.huge ? 1.35 : 1; ctx.globalAlpha = Math.min(1, (1.1 - tx.t) * 1.6); ctx.font = `${Math.round((tx.big ? 30 : 22) * sc * (0.7 + k * 0.3))}px Jua`; ctx.lineWidth = 6; ctx.strokeStyle = '#5c3a1a'; ctx.strokeText(tx.s, tx.x, tx.y); ctx.fillStyle = tx.c; ctx.fillText(tx.s, tx.x, tx.y); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 function endVoyage() {
   if (!V || V.ended) return; V.ended = true;
-  const v = V; V = null; clearInterval(startVoyage._iv); S.voyages++; if (v.gold > S.best) S.best = v.gold; save(); refreshEff();
+  const v = V; V = null; clearInterval(startVoyage._iv); S.voyages++;
+  if (v.ending) { if (v.gold > S.best) S.best = v.gold; save(); refreshEff(); Sound.theme('lounge'); Sound.play('win'); confetti(80);
+    showModal(`<h2>🏆 심연의 리바이어던</h2><div style="font-size:48px">🐉</div><p>바다 가장 깊은 곳의 주인을 그물에 담았어요.<br>선원들은 오래오래 이 항해를 이야기했대요.</p>
+      <div class="res"><div>항해<b>${S.voyages}회</b></div><div>레벨<b>${S.lv}</b></div><div>도감<b>${FISH.filter(f => S.counts[f.id]).length}/${FISH.length}</b></div><div>누적 골드<b>💰${fmt(Math.floor(S.totalGold))}</b></div></div>
+      <p style="font-size:13px">바다는 아직 넓어요 — 계속 낚아도 돼요.</p><div class="row" style="justify-content:center"><button class="btn green" onclick="hideModal(); renderPort();">⛵ 계속 항해하기</button></div>`);
+    screen('port'); return; } if (v.gold > S.best) S.best = v.gold; save(); refreshEff();
   Sound.theme('lounge'); Sound.play('win'); if (v.best && v.best.i >= 10) confetti(20);
   showModal(`<h2>🎣 항해 끝!</h2><div class="res"><div>💰 골드<b>+${fmt(Math.floor(v.gold))}</b></div><div>💎 다이아<b>+${v.dia}</b></div><div>🐟 잡은 수<b>${v.caught}</b></div><div>📗 경험치<b>+${fmt(Math.floor(v.xp))}</b></div></div>
     ${v.best ? `<div class="card" style="display:flex;align-items:center;gap:10px;text-align:left">${fishArt(v.best, 70)}<div>가장 큰 수확<br><b>${v.best.name}</b></div></div>` : ''}
@@ -507,26 +634,60 @@ function endVoyage() {
 
 // ═══════════ 항구 UI ═══════════
 let sel = null;
+function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
 function renderTop() {
   $('lv').textContent = S.lv; $('xpFill').style.width = (S.xp / xpNeed(S.lv) * 100) + '%'; $('xpTxt').textContent = `${fmt(Math.floor(S.xp))} / ${fmt(xpNeed(S.lv))}`;
-  $('gold').textContent = fmt(Math.floor(S.gold)); $('dia').textContent = fmt(S.dia); $('btnMap').textContent = `📍 ${MAPS[S.map].name}`;
+  const g = fmt(Math.floor(S.gold)), d = fmt(S.dia);
+  if (renderTop._g !== undefined && renderTop._g !== g) bump($('curGold'));
+  if (renderTop._d !== undefined && renderTop._d !== d) bump($('curDia'));
+  renderTop._g = g; renderTop._d = d;
+  $('gold').textContent = g; $('dia').textContent = d; $('btnMap').textContent = `📍 ${MAPS[S.map].name}`;
   const treeOk = TREE.some(n => !own(n.id) && n.link.some(l => own(l)) && S.gold >= n.cost);
   document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
   document.querySelector('[data-tab="captain"]').classList.toggle('alert', CAPTAINS.some(c => !S.captains[c.id] && S.lv >= c.lv && S.gold >= c.gold) && S.tab !== 'captain');
 }
 function renderPort() { renderTop(); renderPanel(); }
-function setTab(t) { S.tab = t; document.querySelectorAll('.mb').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); sel = null; renderPort(); }
+function setTab(t) { S.tab = t; document.querySelectorAll('.mb').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); sel = null; hideSheet(); renderPort(); }
 document.querySelectorAll('.mb').forEach(b => b.onclick = () => { Sound.play('click'); setTab(b.dataset.tab); });
 function costTxt(c) { return `💰${fmt(c.gold)}${c.dia ? ' 💎' + c.dia : ''}`; }
+// 한 번 탭 = 설명 보기 / 두 번 탭(더블클릭) = 구매. 살 수 있을 때만 사짐
+function bindBuy(el, canFn, buyFn, infoFn) {
+  if (!el) return;
+  el.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    const now = Date.now();
+    if (bindBuy._el === el && now - bindBuy._t < 450) {
+      bindBuy._el = null; clearTimeout(bindBuy._h);
+      if (canFn()) buyFn();
+      else { Sound.play('error'); el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 380); infoFn && infoFn(); }
+      return;
+    }
+    bindBuy._el = el; bindBuy._t = now;
+    clearTimeout(bindBuy._h); bindBuy._h = setTimeout(() => { Sound.play('tap'); infoFn && infoFn(); }, 170);
+  });
+  el.addEventListener('dblclick', e => e.preventDefault());
+}
+// 화면 아래 설명 바: 아이콘 · 제목 · 설명 · 가격(보유 금액 같이)
+function showSheet(icon, name, desc, cost, extra) {
+  const sh = $('sheet'); if (!sh) return;
+  let right = extra || '';
+  if (cost) {
+    const ok = canPay(cost), lackG = Math.max(0, cost.gold - S.gold), lackD = Math.max(0, (cost.dia || 0) - S.dia);
+    right = `<span class="pz ${ok ? 'ok' : 'no'}">${costTxt(cost)}<small>${ok ? '👆👆 더블클릭하면 구매!' : `${lackG ? '💰' + fmt(lackG) : ''}${lackD ? ' 💎' + lackD : ''} 부족`}</small><small>보유 💰${fmt(Math.floor(S.gold))} · 💎${fmt(S.dia)}</small></span>`;
+  }
+  sh.innerHTML = `<div class="ic">${icon}</div><div class="t"><div class="nm">${name}</div><div class="ds">${desc}</div></div>${right}`;
+  sh.classList.add('show');
+}
+function hideSheet() { const sh = $('sheet'); if (sh) { sh.classList.remove('show'); sh.innerHTML = ''; } }
 function canPay(c) { return S.gold >= c.gold && S.dia >= (c.dia || 0); }
 function pay(c) { S.gold -= c.gold; S.dia -= c.dia || 0; }
 function renderPanel() {
   const Pn = $('panel'); const t = S.tab;
   if (t === 'tree') {
     const cell = 66, pad = 40;
-    Pn.innerHTML = `<div class="treewrap" id="treewrap"><div class="tree" id="tree" style="width:${TW * cell + pad * 2}px;height:${TH * cell + pad * 2}px"><svg width="${TW * cell + pad * 2}" height="${TH * cell + pad * 2}">${TREE.flatMap(n => n.link.map(l => { const m = TREE_BY[l]; return `<line x1="${pad + n.x * cell + cell / 2}" y1="${pad + n.y * cell + cell / 2}" x2="${pad + m.x * cell + cell / 2}" y2="${pad + m.y * cell + cell / 2}" stroke="${own(n.id) ? '#ffd36b' : 'rgba(140,190,255,.45)'}" stroke-width="4"/>`; })).join('')}</svg>${TREE.map(n => { const av = !own(n.id) && n.link.some(l => own(l)); const sz = n.key ? 58 : 50; return `<div class="tn ${n.key ? 'key' : ''} ${own(n.id) ? 'own' : av ? 'avail' + (S.gold >= n.cost ? ' ok' : '') : 'lock'}" data-id="${n.id}" style="left:${pad + n.x * cell + (cell - sz) / 2}px;top:${pad + n.y * cell + (cell - sz) / 2}px" title="${n.name}">${n.icon}</div>`; }).join('')}</div></div><div class="sheet" id="sheet"></div>`;
+    Pn.innerHTML = `<div class="treewrap" id="treewrap"><div class="tree" id="tree" style="width:${TW * cell + pad * 2}px;height:${TH * cell + pad * 2}px"><svg width="${TW * cell + pad * 2}" height="${TH * cell + pad * 2}">${TREE.filter(vis).flatMap(n => n.link.filter(l => vis(TREE_BY[l])).map(l => { const m = TREE_BY[l]; return `<line x1="${pad + n.x * cell + cell / 2}" y1="${pad + n.y * cell + cell / 2}" x2="${pad + m.x * cell + cell / 2}" y2="${pad + m.y * cell + cell / 2}" stroke="${own(n.id) ? '#ffd36b' : 'rgba(140,190,255,.5)'}" stroke-width="5"/>`; })).join('')}</svg>${TREE.filter(vis).map(n => { const av = !own(n.id); const sz = n.key ? 58 : 50; return `<div class="tn ${n.key ? 'key' : ''} ${own(n.id) ? 'own' : 'avail' + (S.gold >= n.cost ? ' ok' : '')}" data-id="${n.id}" style="left:${pad + n.x * cell + (cell - sz) / 2}px;top:${pad + n.y * cell + (cell - sz) / 2}px" title="${n.name}">${n.icon}${av ? `<span class="pr">💰${fmt(n.cost)}</span>` : ''}</div>`; }).join('')}</div></div>`;
     const wrap = $('treewrap');
-    Pn.querySelectorAll('.tn').forEach(el => el.onclick = () => selectNode(el.dataset.id));
+    Pn.querySelectorAll('.tn').forEach(el => bindBuy(el, () => { const n = TREE_BY[el.dataset.id]; return !own(n.id) && n.link.some(l => own(l)) && S.gold >= n.cost; }, () => buyNode(el.dataset.id), () => selectNode(el.dataset.id)));
     wrap.scrollLeft = pad + C.x * cell + cell / 2 - wrap.clientWidth / 2; wrap.scrollTop = pad + C.y * cell + cell / 2 - wrap.clientHeight / 2;
     if (sel) selectNode(sel);
   } else if (t === 'power') {
@@ -534,27 +695,43 @@ function renderPanel() {
       <div class="cd ${S.gold >= baseCost('power') ? 'ok' : ''}" id="up-power"><div class="ic">🎣</div><div class="nm">낚시력 Lv.${S.base.power}</div><div class="ds">그물 안 물고기에 초당 ${fmt(power())} 피해 · 레벨당 +8%</div><div class="cost">💰${fmt(baseCost('power'))}</div></div>
       <div class="cd ${S.gold >= baseCost('net') ? 'ok' : ''} ${S.base.net >= 30 ? 'max' : ''}" id="up-net"><div class="ic">🕸️</div><div class="nm">그물 크기 Lv.${S.base.net}</div><div class="ds">반지름 ${Math.round(netR())}px · 레벨당 +4% (최대 30)</div><div class="cost">${S.base.net >= 30 ? 'MAX' : '💰' + fmt(baseCost('net'))}</div></div></div>
       <h3 style="margin-top:12px">⚡ 능력 4종<small>특성 트리 "능력" 갈래에서 해금 · 항해 중 자동 발동</small></h3>` +
-      Object.entries(POWERS).map(([id, p]) => { const un = powerUnlocked(id); return `<div class="pw"><h4>${p.icon} ${p.name}<small>${un ? '재사용 ' + (p.cd * Math.pow(0.88, pupLv(id, 2)) * (1 - E.cd)).toFixed(1) + '초' : '🔒 특성 트리에서 해금'}</small></h4><p>${p.d}</p>${un ? `<div class="ups">${p.ups.map((u, i) => { const lv = pupLv(id, i), max = lv >= u[2], c = pupCost(id, i); return `<div class="pu ${max ? 'max' : canPay(c) ? 'ok' : ''}" data-p="${id}" data-i="${i}"><b>${u[0]} ${lv}/${u[2]}</b>${u[1]}<div class="c">${max ? 'MAX' : costTxt(c)}</div></div>`; }).join('')}</div>` : ''}</div>`; }).join('');
-    $('up-power').onclick = () => { const c = baseCost('power'); if (S.gold < c) return Sound.play('error'); S.gold -= c; S.base.power++; Sound.play('coin'); renderPort(); };
-    $('up-net').onclick = () => { const c = baseCost('net'); if (S.base.net >= 30 || S.gold < c) return Sound.play('error'); S.gold -= c; S.base.net++; Sound.play('coin'); renderPort(); };
-    Pn.querySelectorAll('.pu').forEach(el => el.onclick = () => { const id = el.dataset.p, i = +el.dataset.i; if (pupLv(id, i) >= POWERS[id].ups[i][2]) return; const c = pupCost(id, i); if (!canPay(c)) return Sound.play('error'); pay(c); S.pups[id + i] = pupLv(id, i) + 1; Sound.play('correct'); renderPort(); });
+      Object.entries(POWERS).map(([id, p]) => { const un = powerUnlocked(id), got = p.sk.filter((k, i) => pupLv(id, i) > 0).length;
+        return `<div class="pw"><h4>${p.icon} ${p.name}<small>${un ? `스킬 ${got}/5 · 재사용 ${(p.cd * Math.pow(0.88, pupLv(id, 2)) * (1 - E.cd)).toFixed(1)}초` : '🔒 특성 트리 "능력" 갈래에서 해금'}</small></h4><p>${p.d}</p>${un ? `<div class="sktree">${p.sk.map((k, i) => {
+          const lv = pupLv(id, i), max = lv >= k.max, open = skOpen(id, i), c = pupCost(id, i);
+          if (!open) { const pk = p.sk[k.need], known = pupLv(id, k.need) > 0 || skOpen(id, k.need); return `<div class="sk ${k.p} hid"><div class="ic">❔</div><div class="nm">???</div><div class="c">🔒 ${known ? pk.n : '앞 스킬'} ${k.nl || 1}단계</div></div>`; }
+          return `<div class="sk ${k.p} ${max ? 'maxed' : canPay(c) ? 'ok' : ''}" data-p="${id}" data-i="${i}">${k.max === 1 ? '<span class="dot2">특수</span>' : ''}<div class="ic">${k.ic}</div><div class="nm">${k.n}</div><div class="lv">${lv}/${k.max}</div><div class="c">${max ? 'MAX' : costTxt(c)}</div></div>`;
+        }).join('')}</div>` : ''}</div>`; }).join('');
+    const infoBase = k => showSheet(k === 'power' ? '🎣' : '🕸️', k === 'power' ? `낚시력 Lv.${S.base.power} → ${S.base.power + 1}` : `그물 크기 Lv.${S.base.net} → ${S.base.net + 1}`,
+      k === 'power' ? `그물 안 물고기에 초당 ${fmt(power())} → ${fmt(power() * 1.08)} 피해` : `반지름 ${Math.round(netR())} → ${Math.round(netR() * 1.04)}px`, { gold: baseCost(k) });
+    bindBuy($('up-power'), () => S.gold >= baseCost('power'), () => { S.gold -= baseCost('power'); S.base.power++; Sound.play('coin'); renderPort(); infoBase('power'); }, () => infoBase('power'));
+    bindBuy($('up-net'), () => S.base.net < 30 && S.gold >= baseCost('net'), () => { S.gold -= baseCost('net'); S.base.net++; Sound.play('coin'); renderPort(); infoBase('net'); }, () => infoBase('net'));
+    Pn.querySelectorAll('.sk[data-p]').forEach(el => { const id = el.dataset.p, i = +el.dataset.i, k = POWERS[id].sk[i];
+      const info = () => showSheet(k.ic, `${POWERS[id].icon} ${k.n} ${pupLv(id, i)}/${k.max}`, k.ds + (k.max === 1 ? ' — 특수 스킬' : ''), pupLv(id, i) >= k.max ? null : pupCost(id, i));
+      bindBuy(el, () => pupLv(id, i) < k.max && canPay(pupCost(id, i)), () => { pay(pupCost(id, i)); S.pups[id + i] = pupLv(id, i) + 1; Sound.play('correct'); if (k.max === 1) { toast(`✨ 특수 스킬 "${k.n}" 획득!`); confetti(14); } renderPort(); info(); }, info); });
   } else if (t === 'captain') {
     const cur = CAPTAINS.find(c => c.id === S.captain);
     Pn.innerHTML = `<div class="card" style="display:flex;gap:12px;align-items:center">${catArt(cur, 84)}<div><b style="font-size:18px">${cur.name} 선장</b><br><span style="color:var(--brown)">선장 스킬: ${cur.sk}</span><br><small>배정 중 — 항해마다 보너스 적용</small></div></div><div class="cards">` +
       CAPTAINS.map(c => { const has = S.captains[c.id], can = !has && S.lv >= c.lv; return `<div class="cd ${has ? (c.id === S.captain ? 'on' : '') : can ? (S.gold >= c.gold ? 'ok' : '') : 'lock'}" data-c="${c.id}">${catArt(c, 64)}<div class="nm" style="text-align:center">${c.name}</div><div class="ds" style="text-align:center">${c.sk}</div><div class="cost" style="text-align:center">${has ? (c.id === S.captain ? '✅ 배정 중' : '탭하여 배정') : `Lv.${c.lv}${c.gold ? ' · 💰' + fmt(c.gold) : ''}`}</div></div>`; }).join('') + '</div>';
-    Pn.querySelectorAll('.cd[data-c]').forEach(el => el.onclick = () => { const c = CAPTAINS.find(x => x.id === el.dataset.c); if (S.captains[c.id]) { S.captain = c.id; refreshEff(); Sound.play('tap'); toast(`${c.name} 선장 배정!`); } else { if (S.lv < c.lv) return toast(`레벨 ${c.lv}부터 영입할 수 있어요`); if (S.gold < c.gold) return Sound.play('error'); S.gold -= c.gold; S.captains[c.id] = 1; S.captain = c.id; refreshEff(); Sound.play('meld'); confetti(16); toast(`🎩 ${c.name} 선장 영입!`); } renderPort(); });
+    Pn.querySelectorAll('.cd[data-c]').forEach(el => { const c = CAPTAINS.find(x => x.id === el.dataset.c);
+      const info = () => showSheet(catArt(c, 48), `${c.name} 선장`, `${c.sk} · ${c.tip}`, S.captains[c.id] ? null : { gold: c.gold }, S.captains[c.id] ? (c.id === S.captain ? '<span style="color:var(--green)">✅ 배정 중</span>' : '<button class="btn green" id="btnAssign">이 선장으로!</button>') : (S.lv < c.lv ? `<span style="color:#c0392b">🔒 레벨 ${c.lv} 필요</span>` : ''));
+      const infoThen = () => { info(); const b = $('btnAssign'); if (b) b.onclick = () => { S.captain = c.id; refreshEff(); Sound.play('meld'); toast(`${c.name} 선장 배정!`); renderPort(); infoThen(); }; };
+      bindBuy(el, () => !S.captains[c.id] && S.lv >= c.lv && S.gold >= c.gold, () => { S.gold -= c.gold; S.captains[c.id] = 1; S.captain = c.id; refreshEff(); Sound.play('meld'); confetti(16); toast(`🎩 ${c.name} 선장 영입! ${c.sk}`); renderPort(); infoThen(); }, infoThen); });
   } else if (t === 'dex') {
     const un = unlockedFish(); const found = FISH.filter(f => S.counts[f.id]).length;
-    Pn.innerHTML = `<h3>📖 도감 ${found} / ${FISH.length}<small>10·100·1천·1만·10만 마리마다 ★</small></h3><div class="cards">` + FISH.map(f => { const n = S.counts[f.id] || 0, u = un.includes(f); return `<div class="cd ${n ? '' : 'lock'}" title="${f.d}">${fishArt(f, 80)}<div class="nm" style="text-align:center">${n ? f.name : u ? '???' : '🔒 ' + f.name}</div><div class="stars" style="text-align:center">${n ? '★'.repeat(stars(n)) + '☆'.repeat(5 - stars(n)) : ''}</div><div class="ds" style="text-align:center">${n ? `${fmt(n)}마리 · 💰${fmt(f.gold)} · ❤️${fmt(f.hp)}` : u ? '아직 못 잡았어요' : '특성 트리에서 해금'}</div></div>`; }).join('') + '</div>';
+    Pn.innerHTML = `<h3>📖 도감 ${found} / ${FISH.length}<small>10·100·1천·1만·10만 마리마다 ★</small></h3><div class="cards">` + FISH.map(f => { const n = S.counts[f.id] || 0, u = un.includes(f); return `<div class="cd ${n ? '' : 'lock'}" title="${f.d}">${fishArt(f, 80)}<div class="nm" style="text-align:center">${n ? f.name : u ? '???' : '🔒 ' + f.name}</div><div class="stars" style="text-align:center">${n ? '★'.repeat(stars(n)) + '☆'.repeat(5 - stars(n)) : ''}</div><div class="ds" style="text-align:center">${n ? `${fmt(n)}마리 · 💰${fmt(f.gold)} · ❤️${fmt(f.hp)}<br><b style="color:var(--sky-dark)">${BEH[f.beh].n}</b>` : u ? '아직 못 잡았어요' : '특성 트리에서 해금'}</div></div>`; }).join('') + '</div>';
   } else if (t === 'mastery') {
     Pn.innerHTML = `<h3>🐟 어종 숙련<small>레벨 ${3}마다 하나씩 열려요 · 골드 +5%/단계 (최대 10)</small></h3><div class="cards">` + FISH.map((f, i) => { const need = 1 + i * 3, lv = S.mastery[f.id] || 0, c = masteryCost(f), lock = S.lv < need; return `<div class="cd ${lock ? 'lock' : lv >= 10 ? 'max' : canPay(c) ? 'ok' : ''}" data-m="${f.id}"><span class="badge">Lv.${need}</span>${fishArt(f, 64)}<div class="nm">${f.name} 숙련 ${lv}/10</div><div class="ds">${f.name} 골드 +${lv * 5}% → +${(lv + 1) * 5}%</div><div class="cost">${lock ? `🔒 레벨 ${need}` : lv >= 10 ? 'MAX' : costTxt(c)}</div></div>`; }).join('') + '</div>';
-    Pn.querySelectorAll('.cd[data-m]').forEach(el => el.onclick = () => { const f = fishById[el.dataset.m]; if (S.lv < 1 + f.i * 3 || (S.mastery[f.id] || 0) >= 10) return; const c = masteryCost(f); if (!canPay(c)) return Sound.play('error'); pay(c); S.mastery[f.id] = (S.mastery[f.id] || 0) + 1; Sound.play('correct'); renderPort(); });
+    Pn.querySelectorAll('.cd[data-m]').forEach(el => { const f = fishById[el.dataset.m];
+      const info = () => { const lv = S.mastery[f.id] || 0; showSheet(fishArt(f, 50), `${f.name} 숙련 ${lv}/10`, S.lv < 1 + f.i * 3 ? `🔒 레벨 ${1 + f.i * 3}부터` : `${f.name} 골드 +${lv * 5}% → +${(lv + 1) * 5}% · ${BEH[f.beh].n}`, lv >= 10 || S.lv < 1 + f.i * 3 ? null : masteryCost(f)); };
+      bindBuy(el, () => S.lv >= 1 + f.i * 3 && (S.mastery[f.id] || 0) < 10 && canPay(masteryCost(f)), () => { pay(masteryCost(f)); S.mastery[f.id] = (S.mastery[f.id] || 0) + 1; Sound.play('correct'); renderPort(); info(); }, info); });
   } else if (t === 'relic') {
     const n = Object.keys(S.relics).length;
     Pn.innerHTML = `<h3>🪸 해양 유물 ${n} / ${RELICS.length}<small>항해 중 물고기가 떨어뜨려요 — 그물로 주우세요</small></h3><div class="cards">` + RELICS.map(r => { const lv = S.relics[r.id] || 0, c = relicUpCost(r.id); return `<div class="cd ${!lv ? 'lock' : lv >= 10 ? 'max' : canPay(c) ? 'ok' : ''}" data-r="${r.id}"><div class="ic">${lv ? r.icon : '❔'}</div><div class="nm">${lv ? r.name : '???'} ${lv ? lv + '/10' : ''}</div><div class="ds">${lv ? r.u + ' ×' + lv : '아직 발견 못 함'}</div><div class="cost">${!lv ? '' : lv >= 10 ? 'MAX' : costTxt(c)}</div></div>`; }).join('') + '</div>';
-    Pn.querySelectorAll('.cd[data-r]').forEach(el => el.onclick = () => { const id = el.dataset.r, lv = S.relics[id] || 0; if (!lv || lv >= 10) return; const c = relicUpCost(id); if (!canPay(c)) return Sound.play('error'); pay(c); S.relics[id]++; refreshEff(); Sound.play('correct'); renderPort(); });
+    Pn.querySelectorAll('.cd[data-r]').forEach(el => { const id = el.dataset.r, r = relicById[id];
+      const info = () => { const lv = S.relics[id] || 0; showSheet(lv ? r.icon : '❔', lv ? `${r.name} ${lv}/10` : '??? 아직 발견 못 함', lv ? `${r.u} — 지금 ×${lv}` : '항해 중 물고기가 떨어뜨려요. 그물로 주우세요', !lv || lv >= 10 ? null : relicUpCost(id)); };
+      bindBuy(el, () => { const lv = S.relics[id] || 0; return lv > 0 && lv < 10 && canPay(relicUpCost(id)); }, () => { pay(relicUpCost(id)); S.relics[id]++; refreshEff(); Sound.play('correct'); renderPort(); info(); }, info); });
   } else if (t === 'etc') {
-    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['항해 횟수', S.voyages], ['최고 수확', '💰' + fmt(Math.floor(S.best))], ['누적 골드', '💰' + fmt(Math.floor(S.totalGold))], ['잡은 물고기', fmt(Object.values(S.counts).reduce((a, b) => a + b, 0))], ['특성', `${Object.keys(S.tree).length - 1} / ${TREE.length - 1}`], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['항해 횟수', S.voyages], ['최고 수확', '💰' + fmt(Math.floor(S.best))], ['누적 골드', '💰' + fmt(Math.floor(S.totalGold))], ['잡은 물고기', fmt(Object.values(S.counts).reduce((a, b) => a + b, 0))], ['해금한 특성', `${Object.keys(S.tree).length - 1}개`], ['스킬', `${skDone()}개`], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
       <h3>💾 저장</h3><div class="card">자동 저장돼요. 다른 기기로 옮기려면 내보내기 → 가져오기.<div class="row"><button class="btn light" id="btnExport">📤 내보내기</button><button class="btn light" id="btnImport">📥 가져오기</button><button class="btn light" id="btnReset" style="margin-left:auto;color:#c0392b">🗑 초기화</button></div></div>
       <h3>❓ 어떻게 하나요?</h3><div class="howto">
         <div class="step"><div class="no">1</div><p><b>🎣 출항</b>을 누르면 20초 항해가 시작돼요. <b>그물(원)</b>이 손가락·마우스를 따라다녀요 — 물고기 떼 위에 올려두면 저절로 잡혀요.</p></div>
@@ -569,13 +746,22 @@ function renderPanel() {
     $('btnReset').onclick = () => { if (confirm('정말 처음부터? 전부 사라져요.') && confirm('진짜로요?')) { localStorage.removeItem(SAVE_KEY); S = fresh(); location.reload(); } };
   }
 }
+function vis(n) { return own(n.id) || n.link.some(own); }   // 내가 찍은 것 + 바로 옆 = 그 너머는 아예 안 보임
 function selectNode(id) {
   sel = id; const n = TREE_BY[id]; document.querySelectorAll('.tn').forEach(el => el.classList.toggle('sel', el.dataset.id === id));
-  const sh = $('sheet'); if (!sh) return; const av = !own(id) && n.link.some(l => own(l));
-  const desc = n.t === 'fish' ? `${FISH[n.fish].name} — 💰${fmt(FISH[n.fish].gold)} · ❤️${fmt(FISH[n.fish].hp)} · ${FISH[n.fish].d}` : n.t === 'map' ? `${MAPS[n.map].name} 지도 — ${MAPS[n.map].fish.map(i => FISH[i].name).join(', ')}` : n.t === 'power' ? POWERS[n.power].d : n.t === 'root' ? '모든 특성의 시작' : n.name;
-  sh.innerHTML = `<div class="ic">${n.t === 'fish' ? fishArt(FISH[n.fish], 54) : n.icon}</div><div class="t"><div class="nm">${n.name}</div><div class="ds">${desc}</div></div>${own(id) ? '<span style="color:var(--green)">✅ 해금</span>' : av ? `<button class="btn ${S.gold >= n.cost ? 'green' : ''}" id="btnBuyNode" ${S.gold >= n.cost ? '' : 'disabled'}>💰${fmt(n.cost)}</button>` : '<span style="color:#999">🔒 연결된 특성 먼저</span>'}`;
-  sh.classList.add('show');
-  const b = $('btnBuyNode'); if (b) b.onclick = () => { if (S.gold < n.cost) return Sound.play('error'); S.gold -= n.cost; S.tree[id] = 1; refreshEff(); Sound.play('correct'); if (n.t === 'map') { toast(`🗺️ ${MAPS[n.map].name} 해금! 📍 지도에서 고를 수 있어요`); confetti(16); } else if (n.t === 'fish') toast(`🐟 ${FISH[n.fish].name} 해금!`); else if (n.t === 'power') toast(`⚡ ${POWERS[n.power].name} 해금! 항해 중 자동 발동`); const wrap = $('treewrap'), sl = wrap.scrollLeft, st = wrap.scrollTop; renderPort(); $('treewrap').scrollLeft = sl; $('treewrap').scrollTop = st; };
+  const av = !own(id) && n.link.some(l => own(l));
+  const desc = n.t === 'fish' ? `${FISH[n.fish].name} — 💰${fmt(FISH[n.fish].gold)} · ❤️${fmt(FISH[n.fish].hp)} · ${BEH[FISH[n.fish].beh].n}` : n.t === 'map' ? `${MAPS[n.map].note} — ${MAPS[n.map].fish.map(i => FISH[i].name).join(', ')}` : n.t === 'power' ? POWERS[n.power].d : n.t === 'root' ? '모든 특성의 시작' : n.name;
+  showSheet(n.t === 'fish' ? fishArt(FISH[n.fish], 54) : n.icon, n.name, desc, own(id) || !av ? null : { gold: n.cost }, own(id) ? '<span style="color:var(--green)">✅ 해금</span>' : av ? '' : '<span style="color:#999">🔒 연결된 특성 먼저</span>');
+}
+function buyNode(id) {
+  const n = TREE_BY[id]; if (own(id) || S.gold < n.cost) return Sound.play('error');
+  S.gold -= n.cost; S.tree[id] = 1; refreshEff(); Sound.play('correct');
+  if (n.t === 'map') { toast(`🗺️ ${MAPS[n.map].name} 해금! ${MAPS[n.map].note}`); confetti(16); }
+  else if (n.t === 'fish') toast(`🐟 ${FISH[n.fish].name} 해금 — ${BEH[FISH[n.fish].beh].n}`);
+  else if (n.t === 'power') { toast(`⚡ ${POWERS[n.power].name} 해금! 능력 탭에서 스킬을 올려요`); confetti(14); }
+  const wrap = $('treewrap'), sl = wrap ? wrap.scrollLeft : 0, st = wrap ? wrap.scrollTop : 0;
+  renderPort(); if ($('treewrap')) { $('treewrap').scrollLeft = sl; $('treewrap').scrollTop = st; }
+  selectNode(id);
 }
 $('btnMap').onclick = () => { Sound.play('click'); showModal(`<h2>📍 어장 선택</h2><div style="display:flex;flex-direction:column;gap:8px">${MAPS.map((m, i) => `<button class="btn ${mapUnlocked(i) ? (S.map === i ? 'green' : 'blue') : 'light'}" data-map="${i}" ${mapUnlocked(i) ? '' : 'disabled'} style="text-align:left">${m.icon} ${m.name}${mapUnlocked(i) ? '' : ' 🔒 특성 트리 "지도" 갈래'}<br><small style="font-size:12px;opacity:.85">${m.fish.map(k => FISH[k].name).join(' · ')}</small></button>`).join('')}</div><div class="row" style="justify-content:center"><button class="btn light" onclick="hideModal()">닫기</button></div>`); document.querySelectorAll('[data-map]').forEach(b => b.onclick = () => { S.map = +b.dataset.map; hideModal(); renderTop(); Sound.play('tap'); }); };
 $('btnSail').onclick = () => { Sound.play('click'); startVoyage(); };
