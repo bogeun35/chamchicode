@@ -306,6 +306,7 @@ body::before {   /* 은은한 격자 테이블 무늬 */
 </div>
 
 <script src="party-ux.js"></script>
+<script src="party-sound.js"></script><script>Sound.theme('spy')</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -320,7 +321,7 @@ const esc = s => { const d = document.createElement('div'); d.textContent = s; r
 const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
 const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); Sound.scene(id); }
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐨', '🐯', '🐰', '🐻'];
 const avatarOf = k => AVATARS[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATARS.length];
@@ -409,7 +410,7 @@ $('btnJoin').onclick = async () => {
 
 // ── 방 입장: 구독 ──
 function enterRoom() {
-  offAll();
+  offAll(); Sound.resetState();
   sel = null; prevRevealed = null; prevTurnId = null; discoSet = false;
   const ref = roomRef();
   const cb = ref.on('value', snap => {
@@ -459,6 +460,7 @@ function renderLobby() {
   show('lobby');
   $('lobbyCode').textContent = code;
   const total = Object.keys(room.players || {}).length;
+  Sound.diff('lobby', total, 'join', 'leave');
   $('lobbyCount').textContent = `${total}명`;
   for (const t of ['red', 'blue']) {
     const ps = teamOf(t);
@@ -536,6 +538,7 @@ const nickOf = k => (room && room.players && room.players[k] ? room.players[k].n
 function renderGame() {
   show('game');
   const g = room.game; if (!g) return;
+  Sound.log((g.log || [])[0]); Sound.once('deal:' + g.round, 'deal'); Sound.diff('rev:' + g.round, g.revealed.filter(Boolean).length, 'flip');
   const me = (room.players || {})[myKey] || {};
   const myTeam = me.team, amSpy = !!me.spy, t = g.turn;
   const myTurn = myTeam === t;
@@ -579,7 +582,7 @@ function renderGame() {
     const cls = ['wcard', rv ? 'rv-' + k : '', amSpy && !rv ? 'key-' + k : '', amSpy && rv ? 'dim' : '', canPick && !rv ? 'pick' : '', sel === i ? 'sel' : ''].filter(Boolean).join(' ');
     return `<div class="${cls}" data-i="${i}">${rv && k === 'assassin' ? '<span class="sk">☠️</span>' : ''}<span class="w">${esc(w)}</span></div>`;
   }).join('');
-  document.querySelectorAll('.wcard.pick').forEach(el => el.onclick = () => { sel = sel === +el.dataset.i ? null : +el.dataset.i; renderGame(); });
+  document.querySelectorAll('.wcard.pick').forEach(el => el.onclick = () => { Sound.play('tap'); sel = sel === +el.dataset.i ? null : +el.dataset.i; renderGame(); });
   // 뒤집기 애니메이션
   if (prevRevealed) g.revealed.forEach((r, i) => { if (r && !prevRevealed[i]) { const el = document.querySelector(`.wcard[data-i="${i}"]`); if (el) el.classList.add('flip'); } });
   prevRevealed = g.revealed.map(x => !!x);

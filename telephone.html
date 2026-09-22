@@ -152,6 +152,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 </div>
 
 <script src="party-ux.js"></script>
+<script src="party-sound.js"></script><script>Sound.theme('playful')</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -168,7 +169,7 @@ const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
 const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); Sound.scene(id); }
 const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐯', '🐨'];
 const avatarOf = k => AVATARS[[...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 100003, 7) % AVATARS.length];
 const nickOf = k => (room && room.players && room.players[k] ? room.players[k].nick : k);
@@ -213,7 +214,7 @@ $('btnJoin').onclick = async () => {
   enterRoom();
 };
 function enterRoom() {
-  offAll();
+  offAll(); Sound.resetState();
   const ref = roomRef();
   const cb = ref.on('value', snap => {
     room = snap.val();
@@ -252,6 +253,7 @@ function renderLobby() {
   show('lobby');
   $('lobbyCode').textContent = code;
   const ps = Object.entries(room.players || {}).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
+  Sound.diff('lobby', ps.length, 'join', 'leave');
   $('lobbyCount').textContent = `${ps.length}/8`;
   $('lobbyList').innerHTML = ps.map(([k, p]) => `<div class="pitem"><span class="av">${avatarOf(k)}</span>${esc(p.nick)}${k === room.host ? '<span class="tag">방장</span>' : ''}${k === myKey ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</div>`).join('');
   $('btnStart').style.display = isHost ? '' : 'none';
@@ -289,6 +291,7 @@ function onTick() {
     const left = Math.max(0, Math.ceil((g.deadline - Date.now()) / 1000));
     const t = $('timer'); t.textContent = `⏱ ${left}`; t.classList.toggle('low', left <= 10);
     if (left === 10 && submittedStep !== g.step && onTick._warn !== g.step) { onTick._warn = g.step; UX.notify('warn'); toast('⏰ 10초 남았어요!'); }
+    if (submittedStep !== g.step) Sound.countdown(left);
     if (left === 0 && submittedStep !== g.step) submitCurrent(true);
     if (isHost) hostAdvance();
   } else $('timer').textContent = '';
@@ -304,6 +307,7 @@ function renderGame() {
   const stepKey = `${g.round}:${s}`;
   if (renderGame._step && renderGame._step !== stepKey) UX.notify('phase');
   renderGame._step = stepKey;
+  Sound.once('start:' + g.round, 'start');
   $('stepPill').textContent = `${s + 1} / ${g.N} 단계`;
   const doneList = g.order.map(k => ({ k, done: !!entry(g, bookFor(g, k, s), s) }));
   const key = `${g.round}:${s}:${mine ? 'done' : 'todo'}:${doneList.map(d => d.done ? 1 : 0).join('')}`;
@@ -356,7 +360,7 @@ function submitCurrent(auto = false) {
     if (!v) return toast('내용을 입력해 주세요');
     payload = { by: myKey, type: 'text', text: v.slice(0, 30), t: Date.now() };
   }
-  submittedStep = s;
+  submittedStep = s; if (!auto) Sound.play('submit');
   db.ref(`${rpath(code)}/game/books/${book}/${s}`).set(payload);
   if (auto) toast('⏰ 시간 종료 — 자동 제출됐어요');
 }
@@ -372,10 +376,10 @@ function initPad() {
   $('sizes').insertAdjacentHTML('afterbegin', sizes);
   $('colors').querySelectorAll('.sw').forEach(el => el.onclick = () => { eraser = el.dataset.c === 'eraser'; if (!eraser) color = el.dataset.c; $('colors').querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === el)); });
   $('sizes').querySelectorAll('.sz').forEach(el => el.onclick = () => { size = +el.dataset.s; $('sizes').querySelectorAll('.sz').forEach(x => x.classList.toggle('on', x === el)); });
-  $('btnUndo').onclick = () => { strokes.pop(); redraw(); };
-  $('btnClear').onclick = () => { strokes = []; redraw(); };
+  $('btnUndo').onclick = () => { Sound.play('whoosh'); strokes.pop(); redraw(); };
+  $('btnClear').onclick = () => { Sound.play('whoosh'); strokes = []; redraw(); };
   const pos = e => { const r = pad.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 320, (e.clientY - r.top) / r.height * 320]; };
-  pad.onpointerdown = e => { pad.setPointerCapture(e.pointerId); cur = { c: eraser ? '#ffffff' : color, w: eraser ? size * 3 : size, pts: [pos(e)] }; strokes.push(cur); redraw(); };
+  pad.onpointerdown = e => { Sound.play('pencil'); pad.setPointerCapture(e.pointerId); cur = { c: eraser ? '#ffffff' : color, w: eraser ? size * 3 : size, pts: [pos(e)] }; strokes.push(cur); redraw(); };
   pad.onpointermove = e => { if (!cur) return; cur.pts.push(pos(e)); drawStroke(cur, cur.pts.length - 2); };
   pad.onpointerup = pad.onpointercancel = () => { cur = null; };
   redraw();
@@ -394,6 +398,8 @@ function renderReveal() {
   $('stepPill').textContent = `📖 발표 ${sl.book + 1} / ${g.N}`;
   $('timer').textContent = '';
   const owner = g.order[sl.book];
+  Sound.once('slide:' + g.round + ':' + sl.book + ':' + sl.step, 'pageflip');
+  Sound.diff('react:' + g.round, Object.values(g.reactions || {}).reduce((a, o) => a + Object.keys(o || {}).length, 0), 'laugh');
   $('banner').textContent = `📖 ${nickOf(owner)} 님의 책 — ${sl.step + 1} / ${g.N}`;
   const total = g.N;
   const items = [];

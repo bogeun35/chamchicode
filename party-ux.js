@@ -37,11 +37,14 @@
     vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p || [60, 40, 60]); } catch (e) {} },
     // 내 차례 / 새 단계 알림 (진동 + 띵)
     notify(kind) {
-      if (kind === 'turn') { beep(880, 120); setTimeout(() => beep(1320, 160), 130); UX.vibrate([70, 50, 90]); }
-      else if (kind === 'phase') { beep(660, 150); UX.vibrate([50]); }
-      else if (kind === 'warn') { beep(440, 200, .2); UX.vibrate([120]); }
+      const S = window.Sound;
+      if (kind === 'turn') UX.vibrate([70, 50, 90]); else if (kind === 'phase') UX.vibrate([50]); else if (kind === 'warn') UX.vibrate([120]);
+      if (S && S.ready) { S.play({ turn: 'turn', phase: 'phase', warn: 'warn', good: 'win', bad: 'lose' }[kind] || 'phase'); return; }
+      if (kind === 'turn') { beep(880, 120); setTimeout(() => beep(1320, 160), 130); }
+      else if (kind === 'phase') beep(660, 150);
+      else if (kind === 'warn') beep(440, 200, .2);
       else if (kind === 'good') { beep(1046, 100); setTimeout(() => beep(1568, 200), 110); }
-      else if (kind === 'bad') { beep(300, 250, .2); }
+      else if (kind === 'bad') beep(300, 250, .2);
     },
     // 마지막 방 기억 → 새로고침/재접속 시 "이어하기"
     remember(gameKey, code, nick) { try { localStorage.setItem('last_' + gameKey, JSON.stringify({ code, nick, t: Date.now() })); } catch (e) {} },
@@ -71,7 +74,7 @@
     holdToPeek(el, veilEl) {
       if (!el || !veilEl) return;
       let t = null;
-      const showV = () => { veilEl.style.display = 'none'; clearTimeout(t); t = setTimeout(() => veilEl.style.display = '', 6000); };
+      const showV = () => { if (window.Sound) Sound.play('peek'); veilEl.style.display = 'none'; clearTimeout(t); t = setTimeout(() => veilEl.style.display = '', 6000); };
       const hideV = () => { veilEl.style.display = ''; clearTimeout(t); };
       el.addEventListener('pointerdown', e => { e.preventDefault(); showV(); });
       el.addEventListener('pointerup', () => setTimeout(hideV, 150));

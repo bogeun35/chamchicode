@@ -525,77 +525,77 @@ body::after {
 
   <!-- Auction iframe -->
   <div class="page-frame" id="page-auction">
-    <iframe src="auction.html" id="iframe-auction" allow="autoplay"></iframe>
+    <iframe data-src="auction.html" id="iframe-auction" allow="autoplay"></iframe>
   </div>
 
   <!-- 온라인 팀짜기 iframe -->
   <div class="page-frame" id="page-online">
-    <iframe src="auction-online.html" id="iframe-online" allow="autoplay; clipboard-write"></iframe>
+    <iframe data-src="auction-online.html" id="iframe-online" allow="autoplay; clipboard-write"></iframe>
   </div>
 
   <!-- Roulette iframe -->
   <div class="page-frame" id="page-roulette">
-    <iframe src="roulette.html" id="iframe-roulette"></iframe>
+    <iframe data-src="roulette.html" id="iframe-roulette"></iframe>
   </div>
 
   <!-- Draw Quiz iframe -->
   <div class="page-frame" id="page-drawquiz">
-    <iframe src="draw-quiz.html" id="iframe-drawquiz"></iframe>
+    <iframe data-src="draw-quiz.html" id="iframe-drawquiz"></iframe>
   </div>
 
   <!-- 수박게임 iframe -->
   <div class="page-frame" id="page-suika">
-    <iframe src="suika/index.html" id="iframe-suika"></iframe>
+    <iframe data-src="suika/index.html" id="iframe-suika"></iframe>
   </div>
 
   <!-- 다빈치 코드 iframe -->
   <div class="page-frame" id="page-davinci">
-    <iframe src="davinci.html" id="iframe-davinci" allow="clipboard-write"></iframe>
+    <iframe data-src="davinci.html" id="iframe-davinci" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 라이어 게임 iframe -->
   <div class="page-frame" id="page-liar">
-    <iframe src="liar.html" id="iframe-liar" allow="clipboard-write"></iframe>
+    <iframe data-src="liar.html" id="iframe-liar" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 코드네임 iframe -->
   <div class="page-frame" id="page-codenames">
-    <iframe src="codenames.html" id="iframe-codenames" allow="clipboard-write"></iframe>
+    <iframe data-src="codenames.html" id="iframe-codenames" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
-    <iframe src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+    <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 루미큐브 iframe -->
   <div class="page-frame" id="page-rummikub">
-    <iframe src="rummikub.html" id="iframe-rummikub" allow="clipboard-write"></iframe>
+    <iframe data-src="rummikub.html" id="iframe-rummikub" allow="clipboard-write"></iframe>
   </div>
 
   <!-- PUBG Map iframe -->
   <div class="page-frame" id="page-pubgmap">
-    <iframe src="pubg-map.html" id="iframe-pubgmap"></iframe>
+    <iframe data-src="pubg-map.html" id="iframe-pubgmap"></iframe>
   </div>
 
   <!-- PUBG Practice iframe -->
   <div class="page-frame" id="page-pubgpractice">
-    <iframe src="pubg-practice.html" id="iframe-pubgpractice"></iframe>
+    <iframe data-src="pubg-practice.html" id="iframe-pubgpractice"></iframe>
   </div>
 
   <!-- Funnel Runners 한글패치 iframe -->
   <div class="page-frame" id="page-funnelkr">
-    <iframe src="funnel-kr.html" id="iframe-funnelkr"></iframe>
+    <iframe data-src="funnel-kr.html" id="iframe-funnelkr"></iframe>
   </div>
 
   <!-- Masters of Mayhem 한글패치 iframe -->
   <div class="page-frame" id="page-momkr">
-    <iframe src="mom-kr.html" id="iframe-momkr"></iframe>
+    <iframe data-src="mom-kr.html" id="iframe-momkr"></iframe>
   </div>
 
   <!-- 백룸 탈출 공략 iframe -->
   <div class="page-frame" id="page-backrooms">
-    <iframe src="backrooms.html" id="iframe-backrooms"></iframe>
+    <iframe data-src="backrooms.html" id="iframe-backrooms"></iframe>
   </div>
 </div>
 
@@ -608,6 +608,13 @@ function navigate(page) {
   // Hide all pages
   document.getElementById('page-home').style.display = 'none';
   document.querySelectorAll('.page-frame').forEach(f => f.classList.remove('active'));
+
+  // 다른 페이지의 iframe 은 내려서(언로드) 음악/타이머/접속이 남지 않게 한다. 필요한 페이지만 그때 로드
+  document.querySelectorAll('.page-frame iframe').forEach(fr => {
+    const mine = fr.id === `iframe-${page}`;
+    if (!mine && fr.getAttribute('src')) fr.removeAttribute('src'), fr.contentWindow && fr.contentWindow.location.replace('about:blank');
+    if (mine && !fr.getAttribute('src')) fr.src = fr.dataset.src;
+  });
 
   // Show target
   if (page === 'home') {

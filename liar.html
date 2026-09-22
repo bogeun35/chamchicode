@@ -171,6 +171,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 </div>
 
 <script src="party-ux.js"></script>
+<script src="party-sound.js"></script><script>Sound.theme('sneaky')</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
@@ -199,7 +200,7 @@ const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
 const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); Sound.scene(id); }
 const AVATARS = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐯', '🐨'];
 const avatarOf = k => AVATARS[[...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 100003, 7) % AVATARS.length];
 const nickOf = k => (room && room.players && room.players[k] ? room.players[k].nick : k);
@@ -244,7 +245,7 @@ $('btnJoin').onclick = async () => {
   enterRoom();
 };
 function enterRoom() {
-  offAll();
+  offAll(); Sound.resetState();
   const ref = roomRef();
   const cb = ref.on('value', snap => {
     room = snap.val();
@@ -281,6 +282,7 @@ function renderLobby() {
   show('lobby');
   $('lobbyCode').textContent = code;
   const ps = Object.entries(room.players || {}).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
+  Sound.diff('lobby', ps.length, 'join', 'leave');
   $('lobbyCount').textContent = `${ps.length}/10`;
   $('lobbyList').innerHTML = ps.map(([k, p]) => `<div class="pitem"><span class="av">${avatarOf(k)}</span>${esc(p.nick)}${k === room.host ? '<span class="tag">방장</span>' : ''}${k === myKey ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</div>`).join('');
   const st = room.settings || { cats: CATS, talkSec: 180, liars: 1 };
@@ -329,11 +331,12 @@ function renderGame() {
   clearInterval(tick);
   const phaseKey = `${g.round}:${g.phase}`;
   if (renderGame._phase && renderGame._phase !== phaseKey) {
-    if (g.phase === 'vote' || g.phase === 'card') UX.notify('phase');
-    if (g.phase === 'liarGuess' && me) UX.notify('turn');
+    if (g.phase === 'vote' || g.phase === 'talk') UX.notify('phase');
+    if (g.phase === 'liarGuess') { Sound.play('reveal'); if (me) setTimeout(() => UX.notify('turn'), 1500); }
     if (g.phase === 'result') UX.notify((g.liarWin && me) || (!g.liarWin && !me) ? 'good' : 'bad');
   }
   renderGame._phase = phaseKey;
+  if (g.phase === 'card') Sound.once('deal:' + g.round, 'deal');
 
   if (g.phase === 'card' || g.phase === 'talk') {
     B.className = 'banner' + (g.phase === 'talk' ? ' hot' : '');
@@ -359,7 +362,7 @@ function renderGame() {
       else $('btnVote').onclick = () => { g.phase = 'vote'; g.votes = {}; myVote = null; commit(g); };
     } else $('hostRow').innerHTML = `<div style="text-align:center;opacity:.8;width:100%;font-size:14px">${g.phase === 'card' ? '방장이 토론을 시작하면 타이머가 켜져요' : '방장이 투표를 시작할 때까지 토론하세요'}</div>`;
     if (g.phase === 'talk' && g.talkSec) {
-      const upd = () => { const left = Math.max(0, Math.ceil((g.deadline - Date.now()) / 1000)); const t = $('timer'); if (!t) return; t.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`; t.classList.toggle('low', left <= 15); if (left === 0 && isHost && room.game.phase === 'talk') { room.game.phase = 'vote'; room.game.votes = {}; commit(room.game); } };
+      const upd = () => { const left = Math.max(0, Math.ceil((g.deadline - Date.now()) / 1000)); const t = $('timer'); if (!t) return; Sound.countdown(left); t.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`; t.classList.toggle('low', left <= 15); if (left === 0 && isHost && room.game.phase === 'talk') { room.game.phase = 'vote'; room.game.votes = {}; commit(room.game); } };
       upd(); tick = setInterval(upd, 500);
     }
     return;
@@ -368,6 +371,7 @@ function renderGame() {
   if (g.phase === 'vote') {
     const votes = g.votes || {};
     const voted = Object.keys(votes).length, total = keys.length;
+    Sound.diff('votes:' + g.round, voted, 'tap');
     B.className = 'banner hot'; B.textContent = votes[myKey] ? `🗳️ 투표함 (${voted}/${total}) — 모두 투표하면 자동 마감` : '🗳️ 라이어라고 생각하는 사람을 고르세요';
     S.innerHTML = `<div class="card">
       <div class="grid">${keys.map(k => `<button class="vbtn ${votes[myKey] === k ? 'sel' : ''}" data-k="${esc(k)}" ${k === myKey ? 'disabled' : ''}><span class="av">${avatarOf(k)}</span>${esc(nickOf(k))}${votes[myKey] === k ? '<span class="cnt">✅ 내 투표</span>' : ''}</button>`).join('')}</div>
@@ -375,7 +379,7 @@ function renderGame() {
       <div class="status">${keys.map(k => `<span class="p ${votes[k] ? 'done' : ''}">${votes[k] ? '✅' : '⏳'} ${esc(nickOf(k))}</span>`).join('')}</div>
       ${isHost ? `<div class="row"><button class="btn ghost wide" style="color:#8a5a2a;background:#fff;box-shadow:0 4px 0 #b8834a" id="btnClose">투표 마감 (안 한 사람은 기권)</button></div>` : ''}
     </div>`;
-    S.querySelectorAll('.vbtn').forEach(b => b.onclick = () => { if (votes[myKey] === b.dataset.k) return; roomRef().update({ [`game/votes/${myKey}`]: b.dataset.k }); });
+    S.querySelectorAll('.vbtn').forEach(b => b.onclick = () => { if (votes[myKey] === b.dataset.k) return; Sound.play('vote'); roomRef().update({ [`game/votes/${myKey}`]: b.dataset.k }); });
     if (isHost) $('btnClose').onclick = () => tally();
     if (isHost && voted >= total) tally();
     return;
