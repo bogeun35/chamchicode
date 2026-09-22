@@ -337,8 +337,9 @@ const TREE = [], TREE_BY = {}, C = { x: 12, y: 12 };
     br.nodes.forEach((spec, i) => {
       const k = i + 1, id = br.id + k;
       const n = Object.assign({ id, x: C.x + br.d[0] * k, y: C.y + br.d[1] * k, link: [prev], br: br.id, dist: k }, spec);
-      n.cost = Math.round(25 * Math.pow(1.9, k) * (spec.max > 1 ? .7 : 1.5));
-      n.growth = 1.8;
+      // 깊이 1칸마다 ×2.5, 반복 구매는 ×2.0 — 첫 노드 10부터 시작해 읽기 쉽게
+      n.cost = Math.round(10 * Math.pow(2.5, k - 1) * (spec.max > 1 ? 1 : 1.4));
+      n.growth = 2;
       TREE.push(n); TREE_BY[id] = n; prev = id;
     });
   });
@@ -348,7 +349,7 @@ const TW = Math.max(...TREE.map(n => n.x)) + 1, TH = Math.max(...TREE.map(n => n
 // ═══ 상태 ═══
 const SAVE_KEY = 'srb_save_v2';
 function fresh(keep) {
-  const base = { cred: 0, keys: 0, ess: 0, lv: {}, loot: {}, arti: {}, pres: {}, stash: {}, sector: 1, maxSector: 1, runs: 0, bestRun: 0, totalCred: 0, ores: {}, tab: 'tree', playTime: 0, savedAt: 0, started: Date.now(), crashes: 0, destroyed: 0 };
+  const base = { cred: 0, keys: 0, ess: 0, lv: { ore1: 1 }, loot: {}, arti: {}, pres: {}, stash: {}, sector: 1, maxSector: 1, runs: 0, bestRun: 0, totalCred: 0, ores: {}, tab: 'tree', playTime: 0, savedAt: 0, started: Date.now(), crashes: 0, destroyed: 0 };
   return keep ? Object.assign(base, keep) : base;
 }
 let S = fresh();

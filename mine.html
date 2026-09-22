@@ -34,24 +34,27 @@ button { font-family: inherit; }
 .mb .dot { position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); display: none; }
 .mb.alert .dot { display: block; animation: blink 1s infinite; } @keyframes blink { 50% { opacity: .25; } }
 /* 채굴장 */
-.dig { position: relative; flex: 1; min-height: 240px; overflow: hidden; }
+.dig { position: relative; flex: 1; min-height: 0; overflow: hidden; display: none; }
+.dig.on { display: block; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.depth { position: absolute; left: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 13px; color: var(--dim); }
+.depth { position: absolute; left: 58px; bottom: 12px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 13px; color: var(--dim); }
 .depth b { color: var(--amber); font-size: 17px; }
 .timer { position: absolute; left: 50%; transform: translateX(-50%); top: 8px; z-index: 4; background: rgba(42,28,60,.92); border: 2px solid var(--gold); border-radius: 10px; padding: 3px 16px; font-size: 12px; color: var(--dim); text-align: center; display: none; }
 .timer.show { display: block; }
 .timer b { display: block; font-size: 26px; color: var(--gold); line-height: 1.1; }
 .timer.low { border-color: var(--pink); } .timer.low b { color: var(--pink); }
-.digbtn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; border: 3px solid var(--gold); border-radius: 14px; background: linear-gradient(180deg, #4a3566, #2a1c3c); color: var(--ink); font-size: 21px; padding: 14px 30px; cursor: pointer; animation: gl 1.4s ease-in-out infinite alternate; }
+.digbtn { position: fixed; right: 10px; bottom: 11px; z-index: 12; border: 3px solid var(--gold); border-radius: 13px; background: linear-gradient(180deg, #4a3566, #2a1c3c); color: var(--ink); font-size: 19px; padding: 12px 24px; cursor: pointer; animation: gl 1.4s ease-in-out infinite alternate; }
 @keyframes gl { from { box-shadow: 0 0 0 0 rgba(255,211,107,.6); } to { box-shadow: 0 0 0 14px rgba(255,211,107,0); } }
-.digbtn:active { transform: translate(-50%, -50%) translateY(3px); animation: none; }
+.digbtn:active { transform: translateY(3px); animation: none; }
 .digbtn.hide { display: none; }
-.smelt { position: absolute; right: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 12px; color: var(--dim); min-width: 132px; }
+.backbtn { position: fixed; right: 10px; bottom: 11px; z-index: 12; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); font-size: 14px; padding: 10px 16px; cursor: pointer; display: none; }
+.backbtn.on { display: block; }
+.smelt { position: absolute; right: 108px; bottom: 12px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 12px; color: var(--dim); min-width: 132px; }
 .smelt .q { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
 .smelt .q span { font-size: 11px; }
 /* 하단 패널 */
-.panel { height: 46%; min-height: 200px; background: rgba(36,23,51,.96); border-top: 3px solid var(--line); overflow: auto; padding: 10px 10px 58px; position: relative; }
-.panel.big { height: 72%; }
+.panel { flex: 1; min-height: 0; background: rgba(36,23,51,.96); overflow: auto; padding: 10px 10px 70px; position: relative; }
+.panel.off { display: none; }
 h3 { font-size: 14px; color: var(--gold); margin: 3px 0 8px; display: flex; gap: 6px; align-items: center; }
 h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var(--dim); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
@@ -62,7 +65,7 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 .cd.max { border-color: var(--purple); } .cd.lock { opacity: .48; }
 .shake { animation: shk .3s; } @keyframes shk { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 /* 스킬 트리 */
-.treewrap { position: relative; overflow: auto; height: 100%; margin: -10px -10px -58px; background: radial-gradient(ellipse at 50% 50%, #33204a, #17101f 75%); }
+.treewrap { position: relative; overflow: auto; height: 100%; margin: -10px -10px -70px; background: radial-gradient(ellipse at 50% 50%, #33204a, #17101f 75%); }
 .tree { position: relative; }
 .tree svg { position: absolute; left: 0; top: 0; pointer-events: none; }
 .tn { position: absolute; width: 50px; height: 50px; border-radius: 11px; background: #2f2044; border: 2px solid var(--line); display: grid; place-items: center; font-size: 21px; cursor: pointer; }
@@ -72,7 +75,7 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 .tn.ok { animation: pulse 1s ease-in-out infinite alternate; } @keyframes pulse { to { transform: scale(1.07); } }
 .tn .pr { position: absolute; left: 50%; transform: translateX(-50%); bottom: -15px; font-size: 10px; background: rgba(0,0,0,.65); border-radius: 5px; padding: 1px 5px; white-space: nowrap; color: var(--gold); }
 .tn.own .pr { display: none; } .tn.sel { outline: 2px solid #fff; }
-.sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; background: var(--panel); border: 2px solid var(--gold); border-radius: 11px; padding: 8px 11px; display: none; align-items: center; gap: 9px; z-index: 8; }
+.sheet { position: fixed; left: 8px; right: 130px; bottom: 11px; background: var(--panel); border: 2px solid var(--gold); border-radius: 11px; padding: 8px 11px; display: none; align-items: center; gap: 9px; z-index: 8; }
 .sheet.show { display: flex; }
 .sheet .ic { font-size: 25px; } .sheet .t { flex: 1; min-width: 0; } .sheet .nm { font-size: 15px; } .sheet .ds { font-size: 12px; color: var(--dim); }
 .sheet .pz { text-align: right; font-size: 13px; color: var(--gold); white-space: nowrap; } .sheet .pz.no { color: var(--pink); } .sheet .pz small { display: block; font-size: 10.5px; color: var(--dim); }
@@ -127,15 +130,16 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
       <button class="mb" data-tab="cfg" title="기록·도움말">⚙️<span class="dot"></span></button>
     </div>
   </div>
-  <div class="dig">
+  <div class="dig" id="digView">
     <canvas id="cv"></canvas>
     <div class="depth">깊이 <b id="depth">1</b>m<span id="depthNext" style="font-size:11px"></span></div>
     <div class="timer" id="timerBox"><b id="timer">20.0</b><span>초</span></div>
-    <button class="digbtn" id="btnDig">⛏️ 채굴 시작</button>
     <div class="smelt" id="smeltBox"></div>
   </div>
   <div class="panel" id="panel"></div>
   <div class="sheet" id="sheet"></div>
+  <button class="digbtn" id="btnDig">⛏️ 채굴 시작</button>
+  <button class="backbtn" id="btnBack">⏹ 귀환</button>
 </div>
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
@@ -378,16 +382,24 @@ function tick(dt) {
 let mineAcc = 0;
 // 한 번 내려가면 제한 시간 동안만 캘 수 있음 (참치 타이쿤과 같은 구조)
 let RUN = null;
+function showDig(on) {
+  $('digView').classList.toggle('on', on);
+  $('panel').classList.toggle('off', on);
+  $('btnDig').classList.toggle('hide', on);
+  $('btnBack').classList.toggle('on', on);
+  $('sheet').style.display = on ? 'none' : '';
+  if (on) resize();
+}
 function startDig() {
   RUN = { left: digTime(), max: digTime(), ore: {}, oreN: 0, broke: 0, xp: 0, relics: [] };
-  rocks.length = 0; fillRocks();
-  $('btnDig').classList.add('hide'); $('timerBox').classList.add('show');
+  rocks.length = 0; cursor.on = false; showDig(true); fillRocks();
+  $('timerBox').classList.add('show');
   S.runs++; Sound.play('deal'); Sound.init();
 }
 function endDig() {
   if (!RUN) return;
   const r = RUN; RUN = null; cursor.on = false;
-  $('btnDig').classList.remove('hide'); $('timerBox').classList.remove('show');
+  showDig(false); $('timerBox').classList.remove('show');
   Sound.play('win'); save();
   const list = Object.entries(r.ore).map(([id, q]) => ({ m: matById[id], q })).filter(x => x.m);
   const val = list.reduce((a, x) => a + x.m.v * x.q, 0);
@@ -442,7 +454,7 @@ function draw() {
 function loop() {
   const now = performance.now(); let dt = Math.min(1, (now - lastF) / 1000); lastF = now;
   while (dt > 0) { const st = Math.min(.05, dt); dt -= st; tick(st); }
-  draw(); renderTop(); requestAnimationFrame(loop);
+  if (RUN) draw(); renderTop(); requestAnimationFrame(loop);
 }
 cv.addEventListener('pointermove', e => { const b = cv.getBoundingClientRect(); cursor.x = e.clientX - b.left; cursor.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); cursor.on = true; Sound.init(); });
 cv.addEventListener('pointerdown', e => { const b = cv.getBoundingClientRect(); cursor.x = e.clientX - b.left; cursor.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); cursor.on = true; Sound.init(); });
@@ -489,7 +501,6 @@ function bindBuy(el, canFn, buyFn, infoFn) {
 }
 function renderPanel() {
   const Pn = $('panel'), t = S.tab;
-  Pn.classList.toggle('big', t === 'tree');
   if (t === 'tree') {
     const cell = 66, pad = 36;
     Pn.innerHTML = `<div class="treewrap" id="treewrap"><div class="tree" style="width:${TW * cell + pad * 2}px;height:${TH * cell + pad * 2}px">
@@ -589,6 +600,7 @@ function offline() {
 // ═══════════ 시작 ═══════════
 load(); refresh(); resize(); offline(); setTab(S.tab || 'tree'); fillRocks();
 $('btnDig').onclick = () => startDig();
+$('btnBack').onclick = () => endDig();
 requestAnimationFrame(loop);
 setInterval(() => { save(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
