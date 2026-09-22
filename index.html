@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="mine" onclick="navigate('mine')">
+      <span class="nav-icon">⛏️</span>
+      <span>킵 온 마이닝</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="rock" onclick="navigate('rock')">
       <span class="nav-icon">🪐</span>
       <span>스페이스 록</span>
@@ -491,6 +497,11 @@ body::after {
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
         </div>
+        <div class="landing-card" onclick="navigate('mine')">
+          <div class="landing-card-icon">⛏️</div>
+          <div class="landing-card-title">킵 온 마이닝</div>
+          <div class="landing-card-desc">커서를 올리면 곡괭이가 알아서<br>제련·스킬트리·특성 카드</div>
+        </div>
         <div class="landing-card" onclick="navigate('rock')">
           <div class="landing-card-icon">🪐</div>
           <div class="landing-card-title">스페이스 록 브레이커</div>
@@ -588,6 +599,11 @@ body::after {
   <!-- 그림 전화기 iframe -->
   <div class="page-frame" id="page-telephone">
     <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
+  </div>
+
+  <!-- 킵 온 마이닝 iframe -->
+  <div class="page-frame" id="page-mine">
+    <iframe data-src="mine.html" id="iframe-mine" allow="clipboard-write"></iframe>
   </div>
 
   <!-- 스페이스 록 브레이커 iframe -->

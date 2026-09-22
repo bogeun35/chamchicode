@@ -205,12 +205,12 @@ const P = (k, v, ic, n) => ({ t: 'p', k, v, ic, n });
 const SPOKES = [
   { d: [0, -1], nodes: [P('dmg', .25, '💥', '탄약 개량 +25%'), P('rate', .15, '⚡', '연사 +15%'), P('dmg', .3, '💥', '고폭탄 +30%'), P('guns', 1, '🔫', '포신 +1'), P('dmg', .4, '💥', '철갑탄 +40%'), P('rate', .2, '⚡', '냉각기 +20%'), P('guns', 1, '🔫', '포신 +1'), P('dmg', .6, '💥', '플라즈마탄 +60%')] },
   { d: [1, 0], nodes: [{ t: 'w', w: 'missile', ic: '🚀', n: '미사일 해금' }, P('pdmg', .4, '💣', '탄두 +40%'), { t: 'w', w: 'laser', ic: '🔆', n: '레이저 해금' }, P('pdmg', .5, '💣', '출력 +50%'), { t: 'w', w: 'drone', ic: '🛰️', n: '드론 해금' }, P('pdmg', .8, '💣', '증폭기 +80%'), P('pdmg', 1.2, '💣', '초신성 +120%')] },
-  { d: [0, 1], nodes: [P('fuel', 30, '⛽', '연료통 +30'), P('burn', .12, '🔥', '연비 +12%'), P('fuel', 50, '⛽', '보조 탱크 +50'), P('burn', .15, '🔥', '효율 엔진 +15%'), P('fuel', 90, '⛽', '대형 탱크 +90'), P('burn', .2, '🔥', '이온 엔진 +20%'), P('fuel', 200, '⛽', '무한 탱크 +200')] },
+  { d: [0, 1], nodes: [P('fuel', 4, '⛽', '연료통 +4초'), P('burn', .15, '🔥', '연비 +15%'), P('fuel', 6, '⛽', '보조 탱크 +6초'), P('burn', .2, '🔥', '효율 엔진 +20%'), P('fuel', 10, '⛽', '대형 탱크 +10초'), P('burn', .25, '🔥', '이온 엔진 +25%'), P('fuel', 20, '⛽', '무한 탱크 +20초')] },
   { d: [-1, 0], nodes: [P('qty', .3, '⛏️', '채굴량 +30%'), P('val', .25, '💰', '광석 가치 +25%'), P('qty', .4, '⛏️', '채굴량 +40%'), P('tier', .1, '💎', '상위 광석 확률 +10%'), P('val', .4, '💰', '정제 +40%'), P('qty', .6, '⛏️', '채굴량 +60%'), P('tier', .15, '💎', '상위 광석 +15%'), P('val', .8, '💰', '거래 +80%')] },
   { d: [1, 1], nodes: [P('balls', 2, '🎰', '플링코 공 +2'), P('mult', .3, '✖️', '배수판 +0.3'), P('balls', 3, '🎰', '공 +3'), P('mult', .5, '✖️', '배수판 +0.5'), P('balls', 5, '🎰', '공 +5'), P('mult', 1, '✖️', '황금 배수판 +1')] },
   { d: [-1, 1], nodes: [P('key', .08, '🔑', '열쇠 확률 +8%'), P('spawn', .25, '🪨', '소행성 +25%'), P('key', .1, '🔑', '열쇠 확률 +10%'), P('quota', .15, '📉', '섹터 할당량 −15%'), P('spawn', .35, '🪨', '소행성 +35%'), P('quota', .2, '📉', '할당량 −20%')] },
 ];
-const SIDE = [['dmg', .15, '💥', '데미지 +15%'], ['rate', .1, '⚡', '연사 +10%'], ['qty', .2, '⛏️', '채굴량 +20%'], ['val', .2, '💰', '가치 +20%'], ['fuel', 25, '⛽', '연료 +25'], ['key', .05, '🔑', '열쇠 +5%'], ['balls', 1, '🎰', '공 +1'], ['mult', .2, '✖️', '배수 +0.2'], ['spawn', .2, '🪨', '소행성 +20%'], ['pdmg', .25, '💣', '특수무기 +25%']];
+const SIDE = [['dmg', .15, '💥', '데미지 +15%'], ['rate', .1, '⚡', '연사 +10%'], ['qty', .2, '⛏️', '채굴량 +20%'], ['val', .2, '💰', '가치 +20%'], ['fuel', 3, '⛽', '연료 +3초'], ['key', .05, '🔑', '열쇠 +5%'], ['balls', 1, '🎰', '공 +1'], ['mult', .2, '✖️', '배수 +0.2'], ['spawn', .2, '🪨', '소행성 +20%'], ['pdmg', .25, '💣', '특수무기 +25%']];
 const TREE = [], TREE_BY = {}, C = { x: 9, y: 7 };
 (function build() {
   let si = 0;
@@ -260,10 +260,10 @@ const hasW = w => TREE.some(n => n.t === 'w' && n.w === w && own(n.id));
 const gunDmg = () => 6 * (1 + E.dmg) * Math.pow(1.03, S.sector);
 const gunRate = () => 2.2 * (1 + E.rate);
 const gunCount = () => 1 + E.guns;
-const maxFuel = () => 60 + E.fuel;
+const maxFuel = () => 10 + E.fuel;   // 연료 = 초. 시작 10초
 const burnRate = () => 1 / (1 + E.burn);
-const quotaFor = s => Math.max(4, Math.round((8 + s * 1.6) * (1 - Math.min(.6, E.quota))));
-const rockHp = s => 10 * Math.pow(1.28, s - 1);
+const quotaFor = s => Math.max(3, Math.round((4 + s * 1.2) * (1 - Math.min(.6, E.quota))));
+const rockHp = s => 7 * Math.pow(1.26, s - 1);
 const oreForSector = s => { const av = ORES.filter(o => o.sec <= s); const top = av.length - 1; let i = top; while (i > 0 && Math.random() > .34 + E.tier) i--; return av[i]; };
 const oreQty = s => Math.max(1, Math.round((1 + s * .25) * (1 + E.qty) * rnd(.8, 1.2)));
 const ballCount = () => 6 + E.balls;
@@ -330,13 +330,13 @@ function breakRock(rk) {
   R.texts.push({ x: rk.x, y: rk.y, s: '+' + fmt(q), c: rk.ore.c, t: 0, sz: 20 + Math.min(26, Math.log10(Math.max(1, q * rk.ore.v)) * 7), vx: rnd(-20, 20) });
   shake(rk.boss ? 16 : 4); Sound.play(rk.boss ? 'boom' : 'tap');
   if (Math.random() < (rk.boss ? 1 : .03 + E.key)) { R.keys++; S.keys++; R.texts.push({ x: rk.x, y: rk.y - 26, s: '🔑 열쇠!', c: '#5ce1ff', t: 0, sz: 24 }); Sound.play('coin'); }
-  if (rk.boss) { R.boss = null; R.fuel = Math.min(maxFuel(), R.fuel + 25); R.texts.push({ x: W / 2, y: 130, s: '⛽ 연료 +25', c: '#6cf09a', t: 0, sz: 26 }); }
+  if (rk.boss) { R.boss = null; R.fuel = Math.min(maxFuel(), R.fuel + 5); R.texts.push({ x: W / 2, y: 130, s: '⛽ 연료 +5초', c: '#6cf09a', t: 0, sz: 26 }); }
   if (R.killed >= R.quota) nextSector();
 }
 function nextSector() {
   R.sector++; R.killed = 0; R.quota = quotaFor(R.sector);
   S.maxSector = Math.max(S.maxSector, R.sector);
-  R.fuel = Math.min(maxFuel(), R.fuel + 12);
+  R.fuel = Math.min(maxFuel(), R.fuel + 2.5);   // 섹터 돌파 보너스
   R.texts.push({ x: W / 2, y: H / 2 - 40, s: `섹터 ${R.sector}`, c: '#b58cff', t: 0, sz: 42 });
   Sound.play('phase');
   if (R.sector % 5 === 0) spawnRock(true);
@@ -409,7 +409,7 @@ function update(dt) {
   R.shk = Math.max(0, R.shk - dt * 40);
   // HUD
   $('fuelFill').style.width = (R.fuel / maxFuel() * 100) + '%';
-  $('fuelTxt').textContent = `⛽ ${Math.ceil(R.fuel)} / ${maxFuel()}`;
+  $('fuelTxt').textContent = `⛽ ${R.fuel.toFixed(1)}초 / ${maxFuel()}초`;
   $('eSec').textContent = R.sector; $('eQuota').textContent = `${R.killed} / ${R.quota}`;
   $('eOre').textContent = fmt(R.oreN);
   for (const k in R.cd) { const el = $('wi-' + k); if (el) el.textContent = (k === 'gun' || hasW(k)) && R.cd[k] > .1 ? R.cd[k].toFixed(1) : ''; }
@@ -546,7 +546,7 @@ function renderTop() {
   if (renderTop._c !== undefined && renderTop._c !== c) bump($('curCred'));
   renderTop._c = c;
   $('cred').textContent = c; $('keys').textContent = S.keys; $('secNo').textContent = S.sector;
-  $('hint').textContent = `최고 섹터 ${S.maxSector} · 연료 ${maxFuel()} · 포신 ${gunCount()}문`;
+  $('hint').textContent = `최고 섹터 ${S.maxSector} · 출격 ${maxFuel()}초 · 포신 ${gunCount()}문`;
   const treeOk = TREE.some(n => !own(n.id) && n.link.some(own) && S.cred >= n.cost);
   document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
   document.querySelector('[data-tab="chest"]').classList.toggle('alert', S.keys > 0 && S.tab !== 'chest');
@@ -603,7 +603,7 @@ function renderPanel() {
       ORES.map(o => { const f = S.found[o.id]; return `<div class="cd ${f ? '' : 'lock'}"><div class="ic" style="color:${o.c}">●</div><div class="nm" style="color:${f ? o.c : ''}">${f ? o.n : '???'}</div><div class="ds">${f ? `가치 ${fmt(o.v)} · 섹터 ${o.sec}+` : `섹터 ${o.sec} 이상에서 발견`}</div><div class="cost">${f ? fmt(S.mined[o.id] || 0) + '덩이 채굴' : ''}</div></div>`; }).join('') + '</div>';
   } else if (t === 'ship') {
     Pn.innerHTML = `<h3>🛸 함선 상태</h3><div class="card">
-      ${[['기관포 데미지', fmt(Math.round(gunDmg()))], ['연사 속도', gunRate().toFixed(1) + '발/초'], ['포신', gunCount() + '문'], ['최대 연료', maxFuel()], ['연료 소모', burnRate().toFixed(2) + '/초'], ['채굴량 보너스', '+' + Math.round(E.qty * 100) + '%'], ['광석 가치', '+' + Math.round(E.val * 100) + '%'], ['상위 광석 확률', '+' + Math.round(E.tier * 100) + '%'], ['열쇠 확률', '+' + Math.round(E.key * 100) + '%'], ['플링코 공', ballCount() + '개']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      ${[['기관포 데미지', fmt(Math.round(gunDmg()))], ['연사 속도', gunRate().toFixed(1) + '발/초'], ['포신', gunCount() + '문'], ['출격 시간', maxFuel() + '초'], ['연료 소모', burnRate().toFixed(2) + '/초'], ['채굴량 보너스', '+' + Math.round(E.qty * 100) + '%'], ['광석 가치', '+' + Math.round(E.val * 100) + '%'], ['상위 광석 확률', '+' + Math.round(E.tier * 100) + '%'], ['열쇠 확률', '+' + Math.round(E.key * 100) + '%'], ['플링코 공', ballCount() + '개']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
       <h3>무기</h3><div class="cards">${Object.entries(WEAPONS).map(([k, w]) => `<div class="cd ${k === 'gun' || hasW(k) ? '' : 'lock'}"><div class="ic">${w.ic}</div><div class="nm">${w.n}</div><div class="ds">${w.d}</div><div class="cost">${k === 'gun' ? '기본 장착' : hasW(k) ? '✅ 장착' : '🔒 기술 트리'}</div></div>`).join('')}</div>`;
   } else if (t === 'cfg') {
     Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko') : '-'], ['출격 횟수', S.runs], ['최고 섹터', S.maxSector], ['한 번에 번 최고', fmt(Math.floor(S.bestRun))], ['누적 크레딧', fmt(Math.floor(S.totalCred))], ['해금한 기술', `${Object.keys(S.tree).length - 1}개`], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>

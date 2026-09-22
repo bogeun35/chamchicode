@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>참스코드 킵 온 마이닝</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #17101f; --bg2: #241733; --panel: #2a1c3c; --line: #46325e; --ink: #f2e9ff; --dim: #b4a0c8; --gold: #ffd36b; --green: #7ce3a0; --pink: #ff8fc7; --cyan: #7fd8ff; --purple: #b58cff; --amber: #ffb35e; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior: none; }
+button { font-family: inherit; }
+.toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-24px); z-index: 90; background: var(--panel); border: 2px solid var(--gold); color: var(--ink); padding: 9px 18px; border-radius: 10px; font-size: 15px; opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+/* 상단 */
+.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 8px 10px; background: linear-gradient(180deg, #20142e, rgba(32,20,46,0)); z-index: 6; }
+.tl { display: flex; flex-direction: column; gap: 6px; }
+.lvbox { display: flex; align-items: center; gap: 7px; }
+.lv { width: 34px; height: 34px; border-radius: 9px; background: var(--purple); color: #22103a; display: grid; place-items: center; font-size: 15px; }
+.xpbar { width: 128px; height: 15px; background: #1a1026; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; position: relative; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); }
+.xpbar span { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 11px; color: var(--dim); }
+.bars { display: flex; gap: 5px; flex-wrap: wrap; max-width: 62vw; }
+.bar { background: rgba(42,28,60,.92); border: 2px solid var(--line); border-radius: 9px; padding: 3px 9px; font-size: 13px; color: var(--dim); white-space: nowrap; }
+.bar b { font-size: 19px; color: var(--ink); margin-left: 2px; }
+.bar.pop { animation: pop .3s ease; }
+@keyframes pop { 45% { transform: scale(1.14); } }
+.menu { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.mb { width: 44px; height: 44px; border: 2px solid var(--line); border-radius: 11px; background: rgba(42,28,60,.92); color: var(--ink); font-size: 20px; cursor: pointer; position: relative; padding: 0; }
+.mb.on { border-color: var(--gold); background: #3a2750; }
+.mb .dot { position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); display: none; }
+.mb.alert .dot { display: block; animation: blink 1s infinite; } @keyframes blink { 50% { opacity: .25; } }
+/* 채굴장 */
+.dig { position: relative; flex: 1; min-height: 240px; overflow: hidden; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.depth { position: absolute; left: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 13px; color: var(--dim); }
+.depth b { color: var(--amber); font-size: 17px; }
+.smelt { position: absolute; right: 10px; bottom: 10px; z-index: 3; background: rgba(42,28,60,.9); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 12px; color: var(--dim); min-width: 132px; }
+.smelt .q { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.smelt .q span { font-size: 11px; }
+/* 하단 패널 */
+.panel { height: 46%; min-height: 200px; background: rgba(36,23,51,.96); border-top: 3px solid var(--line); overflow: auto; padding: 10px 10px 58px; position: relative; }
+.panel.big { height: 72%; }
+h3 { font-size: 14px; color: var(--gold); margin: 3px 0 8px; display: flex; gap: 6px; align-items: center; }
+h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var(--dim); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+.cd { background: var(--panel); border: 2px solid var(--line); border-radius: 11px; padding: 9px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; position: relative; }
+.cd .ic { font-size: 24px; } .cd .nm { font-size: 14.5px; } .cd .ds { font-size: 12px; color: var(--dim); flex: 1; } .cd .cost { font-size: 12.5px; color: var(--dim); }
+.cd.ok { border-color: var(--green); } .cd.ok .cost { color: var(--green); }
+.cd.ok::after { content: '👆👆'; position: absolute; right: 6px; bottom: 5px; font-size: 10px; }
+.cd.max { border-color: var(--purple); } .cd.lock { opacity: .48; }
+.shake { animation: shk .3s; } @keyframes shk { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+/* 스킬 트리 */
+.treewrap { position: relative; overflow: auto; height: 100%; margin: -10px -10px -58px; background: radial-gradient(ellipse at 50% 50%, #33204a, #17101f 75%); }
+.tree { position: relative; }
+.tree svg { position: absolute; left: 0; top: 0; pointer-events: none; }
+.tn { position: absolute; width: 50px; height: 50px; border-radius: 11px; background: #2f2044; border: 2px solid var(--line); display: grid; place-items: center; font-size: 21px; cursor: pointer; }
+.tn.key { width: 58px; height: 58px; font-size: 25px; }
+.tn.own { background: #2c5a3c; border-color: var(--green); }
+.tn.avail { border-color: var(--gold); }
+.tn.ok { animation: pulse 1s ease-in-out infinite alternate; } @keyframes pulse { to { transform: scale(1.07); } }
+.tn .pr { position: absolute; left: 50%; transform: translateX(-50%); bottom: -15px; font-size: 10px; background: rgba(0,0,0,.65); border-radius: 5px; padding: 1px 5px; white-space: nowrap; color: var(--gold); }
+.tn.own .pr { display: none; } .tn.sel { outline: 2px solid #fff; }
+.sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; background: var(--panel); border: 2px solid var(--gold); border-radius: 11px; padding: 8px 11px; display: none; align-items: center; gap: 9px; z-index: 8; }
+.sheet.show { display: flex; }
+.sheet .ic { font-size: 25px; } .sheet .t { flex: 1; min-width: 0; } .sheet .nm { font-size: 15px; } .sheet .ds { font-size: 12px; color: var(--dim); }
+.sheet .pz { text-align: right; font-size: 13px; color: var(--gold); white-space: nowrap; } .sheet .pz.no { color: var(--pink); } .sheet .pz small { display: block; font-size: 10.5px; color: var(--dim); }
+.btn { border: 2px solid var(--line); border-radius: 10px; padding: 8px 15px; font-size: 14px; cursor: pointer; background: var(--panel); color: var(--ink); }
+.btn.go { border-color: var(--green); color: var(--green); } .btn.hot { border-color: var(--gold); color: var(--gold); }
+.btn:disabled { opacity: .4; cursor: default; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; align-items: center; }
+.card { background: var(--panel); border: 2px solid var(--line); border-radius: 11px; padding: 11px; margin-bottom: 9px; font-size: 13.5px; line-height: 1.55; }
+.stat { display: flex; justify-content: space-between; font-size: 13.5px; padding: 3px 0; border-bottom: 1px dashed var(--line); } .stat:last-child { border-bottom: none; }
+.step { display: flex; gap: 9px; background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 9px; margin-bottom: 7px; }
+.step .no { flex: none; width: 23px; height: 23px; border-radius: 50%; background: var(--gold); color: #3a2400; display: grid; place-items: center; font-size: 12px; }
+.step p { font-size: 13px; line-height: 1.5; }
+/* 카드 선택 모달 */
+.modal { position: fixed; inset: 0; background: rgba(10,5,18,.88); display: none; align-items: center; justify-content: center; z-index: 95; padding: 12px; }
+.modal.show { display: flex; }
+.modal .box { background: var(--panel); border: 2px solid var(--gold); border-radius: 16px; padding: 16px; max-width: 620px; width: 100%; text-align: center; max-height: 92vh; overflow: auto; }
+.modal h2 { font-size: 20px; color: var(--gold); margin-bottom: 6px; }
+.modal p { font-size: 13.5px; color: var(--dim); line-height: 1.55; }
+.talents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 12px 0; }
+@media (max-width: 520px) { .talents { grid-template-columns: 1fr; } }
+.tc { background: #32214a; border: 3px solid var(--line); border-radius: 13px; padding: 13px 9px; cursor: pointer; transition: transform .12s; }
+.tc:hover { transform: translateY(-4px); border-color: var(--gold); }
+.tc .ic { font-size: 34px; } .tc .nm { font-size: 16px; margin: 5px 0; } .tc .ds { font-size: 12.5px; color: var(--dim); }
+.tc .rar { font-size: 11px; margin-top: 5px; }
+.tc.r1 { border-color: #6b7fa8; } .tc.r2 { border-color: var(--cyan); } .tc.r3 { border-color: var(--purple); box-shadow: 0 0 16px rgba(181,140,255,.35); }
+.res { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 9px 0; }
+.res div { background: #1f1430; border-radius: 8px; padding: 7px; font-size: 12.5px; color: var(--dim); } .res b { display: block; font-size: 18px; color: var(--ink); }
+@media (max-width: 620px) {
+  .top { flex-direction: column; align-items: stretch; }
+  .menu { justify-content: space-between; flex-wrap: nowrap; }
+  .bars { max-width: none; }
+  .panel { height: 50%; }
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div id="app">
+  <div class="top">
+    <div class="tl">
+      <div class="lvbox"><div class="lv" id="lv">1</div><div class="xpbar"><i id="xpFill"></i><span id="xpTxt"></span></div>
+        <button class="btn hot" id="btnTalent" style="display:none;padding:5px 10px;font-size:12px">🃏 특성 카드 <b id="tp">0</b></button></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="menu">
+      <button class="mb on" data-tab="tree" title="스킬 트리">🌳<span class="dot"></span></button>
+      <button class="mb" data-tab="pick" title="곡괭이 제작">⛏️<span class="dot"></span></button>
+      <button class="mb" data-tab="talent" title="특성">🃏<span class="dot"></span></button>
+      <button class="mb" data-tab="relic" title="유물">🏺<span class="dot"></span></button>
+      <button class="mb" data-tab="mine" title="광산(방치)">🏚️<span class="dot"></span></button>
+      <button class="mb" data-tab="cfg" title="기록·도움말">⚙️<span class="dot"></span></button>
+    </div>
+  </div>
+  <div class="dig">
+    <canvas id="cv"></canvas>
+    <div class="depth">깊이 <b id="depth">1</b>m<span id="depthNext" style="font-size:11px"></span></div>
+    <div class="smelt" id="smeltBox"></div>
+  </div>
+  <div class="panel" id="panel"></div>
+  <div class="sheet" id="sheet"></div>
+</div>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script src="party-sound.js"></script>
+<script>
+'use strict';
+Sound.theme('mystery'); Sound.scene('game');
+const $ = id => document.getElementById(id);
+const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
+function fmt(n) {
+  if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
+  n = Math.floor(n);
+  if (n < 10000) return n.toLocaleString();
+  const u = Math.floor(Math.log10(n) / 4); if (u >= UNITS.length) return n.toExponential(2).replace('+', '');
+  const p = Math.pow(10, u * 4), head = Math.floor(n / p), rest = Math.floor((n % p) / Math.pow(10, (u - 1) * 4));
+  if (head >= 1000 || rest === 0) return head.toLocaleString() + UNITS[u];
+  return head + UNITS[u] + ' ' + rest.toLocaleString() + (u >= 2 ? UNITS[u - 1] : '');
+}
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2300); }
+const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+// ═══════════ 데이터 ═══════════
+// 광석 → 제련 → 주괴
+const MATS = [
+  { id: 'stone', n: '돌', c: '#8c8598', v: 1, d: 1, smelt: 1.2 },
+  { id: 'copper', n: '구리', c: '#e08a4a', v: 5, d: 8, smelt: 1.6 },
+  { id: 'iron', n: '철', c: '#b8c2d8', v: 26, d: 25, smelt: 2.2 },
+  { id: 'silver', n: '은', c: '#e8eef8', v: 140, d: 60, smelt: 3 },
+  { id: 'gold', n: '금', c: '#ffd36b', v: 800, d: 120, smelt: 4 },
+  { id: 'mith', n: '미스릴', c: '#7fd8ff', v: 4800, d: 220, smelt: 5.5 },
+  { id: 'obsid', n: '흑요석', c: '#b58cff', v: 30000, d: 380, smelt: 7 },
+  { id: 'star', n: '별철', c: '#ff8fc7', v: 200000, d: 600, smelt: 9 },
+];
+const matById = Object.fromEntries(MATS.map(m => [m.id, m]));
+// 곡괭이 (재료로 제작)
+const PICKS = [
+  { id: 'wood', n: '나무 곡괭이', ic: '🪵', dmg: 1.6, spd: 1, area: 1, cost: null },
+  { id: 'stone', n: '돌 곡괭이', ic: '🪨', dmg: 2.2, spd: 1.1, area: 1.05, cost: { stone: 30 } },
+  { id: 'copper', n: '구리 곡괭이', ic: '🟠', dmg: 5, spd: 1.2, area: 1.1, cost: { stone: 120, copper: 40 } },
+  { id: 'iron', n: '철 곡괭이', ic: '⚙️', dmg: 13, spd: 1.35, area: 1.15, cost: { copper: 200, iron: 60 } },
+  { id: 'silver', n: '은 곡괭이', ic: '🥈', dmg: 38, spd: 1.5, area: 1.22, cost: { iron: 300, silver: 80 } },
+  { id: 'gold', n: '금 곡괭이', ic: '🥇', dmg: 120, spd: 1.7, area: 1.3, cost: { silver: 400, gold: 100 } },
+  { id: 'mith', n: '미스릴 곡괭이', ic: '💠', dmg: 420, spd: 1.95, area: 1.4, cost: { gold: 500, mith: 120 } },
+  { id: 'obsid', n: '흑요석 곡괭이', ic: '🔮', dmg: 1600, spd: 2.25, area: 1.5, cost: { mith: 700, obsid: 150 } },
+  { id: 'star', n: '별철 곡괭이', ic: '⭐', dmg: 7000, spd: 2.6, area: 1.65, cost: { obsid: 900, star: 200 } },
+];
+// 특성 카드 (레벨업마다 3장 중 1택) — 고를수록 바위 HP 증가
+const CARDS = [
+  { id: 'dmg', n: '단단한 손아귀', ic: '💪', ds: '곡괭이 피해 +18%', r: 1, k: 'dmg', v: .18 },
+  { id: 'spd', n: '빠른 손놀림', ic: '⚡', ds: '채굴 속도 +14%', r: 1, k: 'spd', v: .14 },
+  { id: 'area', n: '넓은 시야', ic: '🔦', ds: '채굴 영역 +10%', r: 1, k: 'area', v: .1 },
+  { id: 'qty', n: '알뜰한 채굴', ic: '⛏️', ds: '광석 수량 +20%', r: 1, k: 'qty', v: .2 },
+  { id: 'smelt', n: '풀무질', ic: '🔥', ds: '제련 속도 +25%', r: 1, k: 'smelt', v: .25 },
+  { id: 'crit', n: '급소 타격', ic: '🎯', ds: '치명타 확률 +6% (피해 3배)', r: 2, k: 'crit', v: .06 },
+  { id: 'picks', n: '여벌 곡괭이', ic: '⛏️', ds: '바위 하나당 곡괭이 +1', r: 3, k: 'picks', v: 1 },
+  { id: 'boom', n: '연쇄 붕괴', ic: '💥', ds: '바위를 깨면 주변 바위에 피해', r: 2, k: 'boom', v: .35 },
+  { id: 'deep', n: '깊은 곳의 부름', ic: '🕳️', ds: '더 깊은 광석이 나올 확률 +12%', r: 2, k: 'deep', v: .12 },
+  { id: 'relic', n: '보물 감각', ic: '🏺', ds: '유물 발견 확률 +60%', r: 2, k: 'relicf', v: .6 },
+  { id: 'xp', n: '경험의 곡괭이', ic: '📗', ds: '경험치 +25%', r: 1, k: 'xp', v: .25 },
+  { id: 'mine', n: '일꾼 고용', ic: '🏚️', ds: '광산 생산 +40%', r: 2, k: 'mineb', v: .4 },
+  { id: 'bigdmg', n: '산을 부수는 일격', ic: '🌋', ds: '곡괭이 피해 +45%', r: 3, k: 'dmg', v: .45 },
+  { id: 'bigspd', n: '초고속 채굴', ic: '🌀', ds: '채굴 속도 +35%', r: 3, k: 'spd', v: .35 },
+  { id: 'vein', n: '광맥 적중', ic: '💎', ds: '광석 수량 +50%', r: 3, k: 'qty', v: .5 },
+];
+// 유물 (바위에서 드랍, 영구)
+const RELICS = [
+  { id: 'lamp', n: '낡은 광부 램프', ic: '🏮', ds: '채굴 영역 +12%', k: 'area', v: .12 },
+  { id: 'glove', n: '가죽 장갑', ic: '🧤', ds: '채굴 속도 +12%', k: 'spd', v: .12 },
+  { id: 'helm', n: '찌그러진 헬멧', ic: '⛑️', ds: '곡괭이 피해 +15%', k: 'dmg', v: .15 },
+  { id: 'cart', n: '녹슨 광차', ic: '🛒', ds: '광석 수량 +20%', k: 'qty', v: .2 },
+  { id: 'bellow', n: '오래된 풀무', ic: '🌬️', ds: '제련 속도 +30%', k: 'smelt', v: .3 },
+  { id: 'gem', n: '수상한 원석', ic: '💠', ds: '치명타 +5%', k: 'crit', v: .05 },
+  { id: 'map', n: '광산 지도', ic: '🗺️', ds: '깊은 광석 확률 +15%', k: 'deep', v: .15 },
+  { id: 'bell', n: '작업 종', ic: '🔔', ds: '광산 생산 +50%', k: 'mineb', v: .5 },
+  { id: 'book', n: '광부 일지', ic: '📔', ds: '경험치 +30%', k: 'xp', v: .3 },
+  { id: 'core', n: '별의 조각', ic: '🌟', ds: '모든 효과 +8%', k: 'all', v: .08 },
+];
+const relicById = Object.fromEntries(RELICS.map(r => [r.id, r]));
+// 스킬 트리 (주괴 소비)
+const P = (k, v, ic, n) => ({ t: 'p', k, v, ic, n });
+const SPOKES = [
+  { m: 'stone', d: [0, -1], nodes: [P('dmg', .2, '💪', '피해 +20%'), P('spd', .15, '⚡', '속도 +15%'), P('dmg', .25, '💪', '피해 +25%'), P('picks', 1, '⛏️', '곡괭이 +1'), P('dmg', .35, '💪', '피해 +35%'), P('spd', .25, '⚡', '속도 +25%'), P('dmg', .5, '💪', '피해 +50%')] },
+  { m: 'copper', d: [1, 0], nodes: [P('qty', .25, '⛏️', '광석 +25%'), P('area', .1, '🔦', '영역 +10%'), P('qty', .35, '⛏️', '광석 +35%'), P('deep', .1, '🕳️', '깊은 광석 +10%'), P('qty', .5, '⛏️', '광석 +50%'), P('area', .15, '🔦', '영역 +15%')] },
+  { m: 'iron', d: [0, 1], nodes: [P('smelt', .3, '🔥', '제련 +30%'), P('val', .2, '💰', '주괴 산출 +20%'), P('smelt', .4, '🔥', '제련 +40%'), { t: 'mine', ic: '🏚️', n: '광산 해금' }, P('mineb', .5, '🏚️', '광산 +50%'), P('mineb', .8, '🏚️', '광산 +80%')] },
+  { m: 'silver', d: [-1, 0], nodes: [P('crit', .05, '🎯', '치명타 +5%'), P('xp', .2, '📗', '경험치 +20%'), P('crit', .07, '🎯', '치명타 +7%'), P('relicf', .4, '🏺', '유물 확률 +40%'), P('crit', .1, '🎯', '치명타 +10%'), P('xp', .35, '📗', '경험치 +35%')] },
+  { m: 'gold', d: [1, 1], nodes: [P('dmg', .4, '💪', '피해 +40%'), P('picks', 1, '⛏️', '곡괭이 +1'), P('area', .2, '🔦', '영역 +20%'), P('boom', .3, '💥', '연쇄 붕괴 +30%'), P('picks', 2, '⛏️', '곡괭이 +2')] },
+  { m: 'mith', d: [-1, 1], nodes: [P('deep', .15, '🕳️', '깊은 광석 +15%'), P('val', .4, '💰', '주괴 산출 +40%'), P('qty', .8, '⛏️', '광석 +80%'), P('dmg', .8, '💪', '피해 +80%'), P('all', .15, '🌟', '모든 효과 +15%')] },
+];
+const SIDE = [['dmg', .12, '💪', '피해 +12%'], ['spd', .1, '⚡', '속도 +10%'], ['qty', .15, '⛏️', '광석 +15%'], ['smelt', .2, '🔥', '제련 +20%'], ['area', .07, '🔦', '영역 +7%'], ['crit', .03, '🎯', '치명타 +3%'], ['xp', .15, '📗', '경험치 +15%'], ['val', .15, '💰', '주괴 +15%']];
+const TREE = [], TREE_BY = {}, C = { x: 8, y: 7 };
+(function build() {
+  let si = 0;
+  const add = (x, y, spec, dist, key, link, mat) => {
+    const id = 'n' + TREE.length, n = Object.assign({ id, x, y, dist, key, link, mat }, spec);
+    const base = Math.round(8 * Math.pow(2.05, dist) * (key ? 1 : .6));
+    n.cost = { [mat]: base }; TREE.push(n); TREE_BY[id] = n; return n;
+  };
+  TREE.push({ id: 'core', x: C.x, y: C.y, t: 'root', ic: '⛏️', n: '광부의 시작', dist: 0, cost: {}, key: true, link: [] }); TREE_BY.core = TREE[0];
+  SPOKES.forEach(sp => {
+    const diag = sp.d[0] && sp.d[1]; let prev = 'core';
+    sp.nodes.forEach((spec, i) => {
+      const k = i + 1, n = add(C.x + sp.d[0] * k, C.y + sp.d[1] * k, spec, k, spec.t !== 'p' || k % 2 === 0, [prev], sp.m);
+      if (k % 2 === 0) {
+        const offs = diag ? [[sp.d[0], 0], [0, sp.d[1]]] : [[sp.d[1], sp.d[0]], [-sp.d[1], -sp.d[0]]];
+        offs.forEach(o => { const s = SIDE[si++ % SIDE.length]; add(n.x + o[0], n.y + o[1], P(s[0], s[1], s[2], s[3]), k + .5, false, [n.id], sp.m); });
+      }
+      prev = n.id;
+    });
+  });
+})();
+const TW = Math.max(...TREE.map(n => n.x)) + 1, TH = Math.max(...TREE.map(n => n.y)) + 1;
+
+// ═══════════ 상태 ═══════════
+const SAVE_KEY = 'mine_save_v1';
+function fresh() { return { bars: {}, ore: {}, lv: 1, xp: 0, tp: 0, talents: {}, talentLv: 0, tree: { core: 1 }, pick: 'wood', relics: {}, depth: 1, broken: 0, mineOn: 0, tab: 'tree', found: {}, playTime: 0, savedAt: 0, last: Date.now(), started: Date.now() }; }
+let S = fresh();
+function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
+function save() { try { S.savedAt = Date.now(); S.last = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+
+// ═══════════ 계산 ═══════════
+const own = id => !!S.tree[id];
+function eff() {
+  const e = { dmg: 0, spd: 0, area: 0, qty: 0, smelt: 0, crit: 0, picks: 0, boom: 0, deep: 0, relicf: 0, xp: 0, mineb: 0, val: 0, all: 0 };
+  for (const id in S.tree) { const n = TREE_BY[id]; if (n && n.t === 'p') e[n.k] += n.v; }
+  for (const id in S.talents) { const c = CARDS.find(x => x.id === id); if (c) e[c.k] += c.v * S.talents[id]; }
+  for (const id in S.relics) { const r = relicById[id]; if (r) e[r.k] += r.v * S.relics[id]; }
+  if (e.all) for (const k in e) if (k !== 'all' && k !== 'picks') e[k] += e.all;
+  return e;
+}
+let E = eff(); const refresh = () => E = eff();
+const curPick = () => PICKS.find(p => p.id === S.pick) || PICKS[0];
+const dmg = () => curPick().dmg * (1 + E.dmg) * (1 + S.lv * .02);
+const spd = () => curPick().spd * (1 + E.spd);
+const areaR = () => 62 * curPick().area * (1 + E.area);
+const picksPer = () => 1 + Math.floor(E.picks);
+const rockHp = () => 6 * Math.pow(1.055, S.depth) * Math.pow(1.11, S.talentLv);
+const xpNeed = lv => Math.floor(30 * Math.pow(1.17, lv - 1));
+const matForDepth = () => { const av = MATS.filter(m => m.d <= S.depth); let i = av.length - 1; while (i > 0 && Math.random() > .3 + E.deep) i--; return av[i]; };
+const oreQty = () => Math.max(1, Math.round((1 + S.depth * .04) * (1 + E.qty) * rnd(.85, 1.15)));
+const smeltSpeed = () => (1 + E.smelt);
+const barYield = () => 1 + E.val;
+const mineRate = () => S.mineOn ? (0.5 + S.depth * .02) * (1 + E.mineb) : 0;
+const depthNeed = d => Math.round(12 + d * 2.2);
+function vis(n) { return own(n.id) || n.link.some(own); }
+function canPay(cost) { for (const k in cost) if ((S.bars[k] || 0) < cost[k]) return false; return true; }
+function payCost(cost) { for (const k in cost) S.bars[k] -= cost[k]; }
+const costTxt = c => Object.entries(c).map(([k, v]) => `${matById[k].n} ${fmt(v)}`).join(' · ');
+
+// ═══════════ 채굴장 ═══════════
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, rocks = [], hammers = [], parts = [], texts = [], cursor = { x: 0, y: 0, on: false }, lastF = performance.now(), smeltQ = [];
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); if (!rocks.length) fillRocks(); }
+addEventListener('resize', resize);
+function newRock(x, y) {
+  const m = matForDepth(), hp = rockHp() * rnd(.85, 1.2) * (m.d > 1 ? 1 + m.d * .004 : 1);
+  const r = 22 + Math.min(16, Math.log2(hp + 2) * 1.6), pts = [];
+  for (let i = 0; i < 9; i++) pts.push(rnd(.78, 1.14));
+  return { x: x == null ? rnd(r + 8, W - r - 8) : x, y: y == null ? rnd(r + 8, H - r - 8) : y, r, hp, max: hp, m, pts, rot: rnd(0, 6.28), hit: 0, sh: 0 };
+}
+function fillRocks() { const want = 7; while (rocks.length < want) rocks.push(newRock()); }
+function breakRock(rk, chain) {
+  const i = rocks.indexOf(rk); if (i < 0) return; rocks.splice(i, 1);
+  S.broken++;
+  const q = oreQty(); S.ore[rk.m.id] = (S.ore[rk.m.id] || 0) + q;
+  if (!S.found[rk.m.id]) { S.found[rk.m.id] = 1; toast(`✨ 새 광석 발견: ${rk.m.n}`); }
+  smeltQ.push({ m: rk.m, q, t: 0, need: rk.m.smelt });
+  addXp(2 * Math.pow(1.35, rk.m.d > 1 ? MATS.indexOf(rk.m) : 0) * (1 + E.xp));
+  texts.push({ x: rk.x, y: rk.y, s: '+' + fmt(q), c: rk.m.c, t: 0, sz: 18 + Math.min(24, Math.log10(Math.max(1, q * rk.m.v)) * 7), vx: rnd(-18, 18) });
+  for (let k = 0; k < 10; k++) parts.push({ x: rk.x, y: rk.y, vx: rnd(-120, 120), vy: rnd(-140, 60), t: 0, life: rnd(.4, .8), c: rk.m.c, r: rnd(2, 5) });
+  Sound.play('tap');
+  if (Math.random() < .004 * (1 + E.relicf)) {
+    const av = RELICS.filter(r => !S.relics[r.id]);
+    const g = av.length ? pick(av) : pick(RELICS);
+    S.relics[g.id] = (S.relics[g.id] || 0) + 1; refresh(); Sound.play('meld');
+    showModal(`<h2>🏺 유물 발견!</h2><div style="font-size:52px">${g.ic}</div><div style="font-size:18px;margin:6px 0">${g.n}</div><p>${g.ds}</p><div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal()">챙기기</button></div>`);
+  }
+  if (!chain && E.boom > 0) for (const r2 of [...rocks]) if (Math.hypot(r2.x - rk.x, r2.y - rk.y) < 130) { r2.hp -= rk.max * E.boom; r2.hit = .2; if (r2.hp <= 0) breakRock(r2, 1); }
+  // 깊이
+  if (S.broken >= depthNeed(S.depth)) { S.broken = 0; S.depth++; texts.push({ x: W / 2, y: H / 2, s: `깊이 ${S.depth}m`, c: '#ffb35e', t: 0, sz: 34 }); Sound.play('phase'); }
+  rocks.push(newRock());
+}
+function addXp(n) {
+  S.xp += n;
+  while (S.xp >= xpNeed(S.lv)) { S.xp -= xpNeed(S.lv); S.lv++; S.tp++; Sound.play('correct'); toast(`🎉 레벨 ${S.lv}! 특성 카드 1장`); }
+}
+function tick(dt) {
+  S.playTime += dt;
+  // 채굴 영역 안 바위마다 곡괭이 소환
+  const R = areaR(), per = picksPer(), rate = spd() * 2.4, dm = dmg();
+  hammers.length = 0;
+  if (cursor.on) {
+    for (const rk of rocks) {
+      if (Math.hypot(rk.x - cursor.x, rk.y - cursor.y) > R + rk.r * .5) continue;
+      for (let i = 0; i < per; i++) hammers.push({ rk, i, per });
+      rk.acc = (rk.acc || 0) + rate * per * dt;
+      while (rk.acc >= 1) {
+        rk.acc -= 1;
+        const crit = Math.random() < E.crit, d = dm * (crit ? 3 : 1);
+        rk.hp -= d; rk.hit = .18; rk.sh = 3;
+        if (crit) texts.push({ x: rk.x + rnd(-14, 14), y: rk.y - rk.r, s: '💥' + fmt(d), c: '#ffd36b', t: 0, sz: 22 });
+        if (rk.hp <= 0) { breakRock(rk); break; }
+      }
+    }
+  }
+  // 광산(방치)
+  const mr = mineRate();
+  if (mr > 0) {
+    mineAcc += mr * dt;
+    while (mineAcc >= 1) { mineAcc -= 1; const m = matForDepth(), q = oreQty(); S.bars[m.id] = (S.bars[m.id] || 0) + q * barYield() * .55; if (!S.found[m.id]) S.found[m.id] = 1; addXp(1 * (1 + E.xp)); }
+  }
+  // 제련
+  const ss = smeltSpeed();
+  for (const s of smeltQ) { s.t += dt * ss; }
+  for (let i = smeltQ.length - 1; i >= 0; i--) {
+    if (smeltQ[i].t < smeltQ[i].need) continue;
+    const s = smeltQ.splice(i, 1)[0];
+    const got = s.q * barYield();
+    S.bars[s.m.id] = (S.bars[s.m.id] || 0) + got;
+    S.ore[s.m.id] = Math.max(0, (S.ore[s.m.id] || 0) - s.q);
+    texts.push({ x: W - 80, y: H - 60, s: '🔥 ' + s.m.n + ' +' + fmt(got), c: s.m.c, t: 0, sz: 17 });
+    Sound.play('coin');
+  }
+  for (const rk of rocks) { rk.hit = Math.max(0, rk.hit - dt); rk.sh = Math.max(0, rk.sh - dt * 12); rk.rot += dt * .08; }
+  for (const p of parts) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; }
+  parts = parts.filter(p => p.t < p.life);
+  for (const t of texts) { t.t += dt; t.y -= 38 * dt; if (t.vx) t.x += t.vx * dt; }
+  texts = texts.filter(t => t.t < 1.15);
+}
+let mineAcc = 0;
+function draw() {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1b3a'); g.addColorStop(1, '#140d20');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,.035)'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 42) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 42) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  // 채굴 영역
+  if (cursor.on) {
+    const R = areaR();
+    ctx.strokeStyle = 'rgba(255,211,107,.6)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+    ctx.beginPath(); ctx.arc(cursor.x, cursor.y, R, 0, 6.28); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,211,107,.07)'; ctx.fill();
+  }
+  // 바위
+  for (const rk of rocks) {
+    const ox = rk.sh ? rnd(-rk.sh, rk.sh) : 0, oy = rk.sh ? rnd(-rk.sh, rk.sh) : 0;
+    ctx.save(); ctx.translate(rk.x + ox, rk.y + oy); ctx.rotate(rk.rot);
+    ctx.beginPath(); rk.pts.forEach((p, i) => { const a = i / rk.pts.length * 6.283, r = rk.r * p; i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); }); ctx.closePath();
+    ctx.fillStyle = rk.hit ? '#fff' : '#4a3a5e'; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = rk.m.c; ctx.stroke();
+    ctx.fillStyle = rk.m.c; ctx.globalAlpha = .5;
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(Math.cos(i * 2.2) * rk.r * .38, Math.sin(i * 2.2) * rk.r * .38, rk.r * .15, 0, 6.28); ctx.fill(); }
+    ctx.globalAlpha = 1; ctx.restore();
+    if (rk.hp < rk.max) { const bw = rk.r * 1.9; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 11, bw, 5); ctx.fillStyle = '#7ce3a0'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 11, bw * Math.max(0, rk.hp / rk.max), 5); }
+  }
+  // 곡괭이
+  const now = performance.now() / 1000;
+  for (const h of hammers) {
+    const a = (h.i / h.per) * 6.283 + now * 5, d = h.rk.r + 20, sw = Math.sin(now * 12 + h.i) * .5;
+    const hx = h.rk.x + Math.cos(a) * d, hy = h.rk.y + Math.sin(a) * d;
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(a + Math.PI + sw);
+    ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.fillText('⛏️', 0, 6); ctx.restore();
+  }
+  for (const p of parts) { ctx.globalAlpha = Math.max(0, 1 - p.t / p.life); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1;
+  ctx.textAlign = 'center';
+  for (const t of texts) { const k = Math.min(1, t.t * 7), pop = .55 + k * .5 + Math.max(0, .18 - t.t) * 1.4, size = Math.round((t.sz || 18) * pop);
+    ctx.globalAlpha = Math.min(1, (1.15 - t.t) * 1.8); ctx.font = `${size}px Jua`; ctx.lineWidth = Math.max(4, size * .2); ctx.strokeStyle = '#140d20';
+    const w = ctx.measureText(t.s).width, px = clamp(t.x, w / 2 + 5, W - w / 2 - 5);
+    ctx.strokeText(t.s, px, t.y); ctx.fillStyle = t.c; ctx.fillText(t.s, px, t.y); }
+  ctx.globalAlpha = 1;
+}
+function loop() {
+  const now = performance.now(); let dt = Math.min(1, (now - lastF) / 1000); lastF = now;
+  while (dt > 0) { const st = Math.min(.05, dt); dt -= st; tick(st); }
+  draw(); renderTop(); requestAnimationFrame(loop);
+}
+cv.addEventListener('pointermove', e => { const b = cv.getBoundingClientRect(); cursor.x = e.clientX - b.left; cursor.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); cursor.on = true; Sound.init(); });
+cv.addEventListener('pointerdown', e => { const b = cv.getBoundingClientRect(); cursor.x = e.clientX - b.left; cursor.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); cursor.on = true; Sound.init(); });
+cv.addEventListener('pointerleave', () => { if (!('ontouchstart' in window)) cursor.on = false; });
+
+// ═══════════ UI ═══════════
+let sel = null;
+function renderTop() {
+  $('lv').textContent = S.lv; $('xpFill').style.width = (S.xp / xpNeed(S.lv) * 100) + '%';
+  $('xpTxt').textContent = `${fmt(S.xp)} / ${fmt(xpNeed(S.lv))}`;
+  $('btnTalent').style.display = S.tp > 0 ? '' : 'none'; $('tp').textContent = S.tp;
+  document.querySelector('[data-tab="talent"]').classList.toggle('alert', S.tp > 0 && S.tab !== 'talent');
+  // 주괴
+  const list = MATS.filter(m => S.found[m.id] || (S.bars[m.id] || 0) > 0);
+  const html = list.map(m => `<span class="bar" id="bar-${m.id}" style="border-color:${m.c}40">${m.n}<b style="color:${m.c}">${fmt(S.bars[m.id] || 0)}</b></span>`).join('') || '<span class="bar">바위를 캐 보세요</span>';
+  if (renderTop._h !== html) { $('bars').innerHTML = html; renderTop._h = html; }
+  else list.forEach(m => { const el = $('bar-' + m.id); if (!el) return; const v = fmt(S.bars[m.id] || 0); const b = el.querySelector('b'); if (b.textContent !== v) { b.textContent = v; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); } });
+  $('depth').textContent = S.depth;
+  $('depthNext').textContent = ` · 다음까지 ${depthNeed(S.depth) - S.broken}개`;
+  const q = smeltQ.slice(0, 5);
+  $('smeltBox').innerHTML = `🔥 제련소 ${smeltQ.length ? `(${smeltQ.length})` : ''}<div class="q">${q.length ? q.map(s => `<span style="color:${s.m.c}">${s.m.n} ${Math.min(99, Math.round(s.t / s.need * 100))}%</span>`).join('') : '<span style="color:var(--dim)">대기 중</span>'}</div>${S.mineOn ? `<div style="color:var(--green);font-size:11px;margin-top:3px">🏚️ 광산 ${mineRate().toFixed(1)}/초</div>` : ''}`;
+  const treeOk = TREE.some(n => !own(n.id) && n.link.some(own) && canPay(n.cost));
+  document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
+  document.querySelector('[data-tab="pick"]').classList.toggle('alert', PICKS.some(p => p.cost && canPay(p.cost) && PICKS.indexOf(p) > PICKS.findIndex(x => x.id === S.pick)) && S.tab !== 'pick');
+}
+function setTab(t) { S.tab = t; document.querySelectorAll('.mb').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); sel = null; hideSheet(); renderPanel(); }
+document.querySelectorAll('.mb').forEach(b => b.onclick = () => { Sound.play('click'); setTab(b.dataset.tab); });
+$('btnTalent').onclick = () => offerCards();
+function showSheet(ic, nm, ds, cost, extra) {
+  const sh = $('sheet'); let right = extra || '';
+  if (cost) { const ok = canPay(cost); right = `<span class="pz ${ok ? '' : 'no'}">${costTxt(cost)}<small>${ok ? '👆👆 더블클릭하면 제작/해금' : '주괴가 모자라요'}</small></span>`; }
+  sh.innerHTML = `<div class="ic">${ic}</div><div class="t"><div class="nm">${nm}</div><div class="ds">${ds}</div></div>${right}`;
+  sh.classList.add('show');
+}
+function hideSheet() { $('sheet').classList.remove('show'); }
+function bindBuy(el, canFn, buyFn, infoFn) {
+  if (!el) return;
+  el.addEventListener('pointerdown', e => {
+    if (e.button) return; const now = Date.now();
+    if (bindBuy._el === el && now - bindBuy._t < 450) { bindBuy._el = null; clearTimeout(bindBuy._h); if (canFn()) buyFn(); else { Sound.play('error'); el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 320); infoFn && infoFn(); } return; }
+    bindBuy._el = el; bindBuy._t = now; clearTimeout(bindBuy._h); bindBuy._h = setTimeout(() => { Sound.play('tap'); infoFn && infoFn(); }, 170);
+  });
+  el.addEventListener('dblclick', e => e.preventDefault());
+}
+function renderPanel() {
+  const Pn = $('panel'), t = S.tab;
+  Pn.classList.toggle('big', t === 'tree');
+  if (t === 'tree') {
+    const cell = 66, pad = 36;
+    Pn.innerHTML = `<div class="treewrap" id="treewrap"><div class="tree" style="width:${TW * cell + pad * 2}px;height:${TH * cell + pad * 2}px">
+      <svg width="${TW * cell + pad * 2}" height="${TH * cell + pad * 2}">${TREE.filter(vis).flatMap(n => n.link.filter(l => vis(TREE_BY[l])).map(l => { const m = TREE_BY[l]; return `<line x1="${pad + n.x * cell + cell / 2}" y1="${pad + n.y * cell + cell / 2}" x2="${pad + m.x * cell + cell / 2}" y2="${pad + m.y * cell + cell / 2}" stroke="${own(n.id) ? '#7ce3a0' : '#46325e'}" stroke-width="4"/>`; })).join('')}</svg>
+      ${TREE.filter(vis).map(n => { const sz = n.key ? 58 : 50, c = n.mat ? matById[n.mat] : null; return `<div class="tn ${n.key ? 'key' : ''} ${own(n.id) ? 'own' : 'avail' + (canPay(n.cost) ? ' ok' : '')}" data-id="${n.id}" style="left:${pad + n.x * cell + (cell - sz) / 2}px;top:${pad + n.y * cell + (cell - sz) / 2}px${c && !own(n.id) ? `;border-color:${c.c}` : ''}">${n.ic}${own(n.id) ? '' : `<span class="pr" style="color:${c ? c.c : '#ffd36b'}">${fmt(Object.values(n.cost)[0])}</span>`}</div>`; }).join('')}</div></div>`;
+    const wrap = $('treewrap');
+    Pn.querySelectorAll('.tn').forEach(el => bindBuy(el, () => { const n = TREE_BY[el.dataset.id]; return !own(n.id) && n.link.some(own) && canPay(n.cost); }, () => buyNode(el.dataset.id), () => selNode(el.dataset.id)));
+    wrap.scrollLeft = pad + C.x * cell + cell / 2 - wrap.clientWidth / 2; wrap.scrollTop = pad + C.y * cell + cell / 2 - wrap.clientHeight / 2;
+    if (sel) selNode(sel);
+  } else if (t === 'pick') {
+    const cur = PICKS.findIndex(p => p.id === S.pick);
+    Pn.innerHTML = `<h3>⛏️ 곡괭이 제작<small>좋은 곡괭이일수록 피해·속도·영역이 좋아요</small></h3><div class="cards">` +
+      PICKS.map((p, i) => { const have = i <= cur, canMake = i === cur + 1 && p.cost && canPay(p.cost);
+        return `<div class="cd ${have ? 'max' : canMake ? 'ok' : 'lock'}" data-p="${p.id}"><div class="ic">${p.ic}</div><div class="nm">${p.n}</div>
+        <div class="ds">피해 ×${p.dmg} · 속도 ×${p.spd} · 영역 ×${p.area}</div>
+        <div class="cost">${have ? (i === cur ? '✅ 사용 중' : '보유') : p.cost ? costTxt(p.cost) : ''}</div></div>`; }).join('') + '</div>';
+    Pn.querySelectorAll('.cd[data-p]').forEach(el => { const p = PICKS.find(x => x.id === el.dataset.p), i = PICKS.indexOf(p);
+      const info = () => showSheet(p.ic, p.n, `피해 ×${p.dmg} · 속도 ×${p.spd} · 채굴 영역 ×${p.area}`, i <= cur ? null : p.cost, i <= cur ? '<span style="color:var(--green)">보유</span>' : i > cur + 1 ? '<span style="color:var(--dim)">앞 곡괭이 먼저</span>' : '');
+      bindBuy(el, () => i === cur + 1 && p.cost && canPay(p.cost), () => { payCost(p.cost); S.pick = p.id; refresh(); Sound.play('meld'); toast(`${p.ic} ${p.n} 제작!`); renderPanel(); save(); }, info); });
+  } else if (t === 'talent') {
+    Pn.innerHTML = `<h3>🃏 특성 <small>특성 레벨 ${S.talentLv} — 카드를 고를수록 바위가 단단해져요 (HP +11%/장)</small></h3>
+      ${S.tp ? `<div class="card" style="text-align:center">쓰지 않은 특성 포인트 <b style="color:var(--gold);font-size:20px">${S.tp}</b><div class="row" style="justify-content:center"><button class="btn hot" id="btnDraw">🃏 카드 3장 뽑기</button></div></div>` : `<div class="card" style="text-align:center;color:var(--dim)">레벨업하면 특성 포인트를 받아요</div>`}
+      <div class="cards">${CARDS.filter(c => S.talents[c.id]).map(c => `<div class="cd max"><div class="ic">${c.ic}</div><div class="nm">${c.n} ×${S.talents[c.id]}</div><div class="ds">${c.ds}</div></div>`).join('') || '<div class="cd lock"><div class="ic">❔</div><div class="nm">아직 없음</div><div class="ds">레벨업하고 카드를 골라요</div></div>'}</div>`;
+    const b = $('btnDraw'); if (b) b.onclick = () => offerCards();
+  } else if (t === 'relic') {
+    Pn.innerHTML = `<h3>🏺 유물 ${Object.keys(S.relics).length} / ${RELICS.length}<small>바위를 깨다 보면 아주 가끔 나와요</small></h3><div class="cards">` +
+      RELICS.map(r => { const n = S.relics[r.id] || 0; return `<div class="cd ${n ? '' : 'lock'}"><div class="ic">${n ? r.ic : '❔'}</div><div class="nm">${n ? r.n : '???'}</div><div class="ds">${n ? r.ds : '아직 못 찾았어요'}</div><div class="cost">${n > 1 ? '×' + n : ''}</div></div>`; }).join('') + '</div>';
+  } else if (t === 'mine') {
+    Pn.innerHTML = `<h3>🏚️ 광산 (방치)<small>${S.mineOn ? '가동 중' : '스킬 트리 "제련" 갈래에서 해금'}</small></h3>
+      <div class="card">${S.mineOn ? `일꾼들이 알아서 바위를 캐고 <b>즉시 주괴까지</b> 만들어요.<br>생산 <b style="color:var(--green)">${mineRate().toFixed(1)}개/초</b> · 깊이가 깊을수록, 광산 보너스가 높을수록 빨라져요.<br><small style="color:var(--dim)">게임을 꺼도 최대 8시간까지 쌓입니다.</small>` : `아직 광산을 열지 않았어요.<br>🌳 스킬 트리의 <b>제련(철)</b> 갈래를 따라가면 <b>🏚️ 광산 해금</b> 노드가 있어요.`}</div>
+      <h3>💎 광석 도감 ${Object.keys(S.found).length} / ${MATS.length}</h3><div class="cards">` +
+      MATS.map(m => { const f = S.found[m.id]; return `<div class="cd ${f ? '' : 'lock'}"><div class="ic" style="color:${m.c}">●</div><div class="nm" style="color:${f ? m.c : ''}">${f ? m.n : '???'}</div><div class="ds">${f ? `깊이 ${m.d}m+ · 제련 ${m.smelt}초` : `깊이 ${m.d}m 이상`}</div><div class="cost">${f ? '주괴 ' + fmt(S.bars[m.id] || 0) : ''}</div></div>`; }).join('') + '</div>';
+  } else if (t === 'cfg') {
+    Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko') : '-'], ['깊이', S.depth + 'm'], ['레벨', S.lv], ['특성 레벨', S.talentLv], ['곡괭이', curPick().n], ['유물', Object.keys(S.relics).length + '개'], ['해금한 스킬', (Object.keys(S.tree).length - 1) + '개'], ['플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      <h3>⛏️ 현재 능력</h3><div class="card">${[['곡괭이 피해', fmt(Math.round(dmg()))], ['초당 타격', (spd() * 2.4 * picksPer()).toFixed(1) + '회'], ['채굴 영역', Math.round(areaR()) + 'px'], ['바위당 곡괭이', picksPer() + '자루'], ['치명타', Math.round(E.crit * 100) + '%'], ['광석 수량', '+' + Math.round(E.qty * 100) + '%'], ['제련 속도', '×' + smeltSpeed().toFixed(2)], ['바위 체력', fmt(Math.round(rockHp()))]].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      <h3>💾 저장</h3><div class="card">자동 저장됩니다.<div class="row"><button class="btn" id="btnExport">📤 내보내기</button><button class="btn" id="btnImport">📥 가져오기</button><button class="btn" id="btnReset" style="margin-left:auto;color:var(--pink)">🗑 초기화</button></div></div>
+      <h3>❓ 어떻게 하나요?</h3>
+      <div class="step"><div class="no">1</div><p><b>커서(손가락)를 바위 위에 올려두면</b> 자동으로 캐집니다. 노란 원이 <b>채굴 영역</b>이고, 영역 안 바위마다 <b>⛏️ 곡괭이가 소환</b>돼서 대신 때려요.</p></div>
+      <div class="step"><div class="no">2</div><p>바위를 깨면 <b>광석</b>이 나오고 자동으로 <b>🔥 제련소</b>로 들어가 <b>주괴</b>가 됩니다. 주괴가 이 게임의 돈이에요.</p></div>
+      <div class="step"><div class="no">3</div><p>주괴로 <b>🌳 스킬 트리</b>를 해금. 갈래마다 <b>필요한 주괴 종류가 달라요</b> (돌·구리·철·은·금·미스릴). 안 가본 곳은 보이지 않아요.</p></div>
+      <div class="step"><div class="no">4</div><p><b>⛏️ 곡괭이 제작</b> — 재료를 모아 더 좋은 곡괭이로 갈아타면 피해·속도·영역이 확 올라요.</p></div>
+      <div class="step"><div class="no">5</div><p>레벨업하면 <b>🃏 특성 카드</b> 3장 중 1장을 고릅니다. 고를수록 강해지지만 <b>바위 체력도 11%씩</b> 올라요 — 그게 이 게임의 저울입니다.</p></div>
+      <div class="step"><div class="no">6</div><p>바위를 계속 깨면 <b>깊이</b>가 내려가고 더 좋은 광석이 나와요. 아주 가끔 <b>🏺 유물</b>도 나옵니다. <b>🏚️ 광산</b>을 해금하면 꺼놔도 알아서 캐요.</p></div>`;
+    $('btnExport').onclick = () => { save(); const x = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); navigator.clipboard.writeText(x).then(() => toast('저장 코드를 복사했어요')).catch(() => prompt('복사해 주세요', x)); };
+    $('btnImport').onclick = () => { const x = prompt('저장 코드를 붙여넣어 주세요'); if (!x) return; try { const v = JSON.parse(decodeURIComponent(escape(atob(x.trim())))); if (!v || typeof v.lv !== 'number') throw 0; S = Object.assign(fresh(), v); save(); location.reload(); } catch (e) { toast('코드가 올바르지 않아요'); } };
+    $('btnReset').onclick = () => { if (confirm('정말 처음부터?') && confirm('진짜로요?')) { localStorage.removeItem(SAVE_KEY); S = fresh(); location.reload(); } };
+  }
+}
+function selNode(id) {
+  sel = id; const n = TREE_BY[id];
+  document.querySelectorAll('.tn').forEach(el => el.classList.toggle('sel', el.dataset.id === id));
+  showSheet(n.ic, n.n, n.t === 'mine' ? '광산 해금 — 꺼놔도 자동으로 캐고 주괴까지 만들어요' : n.t === 'root' ? '모든 스킬의 시작' : n.n, own(id) ? null : n.cost, own(id) ? '<span style="color:var(--green)">✅ 해금</span>' : '');
+}
+function buyNode(id) {
+  const n = TREE_BY[id]; if (own(id) || !canPay(n.cost)) return Sound.play('error');
+  payCost(n.cost); S.tree[id] = 1; if (n.t === 'mine') { S.mineOn = 1; toast('🏚️ 광산 해금! 이제 꺼놔도 캡니다'); }
+  refresh(); Sound.play('correct');
+  const wrap = $('treewrap'), sl = wrap ? wrap.scrollLeft : 0, st = wrap ? wrap.scrollTop : 0;
+  renderPanel(); if ($('treewrap')) { $('treewrap').scrollLeft = sl; $('treewrap').scrollTop = st; }
+  selNode(id); save();
+}
+// 특성 카드 3장 중 1택
+function offerCards() {
+  if (S.tp < 1) return;
+  const roll = () => { const r = Math.random(); const want = r < .55 ? 1 : r < .87 ? 2 : 3; const pool = CARDS.filter(c => c.r === want); return pick(pool.length ? pool : CARDS); };
+  const three = []; while (three.length < 3) { const c = roll(); if (!three.some(x => x.id === c.id)) three.push(c); }
+  showModal(`<h2>🃏 특성 카드</h2><p>한 장을 고르세요 — 고르면 <b style="color:var(--pink)">바위 체력 +11%</b></p>
+    <div class="talents">${three.map((c, i) => `<div class="tc r${c.r}" data-i="${i}"><div class="ic">${c.ic}</div><div class="nm">${c.n}</div><div class="ds">${c.ds}</div><div class="rar" style="color:${c.r === 3 ? 'var(--purple)' : c.r === 2 ? 'var(--cyan)' : 'var(--dim)'}">${'★'.repeat(c.r)}</div></div>`).join('')}</div>
+    <p style="font-size:12px">남은 포인트 ${S.tp - 1}</p>`);
+  document.querySelectorAll('.tc').forEach(el => el.onclick = () => {
+    const c = three[+el.dataset.i];
+    S.talents[c.id] = (S.talents[c.id] || 0) + 1; S.talentLv++; S.tp--;
+    refresh(); Sound.play('meld'); hideModal(); toast(`🃏 ${c.n} 획득!`);
+    if (S.tp > 0) setTimeout(offerCards, 350); else { renderPanel(); save(); }
+  });
+}
+function showModal(h) { $('modalBox').innerHTML = h; $('modal').classList.add('show'); }
+function hideModal() { $('modal').classList.remove('show'); }
+
+// ═══════════ 오프라인(광산) ═══════════
+function offline() {
+  if (!S.mineOn) return;
+  const gap = Math.min(Date.now() - (S.last || Date.now()), 8 * 3600e3);
+  if (gap < 60000) return;
+  const n = mineRate() * gap / 1000 * .6;
+  if (n < 1) return;
+  const got = {};
+  for (let i = 0; i < Math.min(4000, n); i++) { const m = matForDepth(); got[m.id] = (got[m.id] || 0) + oreQty() * barYield() * .55; }
+  const scale = n > 4000 ? n / 4000 : 1;
+  for (const k in got) { got[k] *= scale; S.bars[k] = (S.bars[k] || 0) + got[k]; }
+  showModal(`<h2>🏚️ 광산 보고서</h2><p>${Math.floor(gap / 3600e3)}시간 ${Math.floor(gap % 3600e3 / 60000)}분 동안 일꾼들이 캤어요</p>
+    <div class="res">${Object.entries(got).map(([k, v]) => `<div>${matById[k].n}<b style="color:${matById[k].c}">+${fmt(v)}</b></div>`).join('')}</div>
+    <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal()">받기</button></div>`);
+}
+
+// ═══════════ 시작 ═══════════
+load(); refresh(); resize(); offline(); setTab(S.tab || 'tree'); fillRocks();
+requestAnimationFrame(loop);
+setInterval(() => { save(); }, 5000);
+addEventListener('beforeunload', save); addEventListener('pagehide', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+window.mine = { get S() { return S; }, get rocks() { return rocks; }, TREE, MATS, PICKS, CARDS, eff, offerCards, save, cheat: (m, n) => { MATS.forEach(x => S.bars[x.id] = (S.bars[x.id] || 0) + (n || 1000)); S.tp += m || 0; refresh(); renderPanel(); } };
+</script>
+</body>
+</html>
