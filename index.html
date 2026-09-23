@@ -665,6 +665,15 @@ body::after {
 
 <script>
 let currentPage = 'home';
+// 테스트용 배속: 게임은 iframe 안이라 허브 콘솔에선 tuna 가 안 보임 → 열린 게임으로 연결
+const activeGameWin = () => { const fr = document.getElementById(`iframe-${currentPage}`); try { return fr && fr.getAttribute('src') ? fr.contentWindow : null; } catch (e) { return null; } };
+['tuna', 'rock', 'mine', 'shelldiver'].forEach(k => Object.defineProperty(window, k, { configurable: true, get: () => { const w = activeGameWin(); return w && w[k]; } }));
+window.speed = n => { const w = activeGameWin(); return w && w.__gameSpeed ? w.__gameSpeed.set(n) : '배속은 참치 타이쿤·스페이스 록·킵 온 마이닝·쉘다이버 화면에서만 돼요'; };
+addEventListener('keydown', e => {
+  if (e.code !== 'BracketRight' && e.code !== 'BracketLeft') return;
+  if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
+  const w = activeGameWin(); if (w && w.__gameSpeed) w.__gameSpeed.step(e.code === 'BracketRight' ? 1 : -1);
+});
 
 function navigate(page) {
   currentPage = page;
@@ -677,7 +686,8 @@ function navigate(page) {
   document.querySelectorAll('.page-frame iframe').forEach(fr => {
     const mine = fr.id === `iframe-${page}`;
     if (!mine && fr.getAttribute('src')) fr.removeAttribute('src'), fr.contentWindow && fr.contentWindow.location.replace('about:blank');
-    if (mine && !fr.getAttribute('src')) fr.src = fr.dataset.src;
+    // 배포 직후에도 GitHub Pages 10분 캐시 말고 새 파일을 받도록 (초대 링크는 모두 ?를 잘라서 만들므로 영향 없음)
+    if (mine && !fr.getAttribute('src')) fr.src = fr.dataset.src + (fr.dataset.src.includes('?') ? '&' : '?') + 'v=' + Date.now();
   });
 
   // Show target

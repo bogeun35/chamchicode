@@ -228,7 +228,20 @@ const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
 // 디버그: 콘솔에서 tuna.speed(4) — 게임 시간만 배속 (테스트용)
 let __spd = 1, __spReal = performance.now(), __spGame = __spReal;
 const __now = () => { const t = performance.now(); return __spGame + (t - __spReal) * __spd; };
-function setSpeed(n) { __spGame = __now(); __spReal = performance.now(); __spd = Math.max(.25, Math.min(30, +n || 1)); return '⏩ 배속 ×' + __spd; }
+function setSpeed(n) {
+  __spGame = __now(); __spReal = performance.now(); __spd = Math.max(.25, Math.min(30, +n || 1));
+  let b = document.getElementById('spdBadge');
+  if (!b) { b = document.createElement('div'); b.id = 'spdBadge'; b.style.cssText = 'position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:9999;padding:3px 11px;border-radius:10px;background:rgba(0,0,0,.6);color:#fff;font:15px sans-serif;pointer-events:none'; document.body.appendChild(b); }
+  b.textContent = '⏩ ×' + __spd + '  ( [ ] 키 )'; b.style.display = __spd === 1 ? 'none' : '';
+  return '⏩ 배속 ×' + __spd;
+}
+// [ ] 키로 1→2→4→8→16 배속 (새로고침하면 1배로 돌아옴)
+function stepSpeed(dir) { const L = [1, 2, 4, 8, 16]; let i = L.indexOf(__spd); if (i < 0) i = 0; return setSpeed(L[Math.max(0, Math.min(L.length - 1, i + dir))]); }
+addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
+  if (e.code === 'BracketRight') stepSpeed(1); else if (e.code === 'BracketLeft') stepSpeed(-1);
+});
+window.__gameSpeed = { set: setSpeed, step: stepSpeed, get: () => __spd };
 function fmt(n) {
   if (!isFinite(n)) return '∞'; if (n < 0) return '-' + fmt(-n);
   n = Math.floor(n);
