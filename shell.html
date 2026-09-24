@@ -9,13 +9,14 @@
 :root { --bg: #07243a; --panel: #0e3550; --panel2: #134563; --line: #1f5f80; --ink: #eafaff; --dim: #8fc2d8; --shell: #ffe1a8; --gold: #ffd36b; --green: #7ce3a0; --pink: #ff9fc7; --purple: #c2a8ff; --cyan: #7fe3ff; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { height: 100%; }
-body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior: none; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior: none; touch-action: manipulation; }
 button { font-family: inherit; }
 #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
 .toast { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-24px); z-index: 90; background: var(--panel2); border: 2px solid var(--cyan); padding: 8px 16px; border-radius: 9px; font-size: 14px; opacity: 0; transition: all .22s; pointer-events: none; max-width: 92vw; text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 /* 상단 */
 .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 8px 10px; background: linear-gradient(180deg, #0a2d47, rgba(10,45,71,0)); z-index: 6; }
+#app.diving .top { background: linear-gradient(180deg, #0a2d47, #07243a); }   /* 캔버스가 상단바 밑까지 깔리므로 기존에 보이던 색 그대로 */
 .tl { display: flex; flex-direction: column; gap: 5px; }
 .cur { background: rgba(14,53,80,.94); border: 2px solid var(--line); border-radius: 9px; padding: 3px 12px; font-size: 13px; color: var(--dim); white-space: nowrap; display: inline-block; }
 .cur b { font-size: 25px; color: var(--shell); letter-spacing: -.5px; }
@@ -30,20 +31,20 @@ button { font-family: inherit; }
 .mb .dot { position: absolute; top: -5px; right: -5px; width: 11px; height: 11px; border-radius: 50%; background: var(--pink); display: none; }
 .mb.alert .dot { display: block; animation: blink 1s infinite; } @keyframes blink { 50% { opacity: .25; } }
 /* 화면 */
-.sea { position: relative; flex: 1; min-height: 0; overflow: hidden; display: none; }
+.sea { position: absolute; inset: 0; z-index: 1; overflow: hidden; display: none; }   /* 캔버스 = 뷰포트 전체, 상단바는 위에 겹치는 HUD */
 .sea.on { display: block; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .panel { flex: 1; min-height: 0; background: rgba(14,53,80,.96); overflow: auto; padding: 10px 10px 72px; position: relative; }
 .panel.off { display: none; }
-.oxy { position: absolute; top: 8px; left: 10px; right: 10px; z-index: 3; pointer-events: none; }
+.oxy { position: absolute; top: calc(var(--topH, 0px) + 8px); left: 10px; right: 10px; z-index: 3; pointer-events: none; }
 .oxy .bar { height: 18px; background: rgba(0,0,0,.5); border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
 .oxy .bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff6b8a, #ffd36b, #7fe3ff); transition: width .1s; }
-.oxy .lb { font-size: 11.5px; color: var(--dim); margin-top: 2px; display: flex; justify-content: space-between; }
-.bag { position: absolute; left: 58px; bottom: 12px; z-index: 3; display: flex; gap: 5px; }
+.oxy .lb { font-size: 11.5px; color: var(--dim); margin-top: 2px; display: flex; justify-content: space-between; text-shadow: 0 0 2px rgba(0,20,40,.95), 0 1px 2px rgba(0,20,40,.9), 1px 0 1px rgba(0,20,40,.8), -1px 0 1px rgba(0,20,40,.8); }
+.bag { position: absolute; left: 58px; bottom: 12px; z-index: 3; display: flex; gap: 5px; pointer-events: none; }
 .slot { width: 44px; height: 44px; border: 2px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.45); display: grid; place-items: center; font-size: 12px; color: var(--dim); position: relative; }
 .slot.full { border-color: var(--gold); }
 .slot .n { position: absolute; bottom: 1px; right: 3px; font-size: 10px; color: var(--ink); }
-.ammo { position: absolute; right: 10px; bottom: 62px; z-index: 3; font-size: 12px; color: var(--dim); background: rgba(0,0,0,.45); border: 2px solid var(--line); border-radius: 9px; padding: 3px 10px; }
+.ammo { position: absolute; right: 10px; bottom: 62px; z-index: 3; font-size: 12px; color: var(--dim); background: rgba(0,0,0,.45); border: 2px solid var(--line); border-radius: 9px; padding: 3px 10px; pointer-events: none; }
 .divebtn { position: fixed; right: 10px; bottom: 11px; z-index: 12; border: 3px solid var(--cyan); border-radius: 13px; background: linear-gradient(180deg, #1d7fa8, #0e4a6e); color: #eaffff; font-size: 19px; padding: 12px 24px; cursor: pointer; animation: gl 1.5s ease-in-out infinite alternate; }
 @keyframes gl { from { box-shadow: 0 0 0 0 rgba(127,227,255,.6); } to { box-shadow: 0 0 0 13px rgba(127,227,255,0); } }
 .divebtn:active { transform: translateY(3px); animation: none; }
@@ -70,7 +71,7 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 .tn .pr { position: absolute; left: 50%; transform: translateX(-50%); bottom: -14px; font-size: 10px; background: rgba(0,0,0,.7); color: var(--shell); border-radius: 5px; padding: 0 5px; white-space: nowrap; }
 .tn .lvb { position: absolute; top: -7px; right: -7px; font-size: 9px; background: var(--green); color: #05230f; border-radius: 6px; padding: 0 4px; }
 .tn.own .pr { display: none; } .tn.sel { outline: 2px solid #fff; }
-.sheet { position: fixed; left: 8px; right: 140px; bottom: 11px; background: var(--panel2); border: 2px solid var(--gold); border-radius: 11px; padding: 8px 11px; display: none; align-items: center; gap: 9px; z-index: 11; }
+.sheet { position: fixed; left: 56px; right: 178px; bottom: 11px; background: var(--panel2); border: 2px solid var(--gold); border-radius: 11px; padding: 8px 11px; display: none; align-items: center; gap: 9px; z-index: 11; }
 .sheet.show { display: flex; }
 .sheet .ic { font-size: 25px; } .sheet .t { flex: 1; min-width: 0; } .sheet .nm { font-size: 15px; } .sheet .ds { font-size: 12px; color: var(--dim); }
 .sheet .pz { text-align: right; font-size: 13.5px; color: var(--shell); white-space: nowrap; } .sheet .pz.no { color: var(--pink); } .sheet .pz small { display: block; font-size: 10.5px; color: var(--dim); }
@@ -95,7 +96,10 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
 .modal p { font-size: 13.5px; color: var(--dim); line-height: 1.55; }
 .res { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 9px 0; }
 .res div { background: #0a2d47; border-radius: 8px; padding: 7px; font-size: 12.5px; color: var(--dim); } .res b { display: block; font-size: 18px; color: var(--ink); }
-@media (max-width: 620px) { .top { flex-direction: column; align-items: stretch; gap: 6px; } .menu { justify-content: space-between; flex-wrap: nowrap; } .mb { width: 46px; height: 44px; } .cur b { font-size: 21px; } .sheet { right: 120px; } }
+@media (max-width: 620px) { .top { flex-direction: column; align-items: stretch; gap: 6px; } .menu { justify-content: space-between; flex-wrap: nowrap; } .mb { width: 46px; height: 44px; } .cur b { font-size: 21px; } .sheet { right: 8px; bottom: 76px; } }
+/* 폰 가로: 다이빙 중 HUD 축소 (메뉴는 패널이 가려져 효과가 없으므로 숨김) */
+@media (max-height: 500px) { #app.diving .menu { display: none; } #app.diving .top { padding: 4px 10px; } #app.diving .tl { flex-direction: row; align-items: center; } #app.diving .cur b { font-size: 17px; } .oxy .bar { height: 12px; } .slot { width: 36px; height: 36px; } .bag { bottom: 6px; } .ammo { bottom: 52px; } .backbtn { bottom: 6px; min-height: 40px; padding: 8px 16px; } }
+#sndBtn { width: 40px !important; height: 40px !important; }   /* 터치 대상 40px */
 </style>
 </head>
 <body>
@@ -339,10 +343,42 @@ const matPool = () => MATS.filter(m => m.b <= S.biome);
 
 // ═══ 다이빙 ═══
 const cv = $('cv'), ctx = cv.getContext('2d');
-let D = null, W = 0, H = 0, DPR = 1, lastF = 0;
-function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+let D = null, W = 1280, H = 720, DPR = 1, lastF = 0;
+// 논리 월드 고정: 가로 1280×720 / 세로 720×1280. 화면(CW×CH)에는 VS 배율로 가운데 맞춤(contain)
+// PT~PB = 해파리·블록이 머무는 세로 띠(월드 y). 바닥값은 높이 비율, HUD(산소바·귀항)가 더 들어오면 그만큼 뺀다
+let CW = 0, CH = 0, VS = 1, OX = 0, OY = 0, PT = 136, PB = 680;
+const TOUCH_OFF = 60;   // 터치 조준 오프셋 (화면 CSS px 고정 — 손가락 크기는 배율과 무관)
+const TOUCH_TAPER = 120; // 화면 아래 끝에서 이 거리(CSS px) 안에서는 오프셋을 줄여 월드 바닥까지 조준되게
+function resize() {
+  const ow = W, oh = H;
+  DPR = Math.min(2, devicePixelRatio || 1); CW = cv.clientWidth; CH = cv.clientHeight;
+  const port = CH > CW; W = port ? 720 : 1280; H = port ? 1280 : 720;
+  VS = Math.min(CW / W, CH / H) || 1; OX = (CW - W * VS) / 2; OY = (CH - H * VS) / 2;
+  cv.width = Math.round(CW * DPR); cv.height = Math.round(CH * DPR);
+  $('seaView').style.setProperty('--topH', document.querySelector('.top').offsetHeight + 'px');
+  const cb = cv.getBoundingClientRect(), ob = document.querySelector('.oxy').getBoundingClientRect(), bb = $('btnBack').getBoundingClientRect();
+  PT = H * 136 / 720; PB = H - H * 40 / 720;
+  if (ob.height) PT = Math.max(PT, (ob.bottom - cb.top - OY) / VS + 6);
+  if (bb.height) PB = Math.min(PB, (bb.top - cb.top - OY) / VS + 15);
+  if (D && (ow !== W || oh !== H)) remap(ow, oh);
+}
+function remap(ow, oh) {   // 다이빙 중 화면을 돌리면 개체를 비율 위치로
+  const fx = W / ow, fy = H / oh, m = o => { o.x *= fx; o.y *= fy; };
+  m(D.turtle); m(D.aim); [D.jellies, D.blocks, D.drops, D.bubbles, D.parts, D.texts].forEach(a => a.forEach(m));
+  D.fx.forEach(f => { if (f.x1 != null) { f.x1 *= fx; f.y1 *= fy; f.x2 *= fx; f.y2 *= fy; } else m(f); });
+}
+function touchOff(y, b) {   // 터치 오프셋(CSS px). 아래 레터박스가 60px 보다 얇으면 하단 구간에서 선형으로 줄여 바닥(H)에 닿게
+  if (OY >= TOUCH_OFF) return TOUCH_OFF;
+  const d = Math.max(0, b.bottom - y);
+  return Math.min(TOUCH_OFF, OY + (TOUCH_OFF - OY) * d / TOUCH_TAPER);
+}
+function toWorld(x, y, type) {   // 화면 좌표 → 월드 좌표 (터치는 손가락 위 TOUCH_OFF CSS px)
+  const b = cv.getBoundingClientRect(), off = type === 'touch' ? touchOff(y, b) : 0;
+  return { x: clamp((x - b.left - OX) / VS, 0, W), y: clamp((y - b.top - OY - off) / VS, PT - 50, H) };
+}
 addEventListener('resize', () => { if (D) resize(); });
 function showSea(on) {
+  $('app').classList.toggle('diving', on);   // resize 전에: 폰 가로에서 축소된 상단바 높이를 재야 함
   $('seaView').classList.toggle('on', on); $('panel').classList.toggle('off', on);
   $('btnDive').classList.toggle('hide', on); $('btnBack').classList.toggle('on', on);
   $('sheet').style.display = on ? 'none' : '';
@@ -351,7 +387,7 @@ function showSea(on) {
 function dive() {
   showSea(true);
   D = { t: 0, oxy: maxOxy(), bag: [], bagN: 0, storage: [], jellies: [], blocks: [], bubbles: [], drops: [], parts: [], texts: [], fx: [], stars: [], robots: [],
-    turtle: { x: W / 2, y: H / 2 }, aim: { x: W / 2, y: H / 2 - 80 }, ammo: bCap(), reload: 0, cd: 0, caught: 0, shk: 0, ended: false, spawnT: 0 };
+    turtle: { x: W / 2, y: (PT - 50 + PB + 40) / 2 }, aim: { x: W / 2, y: (PT - 50 + PB + 40) / 2 - 80 }, ammo: bCap(), reload: 0, cd: 0, caught: 0, shk: 0, ended: false, spawnT: 0 };
   for (let i = 0; i < Math.round(E('star')); i++) D.stars.push({ a: i * 2, cd: 0 });
   for (let i = 0; i < Math.round(E('robot')); i++) D.robots.push({ a: i * 2 + 1, cd: 0 });
   for (let i = 0; i < 6; i++) spawnJelly();
@@ -366,12 +402,12 @@ function spawnJelly() {
   for (let i = 0; i < pool.length; i++) { t -= ws[i]; if (t <= 0) { j = pool[i]; break; } }
   const gi = gradeRoll(), g = GRADE[gi];
   const side = Math.random() < .5 ? -1 : 1;
-  D.jellies.push({ j, gi, x: side < 0 ? -40 : W + 40, y: rnd(60, H - 50), vx: -side * rnd(14, 34) * (1 + E('arrive')), vy: rnd(-8, 8), hp: j.hp * (1 + gi * .5), max: j.hp * (1 + gi * .5), r: 15 + j.hp ** .18 * 4, ph: rnd(0, 6.3), hit: 0, zap: rnd(2, 5) });
+  D.jellies.push({ j, gi, x: side < 0 ? -40 : W + 40, y: rnd(PT + 10, PB - 10), vx: -side * rnd(14, 34) * (1 + E('arrive')) * (H > W ? .5625 : 1), vy: rnd(-8, 8), hp: j.hp * (1 + gi * .5), max: j.hp * (1 + gi * .5), r: 15 + j.hp ** .18 * 4, ph: rnd(0, 6.3), hit: 0, zap: rnd(2, 5) });
 }
 function spawnBlock() {
   const pool = matPool(); if (!pool.length) return;
   const m = pool[Math.min(pool.length - 1, Math.floor(Math.random() * pool.length))];
-  D.blocks.push({ m, x: rnd(40, W - 40), y: rnd(70, H - 50), hp: 8 * Math.pow(2.4, m.b), max: 8 * Math.pow(2.4, m.b), r: 20, hit: 0 });
+  D.blocks.push({ m, x: rnd(40, W - 40), y: rnd(PT + 20, PB - 10), hp: 8 * Math.pow(2.4, m.b), max: 8 * Math.pow(2.4, m.b), r: 20, hit: 0 });
 }
 function tick() { if (!D) return; const now = __now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && D) { const st = Math.min(.05, dt); dt -= st; update(st); } }
 function frame() { if (!D) return; draw(); requestAnimationFrame(frame); }
@@ -463,7 +499,7 @@ function update(dt) {
   if (D.blocks.length < 3 && Math.random() < dt * .5) spawnBlock();
   for (const jl of D.jellies) {
     jl.x += jl.vx * dt; jl.y += jl.vy * dt + Math.sin(D.t * 2 + jl.ph) * 10 * dt; jl.hit = Math.max(0, jl.hit - dt);
-    if (jl.y < 50) jl.vy = Math.abs(jl.vy); if (jl.y > H - 40) jl.vy = -Math.abs(jl.vy);
+    if (jl.y < PT) jl.vy = Math.abs(jl.vy); if (jl.y > PB) jl.vy = -Math.abs(jl.vy);
     if (jl.j.shock) { jl.zap -= dt * (1 - Math.min(.8, E('shockfreq'))); if (jl.zap <= 0) { jl.zap = rnd(3, 6); if (Math.hypot(jl.x - t.x, jl.y - t.y) < 130) { const dmg = 4 * (1 - Math.min(.8, E('shock'))); D.oxy -= dmg; D.fx.push({ type: 'beam', x1: jl.x, y1: jl.y, x2: t.x, y2: t.y, t: 0, life: .25, z: 1 }); shake(9); Sound.play('error'); D.texts.push({ x: t.x, y: t.y - 30, s: '감전 −' + dmg.toFixed(0), c: '#ff6b8a', t: 0, sz: 18 }); } } }
   }
   D.jellies = D.jellies.filter(j => j.x > -90 && j.x < W + 90);
@@ -473,7 +509,7 @@ function update(dt) {
     if (b.homing) { let bj = null, bd2 = 1e9; for (const jl of D.jellies) { const d = Math.hypot(jl.x - b.x, jl.y - b.y); if (d < bd2) { bd2 = d; bj = jl; } } if (bj) { const a = Math.atan2(bj.y - b.y, bj.x - b.x); b.vx += (Math.cos(a) * 420 - b.vx) * Math.min(1, dt * 6); b.vy += (Math.sin(a) * 420 - b.vy) * Math.min(1, dt * 6); } }
     b.x += b.vx * dt; b.y += b.vy * dt;
     for (const jl of D.jellies) { if (Math.hypot(jl.x - b.x, jl.y - b.y) > jl.r) continue; hurtJelly(jl, b.d); if (b.crit) D.texts.push({ x: jl.x, y: jl.y - jl.r, s: '치명타', c: '#ffd36b', t: 0, sz: 15 }); if (b.pierce > 0) b.pierce--; else b.dead = 1; break; }
-    if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30 || b.t > 2.5) b.dead = 1;
+    if (b.x < -30 || b.x > W + 30 || b.y < PT - 80 || b.y > H + 30 || b.t > 2.5) b.dead = 1;
   }
   D.bubbles = D.bubbles.filter(b => !b.dead);
   // 수집
@@ -514,10 +550,14 @@ function renderBag() {
 }
 function draw() {
   if (!D) return;
-  ctx.save(); if (D.shk > .3) ctx.translate(rnd(-D.shk, D.shk), rnd(-D.shk, D.shk));
-  const b = BIOMES[S.biome], g = ctx.createLinearGradient(0, 0, 0, H);
+  const b = BIOMES[S.biome];
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);   // 화면 전체(레터박스 포함) 배경: 월드 세로 범위 그라디언트, 밖은 끝색 연장
+  const g = ctx.createLinearGradient(0, OY, 0, OY + H * VS);
   g.addColorStop(0, b.bg[0]); g.addColorStop(.45, b.bg[1]); g.addColorStop(1, b.bg[2]);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH);
+  ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY);   // 이하 논리 월드
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+  if (D.shk > .3) ctx.translate(rnd(-D.shk, D.shk), rnd(-D.shk, D.shk));
   ctx.fillStyle = 'rgba(255,255,255,.18)';
   for (let i = 0; i < 24; i++) { const x = (i * 137) % W, y = (H - ((D.t * (14 + i % 7) + i * 90) % (H + 60))); ctx.beginPath(); ctx.arc(x, y, 2 + (i % 3), 0, 6.28); ctx.fill(); }
   // 자원 블록
@@ -573,6 +613,11 @@ function draw() {
     const w = ctx.measureText(tx.s).width, px = clamp(tx.x, w / 2 + 5, W - w / 2 - 5);
     ctx.strokeText(tx.s, px, tx.y); ctx.fillStyle = tx.c; ctx.fillText(tx.s, px, tx.y); }
   ctx.globalAlpha = 1; ctx.restore();
+  if (OX > .5 || OY > .5) {   // 레터박스: 그라디언트 연장 위에 살짝 어둡게
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = 'rgba(0,20,35,.28)';
+    if (OX > .5) { ctx.fillRect(0, 0, OX, CH); ctx.fillRect(CW - OX, 0, OX, CH); }
+    if (OY > .5) { ctx.fillRect(0, 0, CW, OY); ctx.fillRect(0, CH - OY, CW, OY); }
+  }
 }
 function endDive(reason) {
   if (!D || D.ended) return; D.ended = true;
@@ -598,8 +643,9 @@ function endDive(reason) {
 }
 $('btnDive').onclick = () => { Sound.play('click'); dive(); };
 $('btnBack').onclick = () => endDive('귀항');
-cv.addEventListener('pointermove', e => { if (!D) return; const b = cv.getBoundingClientRect(); D.aim.x = e.clientX - b.left; D.aim.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); });
-cv.addEventListener('pointerdown', e => { if (!D) return; const b = cv.getBoundingClientRect(); D.aim.x = e.clientX - b.left; D.aim.y = e.clientY - b.top - (e.pointerType === 'touch' ? 60 : 0); });
+// 포인터 → 월드 좌표. 손을 떼도 조준점은 그대로(거북이는 마지막 위치로 계속 감)
+function aimAt(e) { if (!D) return; const p = toWorld(e.clientX, e.clientY, e.pointerType); D.aim.x = p.x; D.aim.y = p.y; }
+cv.addEventListener('pointermove', aimAt); cv.addEventListener('pointerdown', aimAt);
 
 // ═══ 상점 판매 ═══
 function sellTick(dt) {
@@ -639,7 +685,7 @@ document.querySelectorAll('.mb').forEach(b => b.onclick = () => { Sound.play('cl
 function showSheet(ic, nm, ds, n) {
   const sh = $('sheet'); let right = '';
   if (n) { const ok = canPay(n), c = nodeCost(n);
-    right = `<span class="pz ${ok ? '' : 'no'}">🐚 ${fmt(c)}${n.mat ? ` · ${matById[n.mat].ic} ${matNeed(n)}` : ''}<small>${ok ? '👆👆 더블클릭하면 구매' : '재료가 모자라요'}</small><small>보유 🐚${fmt(Math.floor(S.shell))}${n.mat ? ` · ${matById[n.mat].ic}${fmt(S.mats[n.mat] || 0)}` : ''}</small></span>`; }
+    right = `<span class="pz ${ok ? '' : 'no'}">🐚 ${fmt(c)}${n.mat ? ` · ${matById[n.mat].ic} ${matNeed(n)}` : ''}<small>${ok ? (matchMedia('(pointer: coarse)').matches ? '👆👆 두 번 탭하면 구매' : '👆👆 더블클릭하면 구매') : '재료가 모자라요'}</small><small>보유 🐚${fmt(Math.floor(S.shell))}${n.mat ? ` · ${matById[n.mat].ic}${fmt(S.mats[n.mat] || 0)}` : ''}</small></span>`; }
   sh.innerHTML = `<div class="ic">${ic}</div><div class="t"><div class="nm">${nm}</div><div class="ds">${ds}</div></div>${right}`;
   sh.classList.add('show');
 }
@@ -722,7 +768,8 @@ load(); setTab(S.tab || 'tree');
 setInterval(() => { save(); if (!D) renderTop(); }, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.shelldiver = { speed: setSpeed, get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, buyNode, unlocked, nodeCost, canPay, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); } };
+window.shelldiver = { speed: setSpeed, get S() { return S; }, get D() { return D; }, TREE, TREE_BY, JELLY, BIOMES, E, lv, dive, endDive, setTab, renderAll, save, buyNode, unlocked, nodeCost, canPay, cheat: (sh, mat) => { S.shell += sh || 0; MATS.forEach(m => S.mats[m.id] = (S.mats[m.id] || 0) + (mat || 0)); renderAll(); },
+  view: () => ({ W, H, CW, CH, VS, OX, OY, PT, PB }), toWorld };
 </script>
 </body>
 </html>
