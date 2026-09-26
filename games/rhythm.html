@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b18">
+  <title>NEON//PULSE — 리듬 게임</title>
+  <link rel="stylesheet" href="rhythm.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="back-link" href="index.html" aria-label="참스코드 아케이드로 돌아가기">← <span>참스코드 아케이드</span></a>
+      <div class="brand"><span class="brand-mark">✳</span> 참스코드 <span class="slash">/</span> ARCADE</div>
+      <div class="top-status"><i></i> SYSTEM ONLINE</div>
+    </header>
+
+    <section class="intro">
+      <div class="eyebrow">RHYTHM GAME <span>•</span> VOL. 01</div>
+      <h1>NEON<span>//</span>PULSE</h1>
+      <p>비트를 쳐라. 콤보를 지켜라.</p>
+      <div class="song-picker" role="group" aria-label="곡 선택">
+        <button class="song-option selected" data-song="starlight" aria-pressed="true"><span>01</span><strong>Starlight Circuit</strong><small>120 BPM · 56 SEC</small></button>
+        <button class="song-option" data-song="afterglow" aria-pressed="false"><span>02</span><strong>Afterglow Rush</strong><small>150 BPM · 32 SEC</small></button>
+      </div>
+    </section>
+
+    <section class="game-layout" aria-label="리듬 게임">
+      <aside class="score-panel">
+        <div class="panel-label">점수</div>
+        <div id="score" class="score-value">000000</div>
+        <div class="panel-rule"></div>
+        <div class="stat-row"><span>콤보</span><strong><b id="combo">0</b></strong></div>
+        <div class="stat-row"><span>정확도</span><strong id="accuracy">100.0%</strong></div>
+        <div class="stat-row"><span>최고 기록</span><strong id="best-score">000000</strong></div>
+        <div class="stat-row"><span>최고 등급</span><strong id="best-grade">—</strong></div>
+        <div class="rank-wrap"><span>RANK</span><strong id="rank">—</strong></div>
+        <div class="side-tip"><span class="tip-icon">⌁</span><span>선에 닿는 순간!</span></div>
+      </aside>
+
+      <div class="stage-wrap">
+        <div class="stage-top"><span><i></i> <b id="section-name">SELECT A TRACK</b></span><span class="stage-controls"><span id="track-time">00:00 / 00:56</span><button type="button" id="pause-button" class="pause-button" hidden aria-label="일시정지">Ⅱ</button></span></div>
+        <div id="stage" class="stage" data-state="ready">
+          <div class="stage-glow"></div>
+          <div class="lane-grid" aria-hidden="true">
+            <div class="lane" data-lane="0"><span class="lane-key">D</span></div>
+            <div class="lane" data-lane="1"><span class="lane-key">F</span></div>
+            <div class="lane" data-lane="2"><span class="lane-key">J</span></div>
+            <div class="lane" data-lane="3"><span class="lane-key">K</span></div>
+          </div>
+          <div class="hit-line" aria-hidden="true"><span></span></div>
+          <div id="notes" class="notes" aria-hidden="true"></div>
+          <div class="tap-controls" role="group" aria-label="레인 터치 입력">
+            <button type="button" class="tap-pad" data-lane="0" aria-label="왼쪽 첫 번째 레인 D">D</button>
+            <button type="button" class="tap-pad" data-lane="1" aria-label="왼쪽 두 번째 레인 F">F</button>
+            <button type="button" class="tap-pad" data-lane="2" aria-label="오른쪽 두 번째 레인 J">J</button>
+            <button type="button" class="tap-pad" data-lane="3" aria-label="오른쪽 첫 번째 레인 K">K</button>
+          </div>
+          <div id="judgement" class="judgement" aria-live="polite"></div>
+          <div id="countdown" class="countdown" aria-hidden="true"></div>
+          <div id="overlay" class="overlay">
+            <div class="overlay-card">
+              <div class="overlay-icon">♫</div>
+              <div id="overlay-kicker" class="overlay-kicker">준비 완료</div>
+              <h2 id="overlay-title">노트가 선에 닿을 때 눌러!</h2>
+              <p id="overlay-copy">D F J K로 노트를 쳐라.</p>
+              <button id="start-button" class="start-button">시작 <span>→</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-bottom"><span id="track-title">STARLIGHT CIRCUIT</span><span>4 LANES <b>•</b> <strong id="track-bpm">120 BPM</strong></span></div>
+      </div>
+
+      <aside class="guide-panel">
+        <div class="panel-label">플레이 가이드</div>
+        <div class="key-guide">
+          <div class="key-row"><kbd>D</kbd><kbd>F</kbd><kbd>J</kbd><kbd>K</kbd></div>
+          <div class="key-caption"><span>← 왼쪽</span><span>오른쪽 →</span></div>
+        </div>
+        <div class="panel-rule"></div>
+        <div class="judgements-title">타이밍</div>
+        <div class="judge-row"><span class="judge-dot perfect"></span><span>PERFECT</span><b>±45ms</b></div>
+        <div class="judge-row"><span class="judge-dot great"></span><span>GREAT</span><b>±100ms</b></div>
+        <div class="judge-row"><span class="judge-dot good"></span><span>GOOD</span><b>±160ms</b></div>
+        <div class="judge-row"><span class="judge-dot miss"></span><span>MISS</span><b>놓침</b></div>
+        <div class="side-tip"><span class="tip-icon">↗</span><span>정확할수록<br>고득점!</span></div>
+      </aside>
+    </section>
+    <footer><span>NEON//PULSE</span><span>MADE FOR THE BEAT <b>✦</b></span></footer>
+  </main>
+  <script src="rhythm.js"></script>
+</body>
+</html>

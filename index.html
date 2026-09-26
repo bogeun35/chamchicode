@@ -360,6 +360,12 @@ body::after {
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="arcade" onclick="navigate('arcade')">
+      <span class="nav-icon">🕹️</span>
+      <span>참스코드 아케이드</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="shell" onclick="navigate('shell')">
       <span class="nav-icon">🐢</span>
       <span>쉘다이버</span>
@@ -488,6 +494,11 @@ body::after {
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
+        <div class="landing-card" onclick="navigate('arcade')">
+          <div class="landing-card-icon">🕹️</div>
+          <div class="landing-card-title">참스코드 아케이드</div>
+          <div class="landing-card-desc">NEON//PULSE · 잔광<br>리듬게임 · 5분 생존</div>
+        </div>
         <div class="landing-card" onclick="navigate('liar')">
           <div class="landing-card-icon">🤥</div>
           <div class="landing-card-title">라이어 게임</div>
@@ -585,6 +596,11 @@ body::after {
   <!-- Draw Quiz iframe -->
   <div class="page-frame" id="page-drawquiz">
     <iframe data-src="draw-quiz.html" id="iframe-drawquiz"></iframe>
+  </div>
+
+  <!-- 참스코드 아케이드 iframe -->
+  <div class="page-frame" id="page-arcade">
+    <iframe data-src="games/index.html" id="iframe-arcade" title="참스코드 아케이드" allow="autoplay"></iframe>
   </div>
 
   <!-- 수박게임 iframe -->
