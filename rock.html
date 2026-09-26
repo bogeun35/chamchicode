@@ -166,7 +166,7 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
   <div class="panel" id="panel"></div>
   <div class="sheet" id="sheet"></div>
   <div class="cargo" id="cargoBox" style="display:none"></div>
-  <div class="secsel" id="secSel" style="display:none"><button id="secDn">◀</button><span>시작 <b id="secNum">1</b>구역</span><button id="secUp">▶</button></div>
+  <div class="secsel" id="secSel" style="display:none"><button id="secDn">◀</button><span>시작 <b id="secNum">0</b>구역</span><button id="secUp">▶</button></div>
   <button class="launch" id="btnLaunch">🚀 원정 시작</button>
 </div>
 
@@ -178,7 +178,7 @@ h3 small { margin-left: auto; font-weight: normal; font-size: 11.5px; color: var
       <div class="lb" id="fuelTxt"></div>
       <div class="shield" id="shieldBox"></div>
     </div>
-    <div class="quota">구역 <b id="eSec">1</b><span id="eRar" style="font-size:11px"></span><br>할당량<span id="eQuota"></span></div>
+    <div class="quota">구역 <b id="eSec">0</b><span id="eRar" style="font-size:11px"></span><br>할당량<span id="eQuota"></span></div>
     <div class="ecur">광석<b id="eOre">0</b></div>
   </div>
   <div class="ammo" id="ammoBox"></div>
@@ -230,51 +230,60 @@ const LOOT_RARITY = [{"rarity":1,"baseWeight":70.0,"currentWeight":0.0,"pegsToUp
 const LOOT_TYPES = [{"lootID":0,"minRarity":1,"maxRarity":4,"unlockedAt":1,"isShipUpgrade":0},{"lootID":1,"minRarity":1,"maxRarity":4,"unlockedAt":0,"isShipUpgrade":0},{"lootID":2,"minRarity":1,"maxRarity":3,"unlockedAt":2,"isShipUpgrade":0},{"lootID":3,"minRarity":5,"maxRarity":5,"unlockedAt":0,"isShipUpgrade":0},{"lootID":4,"minRarity":4,"maxRarity":4,"unlockedAt":0,"isShipUpgrade":0},{"lootID":5,"minRarity":5,"maxRarity":5,"unlockedAt":0,"isShipUpgrade":0},{"lootID":6,"minRarity":2,"maxRarity":4,"unlockedAt":8,"isShipUpgrade":0},{"lootID":7,"minRarity":1,"maxRarity":3,"unlockedAt":6,"isShipUpgrade":0},{"lootID":8,"minRarity":3,"maxRarity":4,"unlockedAt":10,"isShipUpgrade":1},{"lootID":9,"minRarity":2,"maxRarity":4,"unlockedAt":0,"isShipUpgrade":1},{"lootID":10,"minRarity":2,"maxRarity":4,"unlockedAt":4,"isShipUpgrade":1},{"lootID":11,"minRarity":3,"maxRarity":4,"unlockedAt":0,"isShipUpgrade":1},{"lootID":12,"minRarity":2,"maxRarity":3,"unlockedAt":0,"isShipUpgrade":1}];
 
 
-// ═══ 광석: 원작 ReferenceManager.oreData 기본 가치 · 등장 구역은 해금 업그레이드 설명 기준 ═══
+// ═══ 광석: 원작 OreType 순서 · ReferenceManager 기본 가치 · 등장 구역 = GameManager.oreUnlocks.minimumSector (원작처럼 구역은 0부터) ═══
 const ORES = [
-  { id: 'stone', n: '돌', c: '#9aa0b8', v: 1, sec: 1 },
-  { id: 'iron', n: '철', c: '#c9ccd8', v: 5, sec: 1 },
-  { id: 'copper', n: '구리', c: '#e0894a', v: 10, sec: 2 },
-  { id: 'silver', n: '은', c: '#eef3ff', v: 25, sec: 3 },
-  { id: 'gold', n: '금', c: '#ffd36b', v: 50, sec: 4 },
-  { id: 'plat', n: '백금', c: '#bff4ff', v: 500, sec: 7 },
-  { id: 'cobalt', n: '코발트', c: '#6b8fff', v: 5000, sec: 8 },
-  { id: 'emerald', n: '에메랄드', c: '#6cf09a', v: 10000, sec: 10 },
-  { id: 'ruby', n: '루비', c: '#ff5c7a', v: 50000, sec: 15 },
-  { id: 'diamond', n: '다이아몬드', c: '#9fe9ff', v: 100000, sec: 15 },
-  { id: 'unob', n: '운옵테이늄', c: '#c08cff', v: 500000, sec: 20 },
+  { id: 'stone', n: '돌', c: '#9aa0b8', v: 1, min: 0 },
+  { id: 'iron', n: '철', c: '#c9ccd8', v: 5, min: 1 },
+  { id: 'copper', n: '구리', c: '#e0894a', v: 10, min: 2 },
+  { id: 'silver', n: '은', c: '#eef3ff', v: 25, min: 3 },
+  { id: 'gold', n: '금', c: '#ffd36b', v: 50, min: 5 },
+  { id: 'plat', n: '백금', c: '#bff4ff', v: 500, min: 7 },
+  { id: 'cobalt', n: '코발트', c: '#6b8fff', v: 5000, min: 8 },
+  { id: 'emerald', n: '에메랄드', c: '#6cf09a', v: 10000, min: 10 },
+  { id: 'ruby', n: '루비', c: '#ff5c7a', v: 50000, min: 15 },
+  { id: 'diamond', n: '다이아몬드', c: '#9fe9ff', v: 100000, min: 17 },
+  { id: 'unob', n: '운옵테이늄', c: '#c08cff', v: 500000, min: 20 },
 ];
-// ═══ 원작 GameStats 기본값 ═══
+// ═══ 원작 GameStats / Fuel / AsteroidSpawner / LootBox 기본값 (level0 씬에서 추출) ═══
 const G = {
-  fuel: 5, dmg: 1, click: 2.0, missile: 5, lazer: 3, crit: 2, fire: 2.0, speed: 5, collect: 15, spawn: 3, starter: 7, health: 1,
-  drainTick: .3, drainBase: .05, drainSec: .08, drainDec: 2, shotSec: .15, shotDec: 1, extraInt: 3, extraMul: .4, antifarm: 30, s10: 1.5,
-  hpBase: 3, hpSecMul: 2, hpDecStatic: 10, hpDecMul: 3, hpBonusInt: 3, hpBonus: .1, boss: 10,
-  lootChance: .025, lootHp: 2, ammoDur: 3, lazerInt: .4, lazerLife: 1, elec: 50, elecJumps: 3, plasma: 50, plasmaJumps: 3,
-  drill: 500, drillInt: .3, chainInt: .2, chainMul: .5, mineMul: 1.5, mineRad: 10, explMul: 2, explRad: 5,
-  plinkoDrop: 1.0, lootPerChest: 4, godEvery: 30,
+  fuel: 5, dmg: 1, click: 2.0, missile: 5, lazer: 3, crit: 2, fire: 2.0, speed: 5, speedAdd: 7, collect: 15, detect: 20, health: 1,
+  drainTick: .3, drainBase: .05, drainSec: .08, drainDec: 2, extraInt: 3, extraMul: .4, antifarm: 30, antifarm2: 90, s10: 1.5,
+  shotSec: .15, shotDec: 1, gunExtraInt: 10, gunExtraMul: .1,
+  hpBase: 3, hpSecMul: 2, hpDecStatic: 10, hpDecMul: 3, hpBonusInt: 3, hpBonus: .1, bossMul: 10,
+  spawn: 3, starter: 7, grid: [31, 16, 3], safe: 10, bonusLoot: .025, weaponInt: 200, holeInt: 200, artiInt: 200,
+  baseSpd: 3, slowSpd: 1.5, lootHp: 2, ammoDur: 3, lazerInt: .4, lazerLife: 1, elec: 50, elecJumps: 3, plasma: 50, plasmaJumps: 3, chainDist: 25,
+  drill: 500, drillInt: .3, chainInt: .2, chainMul: .5, mineMul: 1, mineStart: 1.5, mineRad: 10, explMul: 2, explRad: 5, pierce: 1,
+  plinkoDrop: 1.0, lootPerChest: 4, keyChance: .5, goldChance: .33, crateMin: 2, crateMax: 5, fill: .5, godBox: 30, dupT: 133, wormT: 121, basicLoot: .5,
 };
-const PX = 13;   // 원작 월드 1유닛 ≈ 13px (소행성 격자 31×16, 간격 3)
-const RARITY = [{ n: '일반', c: '#93a0d8', m: 1, w: 100 }, { n: '드문', c: '#6cf09a', m: 1.2, w: 30 }, { n: '희귀', c: '#5ce1ff', m: 1.5, w: 10 }, { n: '에픽', c: '#b58cff', m: 2, w: 3 }, { n: '전설', c: '#ffa94d', m: 3, w: 1 }];
-const LOOT_N = ['플링코+', '점수+', 'CASH+', 'DUPLIPEG+', 'WORMHOLE+', 'REFINER+', 'SPEED+', 'ORE+', 'FIRERATE+', 'DAMAGE+', 'FUEL+', 'MISSILE+', 'LAZER+'];
+const PX = 16;   // 원작 월드 1유닛 = 16px → 화면 1280×720 = 80×45유닛 (원작 소행성 경계 78×46)
+// 구역 희귀도 (원작 SectorRarity · 기본 가중치 66/20/8/4/2 · 뽑히지 않은 등급은 ×1.1)
+const SR = [{ n: '보통', c: '#93a0d8', w: 66 }, { n: '고급', c: '#6cf09a', w: 20 }, { n: '희귀', c: '#5ce1ff', w: 8 }, { n: '에픽', c: '#b58cff', w: 4 }, { n: '전설', c: '#ffa94d', w: 2 }];
+const RARITY = SR;
+const ORE_MUL = [1, 1.2, 1.5, 2, 3, 10];   // AsteroidSpawner.GetRarityMultiplier (돌이 아닌 광석)
+// 전리품 카드 희귀도 1~5 (원작 LootRarity: 0 없음 · 1 일반 · 2 고급 · 3 희귀 · 4 에픽 · 5 전설)
+const LRN = ['', '일반', '고급', '희귀', '에픽', '전설'], LRC = ['', '#93a0d8', '#6cf09a', '#5ce1ff', '#b58cff', '#ffa94d'];
+const LR = {}; for (const r of LOOT_RARITY) LR[r.rarity] = r;
+const LT = {}; for (const t of LOOT_TYPES) LT[t.lootID] = t;
+const LOOT_N = ['핀 강화', '점수 구역+', '크레딧', '듀플리페그', '웜홀', '정제기', '플링코 속도', '광석', '공격 속도', '총 피해', '연료', '미사일 피해', '레이저 피해'];
 const LOOT_IC = ['🎯', '🔢', '💵', '🧬', '🕳️', '⚗️', '⏩', '💎', '⚡', '🔩', '⛽', '🚀', '🔆'];
-const LOOT_R = LOOT_RARITY.concat([{ rarity: 5, baseWeight: 1, pegsToUpgrade: 8, scoreZoneAmountToUpgrade: 8, duplipegPegsToUpgrade: 5, cashCreditsAmount: 10000, wormholeChance: .5, refinerPegsToUpgrade: 5, plinkoSpeedIncreaseMultiplier: .25, amountOfOreToDrop: 100, attackSpeedTimerDecreasePercentage: .15, shipDamageIncrease: 10, shipFuelIncrease: 20, missileDamageIncrease: 10, lazerDamageIncrease: 5 }]).slice(0, 5);
+// 유물 13종 (원작 ArtifactType 순서 · 종류마다 한 번만 · 각 +10%, 고대의 힘이면 ×2 · min = 등장 최소 구역)
 const ARTI = [
-  { id: 'star', n: '잃어버린 별', ic: '🌟', ds: '무기 상자의 탄약이 10% 더 오래 지속' },
-  { id: 'ai', n: 'AI 코어', ic: '🧠', ds: '총 연료 용량 +10%' },
-  { id: 'coin', n: '금화', ic: '🪙', ds: '모든 업그레이드 비용 −10%' },
-  { id: 'amp', n: '증폭기', ic: '📶', ds: '치명타 피해 +100%' },
-  { id: 'acc', n: '촉진제', ic: '💉', ds: '공격 속도 +10%' },
-  { id: 'skull', n: '이상한 해골', ic: '💀', ds: '모든 소행성 체력 −10%' },
-  { id: 'mach', n: '기계', ic: '⚙️', ds: '플링코 드롭 속도 +10%' },
-  { id: 'bones', n: '외계인 뼈', ic: '🦴', ds: '전기 소행성 연쇄 번개 피해 +10%' },
-  { id: 'gem', n: '집중 보석', ic: '💠', ds: '채광 레이저 틱당 피해 +10%' },
-  { id: 'egg', n: '알', ic: '🥚', ds: '소행성 생성 속도 +10%' },
-  { id: 'dagger', n: '단검', ic: '🗡️', ds: '미사일 피해 +10%' },
-  { id: 'relic', n: '유물', ic: '🏺', ds: '총기 피해 +10%' },
-  { id: 'arrow', n: '화살촉', ic: '🏹', ds: '우주선 속도 +10%' },
+  { id: 'ai', n: 'AI 코어', ic: '🧠', ds: '최대 연료 +10%', min: 15 },
+  { id: 'coin', n: '금화', ic: '🪙', ds: '모든 업그레이드 비용 −10%', min: 12 },
+  { id: 'amp', n: '증폭기', ic: '📶', ds: '치명타 피해 +100%', min: 14 },
+  { id: 'acc', n: '촉진제', ic: '💉', ds: '발사 간격 −10%', min: 12 },
+  { id: 'star', n: '잃어버린 별', ic: '🌟', ds: '특수 탄약 지속시간 +10%', min: 7 },
+  { id: 'skull', n: '이상한 해골', ic: '💀', ds: '소행성 체력 −10%', min: 11 },
+  { id: 'mach', n: '기계', ic: '⚙️', ds: '플링코 투하 간격 −10%', min: 3 },
+  { id: 'bones', n: '외계인 뼈', ic: '🦴', ds: '전기 피해 +10%', min: 9 },
+  { id: 'gem', n: '집중 보석', ic: '💠', ds: '레이저 피해 +10%', min: 8 },
+  { id: 'egg', n: '알', ic: '🥚', ds: '소행성 생성 간격 −10%', min: 5 },
+  { id: 'dagger', n: '단검', ic: '🗡️', ds: '미사일 피해 +10%', min: 4 },
+  { id: 'relic', n: '유물', ic: '🏺', ds: '총 피해 +10%', min: 2 },
+  { id: 'arrow', n: '화살촉', ic: '🏹', ds: '우주선 속도 +10%', min: 17 },
 ];
 const artiById = Object.fromEntries(ARTI.map(a => [a.id, a]));
-// 보너스 탄약 (원작 ammoType: 1 폭발 · 2 관통 · 3 체인건 · 4 레이저 · 5 채광 드릴 · 6 플라즈마 · 7 미사일)
+// 특수 탄약 (원작 AmmoType: 0 일반 · 1 폭발 · 2 관통 · 3 체인건 · 4 레이저 · 5 드릴 · 6 플라즈마 · 7 미사일) — 처음엔 관통·체인건만 해금
 const AMMO = { 1: { n: '폭발 탄약', ic: '💥', c: '#ffa94d' }, 2: { n: '관통 탄약', ic: '🗡️', c: '#6cf09a' }, 3: { n: '체인건', ic: '🔫', c: '#ffd36b' }, 4: { n: '레이저 탄약', ic: '🔆', c: '#ff8fc7' }, 5: { n: '채광 드릴', ic: '🛠️', c: '#ff6b8a' }, 6: { n: '플라즈마 탄약', ic: '⚡', c: '#b58cff' }, 7: { n: '미사일 탄약', ic: '🚀', c: '#ffd36b' } };
 const ICON = { IncreaseDamage: '🔩', IncreaseFuel: '⛽', BuyGun: '🔫', ScorezonePlus: '🎰', IncreaseSpawnRate: '📡', IncreaseSpeed: '🔥', Duplicator: '🧬', GoldRush: '🥇', WarpDrive: '🌀', FuelOnAsteroidKill: '♻️', AttackSpeed: '⚡', CritChance: '🎯', MissileChance: '🚀', QuotaBonus: '🏅', Autonomy: '🤖', FuelFromOre: '🔁', SpaceMineChance: '💣', ExplosionRadius: '⭕', ExplosionDamage: '💢', UnlockBonusSectorCounter: '🍀', IncreasePlinkoSpeed: '⚙️', QuantamRefueling: '🔋', MissileDamage: '🚀', DoubleDip: '🎰', BossBonusDamage: '☄️', BossLifesteal: '🩸', ReduceSectorFuelDrain: '🛡️', AutoCollect: '🌟', Multibox: '📦', CollectorRadius: '🧲', UnlockOre: '⛏️', LazerSpeed: '🔆', LifeSteal: '🩸', GainFuelOnWarp: '💫', LazerDamage: '🔆', LazerChance: '🔆', UnlockBonusAmmo: '🧰', UnlockWeaponsCrate: '🧰', IncreasePierce: '🗡️', Shields: '🛡️', ElectricAsteroidSpawnRate: '⚡', ElectricChain: '🔗', ElectricDamage: '🌩️', MagneticMissiles: '🧲', UnlockStats: '📊', WhiteHole: '🕳️', WhiteHoleSpawnrate: '🕳️', SelfRepair: '🔧', Keycut: '🗝️', IncreaseChainGunDamage: '🔫', MiningDrillGuns: '🛠️', FeedbackLoop: '🔁', FasterWarp: '⏩', PierceBonusDamage: '🗡️', IncreasePlasmaDamage: '⚡', PlasmaChains: '🔗', BonusMissiles: '🚀', DrillDamage: '🛠️', LazerRecall: '🔆', CollectOreOnOutOfFuel: '💀', ShieldRecharge: '🔌', ChainGunFireRate: '🔫', MissileRefuel: '⛽', BonusLazers: '🔆', QuotaHole: '🕳️', Relocation: '🔆', TIAB: '♾️', AmmoDuration: '⏱️', IncreaseWeaponCrateSpawnRate: '🧰', FuelOnLazerKill: '⛽', LazerDuration: '⏱️', BonusFuelOnQuotaComplete: '🏅', ReduceGunDrain: '🌿', BonusAmmoTriggersMissileLazer: '🎆', Prestige: '✨', UnlockPrestige: '✨', UnlockPrestige1: '💜', HeavyResup: '📦', PlasmaElecDamage: '⚡' };
 
@@ -289,32 +298,62 @@ const TREE = UT.T, TREE_BY = UT.BY;
 const START = new Set(['u1', 'uS']), PSTART = new Set(['p1']);
 
 // ═══ 상태 ═══
-const SAVE_KEY = 'srb_save_v3';
+const SAVE_KEY = 'srb_save_v4';
 function fresh(keep) {
-  const base = { cred: 0, keys: 0, ess: 0, essPend: 0, lv: {}, pl: {}, arti: {}, cargo: {}, pk: { rank: {}, dup: [], ref: [] }, zm: new Array(13).fill(1), worm: new Array(13).fill(false),
-    boost: { dmg: 0, fuel: 0, rate: 1, pspd: 0, missile: 0, lazer: 0 }, boxes: 0, maxSector: 1, runs: 0, bestRun: 0, totalCred: 0, ores: {}, tab: 'tree', playTime: 0, savedAt: 0, started: Date.now(), crashes: 0, destroyed: 0, prestiges: 0 };
+  const base = { cred: 0, keys: 0, ess: 0, lv: {}, pl: {}, arti: {}, cargo: {}, pk: { rank: {}, dup: [], ref: [] }, zm: new Array(13).fill(1), worm: new Array(13).fill(0),
+    boost: { dmg: 0, fuel: 0, rate: 1, pmul: 1, missile: 0, lazer: 0 }, boxes: 0, maxSector: 0, runs: 0, bestRun: 0, totalCred: 0, ores: {}, tab: 'tree', playTime: 0, savedAt: 0, started: Date.now(), crashes: 0, destroyed: 0, prestiges: 0,
+    srw: SR.map(r => r.w), lw: [70, 20, 10, 3, 1], lootCnt: new Array(13).fill(0), god: 0, dupT: 0, wormT: 0, dupN: 0, refN: 0, wormN: 0,
+    keysGot: 0, lastKey: 1, seenRare: 0, bonusCtr: 0, cleared: [], firstArti: 0, cntW: 0, cntH: 0, cntA: 0, grCtr: 0, grMax: 21, grInit: 0, bosses: 0 };
   return keep ? Object.assign(base, keep) : base;
 }
 let S = fresh();
-function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) {} }
+function load() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (v && typeof v === 'object') { S = Object.assign(fresh(), v); return; }
+    // v3(원작 데이터 1차판) 저장이 있으면 이어받기: 트리·크레딧·열쇠·명성·플링코는 유지, 구역은 0부터 세도록
+    const o = JSON.parse(localStorage.getItem('srb_save_v3') || 'null');
+    if (o && typeof o === 'object') {
+      S = fresh({ cred: o.cred || 0, keys: o.keys || 0, ess: (o.ess || 0) + (o.essPend || 0), lv: o.lv || {}, pl: o.pl || {}, cargo: o.cargo || {}, pk: o.pk || S.pk, zm: o.zm || S.zm,
+        worm: (o.worm || []).map(w => w ? .5 : 0).concat(new Array(13).fill(0)).slice(0, 13), arti: Object.fromEntries(Object.keys(o.arti || {}).filter(k => artiById[k]).map(k => [k, 1])),
+        boost: Object.assign({ dmg: 0, fuel: 0, rate: 1, pmul: 1, missile: 0, lazer: 0 }, o.boost || {}, { pmul: 1 / (1 + ((o.boost && o.boost.pspd) || 0)) }),
+        boxes: o.boxes || 0, maxSector: Math.max(0, (o.maxSector || 1) - 1), runs: o.runs || 0, totalCred: o.totalCred || 0, ores: o.ores || {}, destroyed: o.destroyed || 0, crashes: o.crashes || 0, playTime: o.playTime || 0, prestiges: o.prestiges || 0 });
+      S.firstArti = Object.keys(S.arti).length ? 1 : 0; S.keysGot = S.keys ? 1 : 0;
+    }
+  } catch (e) {}
+}
 function save() { try { S.savedAt = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 
-// ═══ 효과 합산 ═══
+// ═══ 효과 합산 (원작 UD_*.Apply 해독: 더하기형 / 곱셈 누적형을 구분) ═══
 const lv = id => S.lv[id] || 0;
 const pl = id => S.pl[id] || 0;
 let EF = {};
 function recompute() {
   EF = {};
-  for (const n of TREE) { const l = lv(n.id); if (!l) continue; const e = EF[n.cls] || (EF[n.cls] = { lv: 0 }); e.lv += l; for (const k in n.f) if (typeof n.f[k] === 'number') e[k] = (e[k] || 0) + n.f[k] * l; }
+  for (const n of TREE) {
+    const l = lv(n.id); if (!l) continue; const e = EF[n.cls] || (EF[n.cls] = { lv: 0 }); e.lv += l;
+    for (const k in n.f) if (typeof n.f[k] === 'number') { const v = n.f[k];
+      e[k] = (e[k] || 0) + v * l; e[k + '_m'] = (e[k + '_m'] ?? 1) * Math.pow(1 - v, l); e[k + '_p'] = (e[k + '_p'] ?? 1) * Math.pow(1 + v, l); e[k + '_x'] = (e[k + '_x'] ?? 1) * Math.pow(v, l); }
+  }
 }
 const ef = (c, k) => (EF[c] && EF[c][k]) || 0;
 const efl = c => (EF[c] && EF[c].lv) || 0;
-const ac = id => (S.arti[id] || 0) * (pl('p13') ? 2 : 1);          // 유물 개수 (고대의 힘이면 2배)
-const arti = id => ac(id) * .1;
-const oreOn = i => i === 0 || (i === 10 ? !!pl('p15') : TREE.some(n => n.ore === i && lv(n.id)));
+const efm = (c, k) => (EF[c] && EF[c][k + '_m']) ?? 1;   // 원작: 값 −= 값×비율 (레벨마다)
+const efp = (c, k) => (EF[c] && EF[c][k + '_p']) ?? 1;   // 원작: 값 += 값×비율
+const efx = (c, k) => (EF[c] && EF[c][k + '_x']) ?? 1;   // 원작: 값 ×= 비율
+const hasA = id => !!S.arti[id];
+const aPow = () => pl('p13') ? 2 : 1;                     // 명성 '고대의 힘'(ArtifactPower): 유물 효과 2배
+const aBon = id => hasA(id) ? .1 * aPow() : 0;
+// 광석 = 스킬 트리의 ⬢ 해금 AND 도달 구역 (원작 AsteroidPrefab.IsUnlocked)
+const oreOwned = i => i === 0 || (i === 10 ? !!pl('p15') : TREE.some(n => n.ore === i && lv(n.id)));
+const oreOn = oreOwned;
+const oreAt = (i, cs) => oreOwned(i) && cs >= ORES[i].min;
 const ammoOn = () => { const a = [2, 3]; for (const n of TREE) if (n.cls === 'UnlockBonusAmmo' && lv(n.id)) a.push(n.f.ammoType); return a; };
-// 원작 UpgradeDefinition.GetCost: 기본 + 증가분 × 레벨 (선형) → 금화 ×0.9(고대의 힘 ×0.8) → 할인 사냥꾼 ×0.8
-function nodeCost(n) { let c = n.cost + n.inc * lv(n.id); if (S.arti.coin) c = Math.round(c * (pl('p13') ? .8 : .9)); if (pl('p9')) c = Math.round(c * .8); return Math.max(1, c); }
+// 원작 UpgradeDefinition.GetCost: 기본 + 증가분 × 레벨 → 금화 ×0.9(고대의 힘 ×0.8) → 명성 할인 ×0.8 / 워프 드라이브는 명성 '두 배 연료'면 무료
+function nodeCost(n) {
+  if (n.cls === 'WarpDrive' && pl('p4')) return 0;
+  let c = n.cost + n.inc * lv(n.id); if (hasA('coin')) c = Math.round(c * (pl('p13') ? .8 : .9)); if (pl('p9')) c = Math.round(c * .8); return Math.max(0, c);
+}
 function pCost(n) { return n.cost + n.inc * pl(n.id); }
 const maxed = n => n.max && lv(n.id) >= n.max;
 const vis = n => START.has(n.id) || lv(n.id) > 0 || n.kids.some(k => lv(k) > 0);
@@ -324,29 +363,52 @@ const pMaxed = n => n.max && pl(n.id) >= n.max;
 const pCanBuy = n => pVis(n) && !pMaxed(n) && S.ess >= pCost(n);
 const hasPres = () => lv('uP') > 0;
 
-// ═══ 계산식 (원작 GameStats / Fuel / QuotaManager / UpgradeDefinition 해독) ═══
-const maxFuel = () => (G.fuel + ef('IncreaseFuel', 'fuelPerLevel') * (pl('p4') ? 2 : 1) + S.boost.fuel) * (1 + arti('ai'));
-const gunDmg = () => (G.dmg + ef('IncreaseDamage', 'damagePerLevel') * (pl('p3') ? 2 : 1) + S.boost.dmg) * (1 + arti('relic'));
-const fireInt = () => G.fire / (1 + ef('AttackSpeed', 'intervalPercentDecrease') + arti('acc')) * S.boost.rate;
-const clickCD = () => G.click / (1 + ef('AttackSpeed', 'intervalPercentDecrease') + arti('acc')) * S.boost.rate;   // 원작 GameStats.clickCoolDown
+// ═══ 계산식 (원작 GameStats / Fuel / Gun / ArtifactManager 해독) ═══
+const maxFuel = () => (G.fuel + ef('IncreaseFuel', 'fuelPerLevel') * (pl('p4') ? 2 : 1) + S.boost.fuel) * (1 + aBon('ai'));
+const gunDmg = () => (G.dmg + ef('IncreaseDamage', 'damagePerLevel') * (pl('p3') ? 2 : 1) + S.boost.dmg) * (1 + aBon('relic'));
+const fireInt = () => Math.max(.05, G.fire * efm('AttackSpeed', 'intervalPercentDecrease') * S.boost.rate) * (1 - aBon('acc'));
+const clickCD = () => G.click;                               // 원작 GameStats.clickCoolDown (업그레이드 없음)
 const guns = () => 1 + efl('BuyGun');
-const critMul = () => G.crit * (1 + ac('amp'));
-const shipSpd = () => (G.speed + ef('IncreaseSpeed', 'speedPerLevel')) * (1 + arti('arrow')) * PX;
+const critMul = () => G.crit + (hasA('amp') ? G.crit * aPow() : 0);
+const shipSpd = () => (G.speed + ef('IncreaseSpeed', 'speedPerLevel')) * (1 + aBon('arrow')) + G.speedAdd;   // 유닛/초 (원작 PlayerController.maxSpeedForward = 7 + maxPlayerSpeed)
 const collectR = () => (G.collect + ef('CollectorRadius', 'increaseAmount')) * PX;
+const detectR = () => G.detect * PX;
 const maxHealth = () => G.health + ef('Shields', 'additionalHealth');
-const spawnInt = () => Math.max(.3, G.spawn - ef('IncreaseSpawnRate', 'decreaseInSeconds')) / (1 + arti('egg'));
-const hasWarp = () => efl('WarpDrive') > 0 || pl('p4') > 0;
-const missileDmg = () => (G.missile + ef('MissileDamage', 'missileDamageIncreasePerLevel') + S.boost.missile + pl('p16') * 100) * (1 + arti('dagger'));
-const lazerDmg = () => (G.lazer + ef('LazerDamage', 'LazerDamageIncrease') + S.boost.lazer + pl('p17') * 100) * (1 + arti('gem'));
-const elecDmg = () => (G.elec + ef('ElectricDamage', 'damageIncreasePerLevel') + pl('p19') * 100) * (1 + arti('bones'));
-const ammoMul = () => pl('p14') ? 1.1 : 1;
-const plinkoInt = () => G.plinkoDrop / (1 + ef('IncreasePlinkoSpeed', 'plinkoSpeedIncreaseMultiplier') + S.boost.pspd + arti('mach'));
+const spawnInt = () => { const b = G.spawn - ef('IncreaseSpawnRate', 'decreaseInSeconds'); return Math.max(.05, b - (hasA('egg') ? b * .1 : 0)); };
+const starterMax = () => G.starter + efl('IncreaseSpawnRate');
+const hasWarp = () => efl('WarpDrive') > 0;
+const ammoX = () => pl('p14') ? 1.1 : 1;                    // 명성 '탄약 피해' ×1.1
+const missileDmg = () => (G.missile + ef('MissileDamage', 'missileDamageIncreasePerLevel') + S.boost.missile + pl('p16') * 100) * (1 + aBon('dagger')) * ammoX();
+const lazerDmg = () => (G.lazer + ef('LazerDamage', 'LazerDamageIncrease') + S.boost.lazer + pl('p17') * 100) * (1 + aBon('gem')) * ammoX();
+const elecDmg = () => (G.elec + ef('ElectricDamage', 'damageIncreasePerLevel') + pl('p19') * 100) * (1 + aBon('bones'));
+const plasmaDmg = () => (G.plasma + ef('IncreasePlasmaDamage', 'bonusPlasmaDamage') + pl('p19') * 100) * ammoX();
+const drillDmg = () => (G.drill + ef('DrillDamage', 'damageIncrease') + pl('p18') * 1000) * ammoX();
+const plinkoInt = () => Math.max(.05, G.plinkoDrop * efm('IncreasePlinkoSpeed', 'plinkoSpeedIncreaseMultiplier') * S.boost.pmul) * (1 - aBon('mach'));
 const intake = () => 1 + ef('DoubleDip', 'plinkoIntakeIncrease');
+const ammoDur = () => G.ammoDur * efp('AmmoDuration', 'durationIncreasePercent') * (1 + aBon('star'));
+const lazerLife = () => G.lazerLife * efp('LazerDuration', 'lazerDurationPercentIncrease');
+const lazerTick = () => G.lazerInt * efm('LazerSpeed', 'lazerSpeedDecreasePercent');
+const chainInt = () => G.chainInt * efm('ChainGunFireRate', 'fireRateIncreasePercent');
+const chainMul = () => G.chainMul * efp('IncreaseChainGunDamage', 'chaingunDamagePercentIncrease');
+const mineRad = () => G.mineRad * efp('ExplosionRadius', 'radiusIncreasePercentage') * PX;
+const fillSpd = () => G.fill * efx('FasterWarp', 'warpDurationPercentDecrease');
+const skullMul = () => hasA('skull') ? (pl('p13') ? .8 : .9) : 1;
+function stepInterval(base, cls, k) { let v = base; for (const n of TREE) if (n.cls === cls) for (let i = 0; i < lv(n.id); i++) v -= Math.round(v * n.f[k]); return Math.max(1, v); }
+const weaponInt = () => stepInterval(G.weaponInt, 'IncreaseWeaponCrateSpawnRate', 'weaponsCrateIntervalPercentDecrease');
+const holeInt = () => stepInterval(G.holeInt, 'WhiteHoleSpawnrate', 'weaponsCrateIntervalPercentDecrease');
 function hpStart(s) { const d = Math.floor(s / 5); return G.hpBase + G.hpSecMul * G.hpBase * s + d * G.hpDecStatic + d * G.hpDecMul * G.hpSecMul * G.hpBase * s; }
 function quotaFor(s) { if (s <= 0) return 10; if (s <= 4) return Math.min(500, (s + 1) * 10); if (s <= 9) return Math.min(500, s * 25 - 25); return Math.min(500, (s - 4) * 50); }
-function drainPerTick(s, inc) { const d = Math.floor(s / 5), b = G.drainBase + G.drainSec * s + G.drainDec * d; let x = b + b * G.extraMul * inc * (1 - Math.min(.95, ef('ReduceSectorFuelDrain', 'fuelDrainReductionAmount'))); if (s >= 10) x *= G.s10; return x; }
-function shotCost(s) { const d = Math.floor(s / 5); return (G.shotSec * s + G.shotDec * d) * (1 - Math.min(.95, ef('ReduceGunDrain', 'reductionPercent'))) * (pl('p8') ? .5 : 1); }
-function oresFor(s) { const out = []; for (let i = 1; i < ORES.length; i++) if (oreOn(i) && ORES[i].sec <= s + 1) out.push(i); return out; }
+// 원작 Fuel.DrainFuelOverTime: 0.3초마다 b + b×0.4×증가단계×(1−감소), 워프 충전 중·첫 희귀 구역은 ×0.5, 10구역부터 ×1.5
+function drainPerTick(s, inc, slow) {
+  const b = G.drainBase + G.drainSec * s + G.drainDec * Math.floor(s / 5);
+  let x = b + b * G.extraMul * inc * (1 - Math.min(.95, ef('ReduceSectorFuelDrain', 'fuelDrainReductionAmount')));
+  if (slow) x *= .5; if (s >= 10) x *= G.s10; return x;
+}
+// 원작 Gun.DrainFuelFromPlayer: 한 발마다 구역×0.15 + 구간×1 (+총마다 10초 단계), 체인건은 무료
+function shotCost(s, gInc) {
+  const b = G.shotSec * s + G.shotDec * Math.floor(s / 5); let x = b + b * G.gunExtraMul * (gInc || 0);
+  if (pl('p8')) x *= .5; return x * (1 - Math.min(.95, ef('ReduceGunDrain', 'reductionPercent')));
+}
 
 // ═══ 원정 ═══
 const cv = $('cv'), ctx = cv.getContext('2d');
@@ -369,259 +431,346 @@ function placeAbort() {   // 중단 버튼이 월드와 겹치면 월드 가장�
   b.classList.toggle('mini', !!fit); b.style.right = fit ? '8px' : ''; b.style.bottom = fit ? '8px' : '';
 }
 function remapWorld(ow, oh, nw, nh) { const kx = nw / ow, ky = nh / oh, mv = o => { if (!o) return; if (o.x != null) { o.x *= kx; o.y *= ky; } if (o.x1 != null) { o.x1 *= kx; o.y1 *= ky; o.x2 *= kx; o.y2 *= ky; } };
-  [R.ship, R.aim, R.cur].forEach(mv); for (const k of ['rocks', 'bullets', 'drops', 'fx', 'parts', 'texts', 'mines', 'crates', 'missiles']) R[k].forEach(mv); }
+  [R.ship, R.aim, R.cur].forEach(mv); for (const k of ['rocks', 'bullets', 'picks', 'fx', 'parts', 'texts', 'mines', 'crates', 'missiles']) R[k].forEach(mv); }
 const toWorld = (cx, cy) => { const b = cv.getBoundingClientRect(); return { x: (cx - b.left - VX) / VS, y: (cy - b.top - VY) / VS }; };
 const toGame = e => toWorld(e.clientX, e.clientY);
 addEventListener('resize', () => { if (R) resize(); });
 function screen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
 function shake(a) { if (R) R.shk = Math.max(R.shk || 0, a); }
 function addFuel(n) { if (R && n > 0) R.fuel = Math.min(maxFuel(), R.fuel + n); }
-function rollRarity(bonus) { const ws = RARITY.map((r, i) => r.w * (i ? 1 + bonus : 1)); let t = ws.reduce((a, b) => a + b) * Math.random(); for (let i = 0; i < ws.length; i++) { t -= ws[i]; if (t <= 0) return i; } return 0; }
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function text(x, y, s, c, sz, vx) { if (R && R.texts.length < 45) R.texts.push({ x, y, s, c, t: 0, sz: sz || 18, vx: vx || 0 }); }
 
-let startSector = 1;
+let startSector = 0;
 function launch() {
-  screen('exp'); resize(); recompute(); startSector = clamp(startSector, 1, S.maxSector);
-  R = { t: 0, s: startSector - 1, fuel: maxFuel(), hp: maxHealth(), inv: 0, quota: 0, kills: 0, killsTotal: 0, rar: 0,
-    rocks: [], bullets: [], drops: [], fx: [], parts: [], texts: [], mines: [], crates: [], missiles: [], lasers: [],
-    bag: {}, bagN: 0, keys: 0, ess: 0, cred: 0, spawnT: 0, drainT: 0, inc: 0, incT: 0, hpInc: 0, hpIncT: 0, antifarm: 0,
-    ship: { x: W / 2, y: H * .6, a: -Math.PI / 2 }, aim: { x: W / 2, y: H * .6 }, cur: { x: W / 2, y: H * .45 }, clickT: 99, clickBuf: 0, gcd: [], ammo: 0, ammoT: 0, drillT: 0, chainT: 0,
-    warpReady: false, warpCharge: 0, shk: 0, ended: false, spawned: 0 };
-  R.quota = quotaFor(R.s);
-  for (let i = 0; i < G.starter; i++) spawnRock();
-  if (pl('p12') || (pl('p6') && Math.random() < .5)) spawnCrate('weapon');
-  $('btnWarp').classList.remove('show'); disarmAbort();
-  S.runs++; Sound.play('deal'); lastF = __now();
+  screen('exp'); resize(); recompute(); startSector = clamp(startSector, 0, S.maxSector);
+  R = { t: 0, cs: startSector, runSectors: 0, fuel: maxFuel(), hp: maxHealth(), inv: 0, quota: 0, kills: 0, killsTotal: 0, rar: 0, slow: false,
+    rocks: [], crates: [], mines: [], bullets: [], picks: [], fx: [], parts: [], texts: [], missiles: [], lasers: [],
+    bag: {}, bagN: 0, keys: 0, ess: 0, spawnT: 0, drainT: 0, inc: 0, incT: 0, antifarm: 0, hpInc: 0, hpIncT: 0, gInc: 0, gIncT: 0, repairT: 1, expandT: 0,
+    ship: { x: W / 2, y: H / 2, a: -Math.PI / 2 }, aim: { x: W / 2, y: H / 2 }, cur: { x: W / 2, y: H * .35 }, clickT: 99, clickBuf: 0, gcd: [], ammo: 0, ammoT: 0, drillT: 0,
+    quotaMet: false, fill: 0, hold: { key: false, btn: false, ptr: false }, boss: null, bossDown: false, bossT: 0, shk: 0, ended: false, nonBonusLoot: false, grBonus: 0, grBonusCtr: 0 };
+  S.runs++; newSector();
+  $('btnWarp').classList.remove('show'); disarmAbort(); Sound.play('deal'); lastF = __now();
   clearInterval(launch._iv); launch._iv = setInterval(tick, 16); requestAnimationFrame(frame);
 }
-function spawnPos(m) {
-  for (let k = 0; k < 12; k++) { const x = rnd(m, W - m), y = rnd(m + 40, H - m); if (Math.hypot(x - R.ship.x, y - R.ship.y) > 150) return { x, y }; }
-  return { x: rnd(m, W - m), y: rnd(m + 40, H - m) };
+// 원작 SectorManager.GetRandomSectorRarity
+function rollSectorRarity() {
+  R.slow = false;
+  if (R.runSectors === 0) return 0;
+  if (!S.seenRare) { S.seenRare = 1; R.slow = true; return 2; }      // 생애 처음 두 번째 구역은 희귀 + 연료 천천히
+  if (efl('UnlockBonusSectorCounter') && ++S.bonusCtr >= 5) { S.bonusCtr = 0; return 2 + Math.floor(Math.random() * 3); }   // 럭키 섹터
+  const w = S.srw; let t = w.reduce((a, b) => a + b) * Math.random(), k = 0;
+  for (let i = 0; i < w.length; i++) { t -= w[i]; if (t <= 0) { k = i; break; } }
+  for (let i = 0; i < w.length; i++) w[i] = i === k ? SR[i].w : w[i] * 1.1;
+  return k;
 }
-function spawnRock(kind) {
-  const s = R.s, p = spawnPos(40);
-  let type = 0, ore = 0; const av = oresFor(s);
-  if (kind === 'boss') type = 3;
-  else if (av.length) { const r = Math.random(); type = r < .5 ? 0 : r < .82 ? 1 : 2; ore = Math.random() < .5 ? av[av.length - 1] : pick(av); }
-  const elec = !kind && Math.random() < ef('ElectricAsteroidSpawnRate', 'spawnrateIncrease');
-  let hp = hpStart(s) * (1 + G.hpBonus * R.hpInc) * (1 - Math.min(.9, arti('skull')));
-  if (type === 3) { hp *= G.boss; ore = av.length ? av[av.length - 1] : 0; }
-  const r = type === 3 ? 46 : 13 + Math.min(14, Math.log2(hp + 1) * 1.6) + (type ? 3 : 0);
-  const pts = []; for (let i = 0; i < (type === 3 ? 12 : 9); i++) pts.push(rnd(.78, 1.14));
-  const a = rnd(0, 6.28), sp = (type === 3 ? .6 : 1.5) * PX * rnd(.6, 1.2);
-  R.rocks.push({ x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, hp, max: hp, r, pts, rot: rnd(0, 6.28), vr: rnd(-.5, .5), type, ore, elec, boss: type === 3, hit: 0 });
-  R.spawned++;
-  if (type === 3) { Sound.play('boom'); R.texts.push({ x: W / 2, y: 110, s: '☄️ 보스 소행성!', c: '#ff6b8a', t: 0, sz: 28 }); return; }
-  if (kind) return;
-  // 원작: 소행성이 생길 때마다 전리품 상자 2.5% · 지뢰 · 무기 상자 · 화이트홀 · 유물 소행성
-  if (Math.random() < G.lootChance) spawnCrate('loot');
-  if (Math.random() < ef('SpaceMineChance', 'spacemineSpawnChance')) R.mines.push({ x: p.x + rnd(-30, 30), y: p.y + rnd(-30, 30), hp: 1, t: 0 });
-  if (efl('UnlockWeaponsCrate') && Math.random() < (.01 + .005 * ammoOn().length) * (1 + ef('IncreaseWeaponCrateSpawnRate', 'weaponsCrateIntervalPercentDecrease') * 5)) spawnCrate('weapon');
-  if (efl('WhiteHole') && Math.random() < .005 * (1 + ef('WhiteHoleSpawnrate', 'weaponsCrateIntervalPercentDecrease') * 5)) spawnCrate('hole');
-  if (s >= 2 && Math.random() < .005) spawnCrate('arti');
+function newSector() {
+  R.rar = rollSectorRarity(); R.quota = quotaFor(R.cs); R.kills = 0; R.quotaMet = false; R.fill = 0;
+  R.inc = 0; R.incT = 0; R.antifarm = 0; R.hpInc = 0; R.hpIncT = 0; R.gInc = 0; R.gIncT = 0; R.nonBonusLoot = false; R.boss = null;
+  R.rocks.length = 0; R.crates.length = 0; R.mines.length = 0; R.picks.length = 0; R.missiles.length = 0; R.lasers.length = 0; R.bullets.length = 0;
+  S.maxSector = Math.max(S.maxSector, R.cs);
+  spawnStarters(); R.spawnT = spawnInt() * .5;
+  text(W / 2, H / 2 - 20, `구역 ${R.cs}` + (R.rar ? ` · ${SR[R.rar].n}` : ''), R.rar ? SR[R.rar].c : '#b58cff', 38);
 }
-function spawnCrate(type) {
-  const p = spawnPos(50), hp = type === 'loot' ? G.lootHp * hpStart(R.s) : type === 'arti' ? hpStart(R.s) * 3 : hpStart(R.s) * .8;
-  R.crates.push({ x: p.x, y: p.y, vx: rnd(-14, 14), vy: rnd(-14, 14), type, t: 0, hp, max: hp, r: 20 });
+// 원작 AsteroidSpawner.SpawnStarterObjects: 격자(31×16, 간격 3) 중 안전 반경 밖에 시작 소행성 4~7개 + 희귀도
+function spawnStarters() {
+  const [gw, gh, sp] = W > H ? G.grid : [G.grid[1], G.grid[0], G.grid[2]], pos = [];
+  for (let i = 0; i < gw; i++) for (let j = 0; j < gh; j++) {
+    const x = W / 2 + (i - (gw - 1) / 2) * sp * PX, y = H / 2 + (j - (gh - 1) / 2) * sp * PX;
+    if (x < 40 || x > W - 40 || y < 70 || y > H - 40 || Math.hypot(x - R.ship.x, y - R.ship.y) < G.safe * PX) continue;
+    pos.push({ x, y });
+  }
+  shuffle(pos);
+  const n = Math.min(pos.length, irnd(starterMax() - 3, starterMax()) + R.rar);
+  let crates = R.rar + (S.keysGot === 0 && R.cs >= 1 ? 1 : 0), heavy = false;
+  for (let i = 0; i < n; i++) {
+    const p = pos[i];
+    if ((pl('p6') || pl('p12')) && !heavy) { heavy = true; if (Math.random() <= .4 || pl('p12')) { spawnCrate('weapon', p); continue; } }   // 명성 '중보급'
+    if (!S.firstArti && canArti()) { spawnArtiRock(p); continue; }
+    if (crates > 0) { spawnCrate('loot', p); crates--; continue; }
+    if (R.runSectors > 0 && !R.nonBonusLoot && Math.random() <= G.bonusLoot) { spawnCrate('loot', p); R.nonBonusLoot = true; continue; }
+    spawnRock(null, p, true, Math.random() < ef('ElectricAsteroidSpawnRate', 'spawnrateIncrease'));
+  }
+}
+function edgePos() {
+  const m = 34, s = Math.floor(Math.random() * 4);
+  return s === 0 ? { x: rnd(0, W), y: -m } : s === 1 ? { x: rnd(0, W), y: H + m } : s === 2 ? { x: -m, y: rnd(60, H) } : { x: W + m, y: rnd(60, H) };
+}
+function aimCenter(p, spd) { const ax = W > H ? 20 : 10, ay = W > H ? 10 : 20, tx = W / 2 + rnd(-ax, ax) * PX, ty = H / 2 + rnd(-ay, ay) * PX, a = Math.atan2(ty - p.y, tx - p.x); return { vx: Math.cos(a) * spd, vy: Math.sin(a) * spd }; }
+// 원작 SpawnOneAsteroid: 무게 돌 100 · 광석마다 섞인 10 · 순수 1 × 구역 희귀도 배율
+function pickRockType(starter) {
+  const r = R.rar, opts = [[0, 0, 100 * (starter ? (r === 2 ? .25 : r === 3 || r === 4 ? .01 : 1) : (r === 3 ? .75 : r === 4 ? .25 : 1))]];
+  for (let o = 1; o < ORES.length; o++) if (oreAt(o, R.cs)) { const m = ORE_MUL[r] || 1; opts.push([o, 1, 10 * m], [o, 2, m]); }
+  let t = opts.reduce((a, x) => a + x[2], 0) * Math.random();
+  for (const x of opts) { t -= x[2]; if (t <= 0) return x; } return opts[0];
+}
+function spawnRock(kind, p, starter, elec) {
+  p = p || edgePos();
+  let o = 0, type = 0, hp;
+  if (kind === 'boss') { type = 3; hp = hpStart(R.cs) * G.bossMul * skullMul(); }
+  else { [o, type] = pickRockType(starter); hp = hpStart(R.cs) * (1 + G.hpBonus * R.hpInc) * skullMul(); }
+  const r = (type === 3 ? 4.2 : type === 0 ? 1.45 : 1.6) * PX * (type === 3 ? 1 : rnd(.85, 1.15));
+  const pts = []; for (let i = 0; i < (type === 3 ? 14 : 9); i++) pts.push(rnd(.78, 1.14));
+  const v = aimCenter(p, (type === 3 ? .8 : starter ? G.slowSpd : G.baseSpd) * PX * rnd(.8, 1.2));
+  const rk = { x: p.x, y: p.y, vx: v.vx, vy: v.vy, hp, max: hp, r, pts, rot: rnd(0, 6.28), vr: rnd(-.5, .5), type, ore: o, elec: !!elec && !kind, boss: type === 3, hit: 0, starter: !!starter };
+  R.rocks.push(rk);
+  if (!kind) { S.cntW++; S.cntH++; S.cntA++; }
+  if (type === 3) { R.boss = rk; Sound.play('boom'); text(W / 2, 120, '☄️ 보스 소행성!', '#ff6b8a', 30); shake(10); }
+  return rk;
+}
+function spawnCrate(type, p) {
+  p = p || edgePos();
+  const hp = type === 'loot' ? G.lootHp * hpStart(R.cs) : type === 'hole' ? hpStart(R.cs) * 2 : hpStart(R.cs);
+  const v = aimCenter(p, (type === 'weapon' ? 1.5 : 1) * PX);
+  R.crates.push({ x: p.x, y: p.y, vx: v.vx, vy: v.vy, type, t: 0, hp, max: hp, r: 1.4 * PX });
+}
+function spawnMine(p) { const v = aimCenter(p, 3 * PX); R.mines.push({ x: p.x, y: p.y, vx: v.vx, vy: v.vy, hp: 1, t: 0, r: .9 * PX }); }
+// 유물: 종류마다 한 번, 최소 구역 이상에서만
+const artiLeft = () => ARTI.filter(a => !S.arti[a.id] && R && R.cs >= a.min);
+const canArti = () => artiLeft().length > 0 && !R.rocks.some(r => r.arti) && !R.picks.some(k => k.type === 'arti');
+function spawnArtiRock(p) {
+  const hp = hpStart(R.cs) * 3 * skullMul(), v = aimCenter(p, G.slowSpd * PX);
+  const pts = []; for (let i = 0; i < 10; i++) pts.push(rnd(.85, 1.1));
+  R.rocks.push({ x: p.x, y: p.y, vx: v.vx, vy: v.vy, hp, max: hp, r: 2.2 * PX, pts, rot: 0, vr: .3, type: 4, ore: 0, arti: pick(artiLeft()).id, hit: 0 });
 }
 function tick() { if (!R) return; const now = __now(); let dt = Math.min(1.5, (now - lastF) / 1000); lastF = now; while (dt > 0 && R) { const st = Math.min(.05, dt); dt -= st; update(st); } }
 function frame() { if (!R) return; draw(); requestAnimationFrame(frame); }
-function nearest(x, y, skip) { let b = null, bd = 1e9; for (const rk of R.rocks) { if (rk === skip) continue; const d = Math.hypot(rk.x - x, rk.y - y); if (d < bd) { bd = d; b = rk; } } return b; }
-function hurtRock(rk, d, src) {
-  if (!rk || rk.dead) return;
-  if (rk.boss) { d *= 1 + ef('BossBonusDamage', 'bossBonusDamageMultiplierIncrease'); addFuel(d * ef('BossLifesteal', 'bossLifestealAmountPercentIncrease')); }
-  addFuel(d * ef('LifeSteal', 'lifestealPercentIncrease'));
-  rk.hp -= d; rk.hit = .15;
-  if (src === 'gun' || (src === 'ammo' && efl('BonusAmmoTriggersMissileLazer'))) { if (Math.random() < ef('LazerChance', 'lazerChanceIncrease')) fireLazer(rk); }
-  if (rk.hp <= 0) killRock(rk, src);
+// 총이 노리는 대상: 소행성·상자·기뢰 (원작 Gun.FindBestTarget = 탐지 범위 안 가장 가까운 것)
+function targets() { return R.rocks.concat(R.crates, R.mines); }
+function nearestT(x, y, range, skip) { let b = null, bd = range || 1e9; for (const t of targets()) { if (t === skip || t.dead) continue; const d = Math.hypot(t.x - x, t.y - y) - (t.r || 0); if (d < bd) { bd = d; b = t; } } return b; }
+function nearestRock(x, y, skip, range) { let b = null, bd = range || 1e9; for (const rk of R.rocks) { if (rk === skip || rk.dead) continue; const d = Math.hypot(rk.x - x, rk.y - y); if (d < bd) { bd = d; b = rk; } } return b; }
+function damage(t, d, src) {
+  if (!t || t.dead) return;
+  if (R.mines.includes(t)) { t.dead = 1; mineBoom(t); return; }
+  if (R.crates.includes(t)) { t.hp -= d; t.hit = .12; if (t.hp <= 0) openCrate(t); return; }
+  if (t.boss) { d *= 1 + ef('BossBonusDamage', 'bossBonusDamageMultiplierIncrease'); addFuel(d * ef('BossLifesteal', 'bossLifestealAmountPercentIncrease')); }
+  else if (src === 'gun') { let ls = d * ef('LifeSteal', 'lifestealPercentIncrease'); if (R.cs >= 10) ls *= .5; if (R.cs >= 15) ls *= .5; addFuel(Math.min(ls, maxFuel() * .05)); }
+  t.hp -= d; t.hit = .15;
+  if (t.hp <= 0) killRock(t, src);
 }
+function spawnPick(type, x, y, o, auto) {
+  if (auto) return collectPick({ type, o, x, y });
+  const a = rnd(0, 6.28), s = rnd(40, 120);
+  R.picks.push({ type, o, x: x + rnd(-8, 8), y: y + rnd(-8, 8), vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0 });
+}
+// 원작 Asteroid 파괴: 광석 조각 1~(구역+1)개(최대 20), 묶음(2개)의 첫 조각은 소행성 광석 확정 / 돌은 골드러시 판정
 function killRock(rk, src) {
   const i = R.rocks.indexOf(rk); if (i < 0) return; R.rocks.splice(i, 1); rk.dead = 1;
+  for (let k = 0; k < 9; k++) R.parts.push({ x: rk.x, y: rk.y, vx: rnd(-130, 130), vy: rnd(-130, 130), t: 0, life: rnd(.3, .7), c: rk.elec ? '#7fd8ff' : ORES[rk.ore].c, r: rnd(2, 5) });
+  Sound.play(rk.boss ? 'boom' : 'tap');
+  if (rk.boss) return bossDown(rk);
+  if (rk.type === 4) { spawnPick('arti', rk.x, rk.y, rk.arti); for (let k = irnd(1, 5); k > 0; k--) spawnPick('ore', rk.x, rk.y, 0); text(rk.x, rk.y - 30, '🏺 유물!', '#ffd36b', 24); return; }
   R.kills++; R.killsTotal++; S.destroyed++;
-  addFuel(ef('FuelOnAsteroidKill', 'refuelAmount'));
+  if (efl('FuelOnAsteroidKill')) addFuel(ef('FuelOnAsteroidKill', 'refuelAmount'));
   if (src === 'lazer') addFuel(ef('FuelOnLazerKill', 'bonusFuelAmount'));
   if (src === 'missile') addFuel(ef('MissileRefuel', 'bonusFuelAmount'));
-  // 광석 조각: 돌 2~4 · 자원/순수 3~6 · 보스는 많이
-  let n = rk.type === 0 ? irnd(2, 4) : rk.type === 3 ? irnd(25, 40) : irnd(3, 6);
-  if (Math.random() < ef('Duplicator', 'duplicatorChance')) n++;
-  n = Math.round(n * RARITY[R.rar].m);
+  let n = irnd(1, R.cs + 1); if (Math.random() < ef('Duplicator', 'duplicatorChance')) n++; n = Math.min(20, n);
   const auto = Math.random() < ef('AutoCollect', 'chanceIncrease') || (src === 'missile' && efl('MagneticMissiles')) || (src === 'lazer' && efl('LazerRecall'));
   for (let k = 0; k < n; k++) {
-    let o = rk.type === 0 ? 0 : rk.type === 1 ? (Math.random() < .4 ? rk.ore : 0) : rk.ore;
-    if (efl('GoldRush') && o < 4 && Math.random() < .05) o = 4;
-    if (auto) collect(o, rk.x, rk.y);
-    else R.drops.push({ x: rk.x + rnd(-10, 10), y: rk.y + rnd(-10, 10), vx: rnd(-60, 60), vy: rnd(-60, 60), o, t: 0 });
+    let o;
+    if (k % 2 === 0) o = rk.type === 0 ? (goldRush() ? 4 : (S.grCtr++, 0)) : rk.ore;
+    else { S.grCtr++; o = rk.type === 0 ? 0 : rk.type === 1 ? (Math.random() < .6 ? 0 : rk.ore) : rk.ore; }
+    spawnPick('ore', rk.x, rk.y, o, auto);
   }
-  for (let k = 0; k < 9; k++) R.parts.push({ x: rk.x, y: rk.y, vx: rnd(-130, 130), vy: rnd(-130, 130), t: 0, life: rnd(.3, .7), c: rk.elec ? '#7fd8ff' : ORES[rk.ore].c, r: rnd(2, 5) });
-  if (rk.elec) chain(rk, elecDmg(), G.elecJumps + ef('ElectricChain', 'chainIncrease'), '#7fd8ff');
-  if (rk.boss) { shake(14); if (hasPres()) { const e = 1 + Math.floor(R.s / 10); R.ess += e; R.texts.push({ x: rk.x, y: rk.y - 30, s: '✨ 우주의 정수 +' + e, c: '#b58cff', t: 0, sz: 24 }); } }
+  if (rk.elec) chain(rk, elecDmg(), G.elecJumps + ef('ElectricChain', 'chainIncrease'), '#7fd8ff', 'elec');
+  // 원작 MissilePool.RollForMissileFired: 파괴마다 확률로 미사일 + 추가 미사일
   if (Math.random() < ef('MissileChance', 'missileChance')) for (let m = 0; m < 1 + efl('BonusMissiles'); m++) fireMissile(rk.x, rk.y);
-  if (src === 'lazer' && efl('FeedbackLoop') && Math.random() < .5) { const t2 = nearest(rk.x, rk.y); if (t2) fireLazer(t2); }
-  Sound.play(rk.boss ? 'boom' : 'tap');
-  if (!R.warpReady && R.kills >= R.quota) reachQuota();
+  if (src === 'lazer' && efl('FeedbackLoop') && Math.random() < .5) { const t2 = nearestRock(rk.x, rk.y); if (t2) fireLazer(t2); }
+  if (!R.quotaMet && R.kills >= R.quota) reachQuota();
 }
-function chain(from, dmg, jumps, col) {
-  let cur = from; const hit = new Set();
+// 원작 AsteroidSpawner.HandleGoldRush: 조각 20~22개마다 돌 첫 조각이 금 / 처음 금 2개까지는 세 번째마다
+function goldRush() {
+  if (!efl('GoldRush')) return false;
+  if (S.grInit) {
+    const g = S.ores.gold || 0;
+    if (g >= 2) { S.grInit = 0; return false; }
+    if (R.grBonus > g) return false;
+    if (R.grBonusCtr >= 2) { R.grBonus++; R.grBonusCtr = 0; return true; }
+    R.grBonusCtr++; return false;
+  }
+  if (S.grCtr > S.grMax) { S.grCtr = 0; S.grMax = irnd(17, 19) + 3; return true; }
+  return false;
+}
+function chain(from, dmg, jumps, col, src) {
+  let cur = from; const hit = new Set([from]);
   for (let j = 0; j < jumps; j++) {
-    let nx = null, bd = 25 * PX;
-    for (const r2 of R.rocks) { if (hit.has(r2) || r2 === cur) continue; const d = Math.hypot(r2.x - cur.x, r2.y - cur.y); if (d < bd) { bd = d; nx = r2; } }
+    let nx = null, bd = G.chainDist * PX;
+    for (const r2 of R.rocks) { if (hit.has(r2) || r2.dead) continue; const d = Math.hypot(r2.x - cur.x, r2.y - cur.y); if (d < bd) { bd = d; nx = r2; } }
     if (!nx) break; hit.add(nx);
     R.fx.push({ type: 'bolt', x1: cur.x, y1: cur.y, x2: nx.x, y2: nx.y, t: 0, life: .25, c: col });
-    const nx2 = nx; cur = nx; hurtRock(nx2, dmg, 'elec');
+    cur = nx; damage(nx, dmg, src); if (!R) return;
   }
 }
-function fireMissile(x, y) { R.missiles.push({ x, y, vx: rnd(-80, 80), vy: rnd(-80, 80), t: 0, tg: nearest(x, y) }); }
-function fireLazer(tg) { if (!tg || R.lasers.length > 30) return; for (let k = 0; k < 1 + efl('BonusLazers'); k++) R.lasers.push({ tg: k ? nearest(tg.x, tg.y, tg) || tg : tg, t: 0, tick: 0, life: G.lazerLife * (1 + ef('LazerDuration', 'lazerDurationPercentIncrease')), reloc: efl('Relocation') }); }
-function collect(o, x, y) {
-  R.bag[o] = (R.bag[o] || 0) + 1; R.bagN++; S.ores[ORES[o].id] = (S.ores[ORES[o].id] || 0) + 1;
-  addFuel(ef('FuelFromOre', 'fuelPerOre'));
-  if (pl('p2')) { S.cred += 1; S.totalCred += 1; R.cred += 1; }
-  if (R.texts.length < 40) R.texts.push({ x, y, s: ORES[o].n, c: ORES[o].c, t: 0, sz: 14, vx: rnd(-14, 14) });
+function fireMissile(x, y) { if (R.missiles.length < 40) R.missiles.push({ x, y, vx: rnd(-80, 80), vy: rnd(-80, 80), t: 0, tg: nearestRock(x, y) }); }
+function fireLazer(tg) {
+  if (!tg || R.lasers.length > 30) return;
+  for (let k = 0; k < 1 + efl('BonusLazers'); k++) R.lasers.push({ tg: k ? nearestRock(tg.x, tg.y, tg) || tg : tg, t: 0, tick: 0, life: lazerLife(), reloc: 1 + ef('Relocation', 'relocationAmountIncrease') });
 }
-function collectAll() { for (const d of R.drops) collect(d.o, d.x, d.y); R.drops.length = 0; }
+function collectPick(k) {
+  if (k.type === 'ore') {
+    R.bag[k.o] = (R.bag[k.o] || 0) + 1; R.bagN++; S.ores[ORES[k.o].id] = (S.ores[ORES[k.o].id] || 0) + 1;
+    if (efl('FuelFromOre')) addFuel(ef('FuelFromOre', 'fuelPerOre'));
+    if (pl('p2')) { S.cred += 1; S.totalCred += 1; }                                      // 명성 '돈 인쇄기'
+    text(k.x, k.y, ORES[k.o].n, ORES[k.o].c, 14, rnd(-14, 14));
+  } else if (k.type === 'key') { R.keys++; S.keys++; S.keysGot++; text(k.x, k.y, '🔑 +1', '#5ce1ff', 22); Sound.play('coin'); }
+  else if (k.type === 'ammo') { R.ammo = k.o; R.ammoT = ammoDur(); R.drillT = 0; text(k.x, k.y, AMMO[k.o].ic + ' ' + AMMO[k.o].n, AMMO[k.o].c, 21); Sound.play('meld'); }
+  else if (k.type === 'arti') { S.arti[k.o] = 1; S.firstArti = 1; recompute(); const a = artiById[k.o]; text(k.x, k.y, `${a.ic} ${a.n}!`, '#ffd36b', 24); Sound.play('win'); toast(`🏺 유물: ${a.n} — ${a.ds}`); }
+  else if (k.type === 'hole') whitehole();
+  else if (k.type === 'ess') { S.ess += 1; R.ess++; text(k.x, k.y, '✨ 우주의 정수 +1', '#b58cff', 26); Sound.play('win'); }
+}
+function whitehole() { R.expandT = 2.5; R.fx.push({ type: 'white', x: R.ship.x, y: R.ship.y, t: 0, life: .9, r: Math.max(W, H) }); Sound.play('meld'); text(W / 2, H / 2 - 40, '🕳️ 화이트홀 — 전부 빨아들여요', '#b58cff', 26); }
+// 원작 QuotaManager.CompleteQuota
 function reachQuota() {
-  R.warpReady = true;
-  const qb = ef('QuotaBonus', 'quotaBonusStaticDollarAmount');
-  if (qb) { S.cred += qb; S.totalCred += qb; R.cred += qb; R.texts.push({ x: W / 2, y: H / 2, s: '할당량 보너스 +$' + fmt(qb), c: '#ffd36b', t: 0, sz: 24 }); }
-  if (efl('BonusFuelOnQuotaComplete')) addFuel(maxFuel() * .25 * efl('BonusFuelOnQuotaComplete'));
+  R.quotaMet = true;
+  if (efl('QuotaBonus')) { const q = ef('QuotaBonus', 'quotaBonusStaticDollarAmount'); S.cred += q; S.totalCred += q; text(W / 2, H / 2 + 40, '할당량 보너스 +$' + fmt(q), '#ffd36b', 22); }
   if (Math.random() < ef('QuotaHole', 'chanceIncrease')) whitehole();
-  if (hasWarp()) { R.warpCharge = 0; Sound.play('turn'); R.texts.push({ x: W / 2, y: H / 2 + 34, s: '할당량 완료 — 워프 준비', c: '#b58cff', t: 0, sz: 22 }); }
-  else R.texts.push({ x: W / 2, y: H / 2 + 36, s: '할당량 완료 (워프 드라이브 없음)', c: '#93a0d8', t: 0, sz: 18 });
+  if (efl('BonusFuelOnQuotaComplete')) addFuel(efl('BonusFuelOnQuotaComplete') * maxFuel() * .05);
+  if ((R.cs + 1) % 5 === 0 && !S.cleared.includes(R.cs)) { spawnRock('boss', edgePos()); return; }   // 4·9·14…구역: 보스
+  if (hasWarp()) { Sound.play('turn'); text(W / 2, H / 2 + 70, '할당량 완료 — 워프 버튼/스페이스를 누르고 있기', '#b58cff', 21); }
+  else text(W / 2, H / 2 + 70, '할당량 완료 (워프 드라이브가 없어 계속 채굴)', '#93a0d8', 18);
 }
-function whitehole() { R.fx.push({ type: 'white', x: W / 2, y: H / 2, t: 0, life: .8, r: Math.max(W, H) }); collectAll(); Sound.play('meld'); R.texts.push({ x: W / 2, y: H / 2 - 40, s: '🕳️ 화이트홀!', c: '#b58cff', t: 0, sz: 28 }); }
+// 원작 BossAsteroid 파괴 → 남은 것들을 정리하고 우주의 정수 1개 → 원정 종료
+function bossDown(rk) {
+  shake(16); S.cleared.push(R.cs); S.bosses++; R.boss = null; R.bossDown = true; R.bossT = 2.4;
+  text(W / 2, H / 2 - 60, '☄️ 보스 격파!', '#ffd36b', 34);
+  for (const r2 of R.rocks.slice()) if (!r2.dead) killRock(r2, 'boss');
+  R.crates.length = 0; R.mines.length = 0;
+  spawnPick('ess', rk.x, rk.y, 0); R.expandT = 3;
+}
 function warp() {
-  if (!R || !R.warpReady || R.warpCharge < 1) return;
-  R.s++; S.maxSector = Math.max(S.maxSector, R.s + 1);
-  R.quota = quotaFor(R.s); R.kills = 0; R.warpReady = false; R.warpCharge = 0; R.hpInc = 0; R.hpIncT = 0; R.inc = 0; R.incT = 0; R.antifarm = 0;
-  $('btnWarp').classList.remove('show');
+  if (!R || !R.quotaMet || R.boss || !hasWarp()) return;
+  R.cs++; R.runSectors++;
   addFuel(ef('GainFuelOnWarp', 'fuelGainedOnWarpPerLevel'));
-  if (Math.random() < ef('QuantamRefueling', 'chanceToRefuel')) { R.fuel = maxFuel(); R.texts.push({ x: W / 2, y: 150, s: '양자 연료 보급!', c: '#6cf09a', t: 0, sz: 22 }); }
+  // 원작 Fuel.RollForQuantumRefuel: 연료가 80% 미만일 때 확률로 가득
+  if (efl('QuantamRefueling') && R.fuel / maxFuel() < .8) {
+    const m = R.rar === 4 ? 10 : R.rar === 3 ? 2 : R.fuel / maxFuel() < .2 ? 1.5 : 1;
+    if (Math.random() < ef('QuantamRefueling', 'chanceToRefuel') * m) { R.fuel = maxFuel(); text(W / 2, 150, '양자 연료 보급!', '#6cf09a', 22); }
+  }
   if (efl('ShieldRecharge')) R.hp = maxHealth();
-  R.rar = rollRarity(efl('UnlockBonusSectorCounter') ? .5 : 0);
-  if (efl('UnlockBonusSectorCounter') && (R.s + 1) % 5 === 0) { spawnCrate('loot'); spawnCrate('weapon'); R.texts.push({ x: W / 2, y: 180, s: '🍀 럭키 섹터!', c: '#6cf09a', t: 0, sz: 20 }); }
-  if ((R.s + 1) % 5 === 0) spawnRock('boss');
-  if (pl('p12') || (pl('p6') && Math.random() < .5)) spawnCrate('weapon');
-  R.texts.push({ x: W / 2, y: H / 2, s: `구역 ${R.s + 1}` + (R.rar ? ` · ${RARITY[R.rar].n}` : ''), c: R.rar ? RARITY[R.rar].c : '#b58cff', t: 0, sz: 38 });
+  newSector();
   R.fx.push({ type: 'warp', t: 0, life: .55 }); Sound.play('phase');
 }
 function hitShip() {
-  if (!R || R.inv > 0) return;
+  if (!R || R.inv > 0 || R.bossDown) return;
   R.inv = 1.5; shake(12); Sound.play('error'); R.hp--;
-  if (R.hp > 0) R.texts.push({ x: R.ship.x, y: R.ship.y - 30, s: '선체 −1', c: '#5ce1ff', t: 0, sz: 19 });
+  if (R.hp > 0) text(R.ship.x, R.ship.y - 30, '선체 −1', '#5ce1ff', 19);
   else { S.crashes++; endRun('치명적인 선체 손상'); }
 }
-function shoot(sh, tg, ang) {
-  const am = R.ammoT > 0 ? R.ammo : 0, cost = shotCost(R.s);   // 원작: 발사마다 GameStats.CurrentBaseFuelDrainPerShot
-  if (cost > 0) { R.fuel -= cost; if (R.fuel <= 0) return outOfFuel(); }
-  {
-    const a = ang, crit = Math.random() < ef('CritChance', 'increaseToCritChance');
-    let d = gunDmg() * (crit ? critMul() : 1);
-    let kind = 'gun';
-    if (am === 2) { kind = 'pierce'; d += ef('PierceBonusDamage', 'bonusPierceDamage'); }
-    if (am === 3) { kind = 'chain'; d *= G.chainMul * (1 + ef('IncreaseChainGunDamage', 'chaingunDamagePercentIncrease')); }
-    if (am === 1) kind = 'expl'; if (am === 6) kind = 'plasma';
-    if (am) d *= ammoMul();
-    R.bullets.push({ x: sh.x + Math.cos(a) * 16, y: sh.y + Math.sin(a) * 16, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, d, t: 0, kind, crit, pierce: am === 2 ? 1 + efl('IncreasePierce') : 0, hit: new Set() });
-  }
+function shoot(sh, tg, ang, click) {
+  const am = R.ammoT > 0 ? R.ammo : 0;
+  if (am !== 3) { const c = shotCost(R.cs, R.gInc); if (c > 0) { R.fuel -= c; if (R.fuel <= 0) return outOfFuel(); } }
+  const crit = Math.random() < ef('CritChance', 'increaseToCritChance');
+  let d = gunDmg() * (crit ? critMul() : 1), kind = 'gun';
+  if (am === 2) { kind = 'pierce'; d = (d + ef('PierceBonusDamage', 'bonusPierceDamage')) * ammoX(); }
+  if (am === 3) { kind = 'chain'; d *= chainMul() * ammoX(); }
+  if (am === 1) { kind = 'expl'; d *= ammoX(); }
+  if (am === 6) kind = 'plasma';
+  R.bullets.push({ x: sh.x + Math.cos(ang) * 16, y: sh.y + Math.sin(ang) * 16, vx: Math.cos(ang) * 640, vy: Math.sin(ang) * 640, d, t: 0, kind, crit, pierce: am === 2 ? G.pierce + efl('IncreasePierce') : 0, hit: new Set() });
   if (am === 4 && tg) fireLazer(tg);
   if (am === 7) fireMissile(sh.x, sh.y);
-  Sound.play('tick');
+  if (!click) Sound.play('tick');
 }
 function outOfFuel() {
-  if (Math.random() < ef('CollectOreOnOutOfFuel', 'chancePercentIncrease')) collectAll();
+  if (Math.random() < ef('CollectOreOnOutOfFuel', 'chancePercentIncrease')) for (const k of R.picks.slice()) if (k.type === 'ore' || k.type === 'key') collectPick(k);
   endRun('연료 전지 고갈');
 }
 function update(dt) {
-  R.t += dt; S.playTime += dt; R.inv = Math.max(0, R.inv - dt);
-  // 연료: 0.3초마다 소모, 3초마다 가속 단계 +1 (30초 넘으면 더 빨리)
+  R.t += dt; S.playTime += dt; R.inv = Math.max(0, R.inv - dt); R.expandT = Math.max(0, R.expandT - dt);
+  if (R.bossDown) { R.bossT -= dt; if (R.bossT <= 0 && !R.picks.some(k => k.type === 'ess')) return endRun('보스 격파 — 원정 완료'); }
+  // 연료 (원작 Fuel.Update + DrainFuelOverTime): 3초마다 증가 단계 +1, 30초 넘으면 +2, 90초 넘으면 +3 (보스 중엔 추가 없음)
   R.incT += dt; R.antifarm += dt;
-  if (R.incT >= G.extraInt) { R.incT = 0; R.inc += R.antifarm > G.antifarm ? 2 : 1; }
+  if (R.incT >= G.extraInt) { R.incT = 0; R.inc++; if (!R.boss) { if (R.antifarm > G.antifarm) R.inc++; if (R.antifarm > G.antifarm2) R.inc++; } }
+  R.gIncT += dt; if (R.gIncT >= G.gunExtraInt) { R.gIncT = 0; R.gInc++; }
+  const charging = R.quotaMet && R.fill > 0 && holding();
   R.drainT += dt;
-  while (R.drainT >= G.drainTick) { R.drainT -= G.drainTick; R.fuel -= drainPerTick(R.s, R.inc); }
-  addFuel(maxFuel() * ef('SelfRepair', 'selfRepairPercentageIncrease') * dt);
+  if (!R.bossDown) while (R.drainT >= G.drainTick) { R.drainT -= G.drainTick; R.fuel -= drainPerTick(R.cs, R.inc, charging || R.slow); }
+  if (efl('SelfRepair')) { R.repairT -= dt; if (R.repairT <= 0) { R.repairT = 1; addFuel(ef('SelfRepair', 'selfRepairPercentageIncrease') * maxFuel()); } }
   if (R.fuel <= 0) return outOfFuel();
-  // 소행성 체력은 구역 안에서 3초마다 +10%
+  // 소행성 체력: 구역 안에서 3초마다 +10%
   R.hpIncT += dt; if (R.hpIncT >= G.hpBonusInt) { R.hpIncT = 0; R.hpInc++; }
-  const sh = R.ship, sp = shipSpd();
+  // 우주선: 커서 쪽으로 (커서 앞에서 멈춤)
+  const sh = R.ship, sp = shipSpd() * PX;
   const dx = R.aim.x - sh.x, dy = R.aim.y - sh.y, dd = Math.hypot(dx, dy);
-  if (dd > 36) { const mv = Math.min(dd - 36, sp * dt); sh.x += dx / dd * mv; sh.y += dy / dd * mv; }   // 원작 PlayerController: 커서 앞에서 멈춤
-  for (const rk of R.rocks) {
-    rk.x += rk.vx * dt; rk.y += rk.vy * dt; rk.rot += rk.vr * dt; rk.hit = Math.max(0, rk.hit - dt);
-    if (rk.x < -80) rk.x = W + 70; if (rk.x > W + 80) rk.x = -70;
-    if (rk.y < -80) rk.y = H + 70; if (rk.y > H + 80) rk.y = -70;
-    if (Math.hypot(rk.x - sh.x, rk.y - sh.y) < rk.r + 10) hitShip();
+  if (dd > 36) { const mv = Math.min(dd - 36, sp * dt); sh.x += dx / dd * mv; sh.y += dy / dd * mv; }
+  sh.x = clamp(sh.x, 10, W - 10); sh.y = clamp(sh.y, 10, H - 10);
+  const move = (o, killM) => { o.x += o.vx * dt; o.y += o.vy * dt; if (o.x < -killM || o.x > W + killM || o.y < -killM || o.y > H + killM) o.gone = 1; };
+  for (const rk of R.rocks) { move(rk, 160); rk.rot += rk.vr * dt; rk.hit = Math.max(0, rk.hit - dt); if (Math.hypot(rk.x - sh.x, rk.y - sh.y) < rk.r + 10) hitShip(); if (!R) return; }
+  for (const c of R.crates) { move(c, 160); c.t += dt; c.hit = Math.max(0, (c.hit || 0) - dt); }
+  for (const m of R.mines) { move(m, 160); m.t += dt; if (!m.dead && Math.hypot(m.x - sh.x, m.y - sh.y) < m.r + 10) { m.dead = 1; mineBoom(m); hitShip(); if (!R) return; } }
+  R.rocks = R.rocks.filter(r => !r.gone || r.boss); for (const b of R.rocks) if (b.boss && b.gone) { b.gone = 0; const v = aimCenter(b, .8 * PX); b.vx = v.vx; b.vy = v.vy; }
+  R.crates = R.crates.filter(c => !c.gone && !c.dead); R.mines = R.mines.filter(m => !m.gone && !m.dead);
+  // 생성 (원작 SpawnAsteroidsCoroutine)
+  if (!R.bossDown) {
+    R.spawnT -= dt;
+    if (R.spawnT <= 0) { spawnTick(); R.spawnT = R.rocks.length >= 10 ? spawnInt() * (R.boss ? 1.66 : 1) : spawnInt() * .5; }
   }
-  if (!R) return;
-  R.spawnT -= dt;
-  if (R.spawnT <= 0) { R.spawnT = spawnInt(); if (R.rocks.length < 60) spawnRock(); }
-  // 사격: ① 클릭 — 커서 쪽으로 한 발 (쿨다운) ② 자동 포 — 탐지 범위(20유닛) 안 가장 가까운 소행성
-  const target = nearest(sh.x, sh.y), range = 20 * PX;
+  // 사격: ① 클릭 — 커서 쪽 한 발 (쿨다운 2초) ② 포마다 자동 — 탐지 범위(20유닛) 안 가장 가까운 대상
   sh.a = Math.atan2(R.cur.y - sh.y, R.cur.x - sh.x);
   R.clickT += dt; if (R.clickBuf > 0) R.clickBuf -= dt;
-  if (R.clickBuf > 0 && R.clickT >= clickCD()) { R.clickBuf = 0; R.clickT = 0; shoot(sh, nearest(R.cur.x, R.cur.y), sh.a); if (!R) return; }
+  if (R.clickBuf > 0 && R.clickT >= clickCD()) { R.clickBuf = 0; R.clickT = 0; shoot(sh, nearestT(R.cur.x, R.cur.y), sh.a, true); if (!R) return; }
   if (R.ammoT > 0) R.ammoT -= dt;
-  const drilling = R.ammoT > 0 && R.ammo === 5;
-  if (drilling) { R.drillT -= dt; if (R.drillT <= 0 && target && Math.hypot(target.x - sh.x, target.y - sh.y) < range * 1.5) { R.drillT = G.drillInt; R.fx.push({ type: 'beam', x1: sh.x, y1: sh.y, x2: target.x, y2: target.y, t: 0, life: .12, c: '#ff6b8a' }); hurtRock(target, (G.drill + ef('DrillDamage', 'damageIncrease') + pl('p18') * 1000) * ammoMul(), 'ammo'); } }
-  if (!R) return;
-  const interval = R.ammoT > 0 && R.ammo === 3 ? G.chainInt / (1 + ef('ChainGunFireRate', 'fireRateIncreasePercent')) : fireInt();
+  const drilling = R.ammoT > 0 && R.ammo === 5, target = nearestT(sh.x, sh.y, detectR());
+  if (drilling) { R.drillT -= dt; if (R.drillT <= 0 && target) { R.drillT = G.drillInt; R.fx.push({ type: 'beam', x1: sh.x, y1: sh.y, x2: target.x, y2: target.y, t: 0, life: .12, c: '#ff6b8a' }); damage(target, drillDmg(), 'ammo'); if (!R) return; } }
+  const interval = R.ammoT > 0 && R.ammo === 3 ? chainInt() : fireInt();
   const ng = guns(); while (R.gcd.length < ng) R.gcd.push(interval * R.gcd.length / ng);
   for (let g = 0; g < ng && R; g++) {
     R.gcd[g] -= dt;
-    if (R.gcd[g] > 0 || (drilling && !efl('MiningDrillGuns'))) continue;
-    const tg = target && Math.hypot(target.x - sh.x, target.y - sh.y) < range ? target : null;
-    if (!tg) continue;
+    if (R.gcd[g] > 0 || !target || (drilling && !efl('MiningDrillGuns'))) continue;
     R.gcd[g] = interval; const gx = sh.x + Math.cos(g * 1.6) * 8, gy = sh.y + Math.sin(g * 1.6) * 8;
-    shoot({ x: gx, y: gy }, tg, Math.atan2(tg.y - gy, tg.x - gx));
+    shoot({ x: gx, y: gy }, target, Math.atan2(target.y - gy, target.x - gx));
   }
   if (!R) return;
   for (const b of R.bullets) {
     b.t += dt; b.x += b.vx * dt; b.y += b.vy * dt;
-    for (const rk of R.rocks) {
-      if (b.hit.has(rk) || Math.hypot(rk.x - b.x, rk.y - b.y) > rk.r) continue;
-      b.hit.add(rk);
-      if (b.kind === 'expl') { const rr = G.explRad * PX; for (const r2 of [...R.rocks]) if (Math.hypot(r2.x - b.x, r2.y - b.y) < rr) hurtRock(r2, b.d * G.explMul, 'ammo'); R.fx.push({ type: 'boom', x: b.x, y: b.y, t: 0, life: .3, r: rr }); b.dead = 1; }
-      else if (b.kind === 'plasma') { hurtRock(rk, b.d, 'ammo'); chain(rk, (G.plasma + ef('IncreasePlasmaDamage', 'bonusPlasmaDamage') + pl('p19') * 100) * ammoMul(), G.plasmaJumps + ef('PlasmaChains', 'chainIncreaseAmount'), '#b58cff'); b.dead = 1; }
-      else { hurtRock(rk, b.d, b.kind === 'gun' ? 'gun' : 'ammo'); if (b.pierce > 0) b.pierce--; else b.dead = 1; }
-      if (b.crit && R && R.texts.length < 40) R.texts.push({ x: rk.x, y: rk.y - rk.r, s: '치명타!', c: '#ffd36b', t: 0, sz: 15 });
+    for (const t of targets()) {
+      if (t.dead || b.hit.has(t) || Math.hypot(t.x - b.x, t.y - b.y) > (t.r || 12)) continue;
+      b.hit.add(t);
+      if (b.kind === 'expl') { const rr = G.explRad * PX; for (const r2 of R.rocks.slice()) if (Math.hypot(r2.x - b.x, r2.y - b.y) < rr) damage(r2, b.d * G.explMul, 'ammo'); R.fx.push({ type: 'boom', x: b.x, y: b.y, t: 0, life: .3, r: rr }); b.dead = 1; }
+      else if (b.kind === 'plasma') { damage(t, b.d, 'ammo'); if (R && !t.dead && R.rocks.includes(t)) chain(t, plasmaDmg(), G.plasmaJumps + ef('PlasmaChains', 'chainIncreaseAmount'), '#b58cff', 'ammo'); b.dead = 1; }
+      else { damage(t, b.d, b.kind === 'gun' ? 'gun' : 'ammo'); if (b.pierce > 0) b.pierce--; else b.dead = 1; }
+      if (!R) return;
+      // 원작 LazerPool.RollForLazerFired: 명중 시 확률로 레이저 (보너스 탄약은 '탄약도 발동' 업그레이드가 있어야)
+      if ((b.kind === 'gun' || efl('BonusAmmoTriggersMissileLazer')) && Math.random() < ef('LazerChance', 'lazerChanceIncrease')) fireLazer(R.rocks.includes(t) && !t.dead ? t : nearestRock(b.x, b.y));
+      if (b.crit) text(t.x, t.y - (t.r || 12), '치명타!', '#ffd36b', 15);
       break;
     }
-    if (!R) return;
-    for (const m of R.mines) if (!m.dead && Math.hypot(m.x - b.x, m.y - b.y) < 14) { m.dead = 1; b.dead = 1; mineBoom(m, b.d); }
-    for (const c of R.crates) if (!c.dead && Math.hypot(c.x - b.x, c.y - b.y) < c.r) { c.hp -= b.d; b.dead = 1; if (c.hp <= 0) openCrate(c); }
     if (b.x < -40 || b.x > W + 40 || b.y < -40 || b.y > H + 40 || b.t > 2.5) b.dead = 1;
   }
   if (!R) return;
   R.bullets = R.bullets.filter(b => !b.dead);
   for (const m of R.missiles) {
-    m.t += dt; if (!m.tg || m.tg.dead) m.tg = nearest(m.x, m.y);
+    m.t += dt; if (!m.tg || m.tg.dead) m.tg = nearestRock(m.x, m.y);
     if (m.tg) { const a = Math.atan2(m.tg.y - m.y, m.tg.x - m.x); m.vx += (Math.cos(a) * 420 - m.vx) * Math.min(1, dt * 5); m.vy += (Math.sin(a) * 420 - m.vy) * Math.min(1, dt * 5); }
     m.x += m.vx * dt; m.y += m.vy * dt;
-    if (m.tg && Math.hypot(m.tg.x - m.x, m.tg.y - m.y) < m.tg.r + 4) { m.dead = 1; R.fx.push({ type: 'boom', x: m.x, y: m.y, t: 0, life: .3, r: 40 }); const tg = m.tg; hurtRock(tg, missileDmg(), 'missile'); if (efl('MissileSwarm') && Math.random() < .5 && R) fireMissile(m.x, m.y); }
+    if (m.tg && Math.hypot(m.tg.x - m.x, m.tg.y - m.y) < m.tg.r + 4) { m.dead = 1; R.fx.push({ type: 'boom', x: m.x, y: m.y, t: 0, life: .3, r: 40 }); const tg = m.tg; damage(tg, missileDmg() * (tg.boss ? 1 : 1), 'missile'); if (R && efl('MissileSwarm') && Math.random() < .5) fireMissile(m.x, m.y); }
     if (m.t > 5) m.dead = 1;
     if (!R) return;
   }
   R.missiles = R.missiles.filter(m => !m.dead);
   for (const L of R.lasers) {
     L.t += dt; L.tick -= dt;
-    if (!L.tg || L.tg.dead) { if (L.reloc > 0) { L.reloc--; L.tg = nearest(sh.x, sh.y); } else L.dead = 1; }
-    if (L.tg && !L.dead && L.tick <= 0) { L.tick = G.lazerInt * (1 - Math.min(.9, ef('LazerSpeed', 'lazerSpeedDecreasePercent'))); hurtRock(L.tg, lazerDmg(), 'lazer'); }
+    if (!L.tg || L.tg.dead) { if (L.reloc > 0) { L.reloc--; L.tg = nearestRock(sh.x, sh.y); } else L.dead = 1; }
+    if (L.tg && !L.dead && L.tick <= 0) { L.tick = lazerTick(); damage(L.tg, lazerDmg(), 'lazer'); }
     if (!R) return;
     if (L.t > L.life) L.dead = 1;
   }
   R.lasers = R.lasers.filter(L => !L.dead);
-  R.mines = R.mines.filter(m => !m.dead);
-  for (const c of R.crates) { c.t += dt; c.x += c.vx * dt; c.y += c.vy * dt; if (c.x < 30 || c.x > W - 30) c.vx *= -1; if (c.y < 70 || c.y > H - 40) c.vy *= -1; }
-  R.crates = R.crates.filter(c => !c.dead);
-  // 광석 수집: 원작 수집 원(반경 15유닛) 안에 들어오면 우주선으로 빨려옴
-  const cr = collectR();
-  for (const d of R.drops) {
-    d.t += dt; const dist = Math.hypot(d.x - sh.x, d.y - sh.y);
-    if (dist < cr) { const a = Math.atan2(sh.y - d.y, sh.x - d.x); d.vx += Math.cos(a) * 1400 * dt; d.vy += Math.sin(a) * 1400 * dt; const v = Math.hypot(d.vx, d.vy); if (v > 900) { d.vx *= 900 / v; d.vy *= 900 / v; } }
-    else { d.vx *= .95; d.vy *= .95; }
-    d.x += d.vx * dt; d.y += d.vy * dt;
-    if (dist < 16) { d.dead = 1; collect(d.o, d.x, d.y); }
+  // 줍기: 수집 원 안의 조각은 우주선 쪽으로 가속 (화이트홀 중엔 화면 전체)
+  const cr = R.expandT > 0 ? 9999 : collectR();
+  for (const k of R.picks) {
+    k.t += dt; const dist = Math.hypot(k.x - sh.x, k.y - sh.y);
+    if (dist < cr || k.type === 'ess' && R.bossDown) { const a = Math.atan2(sh.y - k.y, sh.x - k.x); k.vx += Math.cos(a) * 1500 * dt; k.vy += Math.sin(a) * 1500 * dt; const v = Math.hypot(k.vx, k.vy); if (v > 950) { k.vx *= 950 / v; k.vy *= 950 / v; } }
+    else { k.vx *= .96; k.vy *= .96; }
+    k.x += k.vx * dt; k.y += k.vy * dt;
+    if (dist < 18) { k.dead = 1; collectPick(k); if (!R) return; }
   }
-  R.drops = R.drops.filter(d => !d.dead);
-  if (R.warpReady && hasWarp()) { R.warpCharge = Math.min(1, R.warpCharge + dt / 1.5 * (1 + ef('FasterWarp', 'warpDurationPercentDecrease'))); if (R.warpCharge >= 1) $('btnWarp').classList.add('show'); }
+  R.picks = R.picks.filter(k => !k.dead);
+  // 워프: 할당량을 채우면 누르고 있는 동안 충전 (원작 NextSector.WarpBuildUp, 떼면 줄어듦)
+  if (R.quotaMet && !R.boss && hasWarp() && !R.bossDown) {
+    const s = 2 * fillSpd() * dt; R.fill = holding() ? Math.min(1, R.fill + s) : Math.max(0, R.fill - s);
+    $('btnWarp').classList.add('show');
+    if (R.fill >= 1) { warp(); if (!R) return; }
+  } else $('btnWarp').classList.remove('show');
   for (const f of R.fx) f.t += dt; R.fx = R.fx.filter(f => f.t < f.life);
   for (const p of R.parts) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
   R.parts = R.parts.filter(p => p.t < p.life);
@@ -631,36 +780,59 @@ function update(dt) {
   if (efl('Autonomy')) plinkoTick(dt);
   hud();
 }
-function mineBoom(m, d) {
-  const rr = G.mineRad * PX * (1 + ef('ExplosionRadius', 'radiusIncreasePercentage'));
-  const dmg = gunDmg() * G.mineMul * (1 + ef('ExplosionDamage', 'spaceMineDamageIncreasePercent'));
-  for (const rk of [...R.rocks]) if (Math.hypot(rk.x - m.x, rk.y - m.y) < rr) hurtRock(rk, dmg, 'mine');
+const holding = () => R && (R.hold.key || R.hold.btn || R.hold.ptr);
+// 원작 스폰 루프: 소행성이 생길 때마다 +1 되는 카운터로 무기 상자 · 화이트홀 · 유물 (각 200개마다)
+function spawnTick() {
+  const p = edgePos();
+  if (efl('UnlockWeaponsCrate') && S.cntW >= weaponInt() && !R.crates.some(c => c.type === 'weapon') && !R.picks.some(k => k.type === 'ammo') && R.ammoT <= 0) { spawnCrate('weapon', p); S.cntW = 0; return; }
+  if (efl('WhiteHole') && S.cntH >= holeInt() && !R.crates.some(c => c.type === 'hole') && !R.picks.some(k => k.type === 'hole')) { spawnCrate('hole', p); S.cntH = 0; return; }
+  if (canArti() && S.cntA >= G.artiInt) { spawnArtiRock(p); S.cntA = 0; return; }
+  if (Math.random() <= ef('SpaceMineChance', 'spacemineSpawnChance')) { spawnMine(p); return; }
+  spawnRock(null, p, false, Math.random() < ef('ElectricAsteroidSpawnRate', 'spawnrateIncrease'));
+}
+// 원작 SpaceMine: 구역 시작 체력 × 피해 배율 × 1.5 폭발
+function mineBoom(m) {
+  const rr = mineRad(), dmg = hpStart(R.cs) * (G.mineMul + ef('ExplosionDamage', 'spaceMineDamageIncreasePercent')) * G.mineStart;
+  for (const rk of R.rocks.slice()) if (Math.hypot(rk.x - m.x, rk.y - m.y) < rr) damage(rk, dmg, 'mine');
   if (R) { R.fx.push({ type: 'boom', x: m.x, y: m.y, t: 0, life: .4, r: rr }); Sound.play('boom'); shake(6); }
 }
+// 원작 LootCrateManager: 열쇠 50% (처음이거나 직전 상자가 안 줬으면 확정) + 키컷 + 광석 2~5개 (금 33%)
 function openCrate(c) {
-  c.dead = 1;
-  if (c.type === 'loot') { const k = 1 + (R.s >= 4 && efl('Keycut') && Math.random() < .5 ? 1 : 0); R.keys += k; S.keys += k; R.texts.push({ x: c.x, y: c.y, s: '🔑 +' + k, c: '#5ce1ff', t: 0, sz: 24 }); Sound.play('coin'); }
-  else if (c.type === 'weapon') { const av = ammoOn(); R.ammo = pick(av); R.ammoT = G.ammoDur * (1 + ef('AmmoDuration', 'durationIncreasePercent') + arti('star')); R.drillT = 0; R.texts.push({ x: c.x, y: c.y, s: AMMO[R.ammo].ic + ' ' + AMMO[R.ammo].n, c: AMMO[R.ammo].c, t: 0, sz: 21 }); Sound.play('meld'); }
-  else if (c.type === 'hole') whitehole();
-  else if (c.type === 'arti') { const a = pick(ARTI); S.arti[a.id] = (S.arti[a.id] || 0) + 1; R.texts.push({ x: c.x, y: c.y, s: `${a.ic} ${a.n}!`, c: '#ffd36b', t: 0, sz: 24 }); Sound.play('win'); toast(`🏺 유물: ${a.n} — ${a.ds}`); }
+  c.dead = 1; R.crates = R.crates.filter(x => x !== c);
+  if (c.type === 'loot') {
+    if (Math.random() <= G.keyChance || S.keysGot <= 0 || !S.lastKey) {
+      spawnPick('key', c.x, c.y); S.lastKey = 1;
+      if (efl('Keycut') && Math.random() > .4 && R.cs >= 5) for (let k = 0; k < efl('Keycut'); k++) spawnPick('key', c.x, c.y);
+    } else S.lastKey = 0;
+    const gems = oreOwned(7);
+    for (let k = irnd(G.crateMin, G.crateMax); k > 0; k--) {
+      let o;
+      if (gems) { const t = Math.floor(Math.random() * 5); o = t === 0 ? randUnlockedOre() : [0, 4, 7, 8, 9][t]; }
+      else o = Math.random() < G.goldChance ? 4 : randUnlockedOre();
+      spawnPick('ore', c.x, c.y, o);
+    }
+    Sound.play('coin');
+  } else if (c.type === 'weapon') { spawnPick('ammo', c.x, c.y, pick(ammoOn())); Sound.play('meld'); }
+  else if (c.type === 'hole') { spawnPick('hole', c.x, c.y, 0); Sound.play('meld'); }
 }
+function randUnlockedOre() { const a = []; for (let i = 0; i < ORES.length; i++) if (oreAt(i, R ? R.cs : 99)) a.push(i); return pick(a); }
 function hud() {
   const mf = maxFuel();
   $('fuelFill').style.width = clamp(R.fuel / mf * 100, 0, 100) + '%';
-  const sc = shotCost(R.s) * guns();
+  const sc = shotCost(R.cs, R.gInc);
   $('fuelTxt').textContent = `⛽ ${R.fuel.toFixed(1)} / ${mf.toFixed(0)}${sc ? ` · 한 발 ${sc.toFixed(2)}` : ''} · 소모 ×${(1 + G.extraMul * R.inc).toFixed(1)}`;
-  $('eSec').textContent = R.s + 1; $('eQuota').textContent = ` ${Math.min(R.kills, R.quota)} / ${R.quota}`;
-  $('eRar').textContent = R.rar ? RARITY[R.rar].n : ''; $('eRar').style.color = RARITY[R.rar].c;
+  $('eSec').textContent = R.cs; $('eQuota').textContent = R.boss ? ' 보스!' : ` ${Math.min(R.kills, R.quota)} / ${R.quota}`;
+  $('eRar').textContent = R.rar ? ' ' + SR[R.rar].n : ''; $('eRar').style.color = SR[R.rar].c;
   $('eOre').textContent = fmt(R.bagN);
   const hb = $('shieldBox'), mh = maxHealth();
   if (hb.children.length !== mh) hb.innerHTML = '<i></i>'.repeat(mh);
   [...hb.children].forEach((el, i) => el.classList.toggle('off', i >= R.hp));
   $('ammoBox').innerHTML = R.ammoT > 0 ? `<div class="am">${AMMO[R.ammo].ic} ${AMMO[R.ammo].n} ${R.ammoT.toFixed(1)}초</div>` : '';
-  $('btnWarp').textContent = R.warpReady && hasWarp() ? (R.warpCharge < 1 ? `🌀 워프 충전 ${Math.floor(R.warpCharge * 100)}%` : '🌀 다음 구역으로 워프 (스페이스)') : '';
+  $('btnWarp').textContent = R.fill > 0 ? `🌀 워프 충전 ${Math.floor(R.fill * 100)}%` : '🌀 누르고 있으면 워프 (스페이스)';
 }
 function draw() {
   if (!R) return;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#02030a'; ctx.fillRect(0, 0, cv.width, cv.height);   // 레터박스: 우주 배경(#03050f)보다 한 톤 어둡게
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#02030a'; ctx.fillRect(0, 0, cv.width, cv.height);   // 레터박스
   ctx.setTransform(VS * DPR, 0, 0, VS * DPR, VX * DPR, VY * DPR);
   ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
   if (R.shk > .3) ctx.translate(rnd(-R.shk, R.shk), rnd(-R.shk, R.shk));
@@ -669,20 +841,29 @@ function draw() {
   for (let i = 0; i < 70; i++) { const x = (i * 149.3 + R.t * (3 + i % 6)) % W, y = (i * 233.7) % H; ctx.globalAlpha = .15 + (i % 7) / 14; ctx.fillRect(x, y, 2, 2); }
   ctx.globalAlpha = 1;
   const sh = R.ship;
-  ctx.strokeStyle = 'rgba(92,225,255,.14)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 8]); ctx.beginPath(); ctx.arc(sh.x, sh.y, collectR(), 0, 6.28); ctx.stroke(); ctx.setLineDash([]);
-  for (const m of R.mines) { ctx.strokeStyle = `rgba(255,107,138,${.5 + Math.sin(R.t * 12) * .4})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(m.x, m.y, 10, 0, 6.28); ctx.stroke(); ctx.fillStyle = 'rgba(255,107,138,.35)'; ctx.fill(); }
+  ctx.strokeStyle = R.expandT > 0 ? 'rgba(181,140,255,.35)' : 'rgba(92,225,255,.14)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 8]); ctx.beginPath(); ctx.arc(sh.x, sh.y, Math.min(1400, R.expandT > 0 ? 1400 : collectR()), 0, 6.28); ctx.stroke(); ctx.setLineDash([]);
+  for (const m of R.mines) { ctx.strokeStyle = `rgba(255,107,138,${.5 + Math.sin(R.t * 12) * .4})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 6.28); ctx.stroke(); ctx.fillStyle = 'rgba(255,107,138,.35)'; ctx.fill(); }
   for (const rk of R.rocks) {
     ctx.save(); ctx.translate(rk.x, rk.y); ctx.rotate(rk.rot);
     ctx.beginPath(); rk.pts.forEach((p, i) => { const a = i / rk.pts.length * 6.283, r = rk.r * p; i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); }); ctx.closePath();
-    ctx.fillStyle = rk.hit ? '#fff' : rk.elec ? '#1d3a6e' : rk.type === 2 ? ORES[rk.ore].c + '55' : '#333d66'; ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = rk.boss ? '#ff6b8a' : rk.elec ? '#7fd8ff' : rk.type ? ORES[rk.ore].c : '#5a6aa8'; ctx.stroke();
-    if (rk.type === 1) { ctx.fillStyle = ORES[rk.ore].c; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(Math.cos(k * 2.1) * rk.r * .4, Math.sin(k * 2.1) * rk.r * .4, 3, 0, 6.28); ctx.fill(); } }
+    ctx.fillStyle = rk.hit ? '#fff' : rk.type === 4 ? '#5a4a1e' : rk.elec ? '#1d3a6e' : rk.type === 2 ? ORES[rk.ore].c + '66' : '#333d66'; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = rk.boss ? '#ff6b8a' : rk.type === 4 ? '#ffd36b' : rk.elec ? '#7fd8ff' : rk.type ? ORES[rk.ore].c : '#5a6aa8'; ctx.stroke();
+    if (rk.type === 1) { ctx.fillStyle = ORES[rk.ore].c; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(Math.cos(k * 2.1) * rk.r * .4, Math.sin(k * 2.1) * rk.r * .4, 3.5, 0, 6.28); ctx.fill(); } }
+    if (rk.type === 4) { ctx.rotate(-rk.rot); ctx.font = '26px serif'; ctx.textAlign = 'center'; ctx.fillText('🏺', 0, 9); }
     ctx.restore();
-    if (rk.hp < rk.max) { const bw = rk.r * 1.8; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 10, bw, 4); ctx.fillStyle = rk.boss ? '#ff6b8a' : '#6cf09a'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 10, bw * Math.max(0, rk.hp / rk.max), 4); }
+    if (rk.hp < rk.max) { const bw = Math.max(26, rk.r * 1.8); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 10, bw, 4); ctx.fillStyle = rk.boss ? '#ff6b8a' : '#6cf09a'; ctx.fillRect(rk.x - bw / 2, rk.y - rk.r - 10, bw * Math.max(0, rk.hp / rk.max), 4); }
   }
   ctx.textAlign = 'center';
-  for (const c of R.crates) { const col = c.type === 'loot' ? '92,225,255' : c.type === 'weapon' ? '255,169,77' : c.type === 'hole' ? '181,140,255' : '255,211,107'; ctx.fillStyle = `rgba(${col},.25)`; ctx.beginPath(); ctx.arc(c.x, c.y, c.r + 5, 0, 6.28); ctx.fill(); ctx.font = '24px serif'; ctx.fillText(c.type === 'loot' ? '📦' : c.type === 'weapon' ? '🧰' : c.type === 'hole' ? '🕳️' : '🏺', c.x, c.y + 8); }
-  for (const d of R.drops) { ctx.fillStyle = ORES[d.o].c; ctx.beginPath(); ctx.arc(d.x, d.y, 4.5, 0, 6.28); ctx.fill(); }
+  for (const c of R.crates) {
+    const col = c.type === 'loot' ? '92,225,255' : c.type === 'weapon' ? '255,169,77' : '181,140,255';
+    ctx.fillStyle = c.hit ? 'rgba(255,255,255,.5)' : `rgba(${col},.25)`; ctx.beginPath(); ctx.arc(c.x, c.y, c.r + 5, 0, 6.28); ctx.fill();
+    ctx.font = '26px serif'; ctx.fillText(c.type === 'loot' ? '📦' : c.type === 'weapon' ? '🧰' : '🕳️', c.x, c.y + 9);
+    if (c.hp < c.max) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(c.x - 18, c.y - c.r - 12, 36, 4); ctx.fillStyle = '#5ce1ff'; ctx.fillRect(c.x - 18, c.y - c.r - 12, 36 * Math.max(0, c.hp / c.max), 4); }
+  }
+  for (const k of R.picks) {
+    if (k.type === 'ore') { ctx.fillStyle = ORES[k.o].c; ctx.beginPath(); ctx.arc(k.x, k.y, 4.5, 0, 6.28); ctx.fill(); }
+    else { ctx.font = '22px serif'; ctx.fillText(k.type === 'key' ? '🔑' : k.type === 'ammo' ? AMMO[k.o].ic : k.type === 'arti' ? artiById[k.o].ic : k.type === 'hole' ? '🕳️' : '✨', k.x, k.y + 8); }
+  }
   for (const b of R.bullets) { const col = b.kind === 'expl' ? '#ffa94d' : b.kind === 'plasma' ? '#b58cff' : b.kind === 'pierce' ? '#6cf09a' : b.kind === 'chain' ? '#ffd36b' : b.crit ? '#ffd36b' : '#5ce1ff'; ctx.strokeStyle = col; ctx.lineWidth = b.crit ? 4 : 3; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * .02, b.y - b.vy * .02); ctx.stroke(); }
   for (const m of R.missiles) { ctx.fillStyle = '#ffd36b'; ctx.beginPath(); ctx.arc(m.x, m.y, 4, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,169,77,.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx * .04, m.y - m.vy * .04); ctx.stroke(); }
   for (const L of R.lasers) if (L.tg) { ctx.strokeStyle = 'rgba(255,143,199,.8)'; ctx.lineWidth = 3; ctx.shadowColor = '#ff8fc7'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(L.tg.x, L.tg.y); ctx.stroke(); ctx.shadowBlur = 0; }
@@ -700,6 +881,7 @@ function draw() {
   ctx.fillStyle = '#eaffff'; ctx.beginPath(); ctx.arc(2, 0, 4, 0, 6.28); ctx.fill();
   ctx.fillStyle = 'rgba(255,180,80,.9)'; ctx.beginPath(); ctx.moveTo(-6, 4); ctx.lineTo(-15 - Math.random() * 8, 0); ctx.lineTo(-6, -4); ctx.closePath(); ctx.fill();
   ctx.globalAlpha = 1; ctx.restore();
+  if (R.fill > 0) { ctx.strokeStyle = '#b58cff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(sh.x, sh.y, 30, -Math.PI / 2, -Math.PI / 2 + R.fill * 6.283); ctx.stroke(); }
   for (const t of R.texts) { const k = Math.min(1, t.t * 7), pop = .55 + k * .5 + Math.max(0, .18 - t.t) * 1.4, size = Math.round((t.sz || 18) * pop);
     ctx.globalAlpha = Math.min(1, (1.15 - t.t) * 1.8); ctx.font = `${size}px Jua`; ctx.lineWidth = Math.max(4, size * .2); ctx.strokeStyle = '#03050f';
     const w = ctx.measureText(t.s).width, px = clamp(t.x, w / 2 + 5, W - w / 2 - 5);
@@ -715,14 +897,14 @@ function endRun(reason) {
   if (!R || R.ended) return; R.ended = true;
   const r = R; R = null; clearInterval(launch._iv);
   for (const k in r.bag) S.cargo[k] = (S.cargo[k] || 0) + r.bag[k];   // 가져온 광석은 플링코 대기열로
-  S.essPend += r.ess;
-  save(); screen('base'); renderBase();
+  S.bestRun = Math.max(S.bestRun || 0, r.cs);
+  save(); screen('base'); renderBase(); $('btnWarp').classList.remove('show');
   Sound.play(reason === '치명적인 선체 손상' ? 'lose' : 'win');
   const list = Object.entries(r.bag).map(([o, q]) => `<span class="ol" style="color:${ORES[o].c}">${ORES[o].n} ×${fmt(q)}</span>`).join('');
   showModal(`<h2>${reason}</h2>
-    <div class="res"><div>도달 구역<b>${r.s + 1}</b></div><div>파괴한 소행성<b>${r.killsTotal}</b></div><div>가져온 광석<b>${fmt(r.bagN)}</b></div><div>열쇠<b>🔑 ${r.keys}</b></div></div>
+    <div class="res"><div>도달 구역<b>${r.cs}</b></div><div>파괴한 소행성<b>${r.killsTotal}</b></div><div>가져온 광석<b>${fmt(r.bagN)}</b></div><div>열쇠<b>🔑 ${r.keys}</b></div></div>
     <div class="orelist">${list || '<span class="ol">광석 없음</span>'}</div>
-    ${r.ess ? `<p style="color:var(--purple)">✨ 우주의 정수 +${r.ess} (명성 때 받음)</p>` : ''}
+    ${r.ess ? `<p style="color:var(--purple)">✨ 우주의 정수 +${r.ess}</p>` : ''}
     <p>광석은 🎰 플링코 기계로 들어가 <b>초당 ${(intake() / plinkoInt()).toFixed(1)}개</b>씩 크레딧이 됩니다.${efl('Autonomy') ? '' : ' (원정 중엔 멈춰요 — 🤖 자율성으로 해제)'}</p>
     <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); launch();">🚀 다시 출발</button><button class="btn hot" onclick="hideModal(); setTab('tree');">🌳 스킬 트리</button><button class="btn" onclick="hideModal(); setTab('plinko');">🎰 플링코</button></div>`);
 }
@@ -745,8 +927,10 @@ $('btnAbort').onclick = e => {   // 포인터 클릭(detail ≥ 1)은 위 길게
   if (b.classList.contains('arm')) { disarmAbort(); endRun('조작자에 의해 중단됨'); return; }
   b.classList.add('arm'); Sound.play('tap'); clearTimeout(disarmAbort._h); disarmAbort._h = setTimeout(disarmAbort, 1500);
 };
-$('btnWarp').onclick = () => warp();
-addEventListener('keydown', e => { if (e.code === 'Space' && R && R.warpReady) { e.preventDefault(); warp(); } });
+{ const b = $('btnWarp'); const on = v => e => { if (R) R.hold.btn = v; e.preventDefault(); };
+  b.addEventListener('pointerdown', on(true)); b.addEventListener('pointerup', on(false)); b.addEventListener('pointerleave', on(false)); b.addEventListener('pointercancel', on(false)); }
+addEventListener('keydown', e => { if (e.code === 'Space' && R) { e.preventDefault(); R.hold.key = true; } });
+addEventListener('keyup', e => { if (e.code === 'Space' && R) R.hold.key = false; });
 const TOUCH_LIFT_PX = 70;   // 터치: 손가락보다 화면 70 CSS px 위로 배를 보냄 (손가락 크기는 화면 배율과 무관 → 논리 단위로 변환해 씀)
 function touchLift(py) {   // py = 손가락의 월드 y. 화면 아래 끝 구간에선 오프셋을 선형으로 줄여 월드 바닥(H)까지 닿게 함
   const L = TOUCH_LIFT_PX / VS, edge = (CH - VY) / VS - 6 / VS, lb = edge - H;   // edge: 캔버스 아래 끝(6px 여유) · lb: 거기서 바닥에 닿는 데 필요한 오프셋 (여백 없으면 음수 → 끝 6px 에선 바닥에 붙음)
@@ -755,78 +939,92 @@ function touchLift(py) {   // py = 손가락의 월드 y. 화면 아래 끝 구�
 }
 function ptr(e) { const p = toGame(e); R.cur.x = clamp(p.x, 0, W); R.cur.y = clamp(p.y, 0, H); R.aim.x = R.cur.x; R.aim.y = clamp(p.y - (e.pointerType === 'touch' ? touchLift(p.y) : 0), 0, H); }   // 레터박스로 나가도 월드 안으로 묶음
 cv.addEventListener('pointermove', e => { if (!R) return; ptr(e); });
-cv.addEventListener('pointerdown', e => { if (!R) return; ptr(e); R.clickBuf = .3; });   // 원작: 쿨다운 끝나기 직전 클릭도 기억했다 쏨 · 손을 떼도 조준 유지
+cv.addEventListener('pointerdown', e => { if (!R) return; ptr(e); R.clickBuf = .3; R.hold.ptr = R.quotaMet; });   // 원작: 쿨다운 끝나기 직전 클릭도 기억 / 할당량 뒤엔 누르고 있으면 워프 충전
+addEventListener('pointerup', () => { if (R) R.hold.ptr = false; });
 
-// ═══ 플링코 기계 (원작: 기지에서 초당 1개씩 처리하는 대기열) ═══
-const PB = { W: 390, H: 470, cols: 13, rows: 14 };
+// ═══ 플링코 기계 (원작 PlinkoManager · 판 좌표를 게임 파일에서 추출: 9줄 16/15핀 + 비스듬한 핀 32개, 점수 구역 13칸) ═══
+const PB = { W: 400, H: 352, x0: -76.3, y0: 126.3, w: 51.6 }; PB.K = PB.W / PB.w;
+const pbx = x => (x - PB.x0) * PB.K, pby = y => (PB.y0 - y) * PB.K;
 let PEGS = [];
 function buildPegs() {
-  PEGS = []; const top = 44, gy = (PB.H - top - 70) / (PB.rows - 1), gx = PB.W / PB.cols;
-  let idx = 0;
-  for (let r = 0; r < PB.rows; r++) { const n = r % 2 ? PB.cols - 1 : PB.cols; for (let i = 0; i < n; i++) { PEGS.push({ x: gx * (i + (r % 2 ? 1 : .5)), y: top + r * gy, i: idx }); idx++; } }
+  PEGS = []; const ys = [113.59, 110.79, 107.59, 104.79, 101.59, 98.79, 95.59, 92.79, 89.59];
+  ys.forEach((y, r) => {
+    if (r % 2 === 0) for (let i = 0; i < 16; i++) PEGS.push({ x: pbx(-73 + 3 * i), y: pby(y) });
+    else {
+      for (let i = 0; i < 15; i++) PEGS.push({ x: pbx(-71.5 + 3 * i), y: pby(y) });
+      for (let k = 0; k < 4; k++) { PEGS.push({ x: pbx(-76 + .5 * k), y: pby(y + 1.5 - .5 * k), slant: 1 }); PEGS.push({ x: pbx(-25 - .5 * k), y: pby(y + 1.5 - .5 * k), slant: 1 }); }
+    }
+  });
+  PEGS.forEach((p, i) => p.i = i);
 }
 buildPegs();
+const PEG_R = .3 * PB.K, BALL_R = .45 * PB.K, ZONE_TOP = pby(87.4), GRAV = 4 * 9.81 * PB.K;
 const pegRank = i => S.pk.rank[i] || 0, pegKind = i => S.pk.dup.includes(i) ? 1 : S.pk.ref.includes(i) ? 2 : 0;
 const cargoN = () => Object.values(S.cargo).reduce((a, b) => a + b, 0);
-const PL = { balls: [], dropT: 0, last: 0, clock: 0, cd: {} };
+const PL = { balls: [], dropT: 0, last: 0, clock: 0, cd: {}, pops: [] };
 function takeOre() {
   const n = cargoN(); if (!n) return -1;
   let t = Math.random() * n;
   for (const k in S.cargo) { t -= S.cargo[k]; if (t <= 0) { if (--S.cargo[k] <= 0) delete S.cargo[k]; return +k; } }
   const k = Object.keys(S.cargo)[0]; if (--S.cargo[k] <= 0) delete S.cargo[k]; return +k;
 }
+function dropBall(o, y) { PL.balls.push({ x: pbx(rnd(-75.6, -25.0)), y: y ?? pby(rnd(121.3, 126)), vx: rnd(-20, 20), vy: 0, o, age: 0 }); }
+function credit(v) { S.cred += v; S.totalCred += v; }
 function plinkoTick(dt) {
   PL.dropT -= dt;
-  if (PL.dropT <= 0 && cargoN() > 0 && PL.balls.length < 80) {
+  if (PL.dropT <= 0 && cargoN() > 0 && PL.balls.length < 500) {
     PL.dropT = plinkoInt();
-    for (let k = 0; k < intake(); k++) { const o = takeOre(); if (o < 0) break; PL.balls.push({ x: rnd(PB.W * .2, PB.W * .8), y: 8, vx: rnd(-30, 30), vy: 0, o, bonus: 0, hits: new Set(), age: 0 }); }
+    for (let k = 0; k < intake(); k++) { const o = takeOre(); if (o < 0) break; dropBall(o); }
   }
-  const up = []; for (let i = 0; i < ORES.length; i++) if (oreOn(i)) up.push(i);
-  let steps = Math.min(60, Math.ceil(dt * 180));
-  const h = dt / steps;
-  for (let s = 0; s < steps; s++) { PL.clock += h; for (const b of PL.balls) {
-    if (b.done) continue;
-    b.age += h; if (b.age > 12) b.y = PB.H - 31;
-    b.vy += 700 * h; b.x += b.vx * h; b.y += b.vy * h;
-    for (const p of PEGS) {
-      if (Math.abs(b.x - p.x) > 10 || Math.abs(b.y - p.y) > 10) continue;
-      const d = Math.hypot(b.x - p.x, b.y - p.y); if (d >= 9) continue;
-      const a = Math.atan2(b.y - p.y, b.x - p.x); b.x = p.x + Math.cos(a) * 9; b.y = p.y + Math.sin(a) * 9;
-      b.vx = Math.cos(a) * 130 + rnd(-40, 40); b.vy = Math.abs(Math.sin(a)) * 80 + 40;
-      if ((PL.cd[p.i] ?? -9) + .5 <= PL.clock) {   // 원작 PlinkoPeg: 핀마다 0.5초 쿨다운 (모든 공이 공유)
-        PL.cd[p.i] = PL.clock; const rk = pegRank(p.i), kd = pegKind(p.i);
-        if (rk) { const g = ORES[b.o].v * rk; S.cred += g; S.totalCred += g; }   // 원작: 광석 기본값 × 핀 희귀도를 따로 지급 (공 가치에 곱하지 않음)
-        if (kd === 1 && !b.dup) { b.dup = 1; PL.balls.push({ x: b.x + 5, y: b.y, vx: -b.vx, vy: b.vy, o: b.o, bonus: b.bonus, hits: new Set(b.hits), age: b.age, dup: 1 }); }
-        if (kd === 2) { const j = up.indexOf(b.o); if (j >= 0 && j < up.length - 1) b.o = up[j + 1]; }
+  const up = []; for (let i = 0; i < ORES.length; i++) if (oreOwned(i)) up.push(i);
+  const steps = Math.min(40, Math.ceil(dt * 240)), h = dt / steps;
+  for (let s = 0; s < steps; s++) {
+    PL.clock += h;
+    for (const b of PL.balls) {
+      if (b.done) continue;
+      b.age += h; if (b.age > 20) { b.y = ZONE_TOP + 1; }
+      b.vy += GRAV * h; b.x += b.vx * h; b.y += b.vy * h;
+      for (const p of PEGS) {
+        const rr = (pegKind(p.i) ? PEG_R * 1.5 : PEG_R) + BALL_R;
+        if (Math.abs(b.x - p.x) > rr || Math.abs(b.y - p.y) > rr) continue;
+        const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy); if (d >= rr || d === 0) continue;
+        const nx = dx / d, ny = dy / d; b.x = p.x + nx * rr; b.y = p.y + ny * rr;
+        const vn = b.vx * nx + b.vy * ny; if (vn < 0) { b.vx -= 1.55 * vn * nx; b.vy -= 1.55 * vn * ny; b.vx += rnd(-6, 6); }
+        // 원작 PlinkoPeg: 핀마다 0.5초 쿨다운(모든 공 공유) · 희귀도가 있으면 광석 기본값 × 희귀도를 따로 지급
+        if ((PL.cd[p.i] ?? -9) + .5 <= PL.clock) {
+          PL.cd[p.i] = PL.clock; const rk = pegRank(p.i), kd = pegKind(p.i);
+          if (rk) { const g = ORES[b.o].v * rk; credit(g); if (PL.pops.length < 30) PL.pops.push({ x: p.x, y: p.y - 6, s: '+' + fmt(g), t: 0, c: LRC[Math.min(5, rk)] }); }
+          if (kd === 1 && !b.ban && PL.balls.length < 500) PL.balls.push({ x: p.x + rnd(-3, 3), y: p.y - rr, vx: -b.vx, vy: -Math.abs(b.vy) * .5, o: b.o, age: 0 });   // 듀플리페그: 복제 (원작: 웜홀을 탄 조각은 제외, 기계 안 최대 500개)
+          if (kd === 2) { const j = up.indexOf(b.o); if (j >= 0 && j < up.length - 1) b.o = up[j + 1]; }                                            // 정제기: 다음 광석
+        }
+      }
+      if (b.x < BALL_R) { b.x = BALL_R; b.vx = Math.abs(b.vx) * .6; } if (b.x > PB.W - BALL_R) { b.x = PB.W - BALL_R; b.vx = -Math.abs(b.vx) * .6; }
+      if (b.y > ZONE_TOP) {
+        const zi = clamp(Math.floor(b.x / (PB.W / 13)), 0, 12);
+        b.done = 1;
+        const v = ORES[b.o].v * S.zm[zi] * (pl('p1') && b.o >= 4 ? 2 : 1);   // 원작 ScoreZone: 광석 기본값 × 구역 배율 (명성 인플레이션: 금 이상 ×2)
+        credit(v); if (PL.pops.length < 30) PL.pops.push({ x: b.x, y: ZONE_TOP - 8, s: '+' + fmt(v), t: 0, c: ORES[b.o].c });
+        if (S.worm[zi] && !b.ban && Math.random() < S.worm[zi]) { dropBall(b.o, pby(116)); PL.balls[PL.balls.length - 1].ban = 1; }   // 웜홀: 위에서 다시 (한 번만)
       }
     }
-    if (b.x < 5) { b.x = 5; b.vx = Math.abs(b.vx); } if (b.x > PB.W - 5) { b.x = PB.W - 5; b.vx = -Math.abs(b.vx); }
-    if (b.y > PB.H - 32) {
-      const zi = clamp(Math.floor(b.x / (PB.W / PB.cols)), 0, PB.cols - 1);
-      if (S.worm[zi] && Math.random() < .5) { b.y = 8; b.vy = 0; b.vx = rnd(-30, 30); b.x = rnd(PB.W * .2, PB.W * .8); continue; }
-      b.done = 1;
-      const v = ORES[b.o].v * S.zm[zi] * (pl('p1') && b.o >= 4 ? 2 : 1);   // 원작 ScoreZone: 광석 기본값 × 구역 배율
-      S.cred += v; S.totalCred += v;
-      PL.pops = PL.pops || []; if (PL.pops.length < 30) PL.pops.push({ x: b.x, y: PB.H - 40, s: '+' + fmt(v), t: 0, c: ORES[b.o].c });
-    }
   }
-  } PL.balls = PL.balls.filter(b => !b.done);
-  if (PL.pops) { for (const q of PL.pops) q.t += dt; PL.pops = PL.pops.filter(q => q.t < .9); }
+  PL.balls = PL.balls.filter(b => !b.done);
+  for (const q of PL.pops) q.t += dt; PL.pops = PL.pops.filter(q => q.t < .9);
 }
 function drawPlinko() {
   const c = $('plinko'); if (!c) return;
   const x = c.getContext('2d'); x.fillStyle = '#080c26'; x.fillRect(0, 0, PB.W, PB.H);
-  for (const p of PEGS) { const rk = pegRank(p.i), kd = pegKind(p.i); x.fillStyle = kd === 1 ? '#6cf09a' : kd === 2 ? '#b58cff' : rk ? RARITY[Math.min(4, rk - 1)].c : '#3f4a80'; x.beginPath(); x.arc(p.x, p.y, kd || rk ? 5 : 3.5, 0, 6.28); x.fill(); }
-  const bw = PB.W / PB.cols;
-  for (let i = 0; i < PB.cols; i++) {
+  for (const p of PEGS) { const rk = pegRank(p.i), kd = pegKind(p.i); x.fillStyle = kd === 1 ? '#6cf09a' : kd === 2 ? '#b58cff' : rk ? LRC[Math.min(5, rk)] : '#3f4a80'; x.beginPath(); x.arc(p.x, p.y, kd ? PEG_R * 1.6 : rk ? PEG_R * 1.3 : PEG_R, 0, 6.28); x.fill(); }
+  const bw = PB.W / 13;
+  for (let i = 0; i < 13; i++) {
     const m = S.zm[i], wm = S.worm[i];
     x.fillStyle = wm ? 'rgba(181,140,255,.35)' : m >= 5 ? 'rgba(255,211,107,.3)' : m >= 2 ? 'rgba(108,240,154,.22)' : 'rgba(70,80,140,.22)';
-    x.fillRect(i * bw + 1, PB.H - 30, bw - 2, 28);
-    x.fillStyle = wm ? '#d9c6ff' : m >= 5 ? '#ffd36b' : m >= 2 ? '#6cf09a' : '#93a0d8'; x.font = '11px Jua'; x.textAlign = 'center';
-    x.fillText(wm ? '🕳️' : '×' + m, i * bw + bw / 2, PB.H - 11);
+    x.fillRect(i * bw + 1, ZONE_TOP, bw - 2, PB.H - ZONE_TOP - 2);
+    x.fillStyle = wm ? '#d9c6ff' : m >= 5 ? '#ffd36b' : m >= 2 ? '#6cf09a' : '#93a0d8'; x.font = '12px Jua'; x.textAlign = 'center';
+    x.fillText((wm ? '🕳️' : '') + '×' + m, i * bw + bw / 2, PB.H - 10);
   }
-  for (const b of PL.balls) { x.fillStyle = ORES[b.o].c; x.beginPath(); x.arc(b.x, b.y, 5, 0, 6.28); x.fill(); }
-  if (PL.pops) for (const q of PL.pops) { x.globalAlpha = 1 - q.t / .9; x.fillStyle = q.c; x.font = '13px Jua'; x.fillText(q.s, q.x, q.y - q.t * 30); } x.globalAlpha = 1;
+  for (const b of PL.balls) { x.fillStyle = ORES[b.o].c; x.beginPath(); x.arc(b.x, b.y, BALL_R + 1, 0, 6.28); x.fill(); }
+  for (const q of PL.pops) { x.globalAlpha = 1 - q.t / .9; x.fillStyle = q.c; x.font = '12px Jua'; x.fillText(q.s, q.x, q.y - q.t * 30); } x.globalAlpha = 1;
   const cp = $('plinkoInfo'); if (cp) cp.textContent = `대기 ${fmt(cargoN())}개 · ${(intake() / plinkoInt()).toFixed(1)}개/초`;
 }
 // 기지에서는 항상 처리 (원정 중엔 자율성이 있을 때만 update 안에서)
@@ -838,31 +1036,53 @@ setInterval(() => {
 }, 33);
 setInterval(() => { if (!R) renderTop(); }, 250);
 
-// ═══ 전리품 상자 (원작 LootBox: 상자 1개 = 카드 4장, 희귀도 가중치 70/20/10/3/1) ═══
-function lootPool() { return LOOT_TYPES.filter(t => t.lootID <= 2 || (t.lootID >= 6 && t.unlockedAt <= S.boxes)); }
-function drawLoot(god) {
-  const pool = lootPool(), t = pick(pool);
-  let r;
-  if (god) r = 4;
-  else { const ws = LOOT_R.map(x => x.baseWeight); let q = ws.reduce((a, b) => a + b) * Math.random(); r = 0; for (let i = 0; i < ws.length; i++) { q -= ws[i]; if (q <= 0) { r = i; break; } } }
-  let id = t.lootID; r = clamp(r, t.minRarity - 1, t.maxRarity - 1);
-  if (god) id = pick([3, 4, 5]);   // 원작: 30상자마다 특별 드롭 (듀플리페그·웜홀·정제기)
-  return { id, r };
+// ═══ 전리품 상자 (원작 LootBox: 상자 1개 = 카드 4장) ═══
+// 카드 종류 해금: 연 상자 수 >= unlockedAt (특수 3·4·5 는 신의 선물/타이머로만) · 미사일/레이저 카드는 해당 무기가 있어야
+function lootOpen(t) { if (t.lootID === 3 || t.lootID === 4 || t.lootID === 5) return false; if (t.lootID === 11 && !efl('MissileChance')) return false; if (t.lootID === 12 && !efl('LazerChance')) return false; return S.boxes >= t.unlockedAt; }
+function lootPool() { return LOOT_TYPES.filter(lootOpen); }
+// 희귀도: 현재 가중치(70/20/10/3/1)로 뽑고, 뽑힌 등급은 원래대로 · 나머지 ×1.1
+function lootRarity() {
+  const w = S.lw; let t = w.reduce((a, b) => a + b) * Math.random(), k = 0;
+  for (let i = 0; i < w.length; i++) { t -= w[i]; if (t <= 0) { k = i; break; } }
+  for (let i = 0; i < w.length; i++) w[i] = i === k ? LR[i + 1].baseWeight : w[i] * 1.1;
+  return k + 1;
+}
+// 종류: 50%는 핀 강화/점수 구역 중 하나, 아니면 해금된 종류 중 덜 받은 것일수록 잘 나옴 (가중치 1/받은 수)
+function lootType(r) {
+  if (Math.random() <= G.basicLoot) return Math.random() < .5 ? 0 : 1;
+  const pool = lootPool().filter(t => t.minRarity <= r); if (!pool.length) return Math.random() < .5 ? 0 : 1;
+  const ws = pool.map(t => 1 / Math.max(1, S.lootCnt[t.lootID])); let q = ws.reduce((a, b) => a + b) * Math.random();
+  for (let i = 0; i < pool.length; i++) { q -= ws[i]; if (q <= 0) return pool[i].lootID; } return pool[0].lootID;
+}
+function drawCard() {
+  let r = lootRarity(); const id = lootType(r), t = LT[id];
+  if (r > t.maxRarity) r = irnd(t.minRarity, t.maxRarity);
+  const L = { id, r };
+  S.dupT++; S.wormT++;
+  if (L.r < 3 && S.god) {
+    // 원작 HandleDuplipegAndRefinerDrops / 웜홀: 타이머가 문턱을 넘으면 50%, +10이면 확정
+    if (S.dupT > G.dupT && (Math.random() > .5 || S.dupT > G.dupT + 10)) {
+      L.r = 5; S.dupT = 0;
+      if (S.dupN + S.refN > 2) { const rr = irnd(1, S.dupN + S.refN + 2); if (rr > S.refN + 1) { L.id = 5; S.refN++; } else { L.id = 3; S.dupN++; } }
+      else if (Math.random() < .5) { L.id = 3; S.dupN++; } else { L.id = 5; S.refN++; }
+    } else if (S.wormT > G.wormT && (Math.random() > .5 || S.wormT > G.wormT + 10)) { L.id = 4; L.r = 4; S.wormN++; S.wormT = 0; }
+  }
+  L.isNew = S.lootCnt[L.id] <= 0; S.lootCnt[L.id]++;
+  return L;
 }
 function applyLoot(L) {
-  const x = LOOT_R[L.r], nPeg = PEGS.length;
-  const rp = () => Math.floor(Math.random() * nPeg);
+  const x = LR[L.r], nPeg = PEGS.length;
   switch (L.id) {
-    case 0: for (let k = 0; k < x.pegsToUpgrade; k++) { const i = rp(); S.pk.rank[i] = Math.min(5, (S.pk.rank[i] || 0) + 1); } return `핀 ${x.pegsToUpgrade}개 희귀도 상승`;
+    case 0: { const c = PEGS.filter(p => pegRank(p.i) < 5); for (let k = 0; k < x.pegsToUpgrade && c.length; k++) { const p = c.splice(Math.floor(Math.random() * c.length), 1)[0]; S.pk.rank[p.i] = pegRank(p.i) + 1; } return `핀 ${x.pegsToUpgrade}개 등급 +1`; }
     case 1: { const z = Math.floor(Math.random() * 13); S.zm[z] += x.scoreZoneAmountToUpgrade; return `점수 구역 ${z + 1}번 ×${S.zm[z]} (+${x.scoreZoneAmountToUpgrade})`; }
-    case 2: S.cred += x.cashCreditsAmount; S.totalCred += x.cashCreditsAmount; return `+$${fmt(x.cashCreditsAmount)}`;
-    case 3: for (let k = 0; k < x.duplipegPegsToUpgrade; k++) { const i = rp(); if (!S.pk.dup.includes(i)) S.pk.dup.push(i); S.pk.ref = S.pk.ref.filter(j => j !== i); } return `핀 ${x.duplipegPegsToUpgrade}개 → 듀플리페그`;
-    case 4: { const z = Math.floor(Math.random() * 13); S.worm[z] = true; return `점수 구역 ${z + 1}번 → 웜홀`; }
-    case 5: for (let k = 0; k < x.refinerPegsToUpgrade; k++) { const i = rp(); if (!S.pk.ref.includes(i)) S.pk.ref.push(i); S.pk.dup = S.pk.dup.filter(j => j !== i); } return `핀 ${x.refinerPegsToUpgrade}개 → 정제기`;
-    case 6: S.boost.pspd += x.plinkoSpeedIncreaseMultiplier; return `플링코 드롭 간격 −${Math.round(x.plinkoSpeedIncreaseMultiplier * 100)}%`;
-    case 7: { const n = irnd(Math.ceil(x.amountOfOreToDrop / 2), x.amountOfOreToDrop), av = []; for (let i = 0; i < ORES.length; i++) if (oreOn(i)) av.push(i); for (let k = 0; k < n; k++) { const o = pick(av); S.cargo[o] = (S.cargo[o] || 0) + 1; } return `광석 ${n}개가 플링코로`; }
-    case 8: S.boost.rate *= 1 - x.attackSpeedTimerDecreasePercentage; return `공격 속도 +${Math.round(x.attackSpeedTimerDecreasePercentage * 100)}%`;
-    case 9: S.boost.dmg += x.shipDamageIncrease; return `총알 피해 +${x.shipDamageIncrease}`;
+    case 2: credit(x.cashCreditsAmount); return `+$${fmt(x.cashCreditsAmount)}`;
+    case 3: { const c = PEGS.filter(p => !p.slant && !pegKind(p.i)); for (let k = 0; k < x.duplipegPegsToUpgrade && c.length; k++) S.pk.dup.push(c.splice(Math.floor(Math.random() * c.length), 1)[0].i); return `핀 ${x.duplipegPegsToUpgrade}개 → 듀플리페그 (닿으면 복제)`; }
+    case 4: { const z = Math.floor(Math.random() * 13); S.worm[z] = Math.max(S.worm[z], x.wormholeChance); return `점수 구역 ${z + 1}번 → 웜홀 (${Math.round(x.wormholeChance * 100)}% 다시 떨어짐)`; }
+    case 5: { const c = PEGS.filter(p => !p.slant && !pegKind(p.i)); for (let k = 0; k < x.refinerPegsToUpgrade && c.length; k++) S.pk.ref.push(c.splice(Math.floor(Math.random() * c.length), 1)[0].i); return `핀 ${x.refinerPegsToUpgrade}개 → 정제기 (다음 광석으로)`; }
+    case 6: S.boost.pmul *= 1 - x.plinkoSpeedIncreaseMultiplier; return `플링코 투하 간격 −${Math.round(x.plinkoSpeedIncreaseMultiplier * 100)}%`;
+    case 7: { for (let k = 0; k < x.amountOfOreToDrop; k++) { const o = randUnlockedOre(); S.cargo[o] = (S.cargo[o] || 0) + 1; } return `광석 ${x.amountOfOreToDrop}개가 플링코로`; }
+    case 8: S.boost.rate = Math.max(.05 / G.fire, S.boost.rate * (1 - Math.min(.95, x.attackSpeedTimerDecreasePercentage))); return `발사 간격 −${Math.round(Math.min(.95, x.attackSpeedTimerDecreasePercentage) * 100)}%`;
+    case 9: S.boost.dmg += x.shipDamageIncrease; return `총 피해 +${x.shipDamageIncrease}`;
     case 10: S.boost.fuel += x.shipFuelIncrease; return `연료 +${x.shipFuelIncrease}`;
     case 11: S.boost.missile += x.missileDamageIncrease; return `미사일 피해 +${x.missileDamageIncrease}`;
     case 12: S.boost.lazer += x.lazerDamageIncrease; return `레이저 피해 +${x.lazerDamageIncrease}`;
@@ -874,26 +1094,32 @@ function openLoot() {
   S.keys -= n; const got = [];
   for (let b = 0; b < n; b++) {
     S.boxes++;
-    const god = S.boxes % G.godEvery === 0;
-    for (let c = 0; c < G.lootPerChest; c++) { const L = drawLoot(god && c === 0); got.push({ L, txt: applyLoot(L) }); }
+    // 원작 신의 선물: 31번째 상자 50%, 32번째 확정 — [듀플리페그 전설, 웜홀 에픽, 핀 강화 희귀, 정제기 전설]
+    if (!S.god && S.boxes > G.godBox && (Math.random() > .5 || S.boxes > G.godBox + 1)) {
+      S.god = 1; S.dupN++; S.refN++; S.wormN++; S.dupT = 0; S.wormT = 0;
+      for (const [id, r] of [[3, 5], [4, 4], [0, 3], [5, 5]]) { S.lootCnt[id]++; got.push({ L: { id, r }, txt: applyLoot({ id, r }), god: 1 }); }
+      continue;
+    }
+    for (let c = 0; c < G.lootPerChest; c++) { const L = drawCard(); got.push({ L, txt: applyLoot(L) }); }
   }
   recompute(); Sound.play('meld'); save();
-  showModal(`<h2>📦 전리품 상자 ×${n}</h2><div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${got.map(g => `<div class="cd" style="border-color:${RARITY[g.L.r].c}"><div class="ic">${LOOT_IC[g.L.id]}</div><div class="nm" style="color:${RARITY[g.L.r].c}">${LOOT_N[g.L.id]} <small>${RARITY[g.L.r].n}</small></div><div class="ds">${g.txt}</div></div>`).join('')}</div>
+  showModal(`<h2>📦 전리품 상자 ×${n}</h2>${got.some(g => g.god) ? '<p style="color:var(--gold)">✨ 신의 선물!</p>' : ''}<div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${got.map(g => `<div class="cd" style="border-color:${LRC[g.L.r]}"><div class="ic">${LOOT_IC[g.L.id]}</div><div class="nm" style="color:${LRC[g.L.r]}">${LOOT_N[g.L.id]} <small>${LRN[g.L.r]}</small></div><div class="ds">${g.txt}</div></div>`).join('')}</div>
     <div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); renderBase();">좋아</button>${S.keys ? `<button class="btn hot" onclick="hideModal(); openLoot();">🔑 더 열기 (${S.keys})</button>` : ''}</div>`);
 }
 
-// ═══ 명성 (원작 PrestigeManager: 초기화하고 우주의 정수로 영구 강화) ═══
+// ═══ 명성 (원작 PrestigeManager: 스킬 트리 '명성' 칸을 사면 초기화 — 보스가 준 우주의 정수로 영구 강화) ═══
 function doPrestige() {
-  const g = S.essPend; if (g < 1) return;
-  if (!confirm(`명성을 얻을까요?\n✨ 우주의 정수 +${g}를 받고 진행이 초기화됩니다.`)) return;
+  if (!hasPres()) return;
+  if (!confirm(`명성을 얻을까요?\n크레딧·스킬 트리·플링코가 초기화되고, 모은 ✨ 우주의 정수 ${S.ess}개로 명성 트리를 살 수 있어요.`)) return;
   const keepLv = {};
-  for (const n of TREE) if (lv(n.id) && (pl('p10') || (pl('p7') && n.cls === 'UnlockBonusAmmo') || n.id === 'uP')) keepLv[n.id] = lv(n.id);
-  const keep = { ess: S.ess + g, essPend: 0, pl: S.pl, lv: keepLv, arti: pl('p11') ? S.arti : {},
-    pk: pl('p5') ? S.pk : { rank: {}, dup: [], ref: [] }, zm: pl('p5') ? S.zm : new Array(13).fill(1), worm: pl('p5') ? S.worm : new Array(13).fill(false), boost: pl('p5') ? S.boost : undefined,
-    maxSector: S.maxSector, runs: S.runs, totalCred: S.totalCred, bestRun: S.bestRun, destroyed: S.destroyed, crashes: S.crashes, playTime: S.playTime, started: S.started, ores: S.ores, prestiges: S.prestiges + 1, boxes: S.boxes, tab: 'prestige' };
+  for (const n of TREE) if (lv(n.id) && n.id !== 'uP' && (pl('p10') || (pl('p7') && n.cls === 'UnlockBonusAmmo'))) keepLv[n.id] = lv(n.id);
+  const keep = { ess: S.ess, pl: S.pl, lv: keepLv, arti: pl('p11') ? S.arti : {}, firstArti: pl('p11') ? S.firstArti : 0,
+    pk: pl('p5') ? S.pk : { rank: {}, dup: [], ref: [] }, zm: pl('p5') ? S.zm : new Array(13).fill(1), worm: pl('p5') ? S.worm : new Array(13).fill(0), boost: pl('p5') ? S.boost : undefined,
+    god: pl('p5') ? S.god : 0, lw: S.lw, srw: S.srw, lootCnt: S.lootCnt, seenRare: S.seenRare, keysGot: S.keysGot,
+    runs: S.runs, totalCred: S.totalCred, bestRun: S.bestRun, destroyed: S.destroyed, crashes: S.crashes, playTime: S.playTime, started: S.started, ores: S.ores, prestiges: S.prestiges + 1, boxes: S.boxes, bosses: S.bosses, tab: 'prestige' };
   if (!keep.boost) delete keep.boost;
   S = fresh(keep); recompute(); save(); Sound.play('win');
-  showModal(`<h2>✨ 명성</h2><div style="font-size:44px">✨</div><p>우주의 정수 <b style="color:var(--purple)">+${g}</b><br>명성 트리에서 영구 업그레이드를 사세요.</p><div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); setTab('prestige');">보러 가기</button></div>`);
+  showModal(`<h2>✨ 명성</h2><div style="font-size:44px">✨</div><p>우주의 정수 <b style="color:var(--purple)">${S.ess}</b>개<br>명성 트리에서 영구 업그레이드를 사세요. 보스는 다시 정수를 줍니다.</p><div class="row" style="justify-content:center"><button class="btn go" onclick="hideModal(); setTab('prestige');">보러 가기</button></div>`);
 }
 
 // ═══ 기지 UI ═══
@@ -903,8 +1129,8 @@ function renderTop() {
   const c = fmt(Math.floor(S.cred));
   if (renderTop._c !== undefined && renderTop._c !== c) bump($('curCred'));
   renderTop._c = c;
-  $('cred').textContent = c; $('keys').textContent = S.keys; $('ess').textContent = S.ess + (S.essPend ? ` (+${S.essPend})` : '');
-  $('curEss').style.display = hasPres() || S.ess || S.essPend ? '' : 'none';
+  $('cred').textContent = c; $('keys').textContent = S.keys; $('ess').textContent = S.ess;
+  $('curEss').style.display = hasPres() || S.ess ? '' : 'none';
   $('sub').textContent = `최고 ${S.maxSector}구역 · 연료 ${fmt(maxFuel())} · 포 ${guns()}문 · 피해 ${fmt(gunDmg())} · 발사 ${fireInt().toFixed(2)}초`;
   const treeOk = TREE.some(canBuy);
   document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
@@ -919,8 +1145,8 @@ $('btnCfg').onclick = () => { Sound.play('click'); setTab(S.tab === 'cfg' ? 'tre
 // 모바일은 전체화면으로 (방향은 잠그지 않음 — 세로는 720×1280 월드)
 function goFull() { if (!matchMedia('(pointer: coarse)').matches) return; const el = document.documentElement; try { const q = el.requestFullscreen ? el.requestFullscreen() : null; if (q && q.catch) q.catch(() => {}); } catch (e) {} }
 $('btnLaunch').onclick = () => { Sound.play('click'); goFull(); launch(); };
-function renderSecSel() { const el = $('secSel'); if (!el) return; el.style.display = S.maxSector > 1 ? '' : 'none'; startSector = clamp(startSector, 1, S.maxSector); $('secNum').textContent = startSector; }
-$('secDn').onclick = () => { startSector = Math.max(1, startSector - 1); renderSecSel(); Sound.play('tap'); };
+function renderSecSel() { const el = $('secSel'); if (!el) return; el.style.display = S.maxSector > 0 ? '' : 'none'; startSector = clamp(startSector, 0, S.maxSector); $('secNum').textContent = startSector; }
+$('secDn').onclick = () => { startSector = Math.max(0, startSector - 1); renderSecSel(); Sound.play('tap'); };
 $('secUp').onclick = () => { startSector = Math.min(S.maxSector, startSector + 1); renderSecSel(); Sound.play('tap'); };
 function showSheet(ic, nm, ds, cost, extra, cur) {
   const sh = $('sheet'); let right = extra || '';
@@ -962,33 +1188,33 @@ function renderPanel() {
     wrap.addEventListener('scroll', () => { renderPanel._ts = [wrap.scrollLeft, wrap.scrollTop]; });
     if (sel) selNode(sel);
   } else if (t === 'loot') {
-    const pool = lootPool();
-    Pn.innerHTML = `<h3>📦 전리품 상자<small>원정에서 📦 상자를 부수면 🔑 열쇠 · 상자 1개 = 카드 ${G.lootPerChest}장</small></h3>
+    const pool = lootPool(), tot = S.lw.reduce((x, y) => x + y);
+    Pn.innerHTML = `<h3>📦 전리품 상자<small>원정의 📦 상자를 부수면 🔑 열쇠(50%, 못 받으면 다음엔 확정) · 상자 1개 = 카드 ${G.lootPerChest}장</small></h3>
       <div class="card" style="text-align:center"><div style="font-size:42px">📦</div><div style="font-size:15px;margin:5px 0">열쇠 <b style="color:var(--cyan);font-size:22px">${S.keys}</b> · 한 번에 <b>${1 + ef('Multibox', 'extraLootboxesToOpenPerLevel')}</b>개 개봉 · 연 상자 <b>${S.boxes}</b>개</div>
       <div class="row" style="justify-content:center"><button class="btn hot" id="btnOpen" ${S.keys ? '' : 'disabled'}>🔑 상자 열기</button></div>
-      <div style="font-size:12px;color:var(--dim);margin-top:6px">희귀도: ${RARITY.map((r, i) => `<span style="color:${r.c}">${r.n} ${LOOT_R[i].baseWeight}</span>`).join(' · ')} · ${G.godEvery}상자마다 특별 드롭</div></div>
-      <div class="cards">${LOOT_TYPES.map(lt => { const on = pool.includes(lt) || lt.lootID <= 5; return `<div class="cd ${on ? '' : 'lock'}"><div class="ic">${on ? LOOT_IC[lt.lootID] : '❔'}</div><div class="nm">${on ? LOOT_N[lt.lootID] : '???'}</div><div class="ds">${on ? `${RARITY[lt.minRarity - 1].n} ~ ${RARITY[lt.maxRarity - 1].n}` : `상자 ${lt.unlockedAt}개 열면 등장`}</div></div>`; }).join('')}</div>
-      <div class="card" style="font-size:12.5px">누적 효과 — 피해 +${S.boost.dmg} · 연료 +${S.boost.fuel} · 공격 속도 ×${(1 / S.boost.rate).toFixed(2)} · 미사일 +${S.boost.missile} · 레이저 +${S.boost.lazer} · 플링코 속도 +${Math.round(S.boost.pspd * 100)}%</div>`;
+      <div style="font-size:12px;color:var(--dim);margin-top:6px">지금 나올 확률: ${S.lw.map((w, i) => `<span style="color:${LRC[i + 1]}">${LRN[i + 1]} ${(w / tot * 100).toFixed(1)}%</span>`).join(' · ')}<br>안 나온 등급은 상자마다 ×1.1 · 절반은 핀/점수 구역 카드 · ${S.god ? '특수 카드(듀플리페그·정제기·웜홀)가 가끔 섞여요' : `상자 ${G.godBox + 1}개째쯤 ✨신의 선물`}</div></div>
+      <div class="cards">${LOOT_TYPES.map(lt => { const on = lt.lootID <= 1 || pool.includes(lt) || S.lootCnt[lt.lootID] > 0; return `<div class="cd ${on ? '' : 'lock'}"><div class="ic">${on ? LOOT_IC[lt.lootID] : '❔'}</div><div class="nm">${on ? LOOT_N[lt.lootID] : '???'}</div><div class="ds">${on ? `${LRN[lt.minRarity]} ~ ${LRN[lt.maxRarity]}${S.lootCnt[lt.lootID] ? ' · ' + S.lootCnt[lt.lootID] + '장' : ''}` : lt.lootID >= 3 && lt.lootID <= 5 ? '특별한 때만' : `상자 ${lt.unlockedAt}개 열면 등장`}</div></div>`; }).join('')}</div>
+      <div class="card" style="font-size:12.5px">누적 효과 — 총 피해 +${S.boost.dmg} · 연료 +${S.boost.fuel} · 발사 간격 ×${S.boost.rate.toFixed(2)} · 미사일 +${S.boost.missile} · 레이저 +${S.boost.lazer} · 플링코 간격 ×${S.boost.pmul.toFixed(2)}</div>`;
     const b = $('btnOpen'); if (b) b.onclick = openLoot;
   } else if (t === 'plinko') {
     Pn.innerHTML = `<h3>🎰 플링코 기계<small id="plinkoInfo"></small></h3>
       <canvas id="plinko" width="${PB.W}" height="${PB.H}"></canvas>
-      <div class="card" style="margin-top:8px;font-size:12.5px;line-height:1.6">점수 구역 13칸의 배수가 광석 가치에 곱해져요(처음엔 모두 ×1). 📦 전리품의 <b>점수+</b>와 🎰 <b>서프라이즈 메커닉</b>으로 올립니다.<br>
-      업그레이드된 핀(색깔)에 닿을 때마다 희귀도만큼 ×1씩 · <span style="color:var(--green)">듀플리페그</span>는 복제 · <span style="color:var(--purple)">정제기</span>는 다음 광석으로.<br>
+      <div class="card" style="margin-top:8px;font-size:12.5px;line-height:1.6">바닥 점수 구역 13칸: <b>광석 가치 × 구역 배수</b>(처음엔 모두 ×1). 📦 카드 <b>점수 구역+</b>로 올려요.<br>
+      색깔 핀(등급 1~5)은 닿을 때마다 <b>광석 가치 × 등급</b>을 따로 줘요 (핀마다 0.5초 쿨다운) · <span style="color:var(--green)">듀플리페그</span>는 광석 복제 · <span style="color:var(--purple)">정제기</span>는 다음 광석으로 · 🕳️ 웜홀 구역은 확률로 다시 떨어짐<br>
       한 번에 <b>${intake()}</b>개 · 투하 간격 <b>${plinkoInt().toFixed(2)}초</b>${efl('Autonomy') ? ' · 🤖 원정 중에도 처리' : ''}</div>`;
     drawPlinko();
   } else if (t === 'arti') {
     const n = ARTI.filter(a => S.arti[a.id]).length;
-    Pn.innerHTML = `<h3>🏺 유물 ${n} / ${ARTI.length}<small>원정 중 🏺 유물 상자에서 · 같은 유물은 겹쳐서 +10%씩</small></h3><div class="cards">` +
-      ARTI.map(a => { const c = S.arti[a.id] || 0; return `<div class="cd ${c ? '' : 'lock'}"><div class="ic">${c ? a.ic : '❔'}</div><div class="nm">${c ? a.n + (c > 1 ? ' ×' + c : '') : '???'}</div><div class="ds">${c ? a.ds : '아직 발견 못 함'}</div></div>`; }).join('') + '</div>';
+    Pn.innerHTML = `<h3>🏺 유물 ${n} / ${ARTI.length}<small>종류마다 한 번 · 해당 구역부터 🏺 유물 소행성으로 등장 (소행성 ${G.artiInt}개마다)</small></h3><div class="cards">` +
+      ARTI.map(a => { const c = S.arti[a.id]; return `<div class="cd ${c ? '' : 'lock'}"><div class="ic">${c ? a.ic : '❔'}</div><div class="nm">${c ? a.n : '???'}</div><div class="ds">${c ? a.ds + (pl('p13') ? ' (×2)' : '') : `${a.min}구역부터`}</div></div>`; }).join('') + '</div>';
   } else if (t === 'ore') {
-    Pn.innerHTML = `<h3>💎 광석<small>스킬 트리의 ⬢ 칸에서 해금 (원작 기본 가치)</small></h3><div class="cards">` +
-      ORES.map((o, i) => { const un = oreOn(i), got = S.ores[o.id] || 0;
-        return `<div class="cd ${un ? '' : 'lock'}"><div class="ic" style="color:${o.c}">⬢</div><div class="nm" style="color:${un ? o.c : ''}">${un ? o.n : '???'}</div><div class="ds">${un ? `${o.sec}구역부터 · 기본 가치 $${fmt(o.v)}` : `${o.sec}구역 광석 (미해금)`}</div><div class="cost">${got ? fmt(got) + '개 수집' : ''}</div></div>`; }).join('') + '</div>';
+    Pn.innerHTML = `<h3>💎 광석<small>스킬 트리의 ⬢ 칸을 사고, 그 구역에 도달하면 등장 (원작 기본 가치)</small></h3><div class="cards">` +
+      ORES.map((o, i) => { const un = oreOwned(i), got = S.ores[o.id] || 0;
+        return `<div class="cd ${un ? '' : 'lock'}"><div class="ic" style="color:${o.c}">⬢</div><div class="nm" style="color:${un ? o.c : ''}">${un ? o.n : '???'}</div><div class="ds">${un ? `${o.min}구역부터 · 기본 가치 $${fmt(o.v)}` : `${o.min}구역 광석 (미해금)`}</div><div class="cost">${got ? fmt(got) + '개 수집' : ''}</div></div>`; }).join('') + '</div>';
   } else if (t === 'prestige') {
-    Pn.innerHTML = `<div class="card" style="margin-bottom:8px">보유 <b style="color:var(--purple);font-size:20px">✨ ${S.ess}</b> · 모은 정수 <b style="color:var(--purple)">+${S.essPend}</b> (보스 소행성에서)
-      <div style="font-size:12.5px;color:var(--dim);margin-top:4px">명성을 얻으면 모은 정수를 받고 크레딧·업그레이드·플링코가 초기화돼요. 명성 트리는 영구입니다.</div>
-      <div class="row"><button class="btn hot" id="btnPres" ${S.essPend > 0 ? '' : 'disabled'}>✨ 명성 얻기 (${S.prestiges}회)</button></div></div>
+    Pn.innerHTML = `<div class="card" style="margin-bottom:8px">보유 <b style="color:var(--purple);font-size:20px">✨ ${S.ess}</b> 우주의 정수 · 보스 격파 ${S.bosses}회
+      <div style="font-size:12.5px;color:var(--dim);margin-top:4px">4·9·14…구역에서 할당량을 채우면 보스가 나오고, 부수면 정수 1개를 얻고 원정이 끝나요(구역마다 한 번). 스킬 트리의 ✨ 명성 칸을 사면 크레딧·스킬·플링코가 초기화되고 정수는 남아요.</div>
+      <div class="row"><button class="btn hot" id="btnPres" ${hasPres() ? '' : 'disabled'}>✨ 명성 얻기 (${S.prestiges}회)</button></div></div>
       <div style="height:300px;position:relative">${treeHTML(PT.T, PT.BY, PT.W, PT.H, pVis, pl, pCost, pCanBuy, pMaxed, 'ess')}</div>`;
     const b = $('btnPres'); if (b) b.onclick = doPrestige;
     Pn.querySelectorAll('.tn').forEach(el => { const n = PT.BY[el.dataset.id];
@@ -998,13 +1224,13 @@ function renderPanel() {
     const stats = efl('UnlockStats') ? `<h3>📊 통계</h3><div class="card">${[['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko') : '-'], ['시작한 탐험', S.runs], ['최고 구역', S.maxSector], ['파괴한 소행성', fmt(S.destroyed)], ['추락한 우주선', S.crashes], ['연 상자', S.boxes], ['명성', S.prestiges], ['번 돈', fmt(Math.floor(S.totalCred))], ['총 플레이 시간', Math.floor(S.playTime / 60) + '분']].map(([k, v]) => `<div class="stat"><span>${k}</span><b>${v}</b></div>`).join('')}</div>` : `<div class="card" style="color:var(--dim)">📊 통계는 스킬 트리의 "누가 세는지"로 열려요.</div>`;
     Pn.innerHTML = stats + `<h3>💾 저장</h3><div class="card"><div class="row"><button class="btn" id="btnExport">📤 내보내기</button><button class="btn" id="btnImport">📥 가져오기</button><button class="btn" id="btnReset" style="margin-left:auto;color:var(--red)">🗑 초기화</button></div></div>
       <h3>❓ 어떻게 하나요? (원작 규칙)</h3>
-      <div class="step"><div class="no">1</div><p><b>연료는 시간이 지나면 닳고</b>, 3초마다 소모가 빨라져요. 첫 구역은 쏴도 연료가 안 들지만 2구역부터는 한 발마다 연료를 씁니다.</p></div>
+      <div class="step"><div class="no">1</div><p><b>연료는 시간이 지나면 닳고</b> 3초마다 소모가 빨라져요(30초·90초 넘게 버티면 더 빨리). 0구역은 쏴도 연료가 안 들지만 1구역부터는 한 발마다 연료를 씁니다.</p></div>
       <div class="step"><div class="no">2</div><p>우주선은 마우스를 따라가고 가까운 소행성을 자동으로 쏩니다. 부서진 소행성의 광석은 <b>수집 원</b> 안에 들어와야 빨려와요.</p></div>
       <div class="step"><div class="no">3</div><p>소행성에 부딪히면 선체 −1. 0이 되면 끝. 🛡️ 방어막 업그레이드로 버텨요.</p></div>
-      <div class="step"><div class="no">4</div><p>구역마다 <b>소행성 할당량</b>을 부수면 🌀 워프(스페이스). 깊을수록 비싼 광석과 단단한 소행성. 5구역마다 보스.</p></div>
+      <div class="step"><div class="no">4</div><p>구역마다 <b>소행성 할당량</b>을 부수면 🌀 워프 — 스페이스/워프 버튼/화면을 <b>누르고 있으면</b> 충전(충전 중엔 연료 절반). 소행성 하나에서 광석이 1~(구역+1)개. 4·9·14…구역은 보스.</p></div>
       <div class="step"><div class="no">5</div><p>가져온 광석은 <b>🎰 플링코</b>에서 초당 1개씩 크레딧이 됩니다. 점수 구역 배수는 처음엔 모두 ×1 — 📦 전리품으로 올려요.</p></div>
-      <div class="step"><div class="no">6</div><p><b>📦 전리품 상자</b>를 부수면 🔑 열쇠. 상자 하나에 카드 4장. <b>🧰 무기 상자</b>는 몇 초간 특수 탄약.</p></div>
-      <div class="step"><div class="no">7</div><p>크레딧은 <b>🌳 스킬 트리</b>에. 산 칸 옆만 보여요. <b>✨ 명성</b>을 사면 보스가 우주의 정수를 줍니다.</p></div>`;
+      <div class="step"><div class="no">6</div><p><b>📦 전리품 상자</b>는 구역이 시작될 때 <b>구역 희귀도</b>만큼 나와요(고급 1 · 희귀 2 …). 부수면 🔑 열쇠 + 광석. <b>🧰 무기 상자</b>는 소행성 200개마다, 몇 초간 특수 탄약.</p></div>
+      <div class="step"><div class="no">7</div><p>크레딧은 <b>🌳 스킬 트리</b>에. 산 칸 옆만 보여요. 보스가 준 ✨ 정수는 <b>명성</b> 뒤 명성 트리에 씁니다.</p></div>`;
     $('btnExport').onclick = () => { save(); const x = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); navigator.clipboard.writeText(x).then(() => toast('저장 코드를 복사했어요')).catch(() => prompt('복사해 주세요', x)); };
     $('btnImport').onclick = () => { const x = prompt('저장 코드'); if (!x) return; try { const v = JSON.parse(decodeURIComponent(escape(atob(x.trim())))); if (!v || typeof v.cred !== 'number') throw 0; S = Object.assign(fresh(), v); save(); location.reload(); } catch (e) { toast('코드가 올바르지 않아요'); } };
     $('btnReset').onclick = () => { if (confirm('정말 처음부터?') && confirm('진짜로요?')) { localStorage.removeItem(SAVE_KEY); S = fresh(); location.reload(); } };
@@ -1020,8 +1246,11 @@ function buyNode(id) {
   const n = TREE_BY[id]; if (!n || !canBuy(n)) return Sound.play('error');
   S.cred -= nodeCost(n); S.lv[id] = lv(id) + 1; recompute(); Sound.play('correct');
   if (n.cls === 'ScorezonePlus') { const z = Math.floor(Math.random() * 13); S.zm[z] += n.f.scorezonesToUpgrade || 1; toast(`🎰 점수 구역 ${z + 1}번 ×${S.zm[z]}`); }
-  if (n.ore) toast(`⛏️ ${ORES[n.ore].n} 해금 — ${ORES[n.ore].sec}구역부터`);
-  if (n.id === 'uP') toast('✨ 명성 해금! 이제 보스 소행성이 우주의 정수를 떨어뜨려요');
+  if (n.ore) toast(`⛏️ ${ORES[n.ore].n} 해금 — ${ORES[n.ore].min}구역부터`);
+  if (n.cls === 'GoldRush') { S.grInit = S.prestiges ? 0 : 1; S.grCtr = 0; S.grMax = irnd(17, 19) + 3; }                    // 원작 UD_GoldRush
+  if (n.cls === 'UnlockWeaponsCrate') S.cntW = weaponInt();                                                            // 첫 무기 상자는 바로
+  if (n.cls === 'UnlockBonusAmmo') S.cntW = Math.max(S.cntW, weaponInt() - irnd(0, 19));
+  if (n.id === 'uP') setTimeout(doPrestige, 200);
   const wrap = $('treewrap'), sl = wrap ? wrap.scrollLeft : 0, st = wrap ? wrap.scrollTop : 0;
   renderBase(); if ($('treewrap')) { $('treewrap').scrollLeft = sl; $('treewrap').scrollTop = st; }
   selNode(id); save();
@@ -1031,12 +1260,12 @@ function hideModal() { $('modal').classList.remove('show'); }
 
 // ═══ 시작 ═══
 load();
-if (!localStorage.getItem('srb_v3_notice') && localStorage.getItem('srb_save_v2')) { try { localStorage.setItem('srb_v3_notice', '1'); } catch (e) {} setTimeout(() => toast('🛰️ 원작 데이터로 다시 만들어져 처음부터 시작합니다'), 700); }
+if (!localStorage.getItem('srb_v4_notice') && localStorage.getItem('srb_save_v3')) { try { localStorage.setItem('srb_v4_notice', '1'); } catch (e) {} setTimeout(() => toast('🛰️ 원작 규칙으로 다시 맞췄어요 — 진행은 이어집니다 (구역은 이제 0부터)'), 700); }
 recompute(); setTab(S.tab || 'tree');
 setInterval(save, 5000);
 addEventListener('beforeunload', save); addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.rock = { speed: setSpeed, get S() { return S; }, get R() { return R; }, get PL() { return PL; }, TREE, TREE_BY, PT, ORES, ARTI, LOOT_TYPES, ef, efl, lv, pl, launch, endRun, warp, vis, canBuy, nodeCost, buyNode, recompute, renderBase, setTab, save, plinkoTick, hpStart, quotaFor, maxFuel, gunDmg, fireInt, cargoN, openLoot,
+window.rock = { speed: setSpeed, get S() { return S; }, get R() { return R; }, get PL() { return PL; }, TREE, TREE_BY, PT, ORES, ARTI, LOOT_TYPES, PEGS, ef, efl, lv, pl, launch, endRun, warp, vis, canBuy, nodeCost, buyNode, recompute, renderBase, setTab, save, plinkoTick, hpStart, quotaFor, maxFuel, gunDmg, fireInt, plinkoInt, cargoN, openLoot, drawCard, doPrestige, spawnInt, shipSpd, hasWarp,
   view: () => ({ W, H, CW, CH, VS, OX: VX, OY: VY, DPR, portrait: H > W }), toWorld, resize,
   sim: dt => { if (R) update(dt); }, cheat: (c, k, e) => { S.cred += c || 0; S.keys += k || 0; S.ess += e || 0; renderBase(); } };
 
