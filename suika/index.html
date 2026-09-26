@@ -173,9 +173,9 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  let W = 540; const H = 860;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
-  const BOX_W = 416, BOX_CX = 230;              // 상자 기본 폭 / 중심
-  const BOX = { l: 22, r: 438, t: 260, b: 740 };  // 상자 안쪽 영역 (높이 480 ≈ 원작 비율; l/r 은 상자 폭에 따라 바뀜)
+  let W = 600; const H = 900;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
+  const BOX_W = 470, BOX_CX = 250;              // 상자 기본 폭 / 중심 (원작 비율: 수박 지름 = 폭의 59%)
+  const BOX = { l: 15, r: 485, t: 260, b: 780 };  // 상자 안쪽 영역 (470×520; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const BOX_T_BASE = 260;                       // 상자 윗변 기본값 (천장 유물/저주로 BOX.t 가 오르내림)
@@ -187,17 +187,17 @@
   const SHAKE_TIME = 700;                       // ms
 
   const FRUITS = [
-    { name: '체리',     r: 17,  color: '#e0313f', score: 1 },
-    { name: '딸기',     r: 24,  color: '#ff5a5a', score: 3 },
-    { name: '포도',     r: 32,  color: '#9b5de5', score: 6 },
-    { name: '한라봉',   r: 41,  color: '#ffb02e', score: 10 },
-    { name: '감',       r: 49,  color: '#ff8c2e', score: 15 },
-    { name: '사과',     r: 59,  color: '#e63946', score: 21 },
-    { name: '배',       r: 70,  color: '#f6e58d', score: 28 },
-    { name: '복숭아',   r: 80,  color: '#ffb6b9', score: 36 },
-    { name: '파인애플', r: 92,  color: '#ffd43b', score: 45 },
-    { name: '멜론',     r: 106,  color: '#b8e994', score: 55 },
-    { name: '수박',     r: 120, color: '#4caf50', score: 66 },
+    { name: '체리',     r: 20,  color: '#e0313f', score: 1 },
+    { name: '딸기',     r: 28,  color: '#ff5a5a', score: 3 },
+    { name: '포도',     r: 37,  color: '#9b5de5', score: 6 },
+    { name: '한라봉',   r: 47,  color: '#ffb02e', score: 10 },
+    { name: '감',       r: 56,  color: '#ff8c2e', score: 15 },
+    { name: '사과',     r: 68,  color: '#e63946', score: 21 },
+    { name: '배',       r: 80,  color: '#f6e58d', score: 28 },
+    { name: '복숭아',   r: 92,  color: '#ffb6b9', score: 36 },
+    { name: '파인애플', r: 106,  color: '#ffd43b', score: 45 },
+    { name: '멜론',     r: 122,  color: '#b8e994', score: 55 },
+    { name: '수박',     r: 138, color: '#4caf50', score: 66 },
   ];
   const ART = window.FRUIT_ART;
   const artBroken = [];   // 그리다 에러난 과일은 폴백으로 (아트 파일 수정 중이어도 게임은 돌아가게)
@@ -261,7 +261,7 @@
     { key: 'magnet', icon: '🧲', name: '자석', instant: true, desc: '같은 과일 한 쌍을 골라 즉시 합쳐 한 단계 올림 (왼쪽 아래부터)',
       available: () => !!findPair(), run: () => magnetMerge() },
     { key: 'shake', icon: '🌀', name: '흔들기', instant: true, desc: '상자를 세게 흔들어 끼인 과일 정리',
-      run: () => { shakeUntil = performance.now() + SHAKE_TIME * 1.6; shakePower = 1.4; showToast('🌀 흔들기!'); sfx('shake'); } },
+      run: () => { shakeUntil = performance.now() + SHAKE_TIME * 1.4; shakePower = 0.9; showToast('🌀 흔들기!'); sfx('shake'); } },
   ];
   const maxLvOf = d => d.maxLv || MAX_RELIC_LV;
 
@@ -432,7 +432,7 @@
     const w = BOX_W * cfg.boxScale;
     BOX.l = Math.max(12, Math.round(BOX_CX - w / 2));   // 왼쪽 여백은 12px 이상
     BOX.r = BOX.l + Math.round(w);
-    W = Math.max(540, BOX.r + 100);                    // 창고가 오른쪽으로 밀리며 캔버스가 넓어짐
+    W = Math.max(600, BOX.r + 100);                    // 창고가 오른쪽으로 밀리며 캔버스가 넓어짐
     resize();
     BOX.t = BOX_T_BASE - Math.max(-60, Math.min(60, cfg.ceilingOffset));
     buildWalls();
@@ -735,7 +735,7 @@
     const kick = shaking ? Math.sin((shakeUntil - now) / SHAKE_TIME * Math.PI * 6) * 1.6 * shakePower : 0;
     const list = fruitsInBox();
     for (const b of list) {
-      if (shaking) Body.setVelocity(b, { x: b.velocity.x + kick, y: b.velocity.y - 0.6 });
+      if (shaking) Body.setVelocity(b, { x: b.velocity.x + kick, y: Math.max(b.velocity.y - 0.12, -2.5) });   // 좌우로만 흔들기 (위로 쏘면 천장 넘어 게임오버됨)
       if (b.speed > MAX_SPEED) {   // 속도 상한 (터널링 방지)
         const k = MAX_SPEED / b.speed;
         Body.setVelocity(b, { x: b.velocity.x * k, y: b.velocity.y * k });
@@ -809,7 +809,7 @@
     for (const b of fruitsInBox()) {
       const top = b.position.y - fr(b);
       // 방금 떨어뜨려 낙하 중인 과일만 제외 (아래로 3px/step 이상 이동 중). 흔들리는 더미는 그대로 카운트
-      const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed);
+      const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed) && now > shakeUntil + 1500;   // 흔드는 중·직후 1.5초는 판정 유예
       if (top < deadY() + 30 && counting) danger = true;     // 선 근처: 경고 연출
       if (top < deadY() && counting) {
         if (!b.deadSince) b.deadSince = now;
@@ -1114,13 +1114,13 @@
       }
     }
     // 가운데 상단 (x 130~290): 시간·수박 / 다음 유물 게이지 — 이 아래(100~240)는 구름 전용으로 비움
-    outlinedText(`⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}`, 210, 20, 14);
+    outlinedText(`⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}`, 230, 20, 14);
     if (mode === 'rogue') {
-      const gw = 160, gh = 20, gx = 210 - gw / 2, gy = 36;
+      const gw = 160, gh = 20, gx = 230 - gw / 2, gy = 36;
       pill(gx, gy, gw, gh, 10);
-      outlinedText(`🎁 다음 유물: ${nextRelicHint()}`, 210, gy + gh / 2 + 1, 12);
+      outlinedText(`🎁 다음 유물: ${nextRelicHint()}`, 230, gy + gh / 2 + 1, 12);
     }
-    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), 210, 68, 15);
+    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), 230, 68, 15);
 
     // 흔들기 중이면 상자째로 살짝 흔들림
     const shakeNow = performance.now();
@@ -1249,11 +1249,11 @@
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
-      drawFruit(ctx, ex, 798, i, 0, 12 / FRUITS[i].r);
+      drawFruit(ctx, ex, 838, i, 0, 12 / FRUITS[i].r);
       if (i < FRUITS.length - 1) {
         ctx.fillStyle = 'rgba(255,255,255,.7)';
         ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', ex + 20, 798);
+        ctx.fillText('›', ex + 20, 838);
       }
       ex += 40;
     }

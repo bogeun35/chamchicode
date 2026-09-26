@@ -347,7 +347,7 @@
   /* ---------- pastel palette: body fill, soft outline (~22% darker) ---------- */
 
   var C = {
-    cherry:  { fill: '#FF9AA2', line: '#E07A84' },
+    cherry:  { fill: '#F76B7E', line: '#CE4257' },
     straw:   { fill: '#FFA5AB', line: '#E0838A' },
     grape:   { fill: '#CDB4FF', line: '#A58BE0' },
     dekopon: { fill: '#FFD08A', line: '#E0A85C' },
