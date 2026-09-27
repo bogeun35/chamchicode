@@ -87,6 +87,20 @@
   .rk-sc { width: 64px; text-align: right; color: #a8804f; font-size: 13px; }
   .rk-tm { width: 46px; text-align: right; color: #a8804f; font-size: 12px; }
   .rk-empty { font-size: 14px; color: #a8804f; text-align: center; padding: 10px 0; }
+  .lnk { background: none; border: 0; color: #c9822b; font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+  .rm-row {
+    display: flex; align-items: center; gap: 8px; padding: 8px 6px; border-radius: 12px; font-size: 14px;
+  }
+  .rm-row:nth-child(odd) { background: #fff8e8; }
+  .rm-code { font-size: 15px; letter-spacing: 1px; color: #e8546b; width: 72px; }
+  .rm-info { flex: 1; color: #8a5a2a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-info em { font-style: normal; color: #a8804f; font-size: 12px; }
+  .rm-join {
+    flex: none; border: 3px solid #fff; border-radius: 999px; background: #6fbf73; color: #fff;
+    font-family: inherit; font-size: 13px; padding: 5px 12px; cursor: pointer; box-shadow: 0 3px 0 #3e8a42;
+  }
+  .rm-join.watch { background: #ffa552; box-shadow: 0 3px 0 #c9752e; }
+  .rm-join:active { transform: translateY(2px); box-shadow: 0 1px 0 #3e8a42; }
 
   /* ── 오버레이 ── */
   .overlay {
@@ -158,6 +172,10 @@
       <button class="btn" id="btnCreate">방 만들기</button>
     </div>
     <div class="card">
+      <div class="rk-head"><h3 style="margin:0">🚪 열린 방</h3><button class="lnk" id="btnRefreshRooms">새로고침</button></div>
+      <div id="roomList"><div class="rk-empty">불러오는 중…</div></div>
+    </div>
+    <div class="card">
       <label>초대 코드로 참가</label>
       <input id="joinCode" maxlength="6" placeholder="6자리 코드" style="text-transform:uppercase">
       <button class="btn alt" id="btnJoin">참가하기</button>
@@ -175,7 +193,8 @@
         3. 같은 과일을 합쳐 <b>먼저 수박을 만들면 승리</b> (두 모드 공통)<br>
         4. 상자가 넘치면 탈락 — 전원 탈락 시 승자 없이 종료<br>
         5. 옆에 다른 사람 상자가 실시간으로 보여요 (관전 중엔 눌러서 크게)<br>
-        6. 게임 중에 들어오면 관전 → 다음 판부터 함께해요
+        6. 게임 중에 들어오면 관전 → 다음 판부터 함께해요<br>
+        7. 30초 동안 안 두면 경고, 2번이면 기권 처리돼요 (잠수 방지)
       </div>
     </div>
     <div class="row">
@@ -405,6 +424,9 @@ let myMelons = 0, myBest = 0, myScore = 0, startedAt = 0;
 let isRogue = false;                       // 방 모드
 let relics = [], reached = new Set(), offerQueue = [], insuranceCharges = 0, soldMelons = 0;
 let mergeCount = 0, holdWild = false, fruitScale = 1, shakeUntil = 0, cardsReadyAt = 0;
+let lastActionAt = 0, afkWarns = 0;        // 잠수 방지: 30초 무동작 → 경고, 2번이면 기권
+const AFK_MS = 30000, AFK_MAX = 2;
+let gaveUp = false;
 let gToast = null;                         // 캔버스 안내
 const showToastG = (t, ms) => { gToast = { t, at: performance.now(), ms: ms || 1800 }; };
 const fr = b => b.circleRadius || FRUITS[b.level].r;
@@ -430,6 +452,7 @@ function resetBoard() {
   canDrop = true; myAlive = true; myMelons = 0; myBest = 0; myScore = 0;
   relics = []; reached = new Set(); offerQueue = []; insuranceCharges = 0; soldMelons = 0;
   mergeCount = 0; holdWild = false; fruitScale = 1; shakeUntil = 0;
+  lastActionAt = performance.now(); afkWarns = 0; gaveUp = false;
   $('cards').hidden = true;
   applyCfg();
 }
@@ -442,6 +465,7 @@ function drop() {
   Body.setVelocity(b, { x: 0, y: 4 });
   Composite.add(world, b);
   sfx('drop', { level: current });
+  lastActionAt = performance.now();
   current = null; canDrop = false;
   setTimeout(() => { current = nextQueue.shift(); nextQueue.push(randLevel()); canDrop = true; }, DROP_COOLDOWN);
 }
@@ -533,6 +557,7 @@ function takeRelic(def) {
   if (performance.now() < cardsReadyAt) return;
   $('cards').hidden = true;
   sfx('click');
+  lastActionAt = performance.now();
   if (!def) return;
   if (def.instant) { def.run(); return; }
   let got = relics.find(r => r.def === def);
@@ -805,6 +830,12 @@ function render() {
     if (insuranceCharges > 0) outlined(ctx, '🛡️'.repeat(insuranceCharges), r - 40, b + 14, 15);
     if (soldMelons) outlined(ctx, `💰${soldMelons}`, r - 90, b + 14, 14);
   }
+  if (playing && myAlive && !iSpectate && afkLeft() < 10000) {
+    const sec = Math.ceil(afkLeft() / 1000);
+    ctx.fillStyle = sec <= 5 ? 'rgba(220,60,60,.85)' : 'rgba(90,50,20,.6)';
+    ctx.beginPath(); ctx.roundRect((l + r) / 2 - 95, t + 78, 190, 28, 14); ctx.fill();
+    outlined(ctx, `⏳ ${sec}초 안에 두세요 (경고 ${afkWarns}/${AFK_MAX})`, (l + r) / 2, t + 92, 14);
+  }
   if (gToast && performance.now() - gToast.at < gToast.ms) {
     const p2 = (performance.now() - gToast.at) / gToast.ms;
     ctx.globalAlpha = p2 < 0.8 ? 1 : (1 - p2) / 0.2;
@@ -922,7 +953,7 @@ $('btnJoin').onclick = async () => {
   if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
   const snap = await db.ref(rpath(c)).once('value');
   const r = snap.val();
-  if (!r) return toast('방을 찾을 수 없어요');
+  if (!r) { idxRef(c).remove().catch(() => {}); loadRooms(); return toast('방을 찾을 수 없어요 (목록에서 지웠어요)'); }
   if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
   if (!r.status || !r.host) { db.ref(rpath(c)).remove(); return toast('끊어진 방이에요 — 새로 만들어 주세요'); }
   const k = sanitizeKey(myNick);
@@ -941,6 +972,44 @@ $('btnJoin').onclick = async () => {
   enterRoom();
 };
 
+// ── 방 목록 (games 전체는 규칙상 못 읽어서 sk_rooms 인덱스를 따로 관리) ──
+const idxRef = c => db.ref('games/sk_rooms/' + c);
+function publishRoom() {
+  if (!isHost || !room) return;
+  idxRef(code).set({
+    host: room.players && room.players[room.host] ? room.players[room.host].nick : myNick,
+    mode: room.mode || 'classic',
+    status: room.status || 'lobby',
+    n: Object.keys(room.players || {}).length,
+    at: Date.now()
+  }).catch(() => {});
+}
+function loadRooms() {
+  const el = $('roomList');
+  db.ref('games/sk_rooms').orderByChild('at').limitToLast(12).once('value').then(sn => {
+    const rows = [];
+    sn.forEach(c => { const v = c.val(); if (v && Date.now() - (v.at || 0) < 2 * 3600e3) rows.push({ code: c.key, ...v }); });
+    rows.sort((a, b) => b.at - a.at);
+    if (!rows.length) { el.innerHTML = '<div class="rk-empty">지금 열린 방이 없어요 — 방을 만들어 보세요!</div>'; return; }
+    el.innerHTML = '';
+    rows.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'rm-row';
+      const playing = r.status === 'playing';
+      div.innerHTML = `<span class="rm-code">${r.code}</span>`
+        + `<span class="rm-info">${esc(r.host || '')} <em>· ${r.mode === 'rogue' ? '🎲 로그라이크' : '🍒 클래식'} · ${r.n || 1}명${playing ? ' · 진행 중' : ''}</em></span>`;
+      const b = document.createElement('button');
+      b.className = 'rm-join' + (playing ? ' watch' : '');
+      b.textContent = playing ? '👀 관전' : '참가';
+      b.onclick = () => { $('joinCode').value = r.code; $('btnJoin').click(); };
+      div.appendChild(b);
+      el.appendChild(div);
+    });
+  }).catch(() => { el.innerHTML = '<div class="rk-empty">방 목록을 불러오지 못했어요</div>'; });
+}
+$('btnRefreshRooms').onclick = () => { $('roomList').innerHTML = '<div class="rk-empty">불러오는 중…</div>'; loadRooms(); };
+loadRooms();
+
 function enterRoom() {
   offAll();
   history.replaceState(null, '', location.pathname + '?room=' + code);
@@ -950,6 +1019,7 @@ function enterRoom() {
     if (!room) { toast('방이 종료되었어요'); goHome(); return; }
     isHost = room.host === myKey;
     players = room.players || {};
+    if (isHost) { const sig = `${room.status}|${Object.keys(players).length}|${room.mode}`; if (publishRoom._sig !== sig) { publishRoom._sig = sig; publishRoom(); } }
     if (enterRoom.setDisco) enterRoom.setDisco(room.status === 'lobby');
     if (room.status === 'lobby') { iSpectate = false; show('lobby'); renderLobby(); }
     else if (room.status === 'playing') {
@@ -975,6 +1045,7 @@ function goHome() {
   offAll(); playing = false; stopSync();
   history.replaceState(null, '', location.pathname);
   show('home');
+  loadRooms();
 }
 
 function renderLobby() {
@@ -999,18 +1070,19 @@ $('btnCopy').onclick = () => { navigator.clipboard.writeText(code); toast('코�
 $('btnCopyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '?room=' + code); toast('링크를 복사했어요'); };
 $('btnLeave').onclick = () => {
   if (!confirm('방을 나갈까요?')) return;
-  if (isHost) roomRef().remove(); else meRef().remove();
+  if (isHost) { roomRef().remove(); idxRef(code).remove(); } else meRef().remove();
   goHome();
 };
 $('btnStart').onclick = () => {
   const upd = { status: 'playing', startedAt: Date.now(), winner: null };
   Object.keys(players).forEach(k => {
     upd[`players/${k}/alive`] = true; upd[`players/${k}/best`] = 0; upd[`players/${k}/melons`] = 0;
-    upd[`players/${k}/b`] = ''; upd[`players/${k}/score`] = 0; upd[`players/${k}/spectator`] = false;   // 관전자도 이번 판부터 참가
+    upd[`players/${k}/b`] = ''; upd[`players/${k}/score`] = 0; upd[`players/${k}/spectator`] = false;
+    upd[`players/${k}/gaveUp`] = false;   // 관전자도 이번 판부터 참가
   });
   roomRef().update(upd);
 };
-$('btnQuit').onclick = () => { if (isHost) roomRef().remove(); else meRef().remove(); goHome(); };
+$('btnQuit').onclick = () => { if (isHost) { roomRef().remove(); idxRef(code).remove(); } else meRef().remove(); goHome(); };
 $('btnAgain').onclick = () => {
   $('result').hidden = true;
   if (isHost) roomRef().update({ status: 'lobby', winner: null });
@@ -1027,7 +1099,7 @@ function beginGame() {
   $('result').hidden = true;
   show('game');
   initAudio();
-  meRef().update({ alive: true, best: 0, melons: 0, score: 0, b: '', spectator: false });
+  meRef().update({ alive: true, best: 0, melons: 0, score: 0, b: '', spectator: false, gaveUp: false });
   startSync();
 }
 function startSync() {
@@ -1040,11 +1112,29 @@ function startSync() {
 }
 function stopSync() { if (syncTimer) clearInterval(syncTimer); syncTimer = null; }
 
+// 잠수 방지: 30초 동안 안 두면 경고, 2번이면 기권 처리
+function checkAfk() {
+  const left = AFK_MS - (performance.now() - lastActionAt);
+  if (left > 0) return;
+  afkWarns++;
+  lastActionAt = performance.now();
+  if (afkWarns >= AFK_MAX) {
+    gaveUp = true;
+    showToastG('🏳️ 잠수로 기권 처리됐어요', 3000);
+    toast('30초 무동작 2회 — 기권 처리됐어요');
+    die();
+  } else {
+    showToastG(`⚠️ 잠수 경고 ${afkWarns}/${AFK_MAX} — 30초 안에 두지 않으면 기권`, 3000);
+    sfx('warning');
+  }
+}
+const afkLeft = () => Math.max(0, AFK_MS - (performance.now() - lastActionAt));
+
 function die() {
   if (!myAlive) return;
   myAlive = false;
   sfx('gameover');
-  meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons, score: myScore });
+  meRef().update({ alive: false, gaveUp, b: encodeBoard(), best: myBest, melons: myMelons, score: myScore });
   checkAllEliminated();
 }
 function claimWin() {   // 클래식 전용: 먼저 수박 만들면 승리
@@ -1088,7 +1178,7 @@ function renderArena() {
     if (el.wrap.parentElement !== side) side.appendChild(el.wrap);
     el.key = k;
     el.nm.textContent = p.nick;
-    el.st.innerHTML = (p.alive === false ? '💀 ' : '') + `<b>${(p.score || 0).toLocaleString()}</b>점 · 🍉<b>${p.melons || 0}</b>`
+    el.st.innerHTML = (p.alive === false ? (p.gaveUp ? '🏳️ ' : '💀 ') : '') + `<b>${(p.score || 0).toLocaleString()}</b>점 · 🍉<b>${p.melons || 0}</b>`
       + (p.rl ? `<br><span style="font-size:11px">${p.rl}</span>` : '');
     el.wrap.classList.toggle('dead', p.alive === false);
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
@@ -1151,6 +1241,7 @@ setInterval(() => {
   acc += Math.min(now - last, 100); last = now;
   while (acc >= STEP) { if (playing && myAlive) Engine.update(engine, STEP); acc -= STEP; }
   if (playing && myAlive) checkOffer();
+  if (playing && myAlive && $('cards').hidden) checkAfk();
   if ($('game').classList.contains('active')) {
     if (resizeBoard.w !== window.innerWidth || resizeBoard.h !== window.innerHeight) {
       resizeBoard.w = window.innerWidth; resizeBoard.h = window.innerHeight; resizeBoard();
@@ -1159,7 +1250,7 @@ setInterval(() => {
   }
 }, STEP);
 
-window.suikaOnline = { get state() { return { code, myKey, isHost, playing, myAlive, myMelons, myBest, players, room }; }, drop, roomRef, die };
+window.suikaOnline = { get state() { return { code, myKey, isHost, playing, myAlive, myMelons, myBest, myScore, isRogue, relics, players, room, afkWarns, afkLeft: afkLeft(), gaveUp }; }, drop, roomRef, die, loadRooms };
 </script>
 </body>
 </html>
