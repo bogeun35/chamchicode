@@ -281,6 +281,25 @@ body::after {
   color: var(--text-dim);
   line-height: 1.5;
 }
+/* 카드마다 직접 링크 (추천·공유용) */
+.card-link {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-glass);
+  font-size: .68rem; color: var(--text-dim);
+}
+.card-link .u { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .75; }
+.card-link button {
+  flex: none; border: 1px solid var(--border-glass); background: rgba(255,255,255,.08);
+  color: var(--text-primary); border-radius: 999px; padding: 3px 9px; font-size: .68rem;
+  cursor: pointer; font-family: inherit;
+}
+.card-link button:hover { background: rgba(255,255,255,.18); }
+#linkToast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(16px);
+  background: rgba(20,20,28,.92); color: #fff; padding: 9px 16px; border-radius: 999px;
+  font-size: .8rem; opacity: 0; transition: .25s; pointer-events: none; z-index: 9999;
+}
+#linkToast.show { opacity: 1; transform: translateX(-50%); }
 
 /* iframe container */
 .page-frame {
@@ -706,6 +725,36 @@ addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
   const w = activeGameWin(); if (w && w.__gameSpeed) w.__gameSpeed.step(e.code === 'BracketRight' ? 1 : -1);
 });
+
+// ── 각 게임의 직접 링크: 카드에 주소 + 복사 버튼 (추천할 때 쓰라고) ──
+(function addCardLinks() {
+  const toast = document.createElement('div');
+  toast.id = 'linkToast';
+  document.body.appendChild(toast);
+  window.__linkToast = m => { toast.textContent = m; toast.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2000); };
+  document.querySelectorAll('.landing-card').forEach(card => {
+    const m = (card.getAttribute('onclick') || '').match(/navigate\('([^']+)'\)/);
+    if (!m) return;
+    const fr = document.getElementById('iframe-' + m[1]);
+    const src = fr && (fr.dataset.src || fr.getAttribute('src'));
+    if (!src) return;
+    const url = new URL(src, location.href).href;
+    const bar = document.createElement('div');
+    bar.className = 'card-link';
+    bar.innerHTML = '<span class="u">' + url.replace(/^https?:\/\//, '') + '</span>';
+    const btn = document.createElement('button');
+    btn.textContent = '🔗 복사';
+    btn.title = '이 게임 주소 복사';
+    btn.onclick = e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(url).then(() => window.__linkToast('링크를 복사했어요: ' + url))
+        .catch(() => window.__linkToast(url));
+    };
+    bar.appendChild(btn);
+    bar.onclick = e => e.stopPropagation();
+    card.appendChild(bar);
+  });
+})();
 
 function navigate(page) {
   currentPage = page;

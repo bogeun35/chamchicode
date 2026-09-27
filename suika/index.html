@@ -18,27 +18,20 @@
   }
   #gameBox { position: relative; }
   #game { display: block; cursor: crosshair; touch-action: none; }
-  #menuBtn {
-    position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
-    padding: 5px 14px; border: 3px solid #fff; border-radius: 999px;
-    background: #ffefd0; color: #8a5a2a; font-size: 15px; font-family: inherit;
-    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
+  #bottomBar {
+    position: absolute; left: 0; right: 0; bottom: 6px;
+    display: flex; justify-content: center; align-items: center; gap: 6px;
+    padding: 0 8px; flex-wrap: nowrap;
   }
-  #menuBtn:hover { background: #fff; }
-  #menuBtn:active { transform: translate(-50%, 2px); box-shadow: 0 1px 0 #9c6532; }
-  #muteBtn {
-    position: absolute; right: 14px; bottom: 6px; width: 38px; height: 38px;
-    border: 3px solid #fff; border-radius: 50%; background: #ffefd0; font-size: 18px;
-    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
+  #bottomBar button {
+    border: 3px solid #fff; border-radius: 999px; background: #ffefd0; color: #8a5a2a;
+    font-size: 14px; font-family: inherit; padding: 5px 12px; height: 36px;
+    cursor: pointer; box-shadow: 0 3px 0 #9c6532; white-space: nowrap; flex: none;
   }
-  #muteBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
-  #codexBtn {
-    position: absolute; left: 14px; bottom: 6px;
-    padding: 5px 12px; border: 3px solid #fff; border-radius: 999px;
-    background: #ffefd0; color: #8a5a2a; font-size: 14px; font-family: inherit;
-    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
-  }
-  #codexBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+  #bottomBar button:hover { background: #fff; }
+  #bottomBar button:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+  #bottomBar .ic { width: 36px; padding: 0; font-size: 17px; }
+  #menuBtn { font-size: 15px; padding: 5px 16px; }
   #codex { justify-content: flex-start; padding: 14px 10px; gap: 8px; background: rgba(90,50,20,.93); }
   #codex .cx-wrap { width: 100%; max-height: calc(100% - 60px); overflow-y: auto; padding: 0 4px; text-align: left; }
   #codex h3 { font-size: 16px; margin: 10px 0 6px; text-shadow: 2px 2px 0 #9a5a2a; }
@@ -110,14 +103,6 @@
   .card .ds { font-size: 12px; color: #9a7a5a; margin-top: 6px; line-height: 1.4; }
   .card .key { font-size: 11px; color: #c9a06a; margin-top: 6px; }
   .card .lv { font-size: 12px; color: #fff; background: #ff9f43; border-radius: 8px; padding: 1px 6px; vertical-align: middle; }
-  #fsBtn, #rankBtn {
-    position: absolute; bottom: 6px; width: 38px; height: 38px;
-    border: 3px solid #fff; border-radius: 50%; background: #ffefd0; font-size: 17px;
-    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
-  }
-  #fsBtn { right: 58px; }
-  #rankBtn { left: 58px; width: auto; padding: 0 12px; border-radius: 999px; font-size: 14px; color: #8a5a2a; font-family: inherit; }
-  #fsBtn:active, #rankBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
   /* 순위표 */
   #rank .rk-wrap { width: min(440px, 92vw); max-height: 60vh; overflow-y: auto; background: rgba(255,255,255,.12); border-radius: 16px; padding: 8px; }
   .rk-row { display: flex; align-items: center; gap: 6px; font-size: 14px; padding: 6px; border-radius: 10px; color: #fff; }
@@ -137,9 +122,10 @@
   }
   #rankForm input:focus { outline: none; border-color: #ff9f68; }
   @media (max-width: 520px) {
-    #menuBtn, #codexBtn, #rankBtn { font-size: 13px; padding: 4px 10px; }
-    #rankBtn { left: 52px; }
-    #fsBtn { right: 52px; }
+    #bottomBar { gap: 4px; padding: 0 4px; }
+    #bottomBar button { font-size: 12px; padding: 4px 8px; height: 32px; }
+    #bottomBar .ic { width: 32px; font-size: 15px; }
+    #menuBtn { font-size: 13px; padding: 4px 12px; }
     .overlay h1 { font-size: 34px; }
     .modes { flex-direction: column; gap: 10px; }
     .mode { width: 210px; }
@@ -154,11 +140,13 @@
 <body>
 <div id="gameBox">
   <canvas id="game"></canvas>
-  <button id="menuBtn">메뉴</button>
-  <button id="muteBtn" title="소리 켜기/끄기">🔊</button>
-  <button id="codexBtn" title="유물 족보 (Tab)">📖 족보</button>
-  <button id="rankBtn" title="이번 주 순위표">🏆 순위</button>
-  <button id="fsBtn" title="전체화면">⛶</button>
+  <div id="bottomBar">
+    <button id="codexBtn" title="유물 족보 (Tab)">📖 족보</button>
+    <button id="rankBtn" title="이번 주 순위표">🏆 순위</button>
+    <button id="menuBtn">메뉴</button>
+    <button id="fsBtn" class="ic" title="전체화면">⛶</button>
+    <button id="muteBtn" class="ic" title="소리 켜기/끄기">🔊</button>
+  </div>
 
   <div id="rank" class="overlay" hidden>
     <h2>🏆 이번 주 순위표</h2>
@@ -342,9 +330,10 @@
 
   let scale = 1;
   function resize() {
-    const maxH = window.innerHeight - 16;
-    const maxW = window.innerWidth - 16;
-    scale = Math.min(1, maxH / H, maxW / W);
+    const narrow = window.innerWidth <= 700;          // 모바일: 좌우 여백 없이 꽉 차게
+    const maxH = window.innerHeight - (narrow ? 0 : 16);
+    const maxW = window.innerWidth - (narrow ? 0 : 16);
+    scale = Math.min(narrow ? 3 : 1, maxH / H, maxW / W);
     canvas.width = W * devicePixelRatio * scale;
     canvas.height = H * devicePixelRatio * scale;
     canvas.style.width = W * scale + 'px';
@@ -492,7 +481,7 @@
     const w = BOX_W * cfg.boxScale;
     BOX.l = Math.max(12, Math.round(BOX_CX - w / 2));   // 왼쪽 여백은 12px 이상
     BOX.r = BOX.l + Math.round(w);
-    W = Math.max(600, BOX.r + 100);                    // 창고가 오른쪽으로 밀리며 캔버스가 넓어짐
+    W = BOX.r + 16;                                    // 창고를 아래로 내려서 오른쪽 여백이 필요 없다
     resize();
     BOX.t = BOX_T_BASE - Math.max(-60, Math.min(60, cfg.ceilingOffset));
     buildWalls();
@@ -1148,27 +1137,20 @@
     ctx.restore();
   }
 
-  // 오른쪽 창고: 판매한 수박 진열 — 상자와 구분되게 진한 나무 선반
+  // 창고: 판매한 수박 — 상자 아래 한 줄 (오른쪽 세로 패널 없앰)
   function drawShelf() {
-    const sl = BOX.r + 14, sr = sl + 76, st = BOX.t - RIM, sb = BOX.b;
-    ctx.fillStyle = '#8f5a2b'; ctx.fillRect(sl, st, sr - sl, sb - st);            // 진한 나무판
-    ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(sl, st, 6, sb - st); ctx.fillRect(sr - 6, st, 6, sb - st);
-    ctx.strokeStyle = '#5c3a1a'; ctx.lineWidth = 4;
-    ctx.strokeRect(sl, st, sr - sl, sb - st);
-    // 라벨 칩
-    ctx.fillStyle = '#ffefd0';
-    ctx.beginPath(); ctx.roundRect(sl + 6, st + 6, sr - sl - 12, 40, 8); ctx.fill();
-    ctx.fillStyle = '#6a3a1a'; ctx.font = '13px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('창고', (sl + sr) / 2, st + 18);
-    ctx.fillText(`💰 ${soldMelons}`, (sl + sr) / 2, st + 35);
-    // 선반 + 수박 (아래부터 채움, 최대 12개 표시)
-    const top = st + 54, slots = 12, cellH = (sb - top - 6) / slots;
-    for (let i = 0; i < slots; i++) {
-      const y = sb - 6 - i * cellH - cellH / 2;
-      ctx.fillStyle = '#d9a066'; ctx.fillRect(sl + 8, y + cellH / 2 - 3, sr - sl - 16, 4);   // 선반 판
-      if (i < Math.min(slots, soldMelons)) drawFruit(ctx, (sl + sr) / 2, y - 1, 10, 0, (cellH / 2 - 3) / FRUITS[10].r);
-    }
-    if (soldMelons > slots) outlinedText(`+${soldMelons - slots}`, (sl + sr) / 2, top + 8, 12);
+    if (!soldMelons) return;
+    const y = BOX.b + 20, h = 28;      // 유물 아이콘 줄과 같은 높이, 오른쪽 빈 자리
+    const shown = Math.min(5, soldMelons);
+    const w = 72 + shown * 22 + (soldMelons > 5 ? 22 : 0);
+    const x0 = Math.max(BOX_CX + 20, BOX.r - w);
+    ctx.fillStyle = '#8f5a2b';
+    ctx.beginPath(); ctx.roundRect(x0, y - h / 2, w, h, 10); ctx.fill();
+    ctx.strokeStyle = '#5c3a1a'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = '#ffe9c4'; ctx.font = '12px Jua, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText('창고 💰' + soldMelons, x0 + 9, y + 1);
+    for (let i = 0; i < shown; i++) drawFruit(ctx, x0 + 68 + i * 22, y, 10, 0, 9 / FRUITS[10].r);
+    if (soldMelons > 5) { ctx.fillStyle = '#ffe9c4'; ctx.fillText('+' + (soldMelons - 5), x0 + 68 + shown * 22 - 4, y + 1); }
   }
 
   function drawBox() {
@@ -1211,35 +1193,37 @@
     bubble(75, 68, 34 + pulse * 6);
     outlinedText(`🍉${melons}`, 75, 70, 24 + pulse * 4);
     outlinedText(`${score}점 · Best 🍉${curBest().melons}`, 75, 113, 12);
-    outlinedText('현재 › 다음', 375, 24, 17);
-    pill(300, 42, 150, 52, 26);
+    const npR = BOX.r - 6, npW = Math.min(196, BOX.r - 300), npL = npR - npW;   // 우측: Next
+    outlinedText('현재 › 다음', (npL + npR) / 2, 22, 17);
+    pill(npL, 38, npW, 62, 31);
     // 맨 왼쪽 = 지금 손에 든 과일(크게, 밝은 칩), 그 다음부터 Next 순서
     const shown = [current !== null ? current : nextQueue[0], ...(current !== null ? nextQueue : nextQueue.slice(1))].slice(0, 6);
     const n = shown.length;
-    const left = 322, right = 436, gap = n > 1 ? (right - left) / (n - 1) : 0;
+    const cy = 69, left = npL + 32, right = npR - 26, gap = n > 1 ? (right - left) / (n - 1) : 0;
     for (let i = 0; i < n; i++) {
       const lv = shown[i], x = left + i * gap;
-      const size = i === 0 ? 21 : Math.max(8, 16 - (i - 1) * 2 - (n > 4 ? 2 : 0));
+      const size = i === 0 ? 26 : Math.max(10, 20 - (i - 1) * 2 - (n > 4 ? 2 : 0));
       if (i === 0) {   // 현재: 칩 배경
         ctx.fillStyle = 'rgba(255,255,255,.55)';
-        ctx.beginPath(); ctx.arc(x, 68, 24, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x, cy, 29, 0, Math.PI * 2); ctx.fill();
       }
-      if (i === 0 && holdWild) drawFruit(ctx, x, 68, 0, 0, size / FRUITS[0].r, true);
-      else drawFruit(ctx, x, 68, lv, 0, Math.min(1, size / FRUITS[lv].r));
+      if (i === 0 && holdWild) drawFruit(ctx, x, cy, 0, 0, size / FRUITS[0].r, true);
+      else drawFruit(ctx, x, cy, lv, 0, Math.min(1, size / FRUITS[lv].r));
       if (i === 0 && n > 1) {
         ctx.fillStyle = 'rgba(255,255,255,.9)';
-        ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', x + gap / 2, 68);
+        ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('›', x + gap / 2, cy);
       }
     }
     // 가운데 상단 (x 130~290): 시간·수박 / 다음 유물 게이지 — 이 아래(100~240)는 구름 전용으로 비움
-    outlinedText(`⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}`, 230, 20, 14);
+    const midX = (140 + npL) / 2;                                               // 중앙: 시간 · 다음 유물
+    outlinedText(mode === 'rogue' ? `⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}` : `⏱ ${fmtTime(runTime)}`, midX, 20, 14);
     if (mode === 'rogue') {
-      const gw = 160, gh = 20, gx = 230 - gw / 2, gy = 36;
+      const gw = Math.min(150, npL - 150), gh = 20, gx = midX - gw / 2, gy = 36;
       pill(gx, gy, gw, gh, 10);
-      outlinedText(`🎁 다음 유물: ${nextRelicHint()}`, 230, gy + gh / 2 + 1, 12);
+      outlinedText(`🎁 ${nextRelicHint()}`, midX, gy + gh / 2 + 1, 12);
     }
-    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), 230, 68, 15);
+    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), midX, 68, 15);
 
     // 흔들기 중이면 상자째로 살짝 흔들림
     const shakeNow = performance.now();
@@ -1247,7 +1231,7 @@
     ctx.save();
     ctx.translate(shakeOff, 0);
     drawBox();
-    if (mode === 'rogue') drawShelf();
+    if (mode === 'rogue') drawShelf();   // 상자 아래 한 줄
 
     // 게임오버 선 (위험하면 빨갛게 깜빡)
     const blink = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 120) : 0;
