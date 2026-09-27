@@ -451,11 +451,12 @@ function render() {
   ctx.fillStyle = 'rgba(255,255,255,.4)';
   ctx.beginPath(); ctx.roundRect(28, 22, 140, 52, 24); ctx.fill();
   ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
-  const shown = [current !== null ? current : nextQueue[0], ...(current !== null ? nextQueue : nextQueue.slice(1))].slice(0, 3);
+  const shown = [current !== null ? current : nextQueue[0], ...(current !== null ? nextQueue : nextQueue.slice(1))]
+    .slice(0, 3).filter(lv => FRUITS[lv]);      // 방이 사라져 큐가 빈 경우 방어
   for (let i = 0; i < shown.length; i++) drawFruit(ctx, nx[i], 48, shown[i], 0, Math.min(1, nk[i] / FRUITS[shown[i]].r));
   outlined(ctx, '현재 › 다음', 98, 12, 13);
   outlined(ctx, `🍉 ${myMelons}`, 260, 26, 20);
-  outlined(ctx, `최고: ${FRUITS[myBest].name}`, 400, 26, 15);
+  outlined(ctx, `최고: ${(FRUITS[myBest] || FRUITS[0]).name}`, 400, 26, 15);
 
   // 상자
   const { l, r, t, b } = BOX;

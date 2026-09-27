@@ -755,7 +755,7 @@ addEventListener('keydown', e => {
 })();
 
 // 허브 주소 하나로 각 게임을 열 수 있게: /chamchicode/?game=suika
-const hubBase = () => location.pathname.replace(/index\.html$/, '');      // .../chamchicode/ 형태로
+function hubBase() { return location.pathname.replace(/index\.html$/, ''); }   // .../chamchicode/ 형태로 (const 로 두면 위쪽 IIFE 에서 TDZ 에러)
 function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
 function navigate(page, fromHistory) {
