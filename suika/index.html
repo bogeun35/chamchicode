@@ -221,9 +221,9 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  let W = 600; const H = 900;                   // 게임 좌표계 (오른쪽 = 수박 창고; 상자가 커지면 W 도 늘어남)
+  let W = 600; const H = 990;                   // 게임 좌표계 (상자 470×610 + 위 HUD + 아래 유물/진화 줄)
   const BOX_W = 470, BOX_CX = 250;              // 상자 기본 폭 / 중심 (원작 비율: 수박 지름 = 폭의 59%)
-  const BOX = { l: 15, r: 485, t: 260, b: 780 };  // 상자 안쪽 영역 (470×520; l/r 은 상자 폭에 따라 바뀜)
+  const BOX = { l: 15, r: 485, t: 260, b: 870 };  // 상자 안쪽 영역 (470×610 — 원작 비율 0.77; l/r 은 상자 폭에 따라 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const BOX_T_BASE = 260;                       // 상자 윗변 기본값 (천장 유물/저주로 BOX.t 가 오르내림)
@@ -1352,11 +1352,11 @@
     // 진화 순서
     let ex = 34;
     for (let i = 0; i < FRUITS.length; i++) {
-      drawFruit(ctx, ex, 838, i, 0, 12 / FRUITS[i].r);
+      drawFruit(ctx, ex, 928, i, 0, 12 / FRUITS[i].r);
       if (i < FRUITS.length - 1) {
         ctx.fillStyle = 'rgba(255,255,255,.7)';
         ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('›', ex + 20, 838);
+        ctx.fillText('›', ex + 20, 928);
       }
       ex += 40;
     }
