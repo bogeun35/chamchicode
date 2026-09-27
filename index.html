@@ -76,6 +76,7 @@ body::after {
 }
 
 .lnb-header {
+  position: relative;
   padding: 28px 22px 20px;
   border-bottom: 1px solid var(--border-glass);
 }
@@ -99,10 +100,57 @@ body::after {
 
 .lnb-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 12px 12px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  overflow-y: auto;                 /* 항목이 많아 스크롤 필요 */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.22) transparent;
+  cursor: grab;                     /* 드래그로도 스크롤 */
+}
+.lnb-nav.dragging { cursor: grabbing; scroll-behavior: auto; }
+.lnb-nav::-webkit-scrollbar { width: 8px; }
+.lnb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 4px; }
+.lnb-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
+.lnb-nav::-webkit-scrollbar-track { background: transparent; }
+
+/* 아코디언 대분류 */
+.nav-group { display: flex; flex-direction: column; }
+.nav-group-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; margin-top: 6px;
+  border-radius: 10px; cursor: pointer; user-select: none;
+  font-size: .78rem; font-weight: 700; letter-spacing: .03em;
+  color: var(--text-dim); transition: background .15s, color .15s;
+}
+.nav-group-head:hover { background: rgba(255,255,255,.06); color: var(--text-primary); }
+.nav-group-head .arrow { margin-left: auto; font-size: .7rem; transition: transform .2s; opacity: .7; }
+.nav-group.closed .arrow { transform: rotate(-90deg); }
+.nav-group-head .cnt { font-size: .68rem; opacity: .6; }
+.nav-group-body { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.nav-group.closed .nav-group-body { display: none; }
+.nav-group.has-active .nav-group-head { color: var(--text-primary); }
+
+/* LNB 닫기 / 열기 */
+.lnb-close {
+  position: absolute; top: 18px; right: 14px;
+  width: 30px; height: 30px; border: 0; border-radius: 9px;
+  background: rgba(255,255,255,.08); color: var(--text-dim);
+  font-size: 15px; cursor: pointer; line-height: 1;
+}
+.lnb-close:hover { background: rgba(255,255,255,.18); color: var(--text-primary); }
+body.lnb-hidden .lnb { transform: translateX(-100%); }
+body.lnb-hidden .main { margin-left: 0; }
+body.lnb-hidden .lnb-open-btn { display: flex; }
+.lnb-open-btn {
+  display: none; position: fixed; top: 16px; left: 16px; z-index: 120;
+  width: 42px; height: 42px; border: 0; border-radius: 12px;
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass); color: var(--text-primary);
+  font-size: 18px; cursor: pointer; align-items: center; justify-content: center;
 }
 
 .nav-section-label {
@@ -339,9 +387,11 @@ body::after {
 <!-- Mobile Toggle -->
 <div class="mobile-toggle" id="mobileToggle" onclick="toggleLNB()">☰</div>
 <div class="lnb-overlay" id="lnbOverlay" onclick="toggleLNB()"></div>
+<button class="lnb-open-btn" id="lnbOpen" title="메뉴 열기">☰</button>
 
 <!-- LNB -->
 <nav class="lnb" id="lnb">
+  <button class="lnb-close" id="lnbClose" title="메뉴 닫기">✕</button>
   <div class="lnb-header">
     <div class="lnb-logo">참스코드</div>
     <div class="lnb-subtitle">CHARMS CODE HUB</div>
@@ -758,6 +808,90 @@ addEventListener('keydown', e => {
 function hubBase() { return location.pathname.replace(/index\.html$/, ''); }   // .../chamchicode/ 형태로 (const 로 두면 위쪽 IIFE 에서 TDZ 에러)
 function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
+// ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
+const NAV_GROUPS = [
+  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline'] },
+  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'arcade', 'tuna', 'rock', 'mine', 'shell'] },
+  { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
+  { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },
+];
+(function buildNavGroups() {
+  const nav = document.querySelector('.lnb-nav');
+  if (!nav) return;
+  const itemOf = {};
+  nav.querySelectorAll('.nav-item').forEach(el => { if (el.dataset.page) itemOf[el.dataset.page] = el; });
+  const used = new Set(['home']);
+  const open = (() => { try { return JSON.parse(localStorage.getItem('hub_nav_open') || 'null'); } catch (e) { return null; } })();
+  NAV_GROUPS.forEach(g => {
+    const items = g.pages.map(k => itemOf[k]).filter(Boolean);
+    if (!items.length) return;
+    items.forEach(el => used.add(el.dataset.page));
+    const box = document.createElement('div');
+    box.className = 'nav-group';
+    box.dataset.key = g.key;
+    const head = document.createElement('div');
+    head.className = 'nav-group-head';
+    head.innerHTML = `<span>${g.label}</span><span class="cnt">${items.length}</span><span class="arrow">▼</span>`;
+    const body = document.createElement('div');
+    body.className = 'nav-group-body';
+    items.forEach(el => body.appendChild(el));
+    box.appendChild(head); box.appendChild(body);
+    nav.appendChild(box);
+    const closed = open ? open[g.key] === false : false;
+    if (closed) box.classList.add('closed');
+    head.onclick = () => {
+      box.classList.toggle('closed');
+      const st = {};
+      document.querySelectorAll('.nav-group').forEach(b => { st[b.dataset.key] = !b.classList.contains('closed'); });
+      try { localStorage.setItem('hub_nav_open', JSON.stringify(st)); } catch (e) {}
+    };
+  });
+  // 분류에 없는 항목은 '기타' 로 (나중에 추가된 게임도 안 사라지게)
+  const rest = [...nav.querySelectorAll(':scope > .nav-item')].filter(el => el.dataset.page && !used.has(el.dataset.page));
+  if (rest.length) {
+    const box = document.createElement('div');
+    box.className = 'nav-group'; box.dataset.key = 'rest';
+    box.innerHTML = `<div class="nav-group-head"><span>✨ 그 밖에</span><span class="cnt">${rest.length}</span><span class="arrow">▼</span></div>`;
+    const body = document.createElement('div');
+    body.className = 'nav-group-body';
+    rest.forEach(el => body.appendChild(el));
+    box.appendChild(body);
+    nav.appendChild(box);
+    box.querySelector('.nav-group-head').onclick = () => box.classList.toggle('closed');
+  }
+  // 드래그로 스크롤
+  let down = false, sy = 0, st0 = 0, moved = 0;
+  nav.addEventListener('pointerdown', e => {
+    if (e.target.closest('.nav-group-head')) return;
+    down = true; moved = 0; sy = e.clientY; st0 = nav.scrollTop;
+  });
+  nav.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dy = e.clientY - sy;
+    if (Math.abs(dy) > 4) { nav.classList.add('dragging'); moved = Math.abs(dy); nav.scrollTop = st0 - dy; }
+  });
+  const end = () => { down = false; nav.classList.remove('dragging'); setTimeout(() => { moved = 0; }, 0); };
+  nav.addEventListener('pointerup', end);
+  nav.addEventListener('pointercancel', end);
+  nav.addEventListener('pointerleave', end);
+  nav.addEventListener('click', e => { if (moved > 6) { e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+// 현재 페이지가 든 그룹은 펼쳐 둔다
+function revealNavGroup(page) {
+  const el = document.querySelector(`.nav-item[data-page="${page}"]`);
+  const box = el && el.closest('.nav-group');
+  document.querySelectorAll('.nav-group').forEach(b => b.classList.toggle('has-active', b === box));
+  if (box && box.classList.contains('closed')) box.classList.remove('closed');
+}
+document.getElementById('lnbClose').onclick = () => {
+  if (window.innerWidth <= 768) toggleLNB();
+  else document.body.classList.add('lnb-hidden');
+};
+document.getElementById('lnbOpen').onclick = () => {
+  document.body.classList.remove('lnb-hidden');
+  if (window.innerWidth <= 768) toggleLNB();
+};
+
 function navigate(page, fromHistory) {
   currentPage = page;
   // 주소 갱신 (뒤로가기도 동작)
@@ -792,6 +926,7 @@ function navigate(page, fromHistory) {
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.page === page);
   });
+  revealNavGroup(page);
 
   // Close mobile LNB
   if (window.innerWidth <= 768) {
