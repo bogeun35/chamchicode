@@ -315,10 +315,10 @@ const SHOP_MS = 25000;    // 상점 + 투표 시간
 const W = 1280, H = 800;                       // 아레나 (월드 좌표)
 const BASE = { x: W / 2, y: H / 2, r: 66 };
 const DIFF = {
-  easy:   { name: '쉬움',   hpMul: 0.8,  spdMul: 0.95, cntMul: 0.85, baseHp: 1000, money: 1.2 },
+  easy:   { name: '쉬움',   hpMul: 0.62, spdMul: 0.88, cntMul: 0.65, baseHp: 1100, money: 1.2 },
   normal: { name: '보통',   hpMul: 1,    spdMul: 1,    cntMul: 1,    baseHp: 750,  money: 1 },
-  hard:   { name: '어려움', hpMul: 1.3,  spdMul: 1.12, cntMul: 1.3,  baseHp: 550,  money: 0.85 },
-  hell:   { name: '지옥',   hpMul: 1.7,  spdMul: 1.25, cntMul: 1.6,  baseHp: 400,  money: 0.8 },
+  hard:   { name: '어려움', hpMul: 1.35, spdMul: 1.14, cntMul: 1.35, baseHp: 550,  money: 0.85 },
+  hell:   { name: '지옥',   hpMul: 1.9,  spdMul: 1.3,  cntMul: 1.75, baseHp: 400,  money: 0.8 },
 };
 // 총: dmg 피해 / rate 초당 발사 / spd 탄속 / rng 사거리 / n 동시발사 / spread 퍼짐 / pierce 관통 / mag 탄창 / rl 재장전초
 const GUNS = [
@@ -556,19 +556,19 @@ function colorOf(k) {
 
 /* ═══════════ 웨이브 ═══════════ */
 const ZTYPES = {
-  walker:  { ic: 0, hp: 24,   spd: 48, dmg: 9,  r: 14, money: 6,   color: '#6f9e5e', eye: '#d8ff7a', hunt: 70,
+  walker:  { ic: 0, hp: 24,   spd: 57, dmg: 9,  r: 14, money: 6,   color: '#6f9e5e', eye: '#d8ff7a', hunt: 135,
              nm: '워커',     from: 1,  tip: '기지만 보고 간다. 앞을 막아서지 않으면 널 쫓지 않는다.' },
-  runner:  { ic: 1, hp: 17,   spd: 96, dmg: 7,  r: 12, money: 8,   color: '#b3cf62', eye: '#fff17a', hunt: 340,
+  runner:  { ic: 1, hp: 17,   spd: 114, dmg: 7, r: 12, money: 8,   color: '#b3cf62', eye: '#fff17a', hunt: 380,
              nm: '러너',     from: 3,  tip: '사람을 집요하게 쫓아온다. 두 배로 빠르니 먼저 정리할 것.' },
-  armored: { ic: 5, hp: 70,   spd: 44, dmg: 14, r: 16, money: 20,  color: '#8a8f9e', eye: '#ff8f5e', armor: 0.25, hunt: 85,
+  armored: { ic: 5, hp: 70,   spd: 52, dmg: 14, r: 16, money: 20,  color: '#8a8f9e', eye: '#ff8f5e', armor: 0.25, hunt: 145,
              nm: '무장좀비', from: 5,  tip: '앞면 철판이 총알을 75% 튕겨낸다. 뒤로 돌아가거나 근접·폭발로.' },
-  tank:    { ic: 2, hp: 150,  spd: 31, dmg: 26, r: 25, money: 30,  color: '#5c87a8', eye: '#8ff0ff', hunt: 80,
+  tank:    { ic: 2, hp: 150,  spd: 37, dmg: 26, r: 25, money: 30,  color: '#5c87a8', eye: '#8ff0ff', hunt: 140,
              nm: '대형좀비', from: 7,  tip: '기지를 부수러 온다. 느리고 단단하고 한 대가 아프다.' },
-  spitter: { ic: 3, hp: 32,   spd: 42, dmg: 12, r: 15, money: 20,  color: '#9a6bbf', eye: '#ffa2f0', ranged: 215, hunt: 260,
+  spitter: { ic: 3, hp: 32,   spd: 50, dmg: 12, r: 15, money: 20,  color: '#9a6bbf', eye: '#ffa2f0', ranged: 215, hunt: 300,
              nm: '스피터',   from: 9,  tip: '멀리서 침을 뱉는다. 가만히 서 있으면 계속 맞는다.' },
-  bomber:  { ic: 6, hp: 26,   spd: 74, dmg: 10, r: 15, money: 24,  color: '#c96a3a', eye: '#ff4d2e', boom: 100, hunt: 330,
+  bomber:  { ic: 6, hp: 26,   spd: 90, dmg: 10, r: 15, money: 24,  color: '#c96a3a', eye: '#ff4d2e', boom: 100, hunt: 360,
              nm: '폭발좀비', from: 12, tip: '사람에게 달려와 터진다. 붙기 전에 멀리서 잡을 것.' },
-  boss:    { ic: 4, hp: 1000, spd: 28, dmg: 52, r: 38, money: 220, color: '#b8455f', eye: '#ffd166', hunt: 150,
+  boss:    { ic: 4, hp: 1000, spd: 33, dmg: 52, r: 38, money: 220, color: '#b8455f', eye: '#ffd166', hunt: 230,
              nm: '보스',     from: 5,  tip: '5웨이브마다 등장. 기지를 노린다. 체력바가 화면 위에 뜬다.' },
 };
 // 웨이브가 갈수록 구성이 계속 바뀌도록 가중치를 램프로 준다
@@ -587,18 +587,18 @@ function waveSpec(n) {
   // 위협량을 인원수보다 살짝 더 올린다 (8인이면 1인당 부담도 조금 더 무겁게).
   // 대신 보상을 더 얹어서 "여럿이면 더 힘들지만 더 번다" 가 되게 한다.
   const T = 1 + (np - 1) * 1.05;
-  let count = Math.round((7 + n * 2.4) * d.cntMul * Math.pow(T, 0.72));
-  const cap = 60 + 14 * np;                           // 한 웨이브에 나올 수 있는 최대 마릿수
+  let count = Math.round((11 + n * 3.4) * d.cntMul * Math.pow(T, 0.72));
+  const cap = 80 + 16 * np;                           // 한 웨이브에 나올 수 있는 최대 마릿수
   let tough = Math.pow(T, 0.28);                      // 나머지 위협은 개체를 단단하게
   if (count > cap) { tough *= count / cap; count = cap; }
-  const hpMul = Math.pow(1.115, n - 1) * d.hpMul * tough;
-  const spdMul = (1 + Math.min(0.55, n * 0.013)) * d.spdMul;
+  const hpMul = Math.pow(1.125, n - 1) * d.hpMul * tough;
+  const spdMul = (1 + Math.min(0.75, n * 0.016)) * d.spdMul;
   const boss = n % 5 === 0;
   // 단단한 놈일수록 값어치도 크고, 여럿이 하면 인원수 보너스가 더 붙는다
   const partyBonus = 1 + 0.03 * (np - 1);
   return { count, hpMul, spdMul, boss, np, tough, partyBonus, rewardMul: tough * partyBonus };
 }
-function zDmg(type) { return ZTYPES[type].dmg * (1 + wave * 0.04); }
+function zDmg(type) { return ZTYPES[type].dmg * (1 + wave * 0.05); }
 function pickZType(n) {
   const pool = SPAWN.filter(o => n >= ZTYPES[o.t].from);
   let total = 0;
@@ -614,14 +614,16 @@ function waveMix(n) {
   const ws = pool.map(o => { const w = Math.max(0, o.w(n)); total += w; return w; });
   return pool.map((o, i) => ({ t: o.t, pct: Math.round(ws[i] / total * 100) })).filter(o => o.pct > 0);
 }
-function spawnZombie(type, spec) {
+function spawnZombie(type, spec, edge, at) {
   const t = ZTYPES[type];
-  const edge = Math.floor(Math.random() * 4);
+  if (edge === undefined) edge = Math.floor(Math.random() * 4);
+  if (at === undefined) at = Math.random();
+  at = clamp(at, 0, 1);
   let x, y;
-  if (edge === 0) { x = rnd(0, W); y = -30; }
-  else if (edge === 1) { x = W + 30; y = rnd(0, H); }
-  else if (edge === 2) { x = rnd(0, W); y = H + 30; }
-  else { x = -30; y = rnd(0, H); }
+  if (edge === 0) { x = at * W; y = -30; }
+  else if (edge === 1) { x = W + 30; y = at * H; }
+  else if (edge === 2) { x = at * W; y = H + 30; }
+  else { x = -30; y = at * H; }
   const hp = t.hp * (type === 'boss' ? spec.hpMul * 0.6 : spec.hpMul);
   zs.push({
     id: Math.random().toString(36).slice(2, 8), t: type, x, y, hp, maxHp: hp,
@@ -638,15 +640,21 @@ function hostStep(dt) {
   if (spawnLeft > 0) {
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
-      spawnTimer = Math.max(0.12, 0.95 - wave * 0.018);
-      spawnZombie(pickZType(wave), spec);
-      spawnLeft--;
+      const grp = Math.min(6, 1 + Math.floor(wave / 6));      // 웨이브가 깊을수록 한 번에 더 많이
+      const per = Math.max(0.06, 0.42 - wave * 0.006);
+      spawnTimer = per * grp;
+      const edge = Math.floor(Math.random() * 4);             // 같은 방향에서 떼로 몰려온다
+      const spread = rnd(0, 1);
+      for (let i = 0; i < grp && spawnLeft > 0; i++) {
+        spawnZombie(pickZType(wave), spec, edge, spread + rnd(-0.06, 0.06));
+        spawnLeft--;
+      }
     }
   }
   // 맞지 않으면 체력이 조금씩 회복 (예전보다 느리게)
   for (const k in units) {
     const o = units[k];
-    if (!o.dead && o.hp < o.maxHp && now - (o.lastHit || 0) > 5000) o.hp = Math.min(o.maxHp, o.hp + 3 * dt);
+    if (!o.dead && o.hp < o.maxHp && now - (o.lastHit || 0) > 6000) o.hp = Math.min(o.maxHp, o.hp + 2 * dt);
   }
   // 근접 무기는 알아서 휘둘러진다 (재장전 중 생명줄)
   for (const k in units) {
@@ -711,7 +719,7 @@ function hostStep(dt) {
           const a = Math.atan2(dy, dx);
           zshots.push({ x: z.x, y: z.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, dmg: dmg * 0.8, life: 1.4 });
         } else if (tgt === BASE) {
-          baseHp -= dmg * 0.75;
+          baseHp -= dmg * 0.9;
           if (perkHas('thorn')) z.hp -= 14 * perkCount('thorn');
           fx.push({ t: 'spark', x: z.x, y: z.y, life: 0.25, c: '#ff8a5c' });
           if (baseHp <= 0) { baseHp = 0; endGame(false); }
