@@ -93,6 +93,16 @@
   .overlay h2 { font-size: 40px; text-shadow: 3px 3px 0 #9a5a2a; }
   .overlay p { font-size: 18px; text-shadow: 2px 2px 0 #9a5a2a; }
   .overlay .btn { width: 220px; }
+  #resRank { width: min(420px, 92vw); max-height: 46vh; overflow-y: auto; background: rgba(255,255,255,.12); border-radius: 14px; padding: 8px; }
+  .rr { display: flex; align-items: center; gap: 8px; font-size: 15px; padding: 7px 8px; border-radius: 10px; }
+  .rr:nth-child(odd) { background: rgba(255,255,255,.1); }
+  .rr.me { background: rgba(255,210,120,.32); box-shadow: inset 0 0 0 2px #ffd36b; }
+  .rr .no { width: 30px; text-align: center; font-size: 16px; }
+  .rr .nk { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rr .nk em { font-size: 11px; opacity: .8; font-style: normal; }
+  .rr .me-tag { font-size: 11px; color: #ffe08a; }
+  .rr .ml { width: 56px; text-align: right; }
+  .rr .sc { width: 74px; text-align: right; opacity: .9; font-size: 14px; }
   #toast {
     position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
     background: rgba(50,25,10,.9); color: #fff; padding: 10px 18px; border-radius: 999px;
@@ -192,6 +202,7 @@
   <div class="overlay" id="result" hidden>
     <h2 id="resTitle">게임 오버</h2>
     <p id="resText"></p>
+    <div id="resRank"></div>
     <button class="btn" id="btnAgain">대기실로</button>
     <button class="btn ghost" id="btnQuit" style="width:220px">나가기</button>
   </div>
@@ -215,7 +226,7 @@ const $ = id => document.getElementById(id);
 const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
 const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
 const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
-function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function toast(m, ms) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2400); }
 function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
 
 // ═══════════ 게임 엔진 (싱글과 같은 수치) ═══════════
@@ -503,7 +514,11 @@ function render() {
   }
   ctx.restore();
 
-  if (!myAlive) {
+  if (iSpectate) {
+    ctx.fillStyle = 'rgba(90,50,20,.62)'; ctx.fillRect(l, t, r - l, b - t);
+    outlined(ctx, '👀 관전 중', (l + r) / 2, (t + b) / 2 - 18, 30);
+    outlined(ctx, '다음 판이 시작되면 자동으로 참가해요', (l + r) / 2, (t + b) / 2 + 20, 16);
+  } else if (!myAlive) {
     ctx.fillStyle = 'rgba(90,50,20,.55)'; ctx.fillRect(l, t, r - l, b - t);
     outlined(ctx, '탈락 — 관전 중', (l + r) / 2, (t + b) / 2, 26);
   }
@@ -545,6 +560,7 @@ function drawMini(cv, board, alive) {
 
 // ═══════════ 방 / 동기화 ═══════════
 let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [];
+let iSpectate = false;          // 진행 중인 방에 들어오면 관전 → 다음 판부터 참가
 let players = {};          // key → { nick, alive, best, melons, b, t }
 const miniEls = {};        // key → { wrap, canvas, nm, st }
 
@@ -593,10 +609,17 @@ $('btnJoin').onclick = async () => {
   if (!r.status || !r.host) { db.ref(rpath(c)).remove(); return toast('끊어진 방이에요 — 새로 만들어 주세요'); }
   const k = sanitizeKey(myNick);
   const already = r.players && r.players[k];
-  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 재접속 가능)');
   if (!already && Object.keys(r.players || {}).length >= MAX_PLAYERS) return toast(`정원(${MAX_PLAYERS}명)이 찼어요`);
   myKey = k; code = c; isHost = r.host === k;
-  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: myNick, joinedAt: Date.now(), alive: true, best: 0, melons: 0 });
+  const midGame = r.status === 'playing' && !already;
+  iSpectate = midGame;
+  if (!already) {
+    // 게임 중에 들어오면 관전자로 (다음 판부터 자동 참가)
+    await db.ref(`${rpath(c)}/players/${k}`).set({ nick: myNick, joinedAt: Date.now(), alive: !midGame, best: 0, melons: 0, spectator: midGame });
+    if (midGame) toast('👀 관전 모드로 들어왔어요 — 다음 판부터 함께해요', 3000);
+  } else if (r.status === 'playing' && already.alive === false) {
+    iSpectate = true;   // 탈락한 상태로 재접속하면 관전
+  }
   enterRoom();
 };
 
@@ -610,8 +633,12 @@ function enterRoom() {
     isHost = room.host === myKey;
     players = room.players || {};
     if (enterRoom.setDisco) enterRoom.setDisco(room.status === 'lobby');
-    if (room.status === 'lobby') { show('lobby'); renderLobby(); }
-    else if (room.status === 'playing') { if (!playing) beginGame(); renderArena(); checkLastStanding(); }
+    if (room.status === 'lobby') { iSpectate = false; show('lobby'); renderLobby(); }
+    else if (room.status === 'playing') {
+      if (iSpectate) { playing = false; show('game'); }      // 관전: 내 보드는 굴리지 않음
+      else if (!playing) beginGame();
+      renderArena(); checkLastStanding();
+    }
     else if (room.status === 'ended') { renderArena(); showResult(); }
   });
   listeners.push(() => ref.off('value', cb));
@@ -639,7 +666,7 @@ function renderLobby() {
     `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}</div>`).join('');
   $('btnStart').disabled = !isHost || ps.length < 1;
   $('startHint').textContent = isHost
-    ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작!')
+    ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작! (게임 중 들어온 사람도 함께 시작해요)')
     : '방장이 시작하기를 기다리는 중…';
 }
 $('btnCopy').onclick = () => { navigator.clipboard.writeText(code); toast('코드를 복사했어요'); };
@@ -651,7 +678,10 @@ $('btnLeave').onclick = () => {
 };
 $('btnStart').onclick = () => {
   const upd = { status: 'playing', startedAt: Date.now(), winner: null };
-  Object.keys(players).forEach(k => { upd[`players/${k}/alive`] = true; upd[`players/${k}/best`] = 0; upd[`players/${k}/melons`] = 0; upd[`players/${k}/b`] = ''; });
+  Object.keys(players).forEach(k => {
+    upd[`players/${k}/alive`] = true; upd[`players/${k}/best`] = 0; upd[`players/${k}/melons`] = 0;
+    upd[`players/${k}/b`] = ''; upd[`players/${k}/score`] = 0; upd[`players/${k}/spectator`] = false;   // 관전자도 이번 판부터 참가
+  });
   roomRef().update(upd);
 };
 $('btnQuit').onclick = () => { if (isHost) roomRef().remove(); else meRef().remove(); goHome(); };
@@ -664,19 +694,20 @@ $('btnAgain').onclick = () => {
 // ── 게임 시작/종료 ──
 let syncTimer = null;
 function beginGame() {
+  iSpectate = false;
   playing = true; startedAt = Date.now(); showResult._done = false; claimTried = false;
   resetBoard(); resizeBoard();
   $('result').hidden = true;
   show('game');
   initAudio();
-  meRef().update({ alive: true, best: 0, melons: 0, b: '' });
+  meRef().update({ alive: true, best: 0, melons: 0, score: 0, b: '', spectator: false });
   startSync();
 }
 function startSync() {
   stopSync();
   syncTimer = setInterval(() => {
     if (!playing || !room || room.status !== 'playing') return;   // 방이 사라졌는데 쓰면 유령 방이 생긴다
-    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, alive: myAlive, t: Date.now() });
+    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, score: myScore, alive: myAlive, t: Date.now() });
   }, 200);
 }
 function stopSync() { if (syncTimer) clearInterval(syncTimer); syncTimer = null; }
@@ -685,22 +716,26 @@ function die() {
   if (!myAlive) return;
   myAlive = false;
   sfx('gameover');
-  meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons });
+  meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons, score: myScore });
   checkLastStanding();
 }
 function claimWin() {
   db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'melon', at: Date.now() },
     (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); });
 }
-// 방 상태가 바뀔 때마다 모두가 검사: 살아남은 사람이 나 하나뿐이면 내가 승리 선언
+// 라운드 종료 판정 (관전자는 제외하고 계산)
 let claimTried = false;
+const participants = () => Object.entries((room && room.players) || {}).filter(([, p]) => !p.spectator);
 function checkLastStanding() {
   if (!room || room.status !== 'playing' || room.winner) return;
-  const ps = Object.entries(room.players || {});
-  if (ps.length < 2) return;
+  const ps = participants();
+  if (!ps.length) return;
   const alive = ps.filter(([, p]) => p.alive !== false);
-  if (alive.length === 0) { if (isHost) roomRef().update({ status: 'ended' }); return; }
-  if (alive.length === 1 && alive[0][0] === myKey && myAlive && !claimTried) {
+  if (alive.length === 0) {                       // 전원 탈락 (혼자 하기 포함) → 라운드 끝
+    if (isHost || ps.length === 1) roomRef().update({ status: 'ended' });
+    return;
+  }
+  if (ps.length >= 2 && alive.length === 1 && alive[0][0] === myKey && myAlive && !claimTried) {
     claimTried = true;
     db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'last', at: Date.now() },
       (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); else claimTried = false; });
@@ -731,9 +766,10 @@ function renderArena() {
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
     drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
   });
-  const aliveN = Object.values(players).filter(p => p.alive !== false).length;
-  $('topbar').innerHTML = `<span>생존 <b>${aliveN}</b>/${Object.keys(players).length}</span>`
-    + `<span>내 수박 <b>${myMelons}</b></span>`
+  const parts = Object.values(players).filter(p => !p.spectator);
+  const aliveN = parts.filter(p => p.alive !== false).length;
+  $('topbar').innerHTML = `<span>생존 <b>${aliveN}</b>/${parts.length}</span>`
+    + (iSpectate ? `<span>👀 관전 중</span>` : `<span>내 수박 <b>${myMelons}</b></span>`)
     + `<button class="iconbtn" id="btnFs">⛶</button>`
     + `<button class="iconbtn" id="btnMute">${window.Sound && window.Sound.muted ? '🔇' : '🔊'}</button>`;
   $('btnFs').onclick = toggleFullscreen;
@@ -743,15 +779,28 @@ function showResult() {
   playing = false; stopSync();
   const w = room.winner;
   const iWon = w && w.key === myKey;
-  $('resTitle').textContent = iWon ? '🎉 승리!' : (w ? '게임 종료' : '전멸…');
+  const solo = participants().length <= 1;
+  $('resTitle').textContent = iWon ? '🎉 승리!' : (solo ? '게임 오버' : (w ? '게임 종료' : '게임 종료'));
   $('resText').innerHTML = w
     ? `<b>${esc(w.nick)}</b> 님이 ${w.how === 'melon' ? '먼저 수박을 만들었어요! 🍉' : '마지막까지 살아남았어요!'}`
-    : '모두 탈락했어요';
-  $('btnAgain').textContent = isHost ? '대기실로 (모두 이동)' : '대기실 기다리기';
+    : (solo ? `🍉 ${myMelons}개 · ${myScore.toLocaleString()}점` : '모두 탈락했어요');
+  // 순위표: 수박 개수 → 점수
+  const rows = participants()
+    .map(([k, p]) => ({ k, nick: p.nick, melons: p.melons || 0, score: p.score || 0, best: p.best || 0, alive: p.alive !== false }))
+    .sort((a, b) => (b.melons - a.melons) || (b.score - a.score));
+  const medal = ['🥇', '🥈', '🥉'];
+  $('resRank').innerHTML = rows.map((r, i) =>
+    `<div class="rr ${r.k === myKey ? 'me' : ''}">`
+    + `<span class="no">${medal[i] || (i + 1)}</span>`
+    + `<span class="nk">${esc(r.nick)}${r.k === myKey ? ' <span class="me-tag">(나)</span>' : ''}<br><em>최고: ${FRUITS[r.best].name}</em></span>`
+    + `<span class="ml">🍉 ${r.melons}</span>`
+    + `<span class="sc">${r.score.toLocaleString()}점</span>`
+    + `</div>`).join('');
+  $('btnAgain').textContent = isHost ? '🔁 다시 하기 (모두 대기실로)' : '대기실 기다리기';
   $('result').hidden = false;
   if (iWon) sfx('melon');
   // 주간 순위표 등록 (내 결과)
-  if (!showResult._done && window.Rank) {
+  if (!showResult._done && !iSpectate && window.Rank) {
     showResult._done = true;
     Rank.submit({ nick: myNick, melons: myMelons, score: myScore, secs: Math.round((Date.now() - startedAt) / 1000), mode: 'online' })
       .then(() => toast('🏆 순위표에 기록했어요')).catch(() => {});
