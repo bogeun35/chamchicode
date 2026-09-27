@@ -283,7 +283,7 @@ const { Engine, Bodies, Body, Composite, Events } = Matter;
 const BW = 500, BH = 790;                      // 내 보드 캔버스
 const BOX = { l: 15, r: 485, t: 120, b: 730 }; // 470 × 610 (싱글과 동일 · 원작 비율)
 const RIM = 22, WALL = 120, MAX_SPEED = 18;
-const DROP_COOLDOWN = 450, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
+const DROP_COOLDOWN = 260, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
 const dropY = () => BOX.t - 75;
 const deadY = () => BOX.t + 4;
 const FRUITS = [
@@ -318,7 +318,7 @@ function resizeBoard() {
 }
 window.addEventListener('resize', resizeBoard);
 
-const engine = Engine.create({ gravity: { x: 0, y: 2.0 } });
+const engine = Engine.create({ gravity: { x: 0, y: 2.6 } });   // 싱글과 동일 (낙하 0.55초)
 const world = engine.world;
 engine.positionIterations = 10;
 engine.velocityIterations = 8;
@@ -462,7 +462,7 @@ function drop() {
   const b = makeFruit(clampX(mouseX, lvDrop), dropY(), lvDrop);
   if (holdWild) { b.wild = true; holdWild = false; }
   b.dropped = true;
-  Body.setVelocity(b, { x: 0, y: 4 });
+  Body.setVelocity(b, { x: 0, y: 7 });
   Composite.add(world, b);
   sfx('drop', { level: current });
   lastActionAt = performance.now();
@@ -1184,8 +1184,12 @@ function renderArena() {
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
     el.wrap.classList.toggle('focus', focusKey === k);
     el.wrap.classList.toggle('clickable', iSpectate || !myAlive);
-    drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
-    drawBadges(el.badge, p.best || 0);
+    const sig = `${p.b || ''}|${p.alive}|${p.best}`;      // 바뀐 사람만 다시 그린다 (7명이면 매 스냅샷마다 다 그리면 낭비)
+    if (el.sig !== sig) {
+      el.sig = sig;
+      drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
+      drawBadges(el.badge, p.best || 0);
+    }
   });
   const parts = Object.values(players).filter(p => !p.spectator);
   const aliveN = parts.filter(p => p.alive !== false).length;
@@ -1236,10 +1240,13 @@ function showResult() {
 // ── 루프 ──
 const STEP = 1000 / 60;
 let acc = 0, last = performance.now();
-setInterval(() => {
+// 화면 주사율에 맞춘 rAF 루프 (setInterval 은 vsync 와 어긋나 끊겨 보인다)
+function frame() {
   const now = performance.now();
   acc += Math.min(now - last, 100); last = now;
-  while (acc >= STEP) { if (playing && myAlive) Engine.update(engine, STEP); acc -= STEP; }
+  let steps = 0;
+  while (acc >= STEP && steps < 5) { if (playing && myAlive) Engine.update(engine, STEP); acc -= STEP; steps++; }
+  if (acc > STEP * 5) acc = 0;
   if (playing && myAlive) checkOffer();
   if (playing && myAlive && $('cards').hidden) checkAfk();
   if ($('game').classList.contains('active')) {
@@ -1248,7 +1255,10 @@ setInterval(() => {
     }
     render();
   }
-}, STEP);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); acc = 0; } });
 
 window.suikaOnline = { get state() { return { code, myKey, isHost, playing, myAlive, myMelons, myBest, myScore, isRogue, relics, players, room, afkWarns, afkLeft: afkLeft(), gaveUp }; }, drop, roomRef, die, loadRooms };
 </script>

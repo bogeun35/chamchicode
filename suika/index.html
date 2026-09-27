@@ -229,7 +229,7 @@
   const BOX_T_BASE = 260;                       // 상자 윗변 기본값 (천장 유물/저주로 BOX.t 가 오르내림)
   const dropY = () => BOX.t - 75;               // 손에 든 과일 중심 높이 (상자 윗변 기준)
   const deadY = () => BOX.t + 4;                // 이 선 위에 과일이 머물면 게임 오버
-  const DROP_COOLDOWN = 450;                    // ms — 클릭 후 다음 과일까지 (너무 빠르면 연타로 쉬워짐)
+  const DROP_COOLDOWN = 260;                    // ms — 클릭 후 다음 과일까지 (너무 짧으면 연타로 쉬워짐)
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
 
   const SHAKE_TIME = 700;                       // ms
@@ -254,7 +254,7 @@
   const BASE_CFG = {
     minDrop: 0, maxDrop: 4,     // 손에 쥐는 과일 단계 범위
     nextCount: 3,               // 미리보기 개수
-    gravity: 2.0,
+    gravity: 2.6,            // 낙하가 굼떠 보이지 않게 (0.77초 → 0.55초)
     restitution: 0.25,          // 원작처럼 살짝 튕겨서 흩어지게 (얌전하면 한 자리 연타로 다 합쳐짐)
     friction: 0.15,             // 과일 마찰 (낮을수록 굴러가서 흩어짐)
     inertiaMul: 0.15,           // 낮을수록 잘 돈다
@@ -605,7 +605,7 @@
     const b = makeFruit(x, dropY(), lvDrop);
     if (holdWild) { b.wild = true; holdWild = false; }
     b.dropped = true;
-    Body.setVelocity(b, { x: 0, y: 4 });   // 바로 떨어지기 시작 (반응 빠르게)
+    Body.setVelocity(b, { x: 0, y: 7 });   // 바로 떨어지기 시작 (반응 빠르게)
     Composite.add(world, b);
     sfx('drop', { level: current });
     current = null;
@@ -1369,20 +1369,25 @@
   applyCfg();
   clearBoard();
   showMenu();
-  setInterval(() => {
+  // 화면 주사율에 맞춘 rAF 루프 (setInterval 은 vsync 와 어긋나 끊겨 보인다)
+  function frame() {
     const now = performance.now();
     acc += Math.min(now - last, 100);
     last = now;
     const running = !paused && !gameOver;
-    while (acc >= STEP) {
+    let steps = 0;
+    while (acc >= STEP && steps < 5) {          // 한 프레임에 최대 5스텝 (탭 복귀 시 폭주 방지)
       if (running) { Engine.update(engine, STEP); runTime += STEP; }
-      acc -= STEP;
+      acc -= STEP; steps++;
     }
-    if (running) {
-      checkMilestone();
-    }
+    if (acc > STEP * 5) acc = 0;
+    if (running) checkMilestone();
     render();
-  }, STEP);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  // 탭이 백그라운드면 rAF 가 멈추므로, 돌아왔을 때 시간 점프를 막는다
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); acc = 0; } });
 })();
 </script>
 </body>
