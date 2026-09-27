@@ -1165,12 +1165,12 @@ function checkAllEliminated() {
   if (!room || room.status !== 'playing' || room.winner) return;
   const ps = participants();
   if (!ps.length) return;
-  // 방장은 12초 넘게 소식 없는 사람을 '나감'으로 정리 (탭을 닫거나 멈춘 경우)
+  // 방장은 1분 넘게 소식 없는 사람을 '나감'으로 정리 (탭을 닫거나 멈춘 경우 — 끊김은 onDisconnect 가 바로 처리)
   if (isHost) {
     const now = Date.now();
     for (const [k, pl] of ps) {
       if (pl.alive === false || k === myKey) continue;
-      if (pl.t && now - pl.t > 12000) {
+      if (pl.t && now - pl.t > 60000) {
         db.ref(`${rpath(code)}/players/${k}`).update({ alive: false, left: true });
         toast(`${pl.nick} 님 응답 없음 — 탈락 처리`);
       }
