@@ -63,7 +63,11 @@
     background: linear-gradient(#0d1119cc, #0d111900); pointer-events: none;
   }
   #hud .box { background: #121826cc; border: 1px solid #2c3850; border-radius: 10px; padding: 4px 10px; }
-  #hud .hp { color: #f87171; } #hud .money { color: #fbbf24; } #hud .wave { color: #9ef08a; }
+  #hud .hp { color: #f87171; } #hud .wave { color: #9ef08a; }
+  #hud .money {
+    color: #0b1220; background: #fbbf24; border-color: #fbbf24; font-size: 17px;
+    font-weight: bold; padding: 4px 13px; box-shadow: 0 0 14px #fbbf2455;
+  }
   #roster { position: fixed; right: 8px; top: 54px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
   .rcard { background: #121826cc; border: 1px solid #2c3850; border-radius: 8px; padding: 3px 8px; font-size: 12px; min-width: 116px; }
   .rcard.dead { opacity: .45; }
@@ -80,6 +84,29 @@
   .stick i { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: #ffffff33; }
   #hud .ammo { color: #ffe08a; }
   .shop-head { width: 100%; text-align: left; font-size: 14px; color: #9ef08a; margin: 10px 0 2px; padding-left: 4px; }
+  .shop-top {
+    position: sticky; top: -18px; z-index: 4; background: #070b12fa;
+    padding: 10px 0 8px; margin: -4px 0 4px; border-bottom: 1px solid #26324a;
+  }
+  .shop-bar { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .money-big {
+    font-size: 25px; color: #0b1220; background: #fbbf24; border-radius: 12px;
+    padding: 4px 18px; font-weight: bold; box-shadow: 0 0 18px #fbbf2455;
+  }
+  .shop-bottom {
+    position: sticky; bottom: -40px; z-index: 4; background: #070b12fa;
+    padding: 12px 0 14px; margin-top: 12px; border-top: 1px solid #26324a;
+  }
+  .shop-bottom .btn { width: min(280px, 80%); margin: 0 auto; }
+  .gear {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+    background: #131a27; border: 1px solid #26324a; border-radius: 12px; padding: 9px; margin-bottom: 8px;
+  }
+  .gear-i { font-size: 12.5px; color: #b9c8dd; background: #1b2434; border-radius: 8px; padding: 4px 9px; }
+  .gear-i b { color: #e8eef7; }
+  .gear-i.eq { background: #17301f; color: #9ef08a; }
+  .gear-i.max { background: #33261a; color: #fbbf24; }
+  .item .lv { font-size: 11px; color: #9ef08a; }
   .man-h { font-size: 17px; color: #9ef08a; margin: 18px 0 8px; text-align: left; border-bottom: 1px solid #26324a; padding-bottom: 5px; }
   .man-p { font-size: 13.5px; color: #b9c8dd; line-height: 1.75; text-align: left; }
   .man-p b { color: #e8eef7; }
@@ -231,18 +258,22 @@
 
   <div class="ov scrolly" id="shopOv" hidden>
     <div class="ovbox">
-      <div class="wave-done" id="waveDone"></div>
-      <div class="timer" id="shopTimer"></div>
+      <div class="shop-top">
+        <div class="wave-done" id="waveDone"></div>
+        <div class="shop-bar"><div class="money-big" id="shopMoney"></div><div class="timer" id="shopTimer"></div></div>
+      </div>
       <div id="voteWrap">
         <h2>🧬 팀 특성 투표</h2>
         <div class="hint">가장 많은 표를 받은 특성이 <b>전원</b>에게 적용돼요</div>
         <div class="votes" id="voteList"></div>
       </div>
       <h2 style="margin-top:18px">🛒 상점</h2>
-      <div class="hint" id="shopMoney"></div>
+      <div class="gear" id="myGear"></div>
       <div class="shop" id="shopList"></div>
-      <button class="btn ghost" id="btnReady" style="width:220px;margin:14px auto 0">준비 완료</button>
-      <div class="hint" id="readyHint" style="margin-top:6px"></div>
+      <div class="shop-bottom">
+        <button class="btn" id="btnReady">준비 완료</button>
+        <div class="hint" id="readyHint"></div>
+      </div>
     </div>
   </div>
 
@@ -525,20 +556,20 @@ function colorOf(k) {
 
 /* ═══════════ 웨이브 ═══════════ */
 const ZTYPES = {
-  walker:  { ic: 0, hp: 24,   spd: 48, dmg: 9,  r: 14, money: 6,   color: '#6f9e5e', eye: '#d8ff7a',
-             nm: '워커',     from: 1,  tip: '느리지만 꾸준히 몰려온다. 수가 곧 위협.' },
-  runner:  { ic: 1, hp: 17,   spd: 96, dmg: 7,  r: 12, money: 8,   color: '#b3cf62', eye: '#fff17a',
-             nm: '러너',     from: 3,  tip: '두 배로 빠르다. 물러서기 전에 먼저 정리할 것.' },
-  armored: { ic: 5, hp: 70,   spd: 44, dmg: 14, r: 16, money: 20,  color: '#8a8f9e', eye: '#ff8f5e', armor: 0.25,
+  walker:  { ic: 0, hp: 24,   spd: 48, dmg: 9,  r: 14, money: 6,   color: '#6f9e5e', eye: '#d8ff7a', hunt: 70,
+             nm: '워커',     from: 1,  tip: '기지만 보고 간다. 앞을 막아서지 않으면 널 쫓지 않는다.' },
+  runner:  { ic: 1, hp: 17,   spd: 96, dmg: 7,  r: 12, money: 8,   color: '#b3cf62', eye: '#fff17a', hunt: 340,
+             nm: '러너',     from: 3,  tip: '사람을 집요하게 쫓아온다. 두 배로 빠르니 먼저 정리할 것.' },
+  armored: { ic: 5, hp: 70,   spd: 44, dmg: 14, r: 16, money: 20,  color: '#8a8f9e', eye: '#ff8f5e', armor: 0.25, hunt: 85,
              nm: '무장좀비', from: 5,  tip: '앞면 철판이 총알을 75% 튕겨낸다. 뒤로 돌아가거나 근접·폭발로.' },
-  tank:    { ic: 2, hp: 150,  spd: 31, dmg: 26, r: 25, money: 30,  color: '#5c87a8', eye: '#8ff0ff',
-             nm: '대형좀비', from: 7,  tip: '느리고 단단하고 한 대가 아프다. 넉백도 잘 안 먹는다.' },
-  spitter: { ic: 3, hp: 32,   spd: 42, dmg: 12, r: 15, money: 20,  color: '#9a6bbf', eye: '#ffa2f0', ranged: 215,
+  tank:    { ic: 2, hp: 150,  spd: 31, dmg: 26, r: 25, money: 30,  color: '#5c87a8', eye: '#8ff0ff', hunt: 80,
+             nm: '대형좀비', from: 7,  tip: '기지를 부수러 온다. 느리고 단단하고 한 대가 아프다.' },
+  spitter: { ic: 3, hp: 32,   spd: 42, dmg: 12, r: 15, money: 20,  color: '#9a6bbf', eye: '#ffa2f0', ranged: 215, hunt: 260,
              nm: '스피터',   from: 9,  tip: '멀리서 침을 뱉는다. 가만히 서 있으면 계속 맞는다.' },
-  bomber:  { ic: 6, hp: 26,   spd: 74, dmg: 10, r: 15, money: 24,  color: '#c96a3a', eye: '#ff4d2e', boom: 100,
-             nm: '폭발좀비', from: 12, tip: '죽으면 터진다. 붙기 전에 멀리서 잡으면 주변 좀비까지 쓸어준다.' },
-  boss:    { ic: 4, hp: 1000, spd: 28, dmg: 52, r: 38, money: 220, color: '#b8455f', eye: '#ffd166',
-             nm: '보스',     from: 5,  tip: '5웨이브마다 등장. 체력바가 화면 위에 뜬다.' },
+  bomber:  { ic: 6, hp: 26,   spd: 74, dmg: 10, r: 15, money: 24,  color: '#c96a3a', eye: '#ff4d2e', boom: 100, hunt: 330,
+             nm: '폭발좀비', from: 12, tip: '사람에게 달려와 터진다. 붙기 전에 멀리서 잡을 것.' },
+  boss:    { ic: 4, hp: 1000, spd: 28, dmg: 52, r: 38, money: 220, color: '#b8455f', eye: '#ffd166', hunt: 150,
+             nm: '보스',     from: 5,  tip: '5웨이브마다 등장. 기지를 노린다. 체력바가 화면 위에 뜬다.' },
 };
 // 웨이브가 갈수록 구성이 계속 바뀌도록 가중치를 램프로 준다
 const SPAWN = [
@@ -648,13 +679,15 @@ function hostStep(dt) {
       if (Math.abs(z.ky) < 3) z.ky = 0;
       z.x = clamp(z.x, -40, W + 40); z.y = clamp(z.y, -40, H + 40);
     }
-    // 가까운 살아있는 플레이어가 있으면 그쪽, 아니면 기지
+    // 기본 목표는 기지. 종류마다 정해진 거리 안에 사람이 있을 때만 쫓는다.
+    // (전부 사람을 쫓으면 빙빙 돌기만 해도 기지가 안 맞아서 게임이 성립하지 않는다)
     let tgt = BASE, best = 1e9;
+    const hunt = T.hunt || 70;
     for (const k in units) {
       const u = units[k];
       if (u.dead) continue;
       const d = dist2(z, u);
-      if (d < best && d < 300 * 300) { best = d; tgt = u; }
+      if (d < best && d < hunt * hunt) { best = d; tgt = u; }
     }
     // 앞을 가로막은 바리케이드가 있으면 그것부터 부순다
     let isBar = false;
@@ -793,12 +826,8 @@ function killZombie(z, owner) {
   if (ZTYPES[z.t].boom) explode(z.x, z.y, ZTYPES[z.t].boom, zDmg(z.t) * 2.2, owner, true);
   const money = Math.round(ZTYPES[z.t].money * (1 + wave * 0.05) * waveSpec(wave).rewardMul
     * (DIFF[diff] || DIFF.normal).money * (1 + 0.3 * perkCount('gold')));
-  fx.push({ t: 'die', x: z.x, y: z.y, life: 0.32, c: ZTYPES[z.t].color, r: z.r });
-  bloodAt(z.x, z.y, z.t === 'boss' ? 26 : z.t === 'tank' ? 12 : 7);
-  decals.push({ x: z.x + rnd(-6, 6), y: z.y + rnd(-6, 6), r: z.r * rnd(0.8, 1.5), a: rnd(0.18, 0.35) });
-  if (decals.length > 140) decals.splice(0, decals.length - 140);
-  Snd.play(z.t === 'boss' ? 'roar' : 'die', z.t === 'boss' ? 1 : 0.5);
-  if (z.t === 'boss') shake(14);
+  killFx(z.x, z.y, z.r, ZTYPES[z.t].color, money, z.t);
+  killFeed.push(`${z.x | 0},${z.y | 0},${z.r | 0},${ZTYPES[z.t].ic},${money}`);
   if (owner && units[owner]) {
     units[owner].kills++;
     if (perkHas('vamp')) units[owner].hp = Math.min(units[owner].maxHp, units[owner].hp + 2 * perkCount('vamp'));
@@ -806,6 +835,18 @@ function killZombie(z, owner) {
   } else {
     for (const k in units) hostMoney[k] = (hostMoney[k] || 0) + Math.max(1, Math.round(money / Math.max(1, Object.keys(units).length)));
   }
+}
+let killFeed = [];
+// 처치 연출 (호스트/게스트 공통)
+function killFx(x, y, r, color, money, type) {
+  fx.push({ t: 'die', x, y, life: 0.34, c: color, r });
+  fx.push({ t: 'pop', x, y, life: 0.3, r: r * 2.4 });
+  if (money) fx.push({ t: 'text', x, y: y - r - 4, life: 1.0, vy: -46, s: '+' + money, c: '#ffd166' });
+  bloodAt(x, y, type === 'boss' ? 30 : type === 'tank' ? 14 : 8);
+  decals.push({ x: x + rnd(-6, 6), y: y + rnd(-6, 6), r: r * rnd(0.9, 1.7), a: rnd(0.2, 0.38) });
+  if (decals.length > 140) decals.splice(0, decals.length - 140);
+  shake(type === 'boss' ? 16 : type === 'tank' ? 5 : 2);
+  Snd.play(type === 'boss' ? 'roar' : 'die', type === 'boss' ? 1 : 0.5);
 }
 function hurtUnit(u, dmg) {
   if (u.dead) return;
@@ -889,7 +930,8 @@ function encodeState() {
   const m = mines.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const br = barriers.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
   const sp = zshots.map(o => `${o.x | 0},${o.y | 0}`).join(';');
-  return { z, b, u, t, m, br, sp, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
+  const kf = killFeed.join(';'); killFeed = [];
+  return { z, b, u, t, m, br, sp, kf, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
 }
 function applyState(s) {
   if (!s || isHost) return;
@@ -935,6 +977,11 @@ function applyState(s) {
     }
   });
   Object.keys(units).forEach(k => { if (!seen[k] && k !== myKey) delete units[k]; });
+  (s.kf || '').split(';').filter(Boolean).forEach(t => {
+    const [x, y, r, ic, money] = t.split(',').map(Number);
+    const type = Object.keys(ZTYPES).find(k => ZTYPES[k].ic === ic) || 'walker';
+    killFx(x, y, r, ZTYPES[type].color, money, type);
+  });
   const prevBase = baseHp;
   baseHp = s.hp; baseMax = s.mx || baseMax; wave = s.w || wave;
   if (baseHp < prevBase - 1) { Snd.play('alarm', 0.4); }
@@ -1098,6 +1145,7 @@ function step(dt) {
   for (const f of fx) {
     f.life -= dt;
     if (f.t === 'blood') { f.x += f.vx * dt; f.y += f.vy * dt; f.vx *= 0.9; f.vy *= 0.9; }
+    else if (f.t === 'text') { f.y += f.vy * dt; f.vy *= 0.94; }
   }
   fx = fx.filter(f => f.life > 0);
   shakeAmt *= Math.pow(0.02, dt);
@@ -1386,6 +1434,15 @@ function drawFx() {
       ctx.moveTo(f.x + Math.cos(f.a) * 20, f.y + Math.sin(f.a) * 20);
       ctx.arc(f.x + Math.cos(f.a) * 26, f.y + Math.sin(f.a) * 26, 8, 0, 6.283);
       ctx.fill();
+    } else if (f.t === 'pop') {
+      const p = 1 - f.life / 0.3;
+      ctx.globalAlpha = (1 - p) * 0.9; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3 * (1 - p) + 1;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.3 + p * 1.1), 0, 6.283); ctx.stroke();
+    } else if (f.t === 'text') {
+      ctx.globalAlpha = clamp(f.life * 1.6, 0, 1);
+      ctx.font = 'bold 13px Jua, sans-serif'; ctx.textAlign = 'center';
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.75)';
+      ctx.strokeText(f.s, f.x, f.y); ctx.fillStyle = f.c; ctx.fillText(f.s, f.x, f.y);
     } else if (f.t === 'splat') {
       ctx.globalAlpha = clamp(f.life * 3, 0, 1); ctx.fillStyle = f.c || '#c98bff';
       ctx.beginPath(); ctx.arc(f.x, f.y, 14 * (1 - f.life * 2), 0, 6.283); ctx.fill();
@@ -1468,7 +1525,7 @@ function renderHud() {
     + `<div class="box">❤️ ${u ? Math.max(0, Math.round(u.hp)) : 0}</div>`
     + `<div class="box ammo">${st.gun.ic} ${ammo}</div>`
     + `<div class="box">${st.melee.ic}</div>`
-    + `<div class="box money">💰 ${Math.round(p.money || 0)}</div>`
+    + `<div class="box money">💰 ${Math.round(p.money || 0).toLocaleString()}</div>`
     + (teamPerks.length ? `<div class="box">${teamPerks.map(k => (PERKS.find(x => x.key === k) || {}).ic).join('')}</div>` : '');
   if (hud !== renderHud._hud) { renderHud._hud = hud; $('hud').innerHTML = hud; }
   const rs = Object.entries(units).map(([k, o]) => {
@@ -1484,7 +1541,18 @@ function renderHud() {
 function renderShop() {
   const p = players[myKey] || {};
   const money = Math.round(p.money || 0);
-  $('shopMoney').innerHTML = `보유 💰 <b>${money}</b> · 모두 준비하면 다음 웨이브가 시작돼요`;
+  $('shopMoney').textContent = `💰 ${money.toLocaleString()}`;
+  // 내가 지금 뭘 들고 뭘 얼마나 올렸는지
+  const st = baseStats(p);
+  const UPNM = { maxhp: '최대체력', speed: '이동속도', dmg: '공격력', rate: '연사', mag: '탄창', reloadspd: '재장전' };
+  const gear = [
+    `<span class="gear-i eq">${st.gun.ic} <b>${st.gun.nm}</b> · 탄창 ${st.mag} · 장전 ${st.reload.toFixed(1)}초</span>`,
+    `<span class="gear-i eq">${st.melee.ic} <b>${st.melee.nm}</b> · 피해 ${Math.round(st.mdmg)}</span>`,
+  ].concat(STACKABLE.map(k => {
+    const c = p['buy_' + k] || 0;
+    return `<span class="gear-i ${c >= MAX_STACK ? 'max' : ''}">${(ITEMS.find(x => x.key === k) || {}).ic} ${UPNM[k]} <b>${c}</b>/${MAX_STACK}</span>`;
+  }));
+  $('myGear').innerHTML = `<span class="gear-i" style="background:none">🎒 내 장비</span>` + gear.join('');
   const list = [];
   list.push('<div class="shop-head">🔫 총 — 탄창을 다 쓰면 자동 재장전 (R 키로 미리 장전)</div>');
   GUNS.forEach((g, i) => {
@@ -1514,14 +1582,16 @@ function renderShop() {
     const maxed = stack && cnt >= MAX_STACK;
     const can = money >= pr && !maxed;
     list.push(`<div class="item ${can ? '' : 'no'}" data-t="item" data-k="${it.key}">
-      <div class="ic">${it.ic}</div><div class="nm">${it.nm}${cnt && !it.once ? ' <b>Lv.' + cnt + '</b>' : ''}</div>
-      <div class="ds">${it.ds}</div><div class="pr">${maxed ? 'MAX' : '💰 ' + pr}</div></div>`);
+      <div class="ic">${it.ic}</div><div class="nm">${it.nm}</div>
+      ${stack ? `<div class="lv">${cnt} / ${MAX_STACK} 강</div>` : cnt && !it.once ? `<div class="lv">보유 ${cnt}</div>` : '<div class="lv">&nbsp;</div>'}
+      <div class="ds">${it.ds}</div><div class="pr">${maxed ? '✅ MAX' : '💰 ' + pr}</div></div>`);
   });
   $('shopList').innerHTML = list.join('');
   $('shopList').querySelectorAll('.item').forEach(el => {
     el.onclick = () => buy(el.dataset.t, el.dataset.k);
   });
   $('btnReady').textContent = p.ready ? '✅ 준비 완료 — 취소하려면 누르세요' : '준비 완료';
+  $('btnReady').classList.toggle('ghost', !!p.ready);
   const ps = Object.values(players);
   $('waveDone').textContent = `웨이브 ${wave} 방어 성공! · 다음은 웨이브 ${wave + 1}`;
   $('readyHint').textContent = `준비 ${ps.filter(x => x.ready).length} / ${ps.length}명`;
