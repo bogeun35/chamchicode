@@ -429,12 +429,6 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
       <span class="nav-badge">NEW</span>
     </div>
 
-    <div class="nav-item" data-page="arcade" onclick="navigate('arcade')">
-      <span class="nav-icon">🕹️</span>
-      <span>참스코드 아케이드</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
     <div class="nav-item" data-page="shell" onclick="navigate('shell')">
       <span class="nav-icon">🐢</span>
       <span>쉘다이버</span>
@@ -456,6 +450,12 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
     <div class="nav-item" data-page="tuna" onclick="navigate('tuna')">
       <span class="nav-icon">🐟</span>
       <span>참치 타이쿤</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
+    <div class="nav-item" data-page="zombie" onclick="navigate('zombie')">
+      <span class="nav-icon">🧟</span>
+      <span>좀비 디펜스</span>
       <span class="nav-badge">NEW</span>
     </div>
 
@@ -569,11 +569,6 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
           <div class="landing-card-title">그림퀴즈</div>
           <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
         </div>
-        <div class="landing-card" onclick="navigate('arcade')">
-          <div class="landing-card-icon">🕹️</div>
-          <div class="landing-card-title">참스코드 아케이드</div>
-          <div class="landing-card-desc">NEON//PULSE · 잔광<br>리듬게임 · 5분 생존</div>
-        </div>
         <div class="landing-card" onclick="navigate('liar')">
           <div class="landing-card-icon">🤥</div>
           <div class="landing-card-title">라이어 게임</div>
@@ -588,6 +583,11 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
           <div class="landing-card-icon">✏️</div>
           <div class="landing-card-title">그림 전화기</div>
           <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
+        </div>
+        <div class="landing-card" onclick="navigate('zombie')">
+          <div class="landing-card-icon">🧟</div>
+          <div class="landing-card-title">좀비 디펜스</div>
+          <div class="landing-card-desc">1~8인 협동 웨이브 방어<br>상점 · 팀 특성 투표</div>
         </div>
         <div class="landing-card" onclick="navigate('shell')">
           <div class="landing-card-icon">🐢</div>
@@ -678,17 +678,16 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
     <iframe data-src="draw-quiz.html" id="iframe-drawquiz"></iframe>
   </div>
 
-  <!-- 참스코드 아케이드 iframe -->
-  <div class="page-frame" id="page-arcade">
-    <iframe data-src="games/index.html" id="iframe-arcade" title="참스코드 아케이드" allow="autoplay"></iframe>
-  </div>
-
   <!-- 수박게임 iframe -->
   <div class="page-frame" id="page-suika">
     <iframe data-src="suika/index.html" id="iframe-suika"></iframe>
   </div>
 
   <!-- 수박게임 온라인 iframe -->
+  <div class="page-frame" id="page-zombie">
+    <iframe data-src="zombie.html" id="iframe-zombie" allow="fullscreen; autoplay"></iframe>
+  </div>
+
   <div class="page-frame" id="page-suikaonline">
     <iframe data-src="suika-online.html" id="iframe-suikaonline" allow="fullscreen; autoplay"></iframe>
   </div>
@@ -810,8 +809,8 @@ function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
 // ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
 const NAV_GROUPS = [
-  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline'] },
-  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'arcade', 'tuna', 'rock', 'mine', 'shell'] },
+  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie'] },
+  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rock', 'mine', 'shell'] },
   { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
   { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },
 ];
