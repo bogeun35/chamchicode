@@ -735,10 +735,8 @@ addEventListener('keydown', e => {
   document.querySelectorAll('.landing-card').forEach(card => {
     const m = (card.getAttribute('onclick') || '').match(/navigate\('([^']+)'\)/);
     if (!m) return;
-    const fr = document.getElementById('iframe-' + m[1]);
-    const src = fr && (fr.dataset.src || fr.getAttribute('src'));
-    if (!src) return;
-    const url = new URL(src, location.href).href;
+    if (!document.getElementById('page-' + m[1])) return;
+    const url = gameUrl(m[1]);
     const bar = document.createElement('div');
     bar.className = 'card-link';
     bar.innerHTML = '<span class="u">' + url.replace(/^https?:\/\//, '') + '</span>';
@@ -756,8 +754,17 @@ addEventListener('keydown', e => {
   });
 })();
 
-function navigate(page) {
+// 허브 주소 하나로 각 게임을 열 수 있게: /chamchicode/?game=suika
+const hubBase = () => location.pathname.replace(/index\.html$/, '');      // .../chamchicode/ 형태로
+function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
+
+function navigate(page, fromHistory) {
   currentPage = page;
+  // 주소 갱신 (뒤로가기도 동작)
+  try {
+    const url = page === 'home' ? hubBase() : hubBase() + '?game=' + page;
+    if (!fromHistory) history.pushState({ page }, '', url);
+  } catch (e) {}
 
   // Hide all pages
   document.getElementById('page-home').style.display = 'none';
@@ -792,6 +799,17 @@ function navigate(page) {
     document.getElementById('lnbOverlay').classList.remove('show');
   }
 }
+
+// 첫 로드: ?game=키 가 있으면 그 게임으로
+(function routeOnLoad() {
+  const p = new URLSearchParams(location.search).get('game');
+  if (p && document.getElementById('page-' + p)) navigate(p, true);
+  history.replaceState({ page: p || 'home' }, '', p ? hubBase() + '?game=' + p : hubBase());
+})();
+addEventListener('popstate', e => {
+  const page = (e.state && e.state.page) || new URLSearchParams(location.search).get('game') || 'home';
+  if (document.getElementById('page-' + page) || page === 'home') navigate(page, true);
+});
 
 function toggleLNB() {
   const lnb = document.getElementById('lnb');
