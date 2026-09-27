@@ -38,6 +38,7 @@
   .btn.alt { background: #6fbf73; box-shadow: 0 5px 0 #3e8a42; }
   .btn.alt:active { box-shadow: 0 2px 0 #3e8a42; }
   .btn.ghost { background: #ffefd0; color: #8a5a2a; box-shadow: 0 5px 0 #b8834a; }
+  .btn.on { background: #ff7b5e; color: #fff; box-shadow: 0 5px 0 #c9502e; }
   .btn.ghost:active { box-shadow: 0 2px 0 #b8834a; }
   .btn[disabled] { opacity: .5; cursor: default; }
   .row { display: flex; gap: 10px; }
@@ -57,6 +58,9 @@
   .mini { background: #b3763f; border: 3px solid #a8703c; border-radius: 12px; padding: 4px 4px 2px; width: 166px; flex: none; }
   .mini.dead { filter: grayscale(.8) brightness(.75); }
   .mini.win { border-color: #ffd36b; box-shadow: 0 0 0 3px #ffd36b; }
+  .mini.focus { border-color: #7fd7ff; box-shadow: 0 0 0 3px #7fd7ff; }
+  .mini.clickable { cursor: zoom-in; }
+  .mini canvas.bg { display: block; width: 100%; height: 20px; background: transparent; }
   .mini canvas { display: block; border-radius: 7px; background: #ffdca6; width: 100%; }
   .mini .nm { font-size: 13px; color: #fff; text-align: center; padding: 3px 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mini .st { font-size: 12px; color: #ffe9c4; text-align: center; padding-bottom: 3px; }
@@ -93,6 +97,17 @@
   .overlay h2 { font-size: 40px; text-shadow: 3px 3px 0 #9a5a2a; }
   .overlay p { font-size: 18px; text-shadow: 2px 2px 0 #9a5a2a; }
   .overlay .btn { width: 220px; }
+  .cardlist { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .rcard {
+    width: 140px; padding: 14px 10px; border-radius: 18px; cursor: pointer; text-align: center;
+    background: #fff3d6; color: #6a4a2a; border: 4px solid #fff; box-shadow: 0 6px 0 #b8834a; transition: transform .08s;
+  }
+  .rcard:hover { transform: translateY(-4px); background: #fff; }
+  #cards.locked .rcard { opacity: .55; pointer-events: none; }
+  .rcard .ic { font-size: 34px; }
+  .rcard .nm { font-size: 16px; margin-top: 4px; }
+  .rcard .ds { font-size: 12px; color: #9a7a5a; margin-top: 6px; line-height: 1.4; }
+  .rcard .lv { font-size: 11px; color: #fff; background: #ff9f43; border-radius: 8px; padding: 1px 6px; }
   #resRank { width: min(420px, 92vw); max-height: 46vh; overflow-y: auto; background: rgba(255,255,255,.12); border-radius: 14px; padding: 8px; }
   .rr { display: flex; align-items: center; gap: 8px; font-size: 15px; padding: 7px 8px; border-radius: 10px; }
   .rr:nth-child(odd) { background: rgba(255,255,255,.1); }
@@ -157,9 +172,10 @@
       <div class="hint">
         1. 방을 만들고 코드를 친구에게 보내요 (최대 7명)<br>
         2. 방장이 시작하면 모두 동시에 시작해요<br>
-        3. 같은 과일을 합쳐 <b>먼저 수박을 만들면 승리</b>!<br>
+        3. <b>클래식</b>: 먼저 수박을 만들면 승리 · <b>로그라이크</b>: 유물을 모아 수박을 더 많이!<br>
         4. 상자가 넘치면 탈락 — 전원 탈락 시 승자 없이 종료<br>
-        5. 옆에 다른 사람 상자가 실시간으로 보여요
+        5. 옆에 다른 사람 상자가 실시간으로 보여요 (관전 중엔 눌러서 크게)<br>
+        6. 게임 중에 들어오면 관전 → 다음 판부터 함께해요
       </div>
     </div>
     <div class="row">
@@ -182,6 +198,14 @@
       </div>
     </div>
     <div class="card">
+      <h3>모드</h3>
+      <div class="row">
+        <button class="btn ghost" id="modeClassicBtn">🍒 클래식</button>
+        <button class="btn ghost" id="modeRogueBtn">🎲 로그라이크</button>
+      </div>
+      <div class="hint" id="modeHint" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
       <h3>참가자 <span id="pcount"></span></h3>
       <div class="plist" id="plist"></div>
     </div>
@@ -199,6 +223,12 @@
     <div><canvas id="board"></canvas></div>
     <div class="side" id="sideR"></div>
   </div>
+  <div class="overlay" id="cards" hidden>
+    <h2 id="cardsTitle">🎁 유물 획득!</h2>
+    <p class="small" id="cardsNote"></p>
+    <div class="cardlist" id="cardList"></div>
+  </div>
+
   <div class="overlay" id="result" hidden>
     <h2 id="resTitle">게임 오버</h2>
     <p id="resText"></p>
@@ -273,31 +303,124 @@ const engine = Engine.create({ gravity: { x: 0, y: 2.0 } });
 const world = engine.world;
 engine.positionIterations = 10;
 engine.velocityIterations = 8;
-const wallOpt = { isStatic: true, friction: 0.3, restitution: 0, label: 'wall' };
-Composite.add(world, [
-  Bodies.rectangle((BOX.l + BOX.r) / 2, BOX.b + WALL / 2, BOX.r - BOX.l + WALL * 2, WALL, wallOpt),
-  Bodies.rectangle(BOX.l - WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
-  Bodies.rectangle(BOX.r + WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
-]);
+const BOX_W0 = BOX.r - BOX.l, BOX_CX = (BOX.l + BOX.r) / 2, BOX_T0 = BOX.t;
+let walls = [];
+function buildWalls() {
+  Composite.remove(world, walls);
+  const wallOpt = { isStatic: true, friction: 0.3, restitution: 0, label: 'wall' };
+  walls = [
+    Bodies.rectangle((BOX.l + BOX.r) / 2, BOX.b + WALL / 2, BOX.r - BOX.l + WALL * 2, WALL, wallOpt),
+    Bodies.rectangle(BOX.l - WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
+    Bodies.rectangle(BOX.r + WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
+  ];
+  Composite.add(world, walls);
+}
+function applyCfg() {
+  cfg = { ...BASE_CFG };
+  for (const r of relics) { const L = r.def.levels[r.level - 1]; if (L.apply) L.apply(cfg); }
+  cfg.boxScale = Math.max(0.6, Math.min(1.3, cfg.boxScale));
+  const w = BOX_W0 * cfg.boxScale;
+  BOX.l = Math.max(10, Math.round(BOX_CX - w / 2));
+  BOX.r = BOX.l + Math.round(w);
+  BOX.t = BOX_T0 - Math.max(-60, Math.min(60, cfg.ceilingOffset));
+  buildWalls();
+  for (const b of fruitsInBox()) {
+    const x = Math.max(BOX.l + fr(b) + 1, Math.min(BOX.r - fr(b) - 1, b.position.x));
+    if (x !== b.position.x) Body.setPosition(b, { x, y: b.position.y });
+  }
+  while (nextQueue.length < cfg.nextCount) nextQueue.push(randLevel());
+  if (nextQueue.length > cfg.nextCount) nextQueue.length = cfg.nextCount;
+}
+buildWalls();
 
 const fruitsInBox = () => Composite.allBodies(world).filter(b => b.label === 'fruit');
 function makeFruit(x, y, level) {
-  const b = Bodies.circle(x, y, FRUITS[level].r, {
-    label: 'fruit', restitution: 0.25, friction: 0.15, frictionStatic: 0.5, frictionAir: 0.002, density: 0.0012,
+  const b = Bodies.circle(x, y, FRUITS[level].r * fruitScale, {
+    label: 'fruit', restitution: cfg.restitution, friction: cfg.friction, frictionStatic: 0.5, frictionAir: 0.002, density: 0.0012,
   });
-  Body.setInertia(b, b.inertia * 0.15);
+  Body.setInertia(b, b.inertia * cfg.inertiaMul);
   Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3);
   b.level = level; b.born = performance.now(); b.deadSince = 0;
   return b;
 }
+
+// ── 로그라이크: 규칙 묶음 + 유물 (싱글과 같은 내용) ──
+const BASE_CFG = {
+  minDrop: 0, maxDrop: 4, nextCount: 3,
+  restitution: 0.25, friction: 0.15, inertiaMul: 0.15,
+  deadTime: DEAD_TIME, boxScale: 1, ceilingOffset: 0,
+  cherryRate: 1, strawberryRate: 1, rainbowEvery: 0, insuranceCap: 0,
+};
+let cfg = { ...BASE_CFG };
+const MAX_RELIC_LV = 3;
+const RELICS = [
+  { key: 'wideBox', icon: '📏', name: '넓은 상자', levels: [
+    { desc: '상자 폭 +8%',  apply: c => { c.boxScale += 0.08; } },
+    { desc: '상자 폭 +16%', apply: c => { c.boxScale += 0.16; } },
+    { desc: '상자 폭 +24%', apply: c => { c.boxScale += 0.24; } },
+  ] },
+  { key: 'ceiling', icon: '⬆️', name: '높은 천장', levels: [
+    { desc: '상자가 25px 높아짐', apply: c => { c.ceilingOffset += 25; } },
+    { desc: '상자가 50px 높아짐', apply: c => { c.ceilingOffset += 50; } },
+    { desc: '상자가 75px 높아짐', apply: c => { c.ceilingOffset += 75; } },
+  ] },
+  { key: 'cherry', icon: '🍒', name: '체리 다이어트', levels: [
+    { desc: '체리가 절반만 나옴',        apply: c => { c.cherryRate = 0.5; } },
+    { desc: '체리가 더 이상 안 나옴',     apply: c => { c.cherryRate = 0; } },
+    { desc: '상자 안 체리가 전부 사라짐', apply: c => { c.cherryRate = 0; }, once: () => popFruits(b => b.level === 0, '🍒 체리 전부 삭제!') },
+  ] },
+  { key: 'strawberry', icon: '🍓', name: '딸기 다이어트', levels: [
+    { desc: '딸기가 절반만 나옴',        apply: c => { c.strawberryRate = 0.5; } },
+    { desc: '딸기가 더 이상 안 나옴',     apply: c => { c.strawberryRate = 0; } },
+    { desc: '상자 안 딸기가 전부 사라짐', apply: c => { c.strawberryRate = 0; }, once: () => popFruits(b => b.level === 1, '🍓 딸기 전부 삭제!') },
+  ] },
+  { key: 'rainbow', icon: '🌈', name: '무지개', levels: [
+    { desc: '합체 20번마다 무지개', apply: c => { c.rainbowEvery = 20; } },
+    { desc: '12번마다',            apply: c => { c.rainbowEvery = 12; } },
+    { desc: '6번마다',             apply: c => { c.rainbowEvery = 6; } },
+  ] },
+  { key: 'insurance', icon: '🛡️', name: '보험', maxLv: 1, levels: [
+    { desc: '게임오버를 1번 막아줌 (위쪽 과일 삭제)', apply: c => { c.insuranceCap = 1; } },
+  ] },
+  { key: 'cleanup', icon: '🧹', name: '대청소', instant: true, desc: '상자 안 체리·딸기를 전부 삭제',
+    run: () => popFruits(b => b.level <= 1, '🧹 대청소!') },
+  { key: 'sell', icon: '💰', name: '수박 판매', instant: true, desc: '수박 하나를 팔아 자리를 비워요 (수박 개수는 유지)',
+    available: () => fruitsInBox().some(b => b.level === 10), run: () => sellMelon() },
+  { key: 'magnet', icon: '🧲', name: '자석', instant: true, desc: '같은 과일 한 쌍을 즉시 합체',
+    available: () => !!findPair(), run: () => magnetMerge() },
+  { key: 'shake', icon: '🌀', name: '흔들기', instant: true, desc: '상자를 세게 흔들어 정리',
+    run: () => { shakeUntil = performance.now() + 980; showToastG('🌀 흔들기!'); sfx('shake'); } },
+];
+const maxLvOf = d => d.maxLv || MAX_RELIC_LV;
+const relicLevel = key => { const r = relics.find(x => x.def.key === key); return r ? r.level : 0; };
+const phase = () => myMelons + 1;
+const relicLevelsForPhase = () => [4, 6, 9].filter(lv => lv >= Math.min(9, 4 + myMelons * 2));
+const MELON_GROW = 0.96, MIN_FRUIT_SCALE = 0.71;
 
 // ── 내 게임 상태 ──
 let current = null, nextQueue = [], mouseX = (BOX.l + BOX.r) / 2;
 let canDrop = true, playing = false, myAlive = true;
 let mergeQueue = [], effects = [], particles = [];
 let myMelons = 0, myBest = 0, myScore = 0, startedAt = 0;
-const randLevel = () => Math.floor(Math.random() * (MAX_DROP_LEVEL + 1));
-const clampX = (x, lv) => Math.max(BOX.l + FRUITS[lv].r + 2, Math.min(BOX.r - FRUITS[lv].r - 2, x));
+let isRogue = false;                       // 방 모드
+let relics = [], reached = new Set(), offerQueue = [], insuranceCharges = 0, soldMelons = 0;
+let mergeCount = 0, holdWild = false, fruitScale = 1, shakeUntil = 0, cardsReadyAt = 0;
+let gToast = null;                         // 캔버스 안내
+const showToastG = (t, ms) => { gToast = { t, at: performance.now(), ms: ms || 1800 }; };
+const fr = b => b.circleRadius || FRUITS[b.level].r;
+const dropRange = () => {
+  if (!isRogue) return [cfg.minDrop, cfg.maxDrop];
+  const ph = phase();
+  return [Math.max(cfg.minDrop, ph >= 5 ? 2 : ph >= 3 ? 1 : 0), Math.min(6, Math.max(cfg.maxDrop, ph >= 4 ? 6 : ph >= 2 ? 5 : 4))];
+};
+const randLevel = () => {
+  const [lo, hi] = dropRange();
+  let lv = lo + Math.floor(Math.random() * (hi - lo + 1));
+  if (lv === 0 && Math.random() >= cfg.cherryRate) lv = Math.max(1, lo);
+  if (lv === 1 && Math.random() >= cfg.strawberryRate) lv = Math.max(2, lo);
+  return lv;
+};
+const clampX = (x, lv) => Math.max(BOX.l + FRUITS[lv].r * fruitScale + 2, Math.min(BOX.r - FRUITS[lv].r * fruitScale - 2, x));
 
 function resetBoard() {
   fruitsInBox().forEach(b => Composite.remove(world, b));
@@ -305,10 +428,16 @@ function resetBoard() {
   current = randLevel();
   nextQueue = [randLevel(), randLevel(), randLevel()];
   canDrop = true; myAlive = true; myMelons = 0; myBest = 0; myScore = 0;
+  relics = []; reached = new Set(); offerQueue = []; insuranceCharges = 0; soldMelons = 0;
+  mergeCount = 0; holdWild = false; fruitScale = 1; shakeUntil = 0;
+  $('cards').hidden = true;
+  applyCfg();
 }
 function drop() {
   if (!playing || !canDrop || !myAlive || current === null) return;
-  const b = makeFruit(clampX(mouseX, current), dropY(), current);
+  const lvDrop = holdWild ? 0 : current;
+  const b = makeFruit(clampX(mouseX, lvDrop), dropY(), lvDrop);
+  if (holdWild) { b.wild = true; holdWild = false; }
   b.dropped = true;
   Body.setVelocity(b, { x: 0, y: 4 });
   Composite.add(world, b);
@@ -316,6 +445,106 @@ function drop() {
   current = null; canDrop = false;
   setTimeout(() => { current = nextQueue.shift(); nextQueue.push(randLevel()); canDrop = true; }, DROP_COOLDOWN);
 }
+// ── 유물 효과 ──
+function popFruits(test, msg) {
+  let n = 0;
+  for (const b of fruitsInBox()) if (test(b)) {
+    Composite.remove(world, b); n++;
+    effects.push({ x: b.position.x, y: b.position.y, r: fr(b), t: performance.now(), pop: true });
+    spawnParticles(b.position.x, b.position.y, FRUITS[b.level].color, 6);
+  }
+  if (n) { showToastG(msg + ` (${n}개)`); sfx('pop'); }
+  return n;
+}
+function findPair() {
+  const list = fruitsInBox().filter(b => !b.wild && b.level < 10);
+  let best = null, sc = -Infinity;
+  for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+    const a = list[i], b = list[j];
+    if (a.level !== b.level) continue;
+    const v = (a.position.y + b.position.y) - (a.position.x + b.position.x) * 0.5;
+    if (v > sc) { sc = v; best = [a, b]; }
+  }
+  return best;
+}
+function magnetMerge() {
+  const pair = findPair();
+  if (!pair) { showToastG('🧲 합칠 짝이 없어요'); return; }
+  pair[0].merging = pair[1].merging = true;
+  mergeQueue.push([pair[0], pair[1], pair[0].level + 1]);
+  showToastG(`🧲 ${FRUITS[pair[0].level].name} 한 쌍 합체!`); sfx('rainbow');
+}
+function sellMelon() {
+  const ws = fruitsInBox().filter(b => b.level === 10).sort((p, q) => p.position.y - q.position.y);
+  if (!ws.length) { showToastG('💰 팔 수박이 없어요'); return; }
+  const w = ws[0];
+  Composite.remove(world, w);
+  soldMelons++;
+  effects.push({ x: w.position.x, y: w.position.y, r: fr(w), t: performance.now(), pop: true });
+  spawnParticles(w.position.x, w.position.y, '#9be8a8', 24);
+  showToastG(`💰 수박 판매! (창고 ${soldMelons})`); sfx('melonPop');
+}
+function useInsurance() {
+  insuranceCharges--;
+  for (const b of fruitsInBox()) {
+    if (b.position.y < BOX.t + 220) {
+      Composite.remove(world, b);
+      effects.push({ x: b.position.x, y: b.position.y, r: fr(b), t: performance.now(), pop: true });
+    } else b.deadSince = 0;
+  }
+  showToastG(`🛡️ 보험 발동! (${insuranceCharges}개 남음)`, 2400); sfx('melonPop');
+}
+
+// ── 유물 제안 ──
+function checkOffer() {
+  if (!isRogue || !playing || !myAlive || !offerQueue.length || !$('cards').hidden) return;
+  offerRelic(offerQueue.shift());
+}
+function offerRelic(reason) {
+  const lvPool = RELICS.filter(d => !d.instant && relicLevel(d.key) < maxLvOf(d));
+  const instPool = RELICS.filter(d => d.instant && (!d.available || d.available()));
+  const offer = [];
+  if (instPool.length && Math.random() < 0.7) offer.push(instPool[Math.floor(Math.random() * instPool.length)]);
+  while (offer.length < 3 && lvPool.length) offer.push(lvPool.splice(Math.floor(Math.random() * lvPool.length), 1)[0]);
+  if (!offer.length) return;
+  offer.sort(() => Math.random() - 0.5);
+  $('cardsTitle').textContent = '🎁 ' + (reason || '유물 획득!');
+  const note = $('cardsNote'); note.textContent = '🔒 잠시만요… (연타 방지)';
+  const list = $('cardList'); list.innerHTML = '';
+  offer.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'rcard';
+    if (d.instant) el.innerHTML = `<div class="ic">${d.icon}</div><div class="nm">${d.name} <span class="lv" style="background:#6fbf73">⚡즉시</span></div><div class="ds">${d.desc}</div>`;
+    else {
+      const cur = relicLevel(d.key);
+      el.innerHTML = `<div class="ic">${d.icon}</div><div class="nm">${d.name} <span class="lv">${maxLvOf(d) > 1 ? 'Lv.' + (cur + 1) : '1회'}</span></div><div class="ds">${d.levels[cur].desc}</div>`;
+    }
+    el.onclick = () => takeRelic(d);
+    list.appendChild(el);
+  });
+  cardsReadyAt = performance.now() + 1000;
+  $('cards').classList.add('locked');
+  setTimeout(() => { if (!$('cards').hidden) { $('cards').classList.remove('locked'); note.textContent = '천천히 고르세요 — 고르는 동안에도 상대는 계속 플레이해요'; } }, 1000);
+  $('cards').hidden = false;
+  $('cards')._offer = offer;
+  sfx('relic');
+}
+function takeRelic(def) {
+  if (performance.now() < cardsReadyAt) return;
+  $('cards').hidden = true;
+  sfx('click');
+  if (!def) return;
+  if (def.instant) { def.run(); return; }
+  let got = relics.find(r => r.def === def);
+  if (got) got.level = Math.min(maxLvOf(def), got.level + 1);
+  else { got = { def, level: 1 }; relics.push(got); }
+  applyCfg();
+  const L = def.levels[got.level - 1];
+  if (L.once) L.once();
+  if (cfg.insuranceCap) insuranceCharges = Math.max(insuranceCharges, cfg.insuranceCap);
+  showToastG(`${def.icon} ${def.name}` + (maxLvOf(def) > 1 ? ` Lv.${got.level}` : ''), 2200);
+}
+
 function spawnParticles(x, y, color, n) {
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, v = 3 * (0.4 + Math.random());
@@ -327,12 +556,24 @@ Events.on(engine, 'collisionStart', ev => {
   for (const { bodyA: a, bodyB: b } of ev.pairs) {
     for (const f of [a, b]) if (f.label === 'fruit' && f.dropped && !f.landed) { f.landed = true; sfx('land', { level: f.level }); }
     if (a.label !== 'fruit' || b.label !== 'fruit' || a.merging || b.merging) continue;
+    if (a.wild || b.wild) {                       // 무지개
+      const other = a.wild ? b : a;
+      if (other.wild || other.level > 7) continue;
+      a.merging = b.merging = true;
+      mergeQueue.push([a, b, other.level + 1]);
+      continue;
+    }
     if (a.level !== b.level) continue;
     a.merging = b.merging = true;
     mergeQueue.push([a, b, a.level >= FRUITS.length - 1 ? -1 : a.level + 1]);
   }
 });
 Events.on(engine, 'beforeUpdate', () => {
+  const now = performance.now(), shaking = now < shakeUntil;
+  const kick = shaking ? Math.sin((shakeUntil - now) / 700 * Math.PI * 6) * 1.6 * 0.9 : 0;
+  for (const b of fruitsInBox()) {
+    if (shaking) Body.setVelocity(b, { x: b.velocity.x + kick, y: Math.max(b.velocity.y - 0.12, -2.5) });
+  }
   for (const b of fruitsInBox()) if (b.speed > MAX_SPEED) {
     const k = MAX_SPEED / b.speed;
     Body.setVelocity(b, { x: b.velocity.x * k, y: b.velocity.y * k });
@@ -355,16 +596,37 @@ Events.on(engine, 'afterUpdate', () => {
     sfx('merge', { level: lv, combo: 1 });
     myScore += FRUITS[lv].score;
     myBest = Math.max(myBest, lv);
-    if (lv === FRUITS.length - 1) { myMelons++; sfx('melon'); claimWin(); }
+    mergeCount++;
+    if (isRogue) {
+      if (cfg.rainbowEvery && mergeCount % cfg.rainbowEvery === 0) { holdWild = true; showToastG('🌈 무지개 과일!'); sfx('rainbow'); }
+      if (lv !== FRUITS.length - 1 && relicLevelsForPhase().includes(lv) && !reached.has(lv)) {
+        reached.add(lv); offerQueue.push(`${FRUITS[lv].name} 첫 달성!`);
+      }
+    }
+    if (lv === FRUITS.length - 1) {
+      myMelons++; sfx('melon');
+      if (isRogue) {
+        if (fruitScale > MIN_FRUIT_SCALE) {   // 수박마다 상자 성장
+          fruitScale = Math.max(MIN_FRUIT_SCALE, fruitScale * MELON_GROW);
+          for (const o of fruitsInBox()) { Body.scale(o, MELON_GROW, MELON_GROW); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+        }
+        reached = new Set();
+        offerQueue.push(`🍉 PHASE ${phase()} 돌입!`);
+        showToastG(`🍉 수박! PHASE ${phase()}`, 2400);
+      } else claimWin();
+    }
   }
   mergeQueue = [];
   if (!playing || !myAlive) return;
   for (const b of fruitsInBox()) {
-    const top = b.position.y - b.circleRadius;
-    const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed);
+    const top = b.position.y - fr(b);
+    const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed) && now > shakeUntil + 1500;
     if (top < deadY() && counting) {
       if (!b.deadSince) b.deadSince = now;
-      else if (now - b.deadSince > DEAD_TIME) { die(); break; }
+      else if (now - b.deadSince > cfg.deadTime) {
+        if (insuranceCharges > 0) useInsurance(); else die();
+        break;
+      }
     } else b.deadSince = 0;
   }
 });
@@ -377,13 +639,20 @@ function toGameX(clientX) {
 let aiming = false;
 canvas.addEventListener('pointermove', e => { mouseX = toGameX(e.clientX); if (aiming) e.preventDefault(); }, { passive: false });
 canvas.addEventListener('pointerdown', e => {
-  initAudio(); mouseX = toGameX(e.clientX);
+  initAudio();
+  if (focusKey) { focusKey = null; renderArena(); return; }   // 크게 보기 닫기
+  mouseX = toGameX(e.clientX);
   if (e.pointerType === 'touch') { aiming = true; try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
   else drop();
 });
 canvas.addEventListener('pointerup', e => { if (!aiming) return; aiming = false; mouseX = toGameX(e.clientX); drop(); });
 canvas.addEventListener('pointercancel', () => { aiming = false; });
 window.addEventListener('keydown', e => {
+  if (!$('cards').hidden) {
+    const i = ['Digit1', 'Digit2', 'Digit3'].indexOf(e.code);
+    if (i >= 0 && $('cards')._offer && $('cards')._offer[i]) takeRelic($('cards')._offer[i]);
+    return;
+  }
   if (!playing) return;
   if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'Enter') { e.preventDefault(); initAudio(); drop(); }
   if (e.code === 'ArrowLeft') mouseX -= 14;
@@ -488,6 +757,21 @@ function render() {
     drawFruit(ctx, x, dropY(), current, 0, 1);
   }
 
+  // 관전: 상대 보드를 크게
+  const fp = focusKey && players[focusKey];
+  if (fp) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(l, t, r - l, b - t); ctx.clip();
+    for (const f of decodeBoard(fp.b)) drawFruit(ctx, f.x, f.y, f.lv, 0, 1);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(90,50,20,.75)';
+    ctx.beginPath(); ctx.roundRect((l + r) / 2 - 150, t + 8, 300, 34, 17); ctx.fill();
+    outlined(ctx, `👀 ${fp.nick} 님의 상자 (탭하면 닫기)`, (l + r) / 2, t + 25, 15);
+    if (fp.alive === false) outlined(ctx, '💀 탈락', (l + r) / 2, (t + b) / 2, 30);
+    outlined(ctx, `${(fp.score || 0).toLocaleString()}점 · 🍉 ${fp.melons || 0}`, (l + r) / 2, b - 22, 18);
+    return;
+  }
+
   // 과일
   ctx.save();
   ctx.beginPath(); ctx.rect(l, t - RIM - 40, r - l, b - t + RIM + 40); ctx.clip();
@@ -515,6 +799,26 @@ function render() {
   }
   ctx.restore();
 
+  // 로그라이크: 내 유물 · 안내
+  if (isRogue && !iSpectate) {
+    let rx = l + 10;
+    for (const rr of relics) {
+      ctx.font = '16px "Segoe UI Emoji", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff'; ctx.fillText(rr.def.icon, rx, b + 14);
+      if (rr.level > 1) { ctx.font = '11px Jua, sans-serif'; ctx.fillText(String(rr.level), rx + 15, b + 21); }
+      rx += 24;
+    }
+    if (insuranceCharges > 0) outlined(ctx, '🛡️'.repeat(insuranceCharges), r - 40, b + 14, 15);
+    if (soldMelons) outlined(ctx, `💰${soldMelons}`, r - 90, b + 14, 14);
+  }
+  if (gToast && performance.now() - gToast.at < gToast.ms) {
+    const p2 = (performance.now() - gToast.at) / gToast.ms;
+    ctx.globalAlpha = p2 < 0.8 ? 1 : (1 - p2) / 0.2;
+    ctx.fillStyle = 'rgba(90,50,20,.6)';
+    ctx.beginPath(); ctx.roundRect((l + r) / 2 - 130, t + 40, 260, 30, 15); ctx.fill();
+    outlined(ctx, gToast.t, (l + r) / 2, t + 55, 15);
+    ctx.globalAlpha = 1;
+  }
   if (iSpectate) {
     ctx.fillStyle = 'rgba(90,50,20,.62)'; ctx.fillRect(l, t, r - l, b - t);
     outlined(ctx, '👀 관전 중', (l + r) / 2, (t + b) / 2 - 18, 30);
@@ -559,9 +863,28 @@ function drawMini(cv, board, alive) {
   }
 }
 
+// 완성한 과일 아이콘 줄 (사과~수박) — 달성한 건 또렷하게, 아직인 건 흐리게
+function drawBadges(cv, best) {
+  const W0 = cv.clientWidth || 160, H0 = 20;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(W0 * dpr)) { cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr); }
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, W0, H0);
+  const lv0 = 5, n = FRUITS.length - lv0;                   // 사과(5) ~ 수박(10)
+  const step = W0 / n, r = Math.min(8.5, step / 2 - 1.5);
+  for (let i = 0; i < n; i++) {
+    const lv = lv0 + i, x = step * (i + 0.5), on = best >= lv;
+    c.globalAlpha = on ? 1 : 0.22;
+    drawFruit(c, x, H0 / 2, lv, 0, r / FRUITS[lv].r);
+    c.globalAlpha = 1;
+  }
+}
+
 // ═══════════ 방 / 동기화 ═══════════
 let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [];
 let iSpectate = false;          // 진행 중인 방에 들어오면 관전 → 다음 판부터 참가
+let focusKey = null;            // 관전 중 크게 보고 있는 상대
 let players = {};          // key → { nick, alive, best, melons, b, t }
 const miniEls = {};        // key → { wrap, canvas, nm, st }
 
@@ -594,7 +917,7 @@ function getNick() {
 $('btnCreate').onclick = async () => {
   myNick = getNick(); myKey = sanitizeKey(myNick); code = genCode(); isHost = true;
   await roomRef().set({
-    host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby',
+    host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby', mode: 'classic',
     players: { [myKey]: { nick: myNick, joinedAt: Date.now(), alive: true, best: 0, melons: 0 } }
   });
   enterRoom();
@@ -665,11 +988,19 @@ function renderLobby() {
   $('pcount').textContent = `${ps.length} / ${MAX_PLAYERS}`;
   $('plist').innerHTML = ps.map(([k, p]) =>
     `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}</div>`).join('');
+  const rogue = room.mode === 'rogue';
+  $('modeClassicBtn').classList.toggle('on', !rogue);
+  $('modeRogueBtn').classList.toggle('on', rogue);
+  $('modeHint').textContent = rogue
+    ? '🎲 새 과일을 처음 만들 때마다 유물 3택1 · 수박마다 PHASE 업 · 수박을 더 많이 만든 사람이 승리'
+    : '🍒 유물 없이 순수 대결 · 먼저 수박을 만들면 즉시 승리';
   $('btnStart').disabled = !isHost || ps.length < 1;
   $('startHint').textContent = isHost
     ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작! (게임 중 들어온 사람도 함께 시작해요)')
     : '방장이 시작하기를 기다리는 중…';
 }
+$('modeClassicBtn').onclick = () => { if (!isHost) return toast('방장만 바꿀 수 있어요'); roomRef().update({ mode: 'classic' }); };
+$('modeRogueBtn').onclick = () => { if (!isHost) return toast('방장만 바꿀 수 있어요'); roomRef().update({ mode: 'rogue' }); };
 $('btnCopy').onclick = () => { navigator.clipboard.writeText(code); toast('코드를 복사했어요'); };
 $('btnCopyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '?room=' + code); toast('링크를 복사했어요'); };
 $('btnLeave').onclick = () => {
@@ -695,7 +1026,8 @@ $('btnAgain').onclick = () => {
 // ── 게임 시작/종료 ──
 let syncTimer = null;
 function beginGame() {
-  iSpectate = false;
+  iSpectate = false; focusKey = null;
+  isRogue = room && room.mode === 'rogue';
   playing = true; startedAt = Date.now(); showResult._done = false; claimTried = false;
   resetBoard(); resizeBoard();
   $('result').hidden = true;
@@ -708,7 +1040,8 @@ function startSync() {
   stopSync();
   syncTimer = setInterval(() => {
     if (!playing || !room || room.status !== 'playing') return;   // 방이 사라졌는데 쓰면 유령 방이 생긴다
-    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, score: myScore, alive: myAlive, t: Date.now() });
+    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, score: myScore, alive: myAlive, t: Date.now(),
+      rl: isRogue ? relics.map(r => r.def.icon + (r.level > 1 ? r.level : '')).join('') : '' });
   }, 200);
 }
 function stopSync() { if (syncTimer) clearInterval(syncTimer); syncTimer = null; }
@@ -720,7 +1053,7 @@ function die() {
   meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons, score: myScore });
   checkAllEliminated();
 }
-function claimWin() {
+function claimWin() {   // 클래식 전용: 먼저 수박 만들면 승리
   db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'melon', at: Date.now() },
     (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); });
 }
@@ -742,26 +1075,39 @@ function renderArena() {
   const want = new Set(ps.map(([k]) => k));
   // 사라진 사람 제거
   Object.keys(miniEls).forEach(k => { if (!want.has(k)) { miniEls[k].wrap.remove(); delete miniEls[k]; } });
+  if (focusKey && !want.has(focusKey)) focusKey = null;
+  if (focusKey && !(iSpectate || !myAlive)) focusKey = null;
   ps.forEach(([k, p], i) => {
     let el = miniEls[k];
     if (!el) {
       const wrap = document.createElement('div');
       wrap.className = 'mini';
-      wrap.innerHTML = `<canvas></canvas><div class="nm"></div><div class="st"></div>`;
-      el = miniEls[k] = { wrap, canvas: wrap.querySelector('canvas'), nm: wrap.querySelector('.nm'), st: wrap.querySelector('.st') };
+      wrap.innerHTML = `<canvas class="bd"></canvas><div class="nm"></div><canvas class="bg"></canvas><div class="st"></div>`;
+      el = miniEls[k] = { wrap, canvas: wrap.querySelector('canvas.bd'), badge: wrap.querySelector('canvas.bg'), nm: wrap.querySelector('.nm'), st: wrap.querySelector('.st') };
+      el.wrap.onclick = () => {          // 관전/탈락 중에는 눌러서 크게 보기
+        if (!(iSpectate || !myAlive)) return;
+        focusKey = (focusKey === el.key) ? null : el.key;
+        renderArena();
+      };
     }
     const side = window.innerWidth > 900 ? sides[i % 2] : sides[0];   // 모바일은 위쪽 한 줄에 모아서 가로 스크롤
     if (el.wrap.parentElement !== side) side.appendChild(el.wrap);
+    el.key = k;
     el.nm.textContent = p.nick;
-    el.st.innerHTML = p.alive === false ? '탈락' : `🍉<b>${p.melons || 0}</b> · ${FRUITS[p.best || 0].name}`;
+    el.st.innerHTML = (p.alive === false ? '💀 ' : '') + `<b>${(p.score || 0).toLocaleString()}</b>점 · 🍉<b>${p.melons || 0}</b>`
+      + (p.rl ? `<br><span style="font-size:11px">${p.rl}</span>` : '');
     el.wrap.classList.toggle('dead', p.alive === false);
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
+    el.wrap.classList.toggle('focus', focusKey === k);
+    el.wrap.classList.toggle('clickable', iSpectate || !myAlive);
     drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
+    drawBadges(el.badge, p.best || 0);
   });
   const parts = Object.values(players).filter(p => !p.spectator);
   const aliveN = parts.filter(p => p.alive !== false).length;
-  $('topbar').innerHTML = `<span>생존 <b>${aliveN}</b>/${parts.length}</span>`
-    + (iSpectate ? `<span>👀 관전 중</span>` : `<span>내 수박 <b>${myMelons}</b></span>`)
+  $('topbar').innerHTML = (isRogue ? `<span>🎲 PHASE <b>${phase()}</b></span>` : '')
+    + `<span>생존 <b>${aliveN}</b>/${parts.length}</span>`
+    + (iSpectate || !myAlive ? `<span>👀 관전 중${(iSpectate || !myAlive) && !focusKey ? ' — 상대 보드를 누르면 크게' : ''}</span>` : `<span>내 수박 <b>${myMelons}</b></span>`)
     + `<button class="iconbtn" id="btnFs">⛶</button>`
     + `<button class="iconbtn" id="btnMute">${window.Sound && window.Sound.muted ? '🔇' : '🔊'}</button>`;
   $('btnFs').onclick = toggleFullscreen;
@@ -772,6 +1118,10 @@ function showResult() {
   const w = room.winner;
   const iWon = w && w.key === myKey;
   const solo = participants().length <= 1;
+  if (!w && !solo && isRogue) {   // 로그라이크: 수박 많이 만든 사람
+    const best = participants().map(([k, p]) => ({ k, p })).sort((a, b2) => (b2.p.melons - a.p.melons) || (b2.p.score - a.p.score))[0];
+    if (best && best.p.melons > 0) $('resTitle').textContent = best.k === myKey ? '🎉 승리!' : '게임 종료';
+  }
   $('resTitle').textContent = iWon ? '🎉 승리!' : (solo ? '게임 오버' : (w ? '게임 종료' : '게임 종료'));
   $('resText').innerHTML = w
     ? `<b>${esc(w.nick)}</b> 님이 ${w.how === 'melon' ? '먼저 수박을 만들었어요! 🍉' : '마지막까지 살아남았어요!'}`
@@ -806,6 +1156,7 @@ setInterval(() => {
   const now = performance.now();
   acc += Math.min(now - last, 100); last = now;
   while (acc >= STEP) { if (playing && myAlive) Engine.update(engine, STEP); acc -= STEP; }
+  if (playing && myAlive) checkOffer();
   if ($('game').classList.contains('active')) {
     if (resizeBoard.w !== window.innerWidth || resizeBoard.h !== window.innerHeight) {
       resizeBoard.w = window.innerWidth; resizeBoard.h = window.innerHeight; resizeBoard();
