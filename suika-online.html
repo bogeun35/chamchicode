@@ -748,8 +748,9 @@ function render() {
     .slice(0, 3).filter(lv => FRUITS[lv]);      // 방이 사라져 큐가 빈 경우 방어
   for (let i = 0; i < shown.length; i++) drawFruit(ctx, nx[i], 48, shown[i], 0, Math.min(1, nk[i] / FRUITS[shown[i]].r));
   outlined(ctx, '현재 › 다음', 98, 12, 13);
-  outlined(ctx, `🍉 ${myMelons}`, 260, 26, 20);
-  outlined(ctx, `최고: ${(FRUITS[myBest] || FRUITS[0]).name}`, 400, 26, 15);
+  // 내 점수 (상대는 미니에 보이는데 내 건 안 보인다는 피드백)
+  outlined(ctx, `${myScore.toLocaleString()}점`, 340, 26, 24);
+  outlined(ctx, `🍉 ${myMelons} · 최고 ${(FRUITS[myBest] || FRUITS[0]).name}`, 340, 54, 14);
 
   // 상자
   const { l, r, t, b } = BOX;
