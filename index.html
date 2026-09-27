@@ -453,6 +453,12 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="rhythm" onclick="navigate('rhythm')">
+      <span class="nav-icon">🥁</span>
+      <span>쿵짝항구 대소동</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="zombie" onclick="navigate('zombie')">
       <span class="nav-icon">🧟</span>
       <span>좀비 디펜스</span>
@@ -609,6 +615,11 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
           <div class="landing-card-title">참치 타이쿤</div>
           <div class="landing-card-desc">탭해서 잡고, 사서 불리고<br>숫자가 끝없이 커지는 방치형</div>
         </div>
+        <div class="landing-card" onclick="navigate('rhythm')">
+          <div class="landing-card-icon">🥁</div>
+          <div class="landing-card-title">쿵짝항구 대소동</div>
+          <div class="landing-card-desc">소리 듣고 박자에 딱!<br>한 버튼 리듬 미니게임 5곡</div>
+        </div>
         <div class="landing-card" onclick="navigate('rummikub')">
           <div class="landing-card-icon">🔢</div>
           <div class="landing-card-title">루미큐브</div>
@@ -732,6 +743,11 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
     <iframe data-src="tuna.html" id="iframe-tuna" allow="clipboard-write"></iframe>
   </div>
 
+  <!-- 쿵짝항구 대소동 iframe -->
+  <div class="page-frame" id="page-rhythm">
+    <iframe data-src="rhythm.html" id="iframe-rhythm" allow="autoplay; clipboard-write"></iframe>
+  </div>
+
   <!-- 루미큐브 iframe -->
   <div class="page-frame" id="page-rummikub">
     <iframe data-src="rummikub.html" id="iframe-rummikub" allow="clipboard-write"></iframe>
@@ -767,7 +783,7 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
 let currentPage = 'home';
 // 테스트용 배속: 게임은 iframe 안이라 허브 콘솔에선 tuna 가 안 보임 → 열린 게임으로 연결
 const activeGameWin = () => { const fr = document.getElementById(`iframe-${currentPage}`); try { return fr && fr.getAttribute('src') ? fr.contentWindow : null; } catch (e) { return null; } };
-['tuna', 'rock', 'mine', 'shelldiver'].forEach(k => Object.defineProperty(window, k, { configurable: true, get: () => { const w = activeGameWin(); return w && w[k]; } }));
+['tuna', 'rock', 'mine', 'shelldiver', 'rhythm'].forEach(k => Object.defineProperty(window, k, { configurable: true, get: () => { const w = activeGameWin(); return w && w[k]; } }));
 window.speed = n => { const w = activeGameWin(); return w && w.__gameSpeed ? w.__gameSpeed.set(n) : '배속은 참치 타이쿤·스페이스 록·킵 온 마이닝·쉘다이버 화면에서만 돼요'; };
 addEventListener('keydown', e => {
   if (e.code !== 'BracketRight' && e.code !== 'BracketLeft') return;
@@ -810,7 +826,7 @@ function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 // ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
 const NAV_GROUPS = [
   { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie'] },
-  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rock', 'mine', 'shell'] },
+  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rhythm', 'rock', 'mine', 'shell'] },
   { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
   { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },
 ];
