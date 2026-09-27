@@ -636,11 +636,21 @@ addEventListener('keydown', e => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
+// 포커스를 잃으면 keyup 이 안 와서 키가 눌린 채로 남는다 (우클릭 메뉴·알트탭 등)
+function releaseAll() {
+  for (const k in keys) keys[k] = false;
+  endStick({ pointerId: stickId });
+}
+addEventListener('blur', releaseAll);
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+
+cv.addEventListener('contextmenu', e => e.preventDefault());   // 우클릭 메뉴가 뜨면 입력이 끊긴다
 cv.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;      // 조이스틱은 왼쪽 버튼(과 터치)만
   if (stickId !== null) return;
   stickId = e.pointerId; stickBase = { x: e.clientX, y: e.clientY };
   const st = $('stick'); st.style.display = 'block'; st.style.left = (e.clientX - 60) + 'px'; st.style.top = (e.clientY - 60) + 'px';
-  cv.setPointerCapture(e.pointerId);
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
 });
 cv.addEventListener('pointermove', e => {
   if (e.pointerId !== stickId) return;
@@ -649,14 +659,15 @@ cv.addEventListener('pointermove', e => {
   stickVec = { x: dx / d * m, y: dy / d * m };
   $('stick').querySelector('i').style.transform = `translate(${clamp(dx, -40, 40)}px, ${clamp(dy, -40, 40)}px)`;
 });
-const endStick = e => {
-  if (e.pointerId !== stickId) return;
+function endStick(e) {
+  if (stickId === null || (e && e.pointerId !== stickId)) return;
   stickId = null; stickVec = { x: 0, y: 0 };
   $('stick').style.display = 'none';
   $('stick').querySelector('i').style.transform = '';
-};
+}
 cv.addEventListener('pointerup', endStick);
 cv.addEventListener('pointercancel', endStick);
+cv.addEventListener('lostpointercapture', endStick);          // 캡처를 뺏겨도 조이스틱을 놓는다
 function inputVec() {
   let x = stickVec.x, y = stickVec.y;
   if (keys.KeyA || keys.ArrowLeft) x -= 1;
