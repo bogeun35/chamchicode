@@ -26,7 +26,7 @@ body { font-family: 'Jua', 'Malgun Gothic', sans-serif; -webkit-user-select: non
    시계: 곡 시각 s ↔ 오디오 시각 ctxT = t0 + s. 화면·판정은 '들리는 시각'(getOutputTimestamp) 기준. sim 모드는 결정적 시계. */
 
 // ===== CFG =====
-const CFG = { P: .0405, G: .0905, CAP: .1505, RP: .0605, RG: .1205, LEAD: .3, AHEAD: .1, VOICES: 48, STRAY: .5, PERF_STRAY: 3, ECHO: .2, ECHO_CAP: .2 };   // 따라해 콜 마디에서 삑을 같이 누른 헛누름(메아리)은 0.2, 합계는 총 무게의 20%까지만  // 판정 창은 경계 포함 + 0.5ms 여유. 헛누름 1회 = 무게 0.5 감점(상한 없음), 완벽 도전은 헛누름 3번이면 끝
+const CFG = { P: .0655, G: .1255, CAP: .1705, RP: .0855, RG: .1605, LEAD: .3, AHEAD: .1, VOICES: 48, STRAY: .5, PERF_STRAY: 3, ECHO: .2, ECHO_CAP: .2 };   // 따라해 콜 마디에서 삑을 같이 누른 헛누름(메아리)은 0.2, 합계는 총 무게의 20%까지만  // 판정 창은 경계 포함 + 0.5ms 여유. 헛누름 1회 = 무게 0.5 감점(상한 없음), 완벽 도전은 헛누름 3번이면 끝
 const COL = { sea: '#7fd3e8', deep: '#3b8fb5', sand: '#ffe9b8', coral: '#ff8a70', ink: '#2a2118', cream: '#fff3d6', gold: '#f6c945', navy: '#24365c' };
 const BGC = { sushi: '#ffe2c2', salute: '#8fd0ec', puffer: '#3a2f5c', gull: '#bfe6f5', remix: '#7fd3e8', menu: '#7fd3e8', title: '#7fd3e8', calib: '#8fd0ec', calibAsk: '#7fd3e8' };
 const GAMES = [
@@ -48,18 +48,19 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 
 // ===== SAVE =====
+const GRADE_CUT = { best: 80, ok: 60 };   // 등급: 만선 80 / 그럭저럭 60 (메달도 만선과 같은 기준)
 const SKEY = 'chams_rhythm_v1';
-const blankGame = () => ({ best: 0, grade: null, plays: 0, fails: 0, cleared: false, mercy: false, medal: false, stamp: false, practiced: false });
+const blankGame = () => ({ best: 0, grade: null, plays: 0, fails: 0, cleared: false, mercy: false, medal: false, stamp: false, practiced: false, assist: false });
 function blankSave() { const g = {}; GAMES.forEach(x => g[x.id] = blankGame()); return { v: 1, offset: 0, calibrated: false, askedCalib: false, games: g, seenFarts: [], last: 'sushi' }; }
 let SV = blankSave();
 function loadSave() {
-  try { const r = JSON.parse(localStorage.getItem(SKEY) || 'null'); if (r && r.v === 1) { const b = Object.assign(blankSave(), r); b.games = {}; GAMES.forEach(x => b.games[x.id] = Object.assign(blankGame(), (r.games || {})[x.id] || {})); SV = b; } } catch (e) {}
+  try { const r = JSON.parse(localStorage.getItem(SKEY) || 'null'); if (r && r.v === 1) { const b = Object.assign(blankSave(), r); b.games = {}; GAMES.forEach(x => { const g = b.games[x.id] = Object.assign(blankGame(), (r.games || {})[x.id] || {}); if (g.best >= GRADE_CUT.best) { g.medal = true; g.grade = 'best'; } }); SV = b; } } catch (e) {}   // 옛 세이브(만선 85 시절) 80~84점: 만선 표시에 메달을 맞춤
 }
 function save() { try { localStorage.setItem(SKEY, JSON.stringify(SV)); } catch (e) {} }
 loadSave();
 function isUnlocked(id) {
   const i = GAMES.findIndex(g => g.id === id); if (i < 0) return false; if (i === 0) return true;
-  if (id === 'remix') return GAMES.slice(0, 4).every(g => SV.games[g.id].cleared);
+  if (id === 'remix') return SV.games.gull.cleared || SV.games.remix.mercy;   // 다른 곡과 같은 규칙: 끼룩단 클리어 또는 끼룩단 2번 실패(봐주기)
   return SV.games[GAMES[i - 1].id].cleared || SV.games[id].mercy;
 }
 const stampCount = () => GAMES.filter(g => SV.games[g.id].stamp).length;
@@ -139,6 +140,8 @@ const I = {
   fanfare: (d, t, a = {}) => { const ns = a.ns || [72, 76, 79, 84]; ns.forEach((m, i) => I.pluck(d, t + i * .09, { f: mtof(m), vol: .12, d: .4 })); },
   blip: (d, t, a = {}) => osc(d, t, { type: 'triangle', f: a.f || 880, vol: .18, d: .06 }),
   bonk: (d, t) => { osc(d, t, { type: 'triangle', f: 420, f1: 300, vol: .3, d: .08 }); },
+  clk: (d, t, a = {}) => { osc(d, t, { type: 'triangle', f: a.first ? 2800 : 2100, vol: a.vol != null ? a.vol : a.first ? .32 : .22, d: .025 }); nz(d, t, { f: 4200, vol: .15, d: .015 }); },   // 딸깍(카운트인·가이드)
+  ghost: (d, t, a = {}) => { const g = AU.ctx.createGain(); g.gain.value = a.k == null ? .2 : a.k; g.connect(d); I[a.snd || 'clk'](g, t, a); setTimeout(() => { try { g.disconnect(); } catch (e) {} }, Math.max(0, (t - AU.ctx.currentTime) * 1000) + 1500); },   // 정답 가이드음: 정답타를 k 배 크기로
   // 공통 반주 악기
   tuba: (d, t, a) => { const du = a.dur || .3, v = a.vol || .3; osc(d, t, { type: 'sawtooth', f: a.f, vol: v, a: .02, hold: du * .55, d: du * .5, lp: 520, q: 1.4 }); osc(d, t, { f: a.f * 2, vol: v * .35, a: .02, hold: du * .5, d: du * .4 }); },
   acc: (d, t, a) => { const du = a.dur || .15, v = a.vol || .045; (a.ns || []).forEach(m => osc(d, t, { type: 'sawtooth', f: mtof(m), vol: v, a: .012, hold: du * .8, d: .07, lp: 1700, q: .7, vib: 5.5, vibD: 2 })); },
@@ -209,8 +212,8 @@ const offS = () => (run && run.type === 'calib') ? 0 : SV.offset / 1000;
 // 초밥: [마디, 박, 종류] tok: +1박 / tt: 큐 b, b+.5 → +1, +1.5 / yc: 영 b 차 b+1 → +2 (w2)
 const SUSHI_RAW = [[3,1,'tok'],[3,3,'tok'],[4,1,'tok'],[4,3,'tok'],[5,1,'tok'],[5,3,'tok'],[6,1,'tok'],[6,3,'tok'],[7,1,'tok'],[7,3,'tok'],[8,1,'tok'],
   [9,1,'tt'],[9,3,'tok'],[10,1,'tt'],[10,3,'tok'],[11,1,'tok'],[11,3,'tt'],[12,1,'tok'],[12,3,'tt'],[13,2,'yc'],[14,1,'tok'],
-  [15,1,'tt'],[15,3,'tt'],[16,1,'tt'],[16,3,'tt'],[17,1,'tok'],[17,2,'yc'],[18,1,'tok'],[18,2,'tok'],[18,3,'tok'],[18,4,'tok'],[19,3,'tok'],
-  [20,1,'tt'],[20,3,'tok'],[21,1,'tok'],[21,2.5,'tok'],[22,1,'tt'],[22,3,'tt'],[23,2,'yc'],[24,1,'tok'],[24,3,'tok'],[25,1,'tok'],[25,2,'tt'],[26,2,'yc']];
+  [15,1,'tt'],[15,3,'tok'],[16,1,'tt'],[16,3,'tok'],[17,2,'yc'],[18,1,'tok'],[18,3,'tok'],[19,3,'tok'],
+  [20,1,'tt'],[20,3,'tok'],[21,1,'tok'],[21,3,'tok'],[22,1,'tt'],[22,3,'tt'],[23,2,'yc'],[24,1,'tok'],[24,3,'tok'],[25,1,'tok'],[25,3,'tt'],[26,2,'yc']];   // 첫 곡이라 솎음(56→51음): 큐 박과 다른 음의 정답 박이 겹치지 않게
 function sushiItems(items, base, out, extra = {}) {
   for (const [bar, bt, k] of items) {
     const b = base + (bar - 1) * 4 + (bt - 1);
@@ -221,11 +224,11 @@ function sushiItems(items, base, out, extra = {}) {
 }
 // 따라해: [콜마디, 패턴] → 응답 마디(콜+1) 같은 자리에 입력. 셀 = 8분 칸(0~7)
 const PAT = { P1: [1, 2, 3, 4], P2: [1, 2, 4], P3: [1, 1.5, 2, 3], P4: [1, 1.5, 3, 3.5], P5: [1, 2.5, 4], P6: [1.5, 2, 3, 4], P7: [1, 1.5, 2, 2.5, 3, 4], R3: [1, 1.5, 2], Y: [], YB: [4] };
-const SALUTE_RAW = [[3,'P1'],[5,'P1'],[7,'P2'],[9,'P2'],[11,'Y'],[13,'P3'],[15,'P3'],[17,'P4'],[19,'P4'],[21,'Y'],[23,'P5'],[25,'P5'],[27,'P6'],[29,'P6'],[31,'YB'],[33,'P7']];
+const SALUTE_RAW = [[3,'P1'],[5,'P1'],[7,'P2'],[9,'P2'],[11,'Y'],[13,'P3'],[15,'P3'],[17,'P2'],[19,'P4'],[21,'Y'],[23,'P5'],[25,'P5'],[27,'P6'],[29,'P3'],[31,'YB'],[33,'P6']];
 function saluteItems(items, base, out, extra = {}, o = {}) {
   for (const [bar, pat] of items) {
     const b0 = base + (bar - 1) * 4, grp = 'g' + b0, P = PAT[pat], type = pat === 'Y' ? 'Y' : pat === 'YB' ? 'YB' : 'P';
-    out.pairs.push({ b0, type, pat, cells: P.map(p => (p - 1) * 2), grp, hide: o.hide != null ? o.hide : bar >= 19 });   // 19마디 이후 응답 점 숨김
+    out.pairs.push({ b0, type, pat, cells: P.map(p => (p - 1) * 2), grp, hide: o.hide != null ? o.hide : bar >= 27 });   // 27마디 이후 응답 점 숨김(참돌이 과녁 링은 그대로)
     // 하품 창 끝: Y 는 다음 콜 첫 삑(= b0+8) 아슬 창 앞에서 끊음(삑을 미리/같이 누른 건 하품 따라하기가 아니라 헛누름)
     if (type !== 'P') { out.cues.push({ beat: b0, cue: 'yawn', sfx: 'yawn' }); out.fakes.push({ cue: 'yawn', b0, w0: b0 + 4, w1: type === 'Y' ? b0 + 8 : b0 + 4 + 2.75, endPad: type === 'Y' ? CFG.G : 0, ...extra }); }
     P.forEach(p => { const cb = b0 + p - 1, cell = (p - 1) * 2; out.cues.push({ beat: cb, cue: 'whistle', sfx: 'whistle', cell, grp }); out.notes.push({ kind: 'tap', cue: p % 1 ? 'call_e' : 'call_q', beat: cb + 4, cueBeat: cb, w: 1, grp, cell, ...extra }); });
@@ -261,7 +264,7 @@ const RMX_SEG = [[1, 'intro'], [3, 'T', 'sushi'], [4, 'zone', 'sushi'], [10, 'T'
   [38, 'T', 'fast'], [39, 'fast', 'sushi'], [41, 'fast', 'gull'], [43, 'fast', 'salute'], [45, 'fast', 'puffer'], [47, 'fast', 'sushi'], [49, 'fast', 'gull'], [51, 'fast', 'salute'], [53, 'fast', 'puffer'], [55, 'T', 'grand'], [56, 'grand'], [64, 'outro']];
 const rmxSeg = bar => { let g = RMX_SEG[0]; for (const x of RMX_SEG) if (x[0] <= bar) g = x; return g; };
 // 카메라: [시작 박, 구역] — 그 박 전 반 박(모아 보기와 오갈 때는 1박) 동안 옮겨 간다
-const RMX_CAM = [[0, 'grid'], [12, 'sushi'], [40, 'salute'], [76, 'sushi'], [96, 'puffer'], [124, 'gull'], [152, 'sushi'], [160, 'gull'], [168, 'salute'], [176, 'puffer'], [184, 'sushi'], [192, 'gull'], [200, 'salute'], [208, 'puffer'], [220, 'grid']];
+const RMX_CAM = [[0, 'grid'], [12, 'sushi'], [40, 'salute'], [76, 'sushi'], [96, 'puffer'], [123, 'gull'], [152, 'sushi'], [159, 'gull'], [168, 'salute'], [176, 'puffer'], [184, 'sushi'], [191, 'gull'], [200, 'salute'], [208, 'puffer'], [220, 'grid']];   // 끼룩단 구역은 1박 일찍 도착(갈매기 링이 착지 반 박 전, 정답 1박 전부터 보이게)
 function remixItems(out) {
   const tag = (z, fn) => { const a = out.cues.length, f = out.fakes.length, p = out.pairs.length; fn({ zone: z }); for (let i = a; i < out.cues.length; i++) out.cues[i].zone = z; for (let i = f; i < out.fakes.length; i++) out.fakes[i].zone = z; for (let i = p; i < out.pairs.length; i++) out.pairs[i].zone = z; };
   tag('sushi', x => sushiItems([[4,1,'tok'],[4,3,'tok'],[5,1,'tok'],[5,3,'tok'],[6,1,'tt'],[6,3,'tok'],[7,1,'tok'],[7,3,'tt'],[8,1,'tt'],[8,3,'tt'],[9,1,'tok'],
@@ -272,7 +275,7 @@ function remixItems(out) {
   for (const bar of [3, 10, 19, 24, 31, 38, 55]) out.cues.push({ beat: (bar - 1) * 4, cue: 'horn', sfx: 'shiphorn', len: 2, zone: 'T' });
   for (const bar of [40, 42, 44, 46, 48, 50, 52]) out.cues.push({ beat: (bar - 1) * 4 + 3, cue: 'horn', sfx: 'shiphorn', len: 1, zone: 'T' });   // 급전환: 블록 둘째 마디 4박
 }
-const EXPECT = { sushi: { taps: 56, w: 60 }, salute: { taps: 51, w: 51, fakes: 3 }, puffer: { taps: 0, holds: 19, w: 42 }, gull: { taps: 82, w: 82, fakes: 11 }, remix: { taps: 79, holds: 8, w: 100, fakes: 5 } };
+const EXPECT = { sushi: { taps: 51, w: 55 }, salute: { taps: 48, w: 48, fakes: 3 }, puffer: { taps: 0, holds: 19, w: 42 }, gull: { taps: 82, w: 82, fakes: 11 }, remix: { taps: 79, holds: 8, w: 100, fakes: 5 } };
 const fakeWin = (f, bs) => [f.w0 * bs - .15, f.w1 * bs - (f.endPad || 0) + (f.pad1 || 0)];
 const chartCache = {};
 function buildChart(id) {
@@ -296,36 +299,48 @@ function buildChart(id) {
     practice: (PRACTICE[id] || []).map((p, i) => ({ stage: i + 1, text: p.lines.map(l => l[0] + ': "' + l[1] + '"').join(' / '), need: p.need, loop: p.loop, ring: !p.noRing, hint: p.hint })) };
   return chartCache[id] = ch;
 }
-const PRACTICE = {
+const PRACTICE = {   // 짧고 친절하게: 단계 3~4개, 과녁에 맞춘 음 3번이면 통과, 한 단계에서 루프 4번이 돌면 통과 여부와 관계없이 다음 단계
   sushi: [
-    { lines: [['무니', '…톡.'], ['냥선장', '톡 하면 한 박 뒤에 척! 얹는다냥']], need: 6, loop: [[1, 1, 'tok'], [1, 3, 'tok'], [2, 1, 'tok'], [2, 3, 'tok']], hint: '톡 다음 박, 무니 꼬리가 올라갈 때다냥' },
-    { lines: [['냥선장', '오, 좀 치는데? 톡톡은 두 번, 반 박 간격이다냥']], need: 4, loop: [[1, 1, 'tt']], hint: '톡톡 소리를 그대로 따라 한 박 늦게' },
-    { lines: [['냥선장', '영~차! 두 박 기다렸다가 쾅이다냥']], need: 2, loop: [[1, 2, 'yc']], hint: '영, 차, 그다음이다냥' },
-    { lines: [['냥선장', '이제 링 없이 해 보라냥']], need: 6, loop: [[1, 1, 'tok'], [1, 3, 'tt'], [2, 2, 'yc']], noRing: true, hint: '링을 한 번만 다시 보여 주겠다냥' },
+    { lines: [['무니', '…톡.'], ['냥선장', '톡 하면 한 박 뒤에 척! 얹는다냥']], need: 3, loop: [[1, 1, 'tok'], [1, 3, 'tok'], [2, 1, 'tok'], [2, 3, 'tok']], hint: '톡 다음 박, 무니 꼬리가 올라갈 때다냥' },
+    { lines: [['냥선장', '오, 좀 치는데? 톡톡은 두 번, 반 박 간격이다냥']], need: 3, loop: [[1, 1, 'tt'], [2, 1, 'tt']], hint: '톡톡 소리를 그대로 따라 한 박 늦게' },
+    { lines: [['냥선장', '영~차! 두 박 기다렸다가 쾅이다냥']], need: 3, loop: [[1, 2, 'yc'], [2, 2, 'yc']], hint: '영, 차, 그다음이다냥' },
   ],
-  // count: 'grp' = 한 쌍의 모든 타가 아슬 이상일 때 1, 'fake' = 하품을 참았을 때 1, 기본 = 음 하나(길게는 누름·뗌 둘 다) 1
+  // count: 'grp' = 한 쌍이 끝났을 때 1(3음 이상 쌍은 1음까지 놓쳐도 성공), 'fake' = 하품을 참았을 때 1, 기본 = 과녁 하나 1(길게는 누름·뗌 각각)
   salute: [
     { lines: [['냥선장', '내가 불면 다음 마디에 그대로다냥']], need: 2, count: 'grp', loop: [[1, 'P1']], hint: '박자판 점을 보고 따라 하라냥' },
     { lines: [['냥선장', '빈칸은 비워 둬라냥']], need: 2, count: 'grp', loop: [[1, 'P2']], hint: '3박은 참는 거다냥' },
     { lines: [['냥선장', '하품은 따라하는 게 아니다냥']], need: 1, count: 'fake', loop: [[1, 'Y'], [3, 'P1']], bars: 4, hint: '선배들을 봐라, 가만히 있지?' },
-    { lines: [['냥선장', '이제 박자판 없이 외워라냥']], need: 1, count: 'grp', loop: [[1, 'P3']], noRing: true, hide: true, hint: '점을 한 번만 다시 보여 주겠다냥' },
   ],
   puffer: [
     { lines: [['빵이', '뿌…'], ['냥선장', '누르는 것도 떼는 것도 박자다냥']], need: 3, loop: [[1, 'A']], hint: '틱, 두 박 뒤에 눌러라냥' },
-    { lines: [['냥선장', '물방울이 다 터지면 뗀다냥. 쿵 소리다냥']], need: 3, loop: [[1, 'B']], hint: '주먹 쥐면 곧 뗄 때다냥' },
+    { lines: [['냥선장', '물방울이 다 터지면 뗀다냥. 쿵 소리다냥']], need: 2, loop: [[1, 'B']], hint: '주먹 쥐면 곧 뗄 때다냥' },
     { lines: [['냥선장', '드르르르 뒤에 네 박 참는다냥']], need: 1, loop: [[1, 'D']], bars: 4, hint: '물방울 네 개, 세어 봐라냥' },
-    { lines: [['냥선장', '이제 목표 점선 없이 해 보라냥']], need: 2, loop: [[1, 'C']], noRing: true, hint: '점선을 한 번만 다시 보여 주겠다냥' },
   ],
   // guide = 엇박 가이드(하이햇·기타) 크기. count 'mix' = 음 needN 개 + 비둘기 참기 needF 번
   gull: [
-    { lines: [['말순냥', '까악 말고 칭에 때려']], need: 6, guide: .6, loop: [[1, 1, 'g'], [1, 3, 'g'], [2, 1, 'g'], [2, 3, 'g']], hint: '발은 쿵, 손은 칭이다냥' },
-    { lines: [['말순냥', '두 마리면 두 번이야']], need: 6, guide: .6, loop: [[1, 1, 'g'], [1, 2, 'g']], hint: '까악 까악, 칭 칭' },
-    { lines: [['말순냥', '비둘기는 손님이야. 치지 마']], need: 6, needN: 4, needF: 2, count: 'mix', guide: .6, loop: [[1, 1, 'g'], [1, 3, 'dove'], [2, 1, 'g'], [2, 3, 'g']], hint: '구구 소리는 부드럽지?' },
-    { lines: [['말순냥', '두목은 두 번 쳐!']], need: 1, count: 'grp', guide: .6, loop: [[1, 1, 'boss']], hint: '쿵 칭, 깍 칭' },
-    { lines: [['말순냥', '이제 링 없이. 기타도 작게']], need: 6, guide: .25, loop: [[1, 1, 'g'], [1, 2, 'g'], [1, 3, 'dove'], [2, 1, 'boss'], [2, 4, 'g']], noRing: true, hint: '링을 한 번만 다시 보여 주겠다냥' },
+    { lines: [['말순냥', '까악 말고 칭에 때려']], need: 3, guide: .6, loop: [[1, 1, 'g'], [1, 3, 'g'], [2, 1, 'g'], [2, 3, 'g']], hint: '발은 쿵, 손은 칭이다냥' },
+    { lines: [['말순냥', '두 마리면 두 번이야']], need: 3, guide: .6, loop: [[1, 1, 'g'], [1, 2, 'g'], [2, 1, 'g'], [2, 2, 'g']], hint: '까악 까악, 칭 칭' },
+    { lines: [['말순냥', '비둘기는 손님이야. 치지 마']], need: 3, needN: 2, needF: 1, count: 'mix', guide: .6, loop: [[1, 1, 'g'], [1, 3, 'dove'], [2, 1, 'g'], [2, 3, 'g']], hint: '구구 소리는 부드럽지?' },
+    { lines: [['말순냥', '두목은 두 번 쳐!']], need: 2, count: 'grp', guide: .6, loop: [[1, 1, 'boss']], hint: '쿵 칭, 깍 칭' },
   ],
 };
 const PR_END = { sushi: ['냥선장', '좋아, 실전이다냥!'], salute: ['냥선장', '좋아, 실전 점호다냥!'], puffer: ['냥선장', '좋아, 막이 오른다냥!'], gull: ['말순냥', '좋아, 진짜 끼룩단이 온다!'] };
+// 연습 끝: 8음 이상에서 평균 오차가 ±40ms 를 넘으면 박자 맞추기 안내(보정값은 바꾸지 않음)
+function prEndLine(r) {
+  const e = []; for (const n of r.notes) { if (n.err != null) e.push(n.err); if (n.rerr != null) e.push(n.rerr); }
+  if (e.length < 8) return null; const m = e.reduce((a, b) => a + b, 0) / e.length;
+  return Math.abs(m) > .04 ? ['냥선장', `박이 조금 ${m > 0 ? '늦다' : '빠르다'}냥. 설정의 박자 맞추기를 해 보라냥`] : null;
+}
+// 정답 가이드음: 그 곡 정답타를 작게(연습 ½, 도우미 판 0.2). 따라해는 선배 넵이 이미 가이드라 생략
+const GHOST_SND = { sushi: 'chuck', puffer: 'clk', gull: 'ching_puck' };
+const ASSIST_SND = { sushi: '척', puffer: '뿌', gull: '칭', remix: '정답' };
+function ghostEv(r, E, notes, k) {
+  for (const n of notes) {
+    const z = n.zone || r.game, snd = GHOST_SND[z]; if (!snd) continue;
+    const a = { snd, k, ns: z === 'gull' ? gullChord(r, n.beat) : undefined };
+    E(n.beat, 'ghost', a, 'cue', 'ghost'); if (n.relBeat != null) E(n.relBeat, 'ghost', a, 'cue', 'ghost');
+  }
+}
 
 // ===== SONGS (반주 생성기: 마디 → 이벤트) =====
 const SUSHI_ROOT = [36, 45, 41, 43];   // C | Am | F | G7 (베이스 2옥타브)
@@ -470,7 +485,8 @@ function startPlay(gid, opt = {}) {
   r.notes = ch.notes.map(n => ({ ...n })); r.cues = ch.cues; r.fakes = ch.fakeList.map(f => ({ ...f, pressed: false })); r.len = ch.lengthSec; r.totalW = ch.totalWeight; r.perfect = !!opt.perfect;
   r.pairs = ch.pairs; regGroups(r, r.notes); r.pairsEnd = ch.pairs.length ? Math.max(...ch.pairs.map(q => q.b0 + 8)) : 0;
   if (r.notes.length) { r.sFrom = r.notes[0].t - r.bs; r.sTo = Math.max(...r.notes.map(n => n.relT || n.t)) + r.bs; }
-  r.ev = SONG[gid](r, ch).sort((a, b) => a.t - b.t);
+  const ev = SONG[gid](r, ch); r.assist = !!(SV.games[gid] && SV.games[gid].assist && !opt.perfect); if (r.assist) ghostEv(r, mkE(ev, r.bs), r.notes, .2);   // 도우미: 곡 전체 가이드음
+  r.ev = ev.sort((a, b) => a.t - b.t);
   if (gid === 'remix') {   // 구역별 보기: 원래 게임 그리기 함수에 그 구역 음·큐만 넘긴다(나머지 상태는 원본 run 을 그대로 읽음)
     r.zones = {}; r.pairsEnd = 0;
     for (const z of ['sushi', 'salute', 'puffer', 'gull']) { const v = Object.create(r); v.zv = z; v.notes = r.notes.filter(n => n.zone === z); v.cues = r.cues.filter(c => c.zone === z); v.fakes = r.fakes.filter(f => f.zone === z); v.pairs = r.pairs.filter(q => q.zone === z); r.zones[z] = v; }
@@ -480,27 +496,30 @@ function startPlay(gid, opt = {}) {
 function startPractice(gid, opt = {}) {
   if (!PRACTICE[gid]) { startPlay(gid, opt); return; }   // 대축제는 연습 없이 바로
   const G = GBY[gid], r = newRun('practice', gid, G.bpm, opt.sim);
-  r.pr = { stages: PRACTICE[gid], si: clamp((opt.stage || 1) - 1, 0, PRACTICE[gid].length - 1), done: 0, missRun: 0, hint: false, ringOnce: false, nextBeat: 0, barNo: 0, segs: [], finished: false, playAt: null, first: true };
+  r.pr = { stages: PRACTICE[gid], si: clamp((opt.stage || 1) - 1, 0, PRACTICE[gid].length - 1), done: 0, missRun: 0, hint: false, ringOnce: false, nextBeat: 0, barNo: 0, segs: [], finished: false, playAt: null, first: true, loops: 0 };
   endRun(); beginRun(r); setScene('practice'); prGen(r);
 }
 // 연습: 한 번에 한 조각(안내 1마디 또는 2마디 루프)씩 이어 붙인다
 function prGen(r) {
   const p = r.pr, bs = r.bs, E = mkE(r.ev, bs), st = p.stages[p.si], base = p.nextBeat, GP = GH[r.game]; let seg;
   const groove = (bars, role) => { for (let i = 0; i < bars; i++) { GP.prGroove(r, E, base + i * 4, p.barNo, role ? role(i) : 'gap'); p.barNo++; } };
-  if (p.first) { p.first = false; seg = { type: 'gap', b0: base, b1: base + 4, si: p.si }; groove(1); }
-  else if (p.done >= st.need) {
-    p.si++; p.done = 0; p.doneN = 0; p.doneF = 0; p.missRun = 0; p.hint = false; p.ringOnce = false;
-    if (p.si >= p.stages.length) { p.si = p.stages.length - 1; p.finished = true; p.playAt = base + 4; seg = { type: 'end', b0: base, b1: base + 4, si: p.si }; groove(1); const g = SV.games[r.game]; if (!g.practiced) { g.practiced = true; save(); } }
-    else { seg = { type: 'gap', b0: base, b1: base + 4, si: p.si }; groove(1); }
+  const countIn = () => { for (let i = 0; i < 4; i++) E(base + i, 'clk', { first: i === 0 }, 'cue', 'count'); };   // 안내 마디: 딸깍 4번
+  if (p.first) { p.first = false; seg = { type: 'gap', b0: base, b1: base + 4, si: p.si }; groove(1); countIn(); }
+  else if (p.done >= st.need || p.loops >= Math.max(2, Math.floor(8 / (st.bars || 2)))) {   // 통과했거나, 이 단계에서 루프가 4번(4마디 루프는 2번 = 8마디) 돌았으면 다음 단계
+    p.si++; p.done = 0; p.doneN = 0; p.doneF = 0; p.missRun = 0; p.hint = false; p.ringOnce = false; p.loops = 0;
+    if (p.si >= p.stages.length) { p.si = p.stages.length - 1; p.finished = true; p.playAt = base + 4; p.endLine = prEndLine(r); seg = { type: 'end', b0: base, b1: base + 4, si: p.si }; groove(1); const g = SV.games[r.game]; if (!g.practiced) { g.practiced = true; save(); } }
+    else { seg = { type: 'gap', b0: base, b1: base + 4, si: p.si }; groove(1); countIn(); }
   } else {
-    const out = { notes: [], cues: [], fakes: [], pairs: [] }, ring = !st.noRing || p.ringOnce, hide = !!st.hide && !p.ringOnce; p.ringOnce = false;
-    GP.prItems(st.loop, base, out, { stage: p.si, ring }, { hide });
+    p.loops++;
+    const out = { notes: [], cues: [], fakes: [], pairs: [] };
+    GP.prItems(st.loop, base, out, { stage: p.si, ring: true }, { hide: false });
     let id = r.notes.length; out.notes.sort((a, b) => a.beat - b.beat).forEach(n => { n.id = id++; n.t = n.beat * bs; if (n.relBeat != null) n.relT = n.relBeat * bs; r.notes.push(n); });
     regGroups(r, out.notes);
     out.cues.forEach(c => { c.t = c.beat * bs; r.cues.push(c); E(c.beat, c.sfx, { bs }, 'cue', c.cue); });
     out.fakes.forEach(f => { f.id = r.fakes.length; f.win = fakeWin(f, bs); f.pressed = false; r.fakes.push(f); });
     out.pairs.forEach(q => r.pairs.push(q));
     if (GP.prEv) GP.prEv(r, E, out);
+    ghostEv(r, E, out.notes, .5);   // 연습 내내 정답 가이드음(½ 크기)
     r.cues.sort((a, b) => a.beat - b.beat);
     const bars = st.bars || 2;
     seg = { type: 'loop', b0: base, b1: base + bars * 4, si: p.si }; groove(bars, i => i % 2 ? 'resp' : 'call');
@@ -508,8 +527,8 @@ function prGen(r) {
   const chunk = r.ev.splice(r.ptr).sort((a, b) => a.t - b.t); r.ev.push(...chunk);   // 새 조각만 정렬(이미 예약한 앞부분은 그대로)
   p.segs.push(seg); p.nextBeat = seg.b1;
 }
-// 연습 건너뛰기: 이미 연습을 끝낸 게임, 1단계를 넘긴 뒤, 한 단계에서 6번 연속 빗나가 막혔을 때 보인다(키보드 S 는 언제나)
-function canSkipPractice() { const r = run; return !!(r && r.type === 'practice' && scene === 'practice' && r.pr && !r.pr.finished && (SV.games[r.game].practiced || r.pr.si >= 1 || r.pr.offerSkip)); }
+// 연습 건너뛰기: 연습 중 처음부터 늘 보인다(키보드 S 도)
+function canSkipPractice() { const r = run; return !!(r && r.type === 'practice' && scene === 'practice' && r.pr && !r.pr.finished); }
 function skipPractice() { const r = run; if (!r || r.type !== 'practice') return false; const g = SV.games[r.game]; if (!g.practiced) { g.practiced = true; save(); } paused = false; startPlay(r.game, { sim: r.sim }); return true; }
 function curSeg(r, s) { const p = r.pr, b = s / r.bs; for (let i = p.segs.length - 1; i >= 0; i--) if (b >= p.segs[i].b0) return p.segs[i]; return p.segs[0]; }
 
@@ -590,8 +609,8 @@ function prJudge(r, n, j, phase) {
   const p = r.pr; if (n.stage !== p.si || p.finished) return;
   const cnt = p.stages[p.si].count || 'note'; let ok;
   if (cnt === 'fake') return;   // 하품 참기 단계: 속임수 창이 지나갈 때 따로 셈
-  if (n.kind === 'hold') { if (phase !== 'release') return; ok = n.j !== 'miss' && n.rj !== 'miss'; }   // 길게: 누름·뗌 둘 다 아슬 이상
-  else if (cnt === 'grp') { if (n.grpDone == null) return; ok = n.grpDone; }
+  if (n.kind === 'hold') { if (phase === 'release' && n.err == null) return; ok = j !== 'miss'; }   // 길게: 누름 과녁·뗌 과녁을 각각 1로(누름을 놓쳐 자동 빗나간 뗌은 안 셈)
+  else if (cnt === 'grp') { if (n.grpDone == null) return; const g = r.grpS[n.grp], ns = r.notes.filter(q => q.grp === n.grp), bad = ns.filter(q => q.j === 'miss').length; ok = !(g && g.echo) && (ns.length >= 3 ? bad <= 1 : bad === 0); }   // 한 쌍: 3음 이상이면 1음까지 놓쳐도 성공(두목 두 번은 둘 다)
   else ok = j !== 'miss';
   prOutcome(r, ok, 'N');
 }
@@ -599,7 +618,7 @@ function prOutcome(r, ok, part) {
   const p = r.pr, st = p.stages[p.si];
   if (ok && st.count === 'mix') { if (part === 'F') p.doneF = (p.doneF || 0) + 1; else p.doneN = (p.doneN || 0) + 1; p.done = Math.min(p.doneN || 0, st.needN) + Math.min(p.doneF || 0, st.needF); p.missRun = 0; }   // 음 needN + 비둘기 참기 needF 를 둘 다 채워야
   else if (ok) { p.done++; p.missRun = 0; }
-  else { p.missRun++; if (p.missRun >= 4 && p.missRun % 4 === 0) { p.hint = true; if (p.stages[p.si].noRing) p.ringOnce = true; } if (p.missRun >= 6) p.offerSkip = true; }
+  else { p.missRun++; if (p.missRun >= 2) p.hint = true; if (p.missRun >= 4) p.offerSkip = true; }   // 2번 연속 빗나가면 힌트, 4번이면 건너뛰기 권유
 }
 function perfFail(r, n, at) {
   if (r.perfEnd != null) return; r.perfEnd = Math.max(at, n.t) + r.bs; r.perfBeat = n.beat;
@@ -632,7 +651,7 @@ function doPress(x, at) {
   const ec = gh && gh.echoOf ? gh.echoOf(r, x) : null;   // 따라해: 선장이 불 때 같이 누름
   if (ec) {
     r.echo = (r.echo || 0) + 1; r.echoT = at;
-    if (r.type === 'practice' && r.pr && ec.stage === r.pr.si && !r.pr.finished) { const g = r.grpS[ec.grp]; if (g) g.bad = true; r.pr.echoT = at; }   // 연습: 그 쌍은 실패로 셈 + "듣기만" 안내
+    if (r.type === 'practice' && r.pr && ec.stage === r.pr.si && !r.pr.finished) { const g = r.grpS[ec.grp]; if (g) { g.bad = true; g.echo = true; } r.pr.echoT = at; }   // 연습: 그 쌍은 실패로 셈 + "듣기만" 안내
   }
   if (r.perfect && r.counts.stray >= CFG.PERF_STRAY) { r.perfWhy = 'stray'; perfFail(r, { t: x, beat: x / r.bs }, at); }
   return { judge: 'stray' };
@@ -691,7 +710,7 @@ const NOPRESS_LINE = { sushi: '손님들이 맨밥만 먹고 갔다', salute: '�
 const STRAY_GAME_LINE = { sushi: '바닥이 참치 범벅이 됐다', salute: '갑판에 헛경례가 난무했다', puffer: '빵이가 헛바람에 어지럽다', gull: '말순냥 얼굴이 대파 자국투성이', remix: '축제가 헛손질 박수로 끝났다' };
 const FIRST_TIP = { sushi: '톡 소리 듣고 한 박 뒤에 눌러 보라냥', salute: '삑 소리를 듣고 다음 마디에 똑같이 눌러 보라냥', puffer: '틱 두 박 뒤에 꾹, 쿵 소리에 떼 보라냥', gull: '까악 소리 반 박 뒤, 칭에 눌러 보라냥', remix: '가게마다 규칙은 그대로다냥. 뱃고동이 울리면 가게가 바뀐다냥' };
 const FAKE_LINE = { yawn: '내 하품까지 따라 하다니, 영광이다냥', dove: '비둘기를 때린 건 말순냥한테 비밀로 해 주겠다냥' };
-const gradeOf = sc => sc >= 85 ? 'best' : sc >= 60 ? 'ok' : 'retry';
+const gradeOf = sc => sc >= GRADE_CUT.best ? 'best' : sc >= GRADE_CUT.ok ? 'ok' : 'retry';
 // 끼룩단 퇴치는 헛누름 1회 = 1점: 모든 음이 엇박 격자 위라 0.5 로는 '매 박 엇박에 기계적으로 두드리기'가 69점 그럭저럭으로 통과함(비둘기 11·빈 엇박 35회)
 const STRAY_W = { gull: 1 };
 function strayPen(r, W) { const e = r.echo || 0; return (STRAY_W[r.game] || CFG.STRAY) * (r.counts.stray - e) + Math.min(CFG.ECHO * e, CFG.ECHO_CAP * (W == null ? r.totalW - r.excludedW : W)); }
@@ -751,13 +770,15 @@ function finish() {
   if (counts) {
     if (res.score > g.best) { res.newBest = g.plays > 1 || res.score > 0; g.best = res.score; }
     g.grade = gradeOf(g.best);
-    if (res.score >= 60) { g.cleared = true; g.fails = 0; } else g.fails++;
-    if (res.score >= 85 && !g.medal) { g.medal = true; res.medal = true; }
+    if (res.score >= GRADE_CUT.ok) { g.cleared = true; g.fails = 0; } else g.fails++;
+    if (res.score < GRADE_CUT.ok && g.fails >= 2 && ASSIST_SND[r.game]) { res.assistOn = true; g.assist = true; } if (res.score >= GRADE_CUT.ok) g.assist = false;   // 도우미: 2번 실패하면 다음 판부터 정답 가이드음을 곡 전체에
+    if (res.score >= GRADE_CUT.best && !g.medal) { g.medal = true; res.medal = true; }
     if (res.perfect.ok && res.score >= 60) { if (!g.stamp) res.stamp = true; g.stamp = true; }   // 무지개 도장은 그럭저럭 항해 이상일 때만(다시 출항 도장과 같이 뜨지 않게)
     else if (res.perfect.ok) res.perfect.noStamp = true;
     const i = GAMES.findIndex(x => x.id === r.game), nx = GAMES[i + 1];
-    if (nx && i < 3 && !isUnlocked(nx.id) && g.fails >= 3) { SV.games[nx.id].mercy = true; g.fails = 0; res.mercy = nx.id; }
+    if (nx && !isUnlocked(nx.id) && g.fails >= 2) { SV.games[nx.id].mercy = true; g.fails = 0; res.mercy = nx.id; }
   }
+  if (res.assistOn) res.comments[1] = `다음 판은 ${ASSIST_SND[r.game]} 소리를 작게 깔아 주겠다냥`;
   SV.last = r.game; save();
   res.unlocked = GAMES.filter(x => isUnlocked(x.id) && !before.includes(x.id)).map(x => x.id);
   lastResult = res; endRun(); setScene('result');
@@ -889,7 +910,7 @@ function toast(t) { ui.toast = t; ui.toastT = uiNow(); }
 function goMenu() { endRun(); setScene('menu'); ui.focus = Math.max(0, GAMES.findIndex(g => g.id === SV.last)); onShow(); }
 function titleGo() { auInit(); if (!SV.askedCalib) { SV.askedCalib = true; save(); setScene('calibAsk'); } else goMenu(); }
 function openCard(id) {
-  if (!isUnlocked(id)) { toast(id === 'remix' ? '네 가게 모두 그럭저럭 이상이어야 축제다냥. 봐준 건 안 친다냥' : '아직 잠겼다냥. 앞 가게부터 해결하라냥'); uiSfx('bonk'); return; }
+  if (!isUnlocked(id)) { toast('아직 잠겼다냥. 앞 가게부터 해결하라냥'); uiSfx('bonk'); return; }
   ui.card = id; SV.last = id; setScene('card'); uiSfx('blip', { f: 990 });
 }
 function cardGo(mode) {
@@ -931,6 +952,20 @@ addEventListener('resize', resize); resize();
 function P() { X.beginPath(); }
 function fs(fill, lw = 4, st = COL.ink) { if (fill) { X.fillStyle = fill; X.fill(); } if (lw) { X.lineWidth = lw; X.strokeStyle = st; X.stroke(); } }
 function circ(x, y, r, fill, lw = 4) { P(); X.arc(x, y, Math.max(.1, r), 0, Math.PI * 2); fs(fill, lw); }
+// 과녁 + 다가오는 링 + 정답 번쩍 (실전·연습 공통). cT = 링이 나타나는 곡 시각. 링은 일정 속도로 줄어 정답 시각에 과녁과 딱 겹침
+const VIS = []; let VIS_ON = false;
+function drawTarget(x, y, R, n, s, cT, o = {}) {
+  const t = o.t != null ? o.t : n.t, j = o.t != null ? n.rj : n.j, at = o.t != null ? n.rat : n.at, lead = t - cT;
+  if (s < cT || lead <= 0 || s > t + Math.max(CFG.G, .12)) return;
+  const k = clamp((t - s) / lead, 0, 1), rr = R + (o.grow != null ? o.grow : 2 * R) * k, aft = s - t, hit = j && j !== 'miss';
+  const show = aft <= CFG.G && !(hit && at != null && s >= at);
+  if (show) {
+    X.save(); X.setLineDash([8, 7]); circ(x, y, R, null, 4); X.strokeStyle = '#fff'; X.lineWidth = 2; X.stroke(); X.restore();   // 과녁
+    X.save(); X.globalAlpha = .45 + .55 * (1 - k); circ(x, y, rr, null, 7); X.strokeStyle = o.col || '#fff'; X.lineWidth = 3.5; X.stroke(); X.restore();   // 링
+  }
+  if (aft >= 0 && aft < .12) { X.save(); X.globalAlpha = 1 - aft / .12; P(); X.arc(x, y, R, 0, Math.PI * 2); if (o.edge) { X.strokeStyle = o.edge; X.lineWidth = 16; X.stroke(); } X.strokeStyle = o.flash || COL.gold; X.lineWidth = 10; X.stroke(); X.restore(); }   // 번쩍 (edge = 바탕과 비슷한 색일 때 둘레를 진하게)
+  if (VIS_ON) VIS.push({ kind: o.t != null ? 'release' : 'ring', id: n.id, x, y, R, rr, show, flash: aft >= 0 && aft < .12, t, cT, zone: n.zone || null });
+}
 function ell(x, y, rx, ry, fill, lw = 4, rot = 0) { P(); X.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), rot, 0, Math.PI * 2); fs(fill, lw); }
 function rrPath(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); X.moveTo(x + r, y); X.arcTo(x + w, y, x + w, y + h, r); X.arcTo(x + w, y + h, x, y + h, r); X.arcTo(x, y + h, x, y, r); X.arcTo(x, y, x + w, y, r); X.closePath(); }
 function rrect(x, y, w, h, r, fill, lw = 4) { P(); rrPath(x, y, w, h, r); fs(fill, lw); }
@@ -1268,6 +1303,7 @@ function drawSushi(s0, r) {
   const fin = [tx - 70 * tk, ty + 12 * tk];
   const later = [];
   for (const n of r.notes) {
+    { const gx = n.big ? bx0 : slotX(n), gy = riceY - (n.big ? 10 : 0); if (s >= n.cueBeat * bs && s <= n.t + .13) later.push(() => drawTarget(gx, gy, n.big ? 64 : 38, n, s, n.big ? n.t - 2 * bs : n.cueBeat * bs)); }   // 과녁·링: 톡 = 큐 '톡'부터 1박, 영차 = '영'부터 2박
     const appear = n.big ? n.t - bs : n.cueBeat * bs; if (s < appear - .01) continue;
     const hit = n.j === 'perfect' || n.j === 'good', snap = n.j === 'perfect' && n.err < 0, ht = hit ? (snap ? n.t : n.at) : null;
     const dep = hit ? Math.max(n.t, n.at) + .02 : n.t + .09, x0 = n.big ? bx0 : slotX(n), w = n.big ? rw * 2.3 : rw, y0 = riceY - (n.big ? 10 : 0);
@@ -1287,7 +1323,6 @@ function drawSushi(s0, r) {
     // 영차 성공: 반짝
     if (hit) { const d = s - ht; if (d >= 0 && d < .3) later.push(() => sparkles(px, py - 10, d / .3, n.j === 'perfect', n.big)); }
     if (pr && n.j && s - (n.at || 0) < .4 && s >= n.at) later.push(() => { const tt = n.j === 'perfect' ? '딱!' : n.j === 'good' ? '아슬' : '빗나감'; txt(tt, x0, L.judgeY - 60 - (s - n.at) * 40, 34, n.j === 'perfect' ? '#e0a100' : n.j === 'good' ? '#fff' : '#8a8a8a', 'center', COL.ink, 6); });
-    if (pr && n.ring && !n.j && s >= n.t - bs && s < n.t + .08) later.push(() => { const k = Math.max(0, (n.t - s) / bs), rr = (n.big ? 64 : 38) * (1 + 2 * k); X.save(); X.globalAlpha = .45 + .55 * (1 - k); circ(x0, y0, rr, null, 7); circ(x0, y0, rr, null, 3.5); X.strokeStyle = '#fff'; X.lineWidth = 3.5; X.stroke(); X.restore(); });
   }
   // 영차: 거대 참치
   let squashed = null;
@@ -1322,7 +1357,7 @@ function drawSushi(s0, r) {
   // 겹 UI
   if (pr) drawPracticeUI(s, r, L);
   else if (r.zv) { if (r.game === 'remix') rmxSushiGag(s, r, L); }
-  else if (s >= 4 * bs && s < 8 * bs) { const b = Math.floor(s / bs) - 4, f = s / bs - Math.floor(s / bs); circ(W / 2, L.top, 58 + (1 - f) * 10, '#fff'); txt(String(4 - b), W / 2, L.top + 3, 64 + (1 - f) * 14, COL.coral); }
+  else if (s >= 4 * bs && s < 8 * bs) { const b = Math.floor(s / bs) - 4, f = s / bs - Math.floor(s / bs); circ(W / 2, L.top, 58 + (1 - f) * 10, '#fff'); txt(String(b + 1), W / 2, L.top + 3, 64 + (1 - f) * 14, COL.coral); }
   else if (s < 4 * bs) txt('준비…', W / 2, L.top, 40, '#8a5a2a', 'center', '#fff', 6);
   drawResumeCount(s0, r, L.top);
 }
@@ -1354,18 +1389,17 @@ function sparkles(x, y, t, gold, big) {
 function drawPracticeUI(s, r, L) {
   const p = r.pr, seg = curSeg(r, s), st = p.stages[seg.si];
   let who, text;
-  if (seg.type === 'end') [who, text] = PR_END[r.game];
+  if (seg.type === 'end') [who, text] = p.endLine || PR_END[r.game];
   else if (p.echoT != null && s - p.echoT >= 0 && s - p.echoT < 2.4 && seg.si === p.si) { who = '냥선장'; text = STRAY_LINE[r.game] || STRAY_LINE.salute; }   // 콜을 같이 누름 → 바로 교정
-  else if (p.offerSkip && p.missRun >= 6 && seg.si === p.si && !SV.games[r.game].practiced) { who = '냥선장'; text = '막혔냥? 오른쪽 위 노란 버튼으로 바로 실전도 된다냥'; }
+  else if (p.offerSkip && p.missRun >= 4 && seg.si === p.si && !SV.games[r.game].practiced) { who = '냥선장'; text = '막혔냥? 오른쪽 위 노란 버튼으로 바로 실전도 된다냥'; }
   else if (p.hint && seg.si === p.si) { who = '냥선장'; text = st.hint; }
   else { const ln = st.lines, i = ln.length > 1 && s < seg.b0 * r.bs + r.bar * .5 && seg.type === 'gap' ? 0 : ln.length - 1; [who, text] = ln[i]; }
   const [bx, by, bw] = L.bub, bh = bubble(bx, by, bw, who, text, { px: port ? 26 : 28 }); ui.bub = { x: bx - bw / 2, y: by, w: bw, h: bh };   // 건너뛰기 버튼이 말풍선을 피해 자리 잡도록
   // 단계·진행 점
   const need = st.need, done = seg.si === p.si ? Math.min(p.done, need) : need, y = L.prow ? L.prow[1] : port ? 245 : 468, x0 = L.prow ? L.prow[0] : port ? 40 : 30;
-  rrect(x0 - 14, y - 24, 150 + need * 26 + (st.noRing ? 70 : 0), 48, 24, 'rgba(255,253,245,.9)', 3);
+  rrect(x0 - 14, y - 24, 150 + need * 26, 48, 24, 'rgba(255,253,245,.9)', 3);
   txt(`연습 ${seg.si + 1}/${p.stages.length}`, x0, y + 1, 24, COL.ink, 'left');
   for (let i = 0; i < need; i++) circ(x0 + 124 + i * 26, y, 9, i < done ? COL.gold : '#fff', 3);
-  if (st.noRing) txt('링 없음', x0 + 118 + need * 26 + 8, y + 1, 20, '#b0703a', 'left');
   if (port) { X.save(); X.globalAlpha = .6; txt(L.tapText || '여기 아무 데나 톡', W / 2, 1180, 34, '#fff', 'center', 'rgba(42,33,24,.5)', 5); X.restore(); }
   else if (touchUI) { X.save(); X.globalAlpha = .75; txt(L.tapText || '화면 아무 데나 톡', W / 2, H - 22, 22, '#fff3d6', 'center', 'rgba(42,33,24,.5)', 4); X.restore(); }   // 터치(가로 폰): 키 안내 대신 탭 안내
   else { X.save(); X.globalAlpha = .75; txt(L.keyHint || 'Space · Z · X · 클릭', W / 2, H - 22, 22, '#fff3d6', 'center', 'rgba(42,33,24,.5)', 4); X.restore(); }
@@ -1446,9 +1480,9 @@ function drawSalute(s0, r) {
   if (s - (r.strayT ?? -9) >= 0 && s - r.strayT < .25) txt('넵?', px - 10, py - 96 * k, 26, '#6d6a75', 'center', '#fff', 5);
   // 하품 속임수: 정적 속에 갈매기 한 마리가 끼룩 지나감
   if (fakeOn) { const f = (s - r.lastFake - .3) / 1.4; if (f > 0 && f < 1) { drawGull(lerp(W + 80, -80, f), L.gullY + Math.sin(f * 12) * 10, .9, { flap: (Math.sin(s * 18) + 1) / 2, fly: true }); if (f < .35) txt('끼룩', lerp(W + 80, -80, f), L.gullY - 50, 26, '#6d6a75', 'center', '#fff', 5); } }
-  // 연습: 링·판정 글자
+  // 과녁·링(실전·연습 공통, 정답 1박 전부터) + 연습 판정 글자
+  for (const n of r.notes) if (s >= n.t - bs && s <= n.t + .13) drawTarget(px - 10, py - 10, 46, n, s, n.t - bs);
   if (pr) for (const n of r.notes) {
-    if (n.ring && !n.j && s >= n.t - bs && s < n.t + .08) { const kk = Math.max(0, (n.t - s) / bs), rr = 46 * (1 + 2 * kk); X.save(); X.globalAlpha = .45 + .55 * (1 - kk); circ(px - 10, py - 10, rr, null, 7); circ(px - 10, py - 10, rr, null, 3.5); X.strokeStyle = '#fff'; X.lineWidth = 3.5; X.stroke(); X.restore(); }
     if (n.j && n.at != null && s >= n.at && s - n.at < .4) { const tt = n.j === 'perfect' ? '딱!' : n.j === 'good' ? '아슬' : '빗나감'; txt(tt, px, L.judgeY - (s - n.at) * 40, 34, n.j === 'perfect' ? '#e0a100' : n.j === 'good' ? '#fff' : '#8a8a8a', 'center', COL.ink, 6); }
   }
   if (pr) for (const f of r.fakes) if (f.ok && s - f.win[1] >= 0 && s - f.win[1] < .6) txt('잘 참았다!', px, L.judgeY - (s - f.win[1]) * 30, 32, '#fff', 'center', COL.ink, 6);
@@ -1467,9 +1501,10 @@ function drawSalBoard(L, r, s, C) {
   for (let i = 0; i < 4; i++) txt(String(i + 1), x0 + (2 * i + .5) * cw, y0 + bh - 15, 17, '#b0a080');
   const cy = y0 + bh * .42, rad = Math.min(cw * .34, bh * .26);
   // 인트로 카운트(본게임 2마디째)
-  if (!q && r.type === 'play' && !r.zv && b >= 4 && b < 8) { const k = Math.floor(b) - 4, f = b - Math.floor(b); txt(String(4 - k), bx, cy + 4, 62 + (1 - f) * 12, COL.coral, 'center', '#fff', 6); }
+  if (!q && r.type === 'play' && !r.zv && b >= 4 && b < 8) { const k = Math.floor(b) - 4, f = b - Math.floor(b); txt(String(k + 1), bx, cy + 4, 62 + (1 - f) * 12, COL.coral, 'center', '#fff', 6); }
   if (!q) return;
-  const ph0 = C.call ? q.b0 : q.b0 + 4, rel = b - ph0, phx = x0 + clamp(rel / 4, 0, 1) * bw;
+  const ph0 = C.call ? q.b0 : q.b0 + 4, rel = b - ph0, phx = Math.min(x0 + bw - 4, x0 + cw / 2 + clamp(rel / 4, 0, 1) * bw);   // 막대가 점 가운데를 지나는 순간 = 그 칸의 박
+  if (VIS_ON) VIS.push({ kind: 'playhead', x: phx, x0, cw, ph0, bs: r.bs, resp: !!C.resp, zone: r.zv || null });
   X.save(); X.globalAlpha = .5; rrect(phx - 3, y0 + 6, 6, bh - 12, 3, C.call ? COL.coral : COL.deep, 0); X.restore();
   if (q.type !== 'P' && (C.call || q.type === 'Y') && s >= q.b0 * r.bs) { txt('?', x0 + 2 * cw, cy + 2, 60, '#9a8fb0', 'center', '#fff', 5); if (q.type === 'Y') txt('?', x0 + 6 * cw, cy + 2, 60, '#9a8fb0', 'center', '#fff', 5); }
   for (const c of q.cells) {
@@ -1478,6 +1513,7 @@ function drawSalBoard(L, r, s, C) {
     const n = r.notes.find(n => n.grp === q.grp && n.cell === c);
     if (n && n.j) { if (n.j !== 'miss') { circ(cx, cy, rad, COL.gold); if (n.j === 'perfect') star4(cx, cy, rad * .6, '#fff'); } else if (n.err != null) circ(cx, cy, rad * .85, '#b9b3a6'); else { line(cx - rad * .6, cy - rad * .6, cx + rad * .6, cy + rad * .6, 5, '#b9b3a6'); line(cx + rad * .6, cy - rad * .6, cx - rad * .6, cy + rad * .6, 5, '#b9b3a6'); } }
     else if (!q.hide) { X.save(); X.setLineDash([7, 6]); circ(cx, cy, rad, null, 4); X.restore(); }
+    const fd = s - (q.b0 + 4 + c / 2) * r.bs; if (fd >= 0 && fd < .12) { X.save(); X.globalAlpha = 1 - fd / .12; P(); X.arc(cx, cy, rad, 0, Math.PI * 2); X.strokeStyle = COL.gold; X.lineWidth = 10; X.stroke(); X.restore(); }   // 정답 순간 점 번쩍
   }
   if (C.resp && q.type === 'Y') { const f = r.fakes.find(f => f.b0 === q.b0); if (f && f.pressed) txt('✕', bx, cy, 70, COL.coral, 'center', '#fff', 6); }
 }
@@ -1487,6 +1523,8 @@ LAY.puffer = {
   port: { cap: [360, 318, 1.05], pp: [[115, 660], [255, 660]], bb: [462, 660], tk: .62, floorY: 770, audY: 1010, drop: 130, bub: [360, 18, 660], prow: [40, 1100], judgeX: 170, judgeY: 545, top: 150, tapText: '여기 아무 데나 꾹 · 떼기' },
 };
 const PUF_RMAX = { 1: 82, 2: 96, 4: 112 };
+// 과녁 = 정답 순간 빵이 몸 크기: 누름 = 들이쉰 몸(60 + 3 + 16), 뗌 = 다 부푼 몸(PUF_RMAX). 링은 늘 몸보다 커서 정답 순간에 처음 몸 테두리에 닿음
+const PUF_PRESS_R = 79, pufRelR = n => PUF_RMAX[n.drops] || 90;
 function pufState(r, s) {   // 지금 빵이 상태: 부는 중 / 방금 뗌 / 터짐 / 방귀 / 헉
   const bs = r.bs; let hold = null, fx = null, ready = null;   // 우선순위: 부는 중 > 방금 뗀 반응 > 준비
   for (const n of r.notes) {
@@ -1495,7 +1533,7 @@ function pufState(r, s) {   // 지금 빵이 상태: 부는 중 / 방금 뗌 / �
     const pt = n.j === 'perfect' && n.err < 0 ? n.t : n.at;
     if (n.j === 'miss' && n.err == null) { const d = s - n.at; if (d >= 0 && d < bs) fx = { kind: 'gasp', n, d }; continue; }
     if (s < pt) continue;
-    const Rmax = PUF_RMAX[n.drops] || 90, pale = n.j === 'miss';
+    const Rmax = pufRelR(n), pale = n.j === 'miss';
     const Rat = t => { const kk = clamp((t - n.t) / bs, 0, n.drops), st2 = Math.floor(kk) + ease(Math.min(1, (kk - Math.floor(kk)) * 4)); return pale ? 58 : 60 + (Rmax - 60) * Math.min(st2, n.drops) / n.drops; };
     if (n.rat == null || s < n.rat) { hold = { kind: 'hold', n, R: Rat(s), Rmax, pale }; continue; }
     const d = s - n.rat, R0 = Rat(n.rat);
@@ -1553,7 +1591,7 @@ function drawPufferScene(s0, r) {
   // 빵이 + 참돌이
   let R = 60, face = 'n', mouth = null;
   let pre = 0;   // 누를 박 1박 전부터 빵이가 숨을 크게 들이쉼(부풂 + 공기 줄 + '흡!') = 다음 박에 꾹
-  if (st.kind === 'ready') { const d = s - st.n.cueBeat * bs; pre = clamp((s - (st.n.t - bs)) / bs, 0, 1); R = 60 + 3 * Math.min(1, d / bs) + 16 * ease(pre); face = 'wide'; if (pre > 0) mouth = 'o'; }
+  if (st.kind === 'ready') { const d = s - st.n.cueBeat * bs; pre = clamp((s - (st.n.t - bs)) / bs, 0, 1); R = 60 + 3 * Math.min(1, d / bs) + (PUF_PRESS_R - 63) * ease(pre); face = 'wide'; if (pre > 0) mouth = 'o'; }
   else if (st.kind === 'hold') { R = st.R; face = st.pale ? 'blue' : 'n'; mouth = 'o'; }
   else if (st.kind === 'ok') { R = st.R; face = 'happy'; mouth = 'o'; }
   else if (st.kind === 'fart') { R = st.R; face = 'shy'; }
@@ -1564,8 +1602,9 @@ function drawPufferScene(s0, r) {
   const blowing = st.kind === 'hold' && !st.pale;
   drawTuna(tx, ty, tk, { sq: blowing ? .92 : 1 - .05 * pulse, mouth: 'o', eye: st.kind === 'burst' ? 'x' : st.kind === 'ok' && st.n.rj === 'perfect' ? 'happy' : st.kind === 'fart' ? 'closed' : blowing ? 'n' : 'n', fin: blowing ? .3 : 0, hat: stampCount() >= 5 ? 'captain' : 'sailor' });
   if (st.kind === 'burst' && st.d < .2) { star4(bb[0], bb[1], 150 * (1 + st.d * 2), '#fff3d6'); txt('빵!', bb[0], bb[1], 70, COL.coral, 'center', COL.ink, 9); }
-  else drawPufferFish(bb[0], bb[1] - (blowing ? 0 : pulse * 4), R, { face, mouth, tilt: st.kind === 'gasp' ? Math.sin(s * 30) * .06 : 0 });
-  if (pre > 0 && s < st.n.t) {   // 들이쉬는 공기 줄이 입으로 빨려 들어가고, 박 바로 앞에서 '흡!'
+  else drawPufferFish(bb[0], bb[1] - (blowing || st.kind === 'ready' || st.kind === 'ok' ? 0 : pulse * 4), R, { face, mouth, tilt: st.kind === 'gasp' ? Math.sin(s * 30) * .06 : 0 });   // 숨 들이쉬는 동안은 박 튐 없이 과녁 가운데 고정
+  if (VIS_ON) VIS.push({ kind: 'fish', R, x: bb[0], y: bb[1] - (blowing || st.kind === 'ready' || st.kind === 'ok' ? 0 : pulse * 4), st: st.kind });   // 검증 훅: 그려진 빵이 몸 반지름
+  if (pre > 0 && s < st.n.t + .06) {   // 들이쉬는 공기 줄이 입으로 빨려 들어가고, 박 바로 앞에서 '흡!'
     const mx0 = bb[0] - R * .93, my0 = bb[1] + R * .12;
     const reach = port ? 96 : 150, ll = port ? 30 : 44;   // 세로는 옆 선배(뿌)와 가까워 짧게
     for (let i = 0; i < 3; i++) { const f = (pre * 2 + i / 3) % 1, x1 = mx0 - reach + f * (reach - ll - 6), yy = my0 + (i - 1) * 30 * (1 - f); X.save(); X.globalAlpha = .9 * (1 - f); line(x1, yy, x1 + ll, yy + (my0 - yy) * .3, 7, '#fff'); X.restore(); }
@@ -1582,7 +1621,7 @@ function drawPufferScene(s0, r) {
     for (let k2 = 0; k2 < n.drops; k2++) { const x = bb[0] + (k2 - (n.drops - 1) / 2) * 44, popT = n.t + (k2 + 1) * bs;
       if (s < popT) { const wob = Math.sin(T * 6 + k2) * 3; circ(x, dy + wob, 17, 'rgba(160,220,255,.85)', 3.5); circ(x - 6, dy - 6 + wob, 5, '#fff', 0); }
       else if (s - popT < .18) { const f = (s - popT) / .18; X.save(); X.globalAlpha = 1 - f; circ(x, dy, 17 + f * 22, null, 3); X.restore(); } }
-    if (pr && n.ring) { X.save(); X.setLineDash([10, 9]); circ(bb[0], bb[1], st.Rmax, null, 4); X.strokeStyle = '#fff'; X.lineWidth = 2; X.stroke(); X.restore(); }
+    if (pr && n.ring) { X.save(); X.setLineDash([8, 7]); circ(bb[0], bb[1], st.Rmax, null, 4); X.strokeStyle = '#fff'; X.lineWidth = 2; X.stroke(); X.restore(); }   // 유지 목표 크기 = 뗌 과녁과 같은 원
   }
   // 관객(실루엣): 앞줄 고양이는 방귀에 코를 막고, 갈매기는 성공에 날개 박수
   const okOn = st.kind === 'ok', fartOn = st.kind === 'fart';
@@ -1593,16 +1632,19 @@ function drawPufferScene(s0, r) {
       if (front && fartOn) { circ(x, y - bob, 28, '#8a7aa8', 3); line(x - 14, y - 8, x - 4, y - 6, 3); line(x + 4, y - 6, x + 14, y - 8, 3); ell(x, y + 6, 14, 10, '#c7b8e0', 3); txt('윽!', x + 44, y - 46, 30, '#9fd46a', 'center', COL.ink, 6); } }   // 앞줄 고양이: 코 막음
     X.fillStyle = '#241a38'; X.fillRect(x - 40, y + 20, 90, H);
   }
-  // 연습: 누를 박 링 + 판정 글자
+  // 과녁·링(실전·연습 공통): 누름 = 첫 틱(드럼롤 시작)부터, 뗌 = 1박 전(주먹 쥐기)부터 파란 링
+  for (const n of r.notes) {
+    if (s >= n.cueBeat * bs && s <= n.t + .13) drawTarget(bb[0], bb[1], PUF_PRESS_R, n, s, n.cueBeat * bs, { grow: 128, flash: '#fff', edge: COL.ink });   // 노란 몸 위에서도 보이게 흰 번쩍 + 진한 둘레
+    if (n.j && n.j !== 'miss' && n.relT != null && s >= n.relT - bs && s <= n.relT + .13) drawTarget(bb[0], bb[1], pufRelR(n), n, s, n.relT - bs, { t: n.relT, col: '#9fdcff', flash: '#9fdcff', edge: COL.ink, grow: 128 });
+  }
   if (pr) for (const n of r.notes) {
-    if (n.ring && !n.j && s >= n.t - bs && s < n.t + .08) { const kk = Math.max(0, (n.t - s) / bs), rr = 64 * (1 + 2 * kk); X.save(); X.globalAlpha = .45 + .55 * (1 - kk); circ(bb[0], bb[1], rr, null, 7); circ(bb[0], bb[1], rr, null, 3.5); X.strokeStyle = '#fff'; X.lineWidth = 3.5; X.stroke(); X.restore(); }
     const jt = (j, at, pre) => { if (j && at != null && s >= at && s - at < .45) txt(pre + (j === 'perfect' ? '딱!' : j === 'good' ? '아슬' : '빗나감'), L.judgeX, L.judgeY - (s - at) * 40, 32, j === 'perfect' ? '#e0a100' : j === 'good' ? '#fff' : '#b0b0b0', 'center', COL.ink, 6); };
     jt(n.j, n.at, '누름 '); if (n.rj !== 'excluded' && !(n.err == null && n.rerr == null)) { X.save(); X.translate(0, 44); jt(n.rj, n.rat, '뗌 '); X.restore(); }   // 누름을 놓치면(뗌도 자동 빗나감) 글자는 하나만. 뗌 글자는 한 줄 아래
   }
   // 겹 UI
   if (pr) drawPracticeUI(s, r, L);
   else if (r.zv) {}
-  else if (b >= 4 && b < 8) { const k2 = Math.floor(b) - 4, f = b - Math.floor(b); circ(W / 2 + (port ? 0 : 260), L.top, 52 + (1 - f) * 10, '#fff'); txt(String(4 - k2), W / 2 + (port ? 0 : 260), L.top + 3, 58 + (1 - f) * 14, COL.coral); }
+  else if (b >= 4 && b < 8) { const k2 = Math.floor(b) - 4, f = b - Math.floor(b); circ(W / 2 + (port ? 0 : 260), L.top, 52 + (1 - f) * 10, '#fff'); txt(String(k2 + 1), W / 2 + (port ? 0 : 260), L.top + 3, 58 + (1 - f) * 14, COL.coral); }
   else if (b < 4) txt('준비…', W / 2 + (port ? 0 : 260), L.top, 40, '#fff3d6', 'center', COL.ink, 6);
   drawResumeCount(s0, r, L.top);
 }
@@ -1684,7 +1726,8 @@ function drawGullScene(s0, r) {
         continue; }
       const d = s - Lt, n1hit = n.j === 'perfect' || n.j === 'good', t1 = n1hit ? (n.j === 'perfect' && n.err < 0 ? n.t : n.at) : null, dk = s - m.cueBeat * bs;
       const wing = dk >= -.04 && dk < .25 ? 1 : d < .1 ? 1 - d / .1 : 0, reel = t1 != null && s >= t1 ? Math.max(0, 1 - (s - t1) / .35) : 0;
-      X.save(); X.translate(x, sitY - 20); X.rotate(-reel * .35 * Math.sin((s - (t1 || 0)) * 30)); drawGull(0, 0, BK, { boss: true, flap: wing, eye: reel > 0 ? 'x' : 'n' }); X.restore();
+      const bpk = Math.max(0, 1 - Math.abs(s - n.t) / .06, !m.j ? 1 - Math.abs(s - m.t) / .06 : 0);   // 두목도 정답 순간 쪼기
+      X.save(); X.translate(x, sitY - 20); X.translate(0, 50); X.rotate(-.35 * bpk); X.translate(0, -50); X.rotate(-reel * .35 * Math.sin((s - (t1 || 0)) * 30)); drawGull(0, 0, BK, { boss: true, flap: wing, eye: reel > 0 ? 'x' : 'n' }); X.restore();
       if (d < .3) txt('쿵!', x, top + 20, 40, COL.ink, 'center', '#fff', 7);
       if (dk >= 0 && dk < .3) txt('깍!', x - 70, sitY - 110 - dk * 50, 44, '#d9534f', 'center', '#fff', 7);
       if (reel > 0) { txt('끄억', x + 60, sitY - 100, 30, '#6d6a75', 'center', '#fff', 6); sparkles(x - 20, sitY - 40, 1 - reel, n.j === 'perfect', false); }
@@ -1694,7 +1737,9 @@ function drawGullScene(s0, r) {
     const hit = n.j === 'perfect' || n.j === 'good', ht = hit ? (n.j === 'perfect' && n.err < 0 ? n.t : n.at) : null;
     if (hit && s >= ht) { const d = s - ht; if (d < .6) { X.save(); X.translate(x + d * 1000, sitY - d * 900); X.rotate(d * 16); drawGull(0, 0, 1 - d * .6, { fly: true, eye: 'x', flap: 1 }); X.restore(); if (d < .28) { later.push(() => sparkles(x, sitY, d / .28, n.j === 'perfect', false)); txt('퍽!', x, sitY - 64 - d * 50, 34, '#fff', 'center', COL.ink, 7); } } continue; }
     if (n.j === 'miss' && s >= n.at) { if (n.err == null || n.err > 0) flyToWire({ n, at: n.at }, x, sitY, 1, false); else { const d = s - n.at; if (d < .7) { drawGull(x - d * 600, sitY - d * 800, 1, { fly: true, fish: true, flap: 1, eye: 'happy' }); if (d < .4) txt('ㅋㅋ', x, sitY - 60, 28, '#6d6a75', 'center', '#fff', 5); } } continue; }
-    const d = s - Lt; drawGull(x, sitY - (d < .08 ? 8 * (1 - d / .08) : 0), 1, { flap: d < .12 ? 1 - d / .12 : 0 });
+    const d = s - Lt, pk = Math.max(0, 1 - Math.abs(s - n.t) / .06);   // 쪼기: 정답 순간 앞으로 숙여 생선을 콕(발이 축)
+    X.save(); X.translate(x, sitY + 30); X.rotate(-.35 * pk); X.translate(-x, -(sitY + 30));
+    drawGull(x, sitY - (d < .08 ? 8 * (1 - d / .08) : 0), 1, { flap: d < .12 ? 1 - d / .12 : 0 }); X.restore();
     if (d < .22) txt('까악', x, sitY - 62 - d * 60, port ? 42 : 32, '#6d6a75', 'center', '#fff', 6);   // 세로 폰에서도 읽히게
   }
   // 비둘기 손님(속임수): 생선을 장바구니에 담고 걸어감
@@ -1729,10 +1774,10 @@ function drawGullScene(s0, r) {
   if (strayD >= 0 && strayD < .25 && !thrown) txt('휙', tx + 90 * tk, ty - 70 * tk, 28, '#8a5a2a', 'center', '#fff', 5);
   later.forEach(f => f());
   X.restore();
-  // 연습: 링·판정 글자
+  // 과녁·링(실전·연습 공통, 정답 1박 전부터) + 연습 판정 글자
+  for (const n of r.notes) if (s >= n.t - bs && s <= n.t + .13) drawTarget(slotX(n.slot), sitY - (n.boss ? 20 : 0), n.boss ? 70 : 50, n, s, n.t - bs);
   if (pr) for (const n of r.notes) {
-    const x = slotX(n.slot), y = sitY - (n.boss ? 20 : 0);
-    if (n.ring && !n.j && s >= n.t - bs && s < n.t + .08) { const kk = Math.max(0, (n.t - s) / bs), rr = (n.boss ? 70 : 50) * (1 + 2 * kk); X.save(); X.globalAlpha = .45 + .55 * (1 - kk); circ(x, y, rr, null, 7); circ(x, y, rr, null, 3.5); X.strokeStyle = '#fff'; X.lineWidth = 3.5; X.stroke(); X.restore(); }
+    const x = slotX(n.slot);
     if (n.j && n.at != null && s >= n.at && s - n.at < .4) { const tt = n.j === 'perfect' ? '딱!' : n.j === 'good' ? '아슬' : '빗나감'; txt(tt, x, L.judgeY - (s - n.at) * 40, 34, n.j === 'perfect' ? '#e0a100' : n.j === 'good' ? '#fff' : '#8a8a8a', 'center', COL.ink, 6); }
   }
   // 겹 UI
@@ -1817,6 +1862,7 @@ function drawRemix(s0, r) {
   }
   for (const c of r.cues) if (c.cue === 'horn' && c.len === 1) { const d = s - c.t; if (d >= 0 && d < bs) { X.save(); X.globalAlpha = 1 - d / bs; rrect(W / 2 - 70, (port ? 170 : 110) - 30, 140, 60, 30, COL.cream, 5); txt('뿌!', W / 2, port ? 172 : 112, 40, COL.deep); X.restore(); } }
   // 인트로: 선장 개막 인사
+  if (b >= 4 && b < 8) { const k2 = Math.floor(b) - 4, f = b - Math.floor(b), cy0 = port ? 170 : 110; circ(W / 2, cy0, 52 + (1 - f) * 10, '#fff'); txt(String(k2 + 1), W / 2, cy0 + 3, 58 + (1 - f) * 14, COL.coral); }   // 카운트인 1→4
   if (b < 8) { const pl = Math.max(0, 1 - (b % 1) / .25); shadow(W / 2, H / 2 + 150, 90, 14); drawCaptain(W / 2, H / 2 - 10 - pl * 6, port ? 1.4 : 1.2, { body: true, stomp: pl, eye: 'happy', mouth: 'open' }); bubble(W / 2, port ? 820 : 520, port ? 560 : 520, '냥선장', b < 4 ? '축제 시작이다냥!' : '가게 규칙 그대로다냥. 뱃고동이 울리면 바뀐다냥!', { px: 28 }); }
   // 아웃트로: 불꽃놀이(점수가 낮으면 눅눅)
   if (outro) {
@@ -2066,21 +2112,24 @@ function render() {
     else if (scene === 'card') drawCard();
     else if (scene === 'result') drawResult();
     else if (scene === 'calib') drawCalib();
-    else if ((scene === 'practice' || scene === 'play') && run) { ui.btns = []; GH[run.game].draw(songNow(), run); if (paused) drawPause(); }
+    else if ((scene === 'practice' || scene === 'play') && run) { ui.btns = []; GH[run.game].draw(drawNow(), run); if (paused) drawPause(); }
   } catch (e) { console.error(e); }
   X.restore();
   const inCal = scene === 'calib' && run && !run.cal.res, showP = ((scene === 'practice' || scene === 'play') && !paused) || inCal; if ((pauseBtn.style.display === 'block') !== showP) pauseBtn.style.display = showP ? 'block' : 'none';
   const pl = inCal ? '✕' : '❚❚'; if (pauseBtn.textContent !== pl) { pauseBtn.textContent = pl; pauseBtn.setAttribute('aria-label', inCal ? '나가기' : '일시정지'); }
   const showS = canSkipPractice() && !paused; if ((skipBtn.style.display === 'block') !== showS) skipBtn.style.display = showS ? 'block' : 'none';
-  const sl = run && run.pr && run.pr.offerSkip && !SV.games[run.game].practiced ? '그냥 해 볼래? ▶▶' : '연습 건너뛰기 ▶▶'; if (showS && skipBtn.textContent !== sl) skipBtn.textContent = sl;
+  const sl = run && run.pr && run.pr.offerSkip && !SV.games[run.game].practiced ? '그냥 해 볼래? ▶▶' : !port && CH < 500 ? '건너뛰기 ▶▶' : '연습 건너뛰기 ▶▶'; if (showS && skipBtn.textContent !== sl) skipBtn.textContent = sl;   // 가로 폰은 짧게(오른쪽 위 간판·등을 덜 가림)
   if (showS) {   // 기본은 일시정지 버튼 왼쪽. 선장 말풍선과 겹치면(가로 폰·따라해) 일시정지 버튼 아래 오른쪽 끝, 그래도 겹치면 말풍선 아래로
-    let top = 10, right = 66; const b = ui.bub, bh = 46; if (skipBtn._wt !== sl || !skipBtn._w) { skipBtn._wt = sl; skipBtn._w = skipBtn.offsetWidth; } const bw = skipBtn._w || 180;
+    const lowL = !port && CH < 500; let top = lowL ? 62 : 10, right = lowL ? 10 : 66; const b = ui.bub, bh = 46; if (skipBtn._wt !== sl || !skipBtn._w) { skipBtn._wt = sl; skipBtn._w = skipBtn.offsetWidth; } const bw = skipBtn._w || 180;   // 가로 폰: 처음부터 일시정지 버튼 아래(위쪽 간판과 겹치지 않게)
     if (b) { const L = OX + b.x * VS, R = OX + (b.x + b.w) * VS, T = OY + b.y * VS, B = OY + (b.y + b.h) * VS, hit = (tp, rt) => CW - rt - bw < R && CW - rt > L && tp < B && tp + bh > T;
       if (hit(top, right)) { right = 10; top = 62; if (hit(top, right)) top = Math.ceil(B + 8); } }
     const ts = top + 'px', rs = right + 'px'; if (skipBtn.style.top !== ts) skipBtn.style.top = ts; if (skipBtn.style.right !== rs) skipBtn.style.right = rs;
   }
 }
-function frame() { requestAnimationFrame(frame); sampleClk(); tick(); update(); render(); }
+// 그리기 시계: 이 프레임이 화면에 실제로 보일 순간(약 1프레임 뒤)의 '들리는 시각'으로 그린다. 보정값(offS)은 판정에만(손 지연이라 화면을 보고 눌러도 같이 붙음)
+let rafPrev = null, rafDt = 1 / 60;
+function frame(ts) { requestAnimationFrame(frame); if (rafPrev != null && ts != null) rafDt += .1 * (clamp((ts - rafPrev) / 1000, 0, .05) - rafDt); rafPrev = ts; sampleClk(); tick(); update(); render(); }
+const drawNow = () => songNow() + (run && run.real && !paused ? clamp(rafDt, .008, .025) : 0);
 setInterval(() => { tick(); update(); }, 25);
 requestAnimationFrame(frame);
 
@@ -2146,6 +2195,7 @@ window.rhythm = {
   pause() { pauseGame('api'); return paused; },
   resume() { resumeGame(); return paused; },
   schedLog: () => run ? run.slog.slice() : [],
+  visual(t) { if (!run || !run.sim) return null; VIS.length = 0; VIS_ON = true; try { GH[run.game].draw(t == null ? simT : t, run); } finally { VIS_ON = false; } return VIS.slice(); },   // 검증용(sim 전용): 그 시각의 과녁·링·막대 상태
   get _run() { return run; },
 };
 </script>
