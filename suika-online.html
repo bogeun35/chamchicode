@@ -172,7 +172,7 @@
       <div class="hint">
         1. 방을 만들고 코드를 친구에게 보내요 (최대 7명)<br>
         2. 방장이 시작하면 모두 동시에 시작해요<br>
-        3. <b>클래식</b>: 먼저 수박을 만들면 승리 · <b>로그라이크</b>: 유물을 모아 수박을 더 많이!<br>
+        3. 같은 과일을 합쳐 <b>먼저 수박을 만들면 승리</b> (두 모드 공통)<br>
         4. 상자가 넘치면 탈락 — 전원 탈락 시 승자 없이 종료<br>
         5. 옆에 다른 사람 상자가 실시간으로 보여요 (관전 중엔 눌러서 크게)<br>
         6. 게임 중에 들어오면 관전 → 다음 판부터 함께해요
@@ -605,15 +605,9 @@ Events.on(engine, 'afterUpdate', () => {
     }
     if (lv === FRUITS.length - 1) {
       myMelons++; sfx('melon');
-      if (isRogue) {
-        if (fruitScale > MIN_FRUIT_SCALE) {   // 수박마다 상자 성장
-          fruitScale = Math.max(MIN_FRUIT_SCALE, fruitScale * MELON_GROW);
-          for (const o of fruitsInBox()) { Body.scale(o, MELON_GROW, MELON_GROW); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
-        }
-        reached = new Set();
-        offerQueue.push(`🍉 PHASE ${phase()} 돌입!`);
-        showToastG(`🍉 수박! PHASE ${phase()}`, 2400);
-      } else claimWin();
+      showToastG('🍉 수박 완성!', 2400);
+      offerQueue.length = 0;                 // 끝났으니 유물 카드는 띄우지 않는다
+      claimWin();                            // 클래식·로그라이크 모두: 먼저 수박 = 승리
     }
   }
   mergeQueue = [];
@@ -992,8 +986,8 @@ function renderLobby() {
   $('modeClassicBtn').classList.toggle('on', !rogue);
   $('modeRogueBtn').classList.toggle('on', rogue);
   $('modeHint').textContent = rogue
-    ? '🎲 새 과일을 처음 만들 때마다 유물 3택1 · 수박마다 PHASE 업 · 수박을 더 많이 만든 사람이 승리'
-    : '🍒 유물 없이 순수 대결 · 먼저 수박을 만들면 즉시 승리';
+    ? '🎲 감·배·멜론을 처음 만들 때마다 유물 3택1 — 유물을 모아 먼저 수박을 만들면 승리'
+    : '🍒 유물 없이 순수 대결 — 먼저 수박을 만들면 승리';
   $('btnStart').disabled = !isHost || ps.length < 1;
   $('startHint').textContent = isHost
     ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작! (게임 중 들어온 사람도 함께 시작해요)')
