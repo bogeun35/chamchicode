@@ -552,12 +552,18 @@ const SPAWN = [
 function waveSpec(n) {
   const d = DIFF[diff] || DIFF.normal;
   const np = Math.max(1, Object.keys(players).length);
-  const crowd = 0.6 + 0.4 * np;                       // 사람이 많으면 좀비도 많아진다
-  const count = Math.round((7 + n * 2.6) * d.cntMul * crowd);
-  const hpMul = Math.pow(1.115, n - 1) * d.hpMul;
+  // 인원이 늘면 팀 화력도 그만큼 늘어난다. 마릿수만 늘리면 8인은 절반 난이도가 되므로
+  // 위협량을 인원수에 거의 비례시키고(8인 7.02배 = 1인당 0.88), 협동 보너스만 12% 남긴다.
+  const T = 1 + (np - 1) * 0.86;
+  let count = Math.round((7 + n * 2.4) * d.cntMul * Math.pow(T, 0.72));
+  const cap = 60 + 14 * np;                           // 한 웨이브에 나올 수 있는 최대 마릿수
+  let tough = Math.pow(T, 0.28);                      // 나머지 위협은 개체를 단단하게
+  if (count > cap) { tough *= count / cap; count = cap; }
+  const hpMul = Math.pow(1.115, n - 1) * d.hpMul * tough;
   const spdMul = (1 + Math.min(0.55, n * 0.013)) * d.spdMul;
   const boss = n % 5 === 0;
-  return { count, hpMul, spdMul, boss, crowd };
+  // 단단한 놈일수록 값어치도 커야 1인당 수입이 인원수와 무관해진다
+  return { count, hpMul, spdMul, boss, np, tough, rewardMul: tough };
 }
 function zDmg(type) { return ZTYPES[type].dmg * (1 + wave * 0.04); }
 function pickZType(n) {
@@ -783,7 +789,7 @@ function killZombie(z, owner) {
   z.dying = true;
   z.hp = 0;
   if (ZTYPES[z.t].boom) explode(z.x, z.y, ZTYPES[z.t].boom, zDmg(z.t) * 2.2, owner, true);
-  const money = Math.round(ZTYPES[z.t].money * (1 + wave * 0.05)
+  const money = Math.round(ZTYPES[z.t].money * (1 + wave * 0.05) * waveSpec(wave).rewardMul
     * (DIFF[diff] || DIFF.normal).money * (1 + 0.3 * perkCount('gold')));
   fx.push({ t: 'die', x: z.x, y: z.y, life: 0.32, c: ZTYPES[z.t].color, r: z.r });
   bloodAt(z.x, z.y, z.t === 'boss' ? 26 : z.t === 'tank' ? 12 : 7);
@@ -1765,8 +1771,10 @@ $('btnMenu').onclick = () => { if (confirm('방을 나갈까요?')) { if (isHost
 $('btnStart').onclick = () => {
   if (!isHost) return;
   const D = DIFF[room.diff || 'normal'];
-  baseMax = D.baseHp; baseHp = D.baseHp; teamPerks = []; hostMoney = {};
-  const upd = { status: 'playing', wave: 1, perks: [], baseHp: D.baseHp, baseMax: D.baseHp, vote: null, startedAt: Date.now() };
+  const np = Math.max(1, Object.keys(players).length);
+  const bh = Math.round(D.baseHp * (1 + (np - 1) * 0.18));   // 인원이 많으면 새는 좀비도 많다
+  baseMax = bh; baseHp = bh; teamPerks = []; hostMoney = {};
+  const upd = { status: 'playing', wave: 1, perks: [], baseHp: bh, baseMax: bh, vote: null, startedAt: Date.now() };
   Object.keys(players).forEach(k => { upd[`players/${k}/money`] = 0; upd[`players/${k}/kills`] = 0; upd[`players/${k}/gun`] = 'pistol'; upd[`players/${k}/ready`] = false; ['maxhp','speed','dmg','rate','mag','reloadspd','turret','barrier','mine','hp','repair'].forEach(b => upd[`players/${k}/buy_${b}`] = 0);
     upd[`players/${k}/melee`] = 'fist';
     GUNS.forEach(g => upd[`players/${k}/own_${g.key}`] = null);
