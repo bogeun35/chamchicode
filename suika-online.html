@@ -638,7 +638,7 @@ function enterRoom() {
     else if (room.status === 'playing') {
       if (iSpectate) { playing = false; show('game'); }      // 관전: 내 보드는 굴리지 않음
       else if (!playing) beginGame();
-      renderArena(); checkLastStanding();
+      renderArena(); checkAllEliminated();
     }
     else if (room.status === 'ended') { renderArena(); showResult(); }
   });
@@ -718,29 +718,20 @@ function die() {
   myAlive = false;
   sfx('gameover');
   meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons, score: myScore });
-  checkLastStanding();
+  checkAllEliminated();
 }
 function claimWin() {
   db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'melon', at: Date.now() },
     (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); });
 }
-// 라운드 종료 판정 (관전자는 제외하고 계산)
-let claimTried = false;
+// 라운드 종료 판정: 전원 탈락 시 종료 (관전자는 제외)
 const participants = () => Object.entries((room && room.players) || {}).filter(([, p]) => !p.spectator);
-function checkLastStanding() {
+function checkAllEliminated() {
   if (!room || room.status !== 'playing' || room.winner) return;
   const ps = participants();
   if (!ps.length) return;
   const alive = ps.filter(([, p]) => p.alive !== false);
-  if (alive.length === 0) {                       // 전원 탈락 (혼자 하기 포함) → 라운드 끝
-    if (isHost || ps.length === 1) roomRef().update({ status: 'ended' });
-    return;
-  }
-  if (ps.length >= 2 && alive.length === 1 && alive[0][0] === myKey && myAlive && !claimTried) {
-    claimTried = true;
-    db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'last', at: Date.now() },
-      (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); else claimTried = false; });
-  }
+  if (alive.length === 0) roomRef().update({ status: 'ended' });
 }
 
 // ── 아레나 (내 보드 + 미니들) ──
