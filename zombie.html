@@ -553,8 +553,9 @@ function waveSpec(n) {
   const d = DIFF[diff] || DIFF.normal;
   const np = Math.max(1, Object.keys(players).length);
   // 인원이 늘면 팀 화력도 그만큼 늘어난다. 마릿수만 늘리면 8인은 절반 난이도가 되므로
-  // 위협량을 인원수에 거의 비례시키고(8인 7.02배 = 1인당 0.88), 협동 보너스만 12% 남긴다.
-  const T = 1 + (np - 1) * 0.86;
+  // 위협량을 인원수보다 살짝 더 올린다 (8인이면 1인당 부담도 조금 더 무겁게).
+  // 대신 보상을 더 얹어서 "여럿이면 더 힘들지만 더 번다" 가 되게 한다.
+  const T = 1 + (np - 1) * 1.05;
   let count = Math.round((7 + n * 2.4) * d.cntMul * Math.pow(T, 0.72));
   const cap = 60 + 14 * np;                           // 한 웨이브에 나올 수 있는 최대 마릿수
   let tough = Math.pow(T, 0.28);                      // 나머지 위협은 개체를 단단하게
@@ -562,8 +563,9 @@ function waveSpec(n) {
   const hpMul = Math.pow(1.115, n - 1) * d.hpMul * tough;
   const spdMul = (1 + Math.min(0.55, n * 0.013)) * d.spdMul;
   const boss = n % 5 === 0;
-  // 단단한 놈일수록 값어치도 커야 1인당 수입이 인원수와 무관해진다
-  return { count, hpMul, spdMul, boss, np, tough, rewardMul: tough };
+  // 단단한 놈일수록 값어치도 크고, 여럿이 하면 인원수 보너스가 더 붙는다
+  const partyBonus = 1 + 0.03 * (np - 1);
+  return { count, hpMul, spdMul, boss, np, tough, partyBonus, rewardMul: tough * partyBonus };
 }
 function zDmg(type) { return ZTYPES[type].dmg * (1 + wave * 0.04); }
 function pickZType(n) {
