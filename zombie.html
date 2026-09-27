@@ -839,7 +839,7 @@ function renderHud() {
   const u = units[myKey];
   const p = players[myKey] || {};
   const st = baseStats(p);
-  $('hud').innerHTML =
+  const hud =
     `<div class="box wave">웨이브 <b>${wave}</b></div>`
     + `<div class="box">🧟 ${zs.length}${spawnLeft ? ' (+' + spawnLeft + ')' : ''}</div>`
     + `<div class="box hp">🏠 ${Math.max(0, Math.round(baseHp))}</div>`
@@ -847,12 +847,13 @@ function renderHud() {
     + `<div class="box money">💰 ${Math.round(p.money || 0)}</div>`
     + `<div class="box">${st.gun.ic} ${st.gun.nm}</div>`
     + (teamPerks.length ? `<div class="box">🧬 ${teamPerks.map(k => (PERKS.find(x => x.key === k) || {}).ic).join('')}</div>` : '');
+  if (hud !== renderHud._hud) { renderHud._hud = hud; $('hud').innerHTML = hud; }
   const rs = Object.entries(units).map(([k, o]) => {
     const s2 = baseStats(players[k] || {});
-    const hr = clamp((o.hp || 0) / (s2.maxHp || 100), 0, 1) * 100;
+    const hr = Math.round(clamp((o.hp || 0) / (s2.maxHp || 100), 0, 1) * 100);   // 소수점까지 쓰면 매 프레임 문자열이 달라져서 HUD 를 계속 다시 그림
     return `<div class="rcard ${o.dead ? 'dead' : ''}"><div>${esc(o.nick)} · ${o.kills || 0}킬</div><div class="bar"><i style="width:${hr}%"></i></div></div>`;
   }).join('');
-  $('roster').innerHTML = rs;
+  if (rs !== renderHud._rs) { renderHud._rs = rs; $('roster').innerHTML = rs; }
 }
 
 /* ═══════════ 상점 / 투표 UI ═══════════ */
