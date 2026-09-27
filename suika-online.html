@@ -48,6 +48,11 @@
   .pchip { background: #fff; border: 3px solid #ffe0c0; border-radius: 999px; padding: 6px 13px; font-size: 15px; }
   .pchip.me { border-color: #ff9f68; background: #fff6e8; }
   .pchip .host { font-size: 11px; color: #e8546b; }
+  .pchip .kick {
+    border: 0; background: #ffd9d0; color: #c9502e; border-radius: 999px;
+    width: 20px; height: 20px; font-size: 12px; cursor: pointer; margin-left: 4px; font-family: inherit;
+  }
+  .pchip .kick:hover { background: #ff7b5e; color: #fff; }
   .hint { font-size: 13px; color: #a8804f; line-height: 1.55; }
 
   /* ── 게임 ── */
@@ -1017,6 +1022,8 @@ function enterRoom() {
   const cb = ref.on('value', snap => {
     room = snap.val();
     if (!room) { toast('방이 종료되었어요'); goHome(); return; }
+    if (room.players && room.players[myKey] && room.players[myKey].kicked) { toast('방장이 내보냈어요'); goHome(); return; }
+    if (room.players && !room.players[myKey] && !iSpectate) { toast('방에서 나갔어요'); goHome(); return; }
     isHost = room.host === myKey;
     players = room.players || {};
     if (isHost) { const sig = `${room.status}|${Object.keys(players).length}|${room.mode}`; if (publishRoom._sig !== sig) { publishRoom._sig = sig; publishRoom(); } }
@@ -1032,13 +1039,15 @@ function enterRoom() {
   listeners.push(() => ref.off('value', cb));
   // 방장이 새로고침해도 방은 유지(만료 시각으로 정리) · 손님은 대기실에 있을 때만 자동 퇴장
   const pref = meRef();
-  let guestDisco = false;
-  enterRoom.setDisco = on => {
-    if (isHost || on === guestDisco) return;
-    guestDisco = on;
-    if (on) pref.onDisconnect().remove(); else pref.onDisconnect().cancel();
+  let guestDisco = null;
+  enterRoom.setDisco = lobby => {
+    if (guestDisco === lobby) return;
+    guestDisco = lobby;
+    pref.onDisconnect().cancel();
+    if (lobby) { if (!isHost) pref.onDisconnect().remove(); }        // 대기실: 끊기면 퇴장 (방장은 방 유지)
+    else pref.onDisconnect().update({ alive: false, left: true });   // 게임 중: 끊기면 탈락 처리
   };
-  listeners.push(() => { if (guestDisco) pref.onDisconnect().cancel(); guestDisco = false; });
+  listeners.push(() => { pref.onDisconnect().cancel(); guestDisco = null; });
   $('roomCode').textContent = code;
 }
 function goHome() {
@@ -1052,7 +1061,16 @@ function renderLobby() {
   const ps = Object.entries(players).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
   $('pcount').textContent = `${ps.length} / ${MAX_PLAYERS}`;
   $('plist').innerHTML = ps.map(([k, p]) =>
-    `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}</div>`).join('');
+    `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}`
+    + (isHost && k !== myKey ? ` <button class="kick" data-k="${esc(k)}" title="내보내기">✕</button>` : '') + `</div>`).join('');
+  $('plist').querySelectorAll('.kick').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.k;
+      if (!confirm(`${(players[k] || {}).nick || k} 님을 내보낼까요?`)) return;
+      db.ref(`${rpath(code)}/players/${k}`).update({ kicked: true, alive: false });
+      setTimeout(() => db.ref(`${rpath(code)}/players/${k}`).remove(), 1200);
+    };
+  });
   const rogue = room.mode === 'rogue';
   $('modeClassicBtn').classList.toggle('on', !rogue);
   $('modeRogueBtn').classList.toggle('on', rogue);
@@ -1078,7 +1096,7 @@ $('btnStart').onclick = () => {
   Object.keys(players).forEach(k => {
     upd[`players/${k}/alive`] = true; upd[`players/${k}/best`] = 0; upd[`players/${k}/melons`] = 0;
     upd[`players/${k}/b`] = ''; upd[`players/${k}/score`] = 0; upd[`players/${k}/spectator`] = false;
-    upd[`players/${k}/gaveUp`] = false;   // 관전자도 이번 판부터 참가
+    upd[`players/${k}/gaveUp`] = false; upd[`players/${k}/left`] = null; upd[`players/${k}/t`] = Date.now();
   });
   roomRef().update(upd);
 };
@@ -1099,7 +1117,7 @@ function beginGame() {
   $('result').hidden = true;
   show('game');
   initAudio();
-  meRef().update({ alive: true, best: 0, melons: 0, score: 0, b: '', spectator: false, gaveUp: false });
+  meRef().update({ alive: true, best: 0, melons: 0, score: 0, b: '', spectator: false, gaveUp: false, left: null, t: Date.now() });
   startSync();
 }
 function startSync() {
@@ -1147,6 +1165,17 @@ function checkAllEliminated() {
   if (!room || room.status !== 'playing' || room.winner) return;
   const ps = participants();
   if (!ps.length) return;
+  // 방장은 12초 넘게 소식 없는 사람을 '나감'으로 정리 (탭을 닫거나 멈춘 경우)
+  if (isHost) {
+    const now = Date.now();
+    for (const [k, pl] of ps) {
+      if (pl.alive === false || k === myKey) continue;
+      if (pl.t && now - pl.t > 12000) {
+        db.ref(`${rpath(code)}/players/${k}`).update({ alive: false, left: true });
+        toast(`${pl.nick} 님 응답 없음 — 탈락 처리`);
+      }
+    }
+  }
   const alive = ps.filter(([, p]) => p.alive !== false);
   if (alive.length === 0) roomRef().update({ status: 'ended' });
 }
@@ -1178,7 +1207,7 @@ function renderArena() {
     if (el.wrap.parentElement !== side) side.appendChild(el.wrap);
     el.key = k;
     el.nm.textContent = p.nick;
-    el.st.innerHTML = (p.alive === false ? (p.gaveUp ? '🏳️ ' : '💀 ') : '') + `<b>${(p.score || 0).toLocaleString()}</b>점 · 🍉<b>${p.melons || 0}</b>`
+    el.st.innerHTML = (p.alive === false ? (p.left ? '🚪 ' : p.gaveUp ? '🏳️ ' : '💀 ') : '') + `<b>${(p.score || 0).toLocaleString()}</b>점 · 🍉<b>${p.melons || 0}</b>`
       + (p.rl ? `<br><span style="font-size:11px">${p.rl}</span>` : '');
     el.wrap.classList.toggle('dead', p.alive === false);
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
@@ -1249,6 +1278,7 @@ function frame() {
   if (acc > STEP * 5) acc = 0;
   if (playing && myAlive) checkOffer();
   if (playing && myAlive && $('cards').hidden) checkAfk();
+  if (frame.lastCheck === undefined || now - frame.lastCheck > 2000) { frame.lastCheck = now; checkAllEliminated(); }
   if ($('game').classList.contains('active')) {
     if (resizeBoard.w !== window.innerWidth || resizeBoard.h !== window.innerHeight) {
       resizeBoard.w = window.innerWidth; resizeBoard.h = window.innerHeight; resizeBoard();
