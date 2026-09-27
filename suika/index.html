@@ -2,11 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>수박게임</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   body {
     background: #c8874a;
     font-family: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
@@ -107,6 +110,45 @@
   .card .ds { font-size: 12px; color: #9a7a5a; margin-top: 6px; line-height: 1.4; }
   .card .key { font-size: 11px; color: #c9a06a; margin-top: 6px; }
   .card .lv { font-size: 12px; color: #fff; background: #ff9f43; border-radius: 8px; padding: 1px 6px; vertical-align: middle; }
+  #fsBtn, #rankBtn {
+    position: absolute; bottom: 6px; width: 38px; height: 38px;
+    border: 3px solid #fff; border-radius: 50%; background: #ffefd0; font-size: 17px;
+    cursor: pointer; box-shadow: 0 3px 0 #9c6532;
+  }
+  #fsBtn { right: 58px; }
+  #rankBtn { left: 58px; width: auto; padding: 0 12px; border-radius: 999px; font-size: 14px; color: #8a5a2a; font-family: inherit; }
+  #fsBtn:active, #rankBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+  /* 순위표 */
+  #rank .rk-wrap { width: min(440px, 92vw); max-height: 60vh; overflow-y: auto; background: rgba(255,255,255,.12); border-radius: 16px; padding: 8px; }
+  .rk-row { display: flex; align-items: center; gap: 6px; font-size: 14px; padding: 6px; border-radius: 10px; color: #fff; }
+  .rk-row:nth-child(odd) { background: rgba(255,255,255,.12); }
+  .rk-row.me { background: rgba(255,210,120,.35); box-shadow: inset 0 0 0 2px #ffd36b; }
+  .rk-no { width: 26px; text-align: center; }
+  .rk-nick { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+  .rk-nick em { font-size: 10px; color: #ffd9a8; font-style: normal; }
+  .rk-mel { width: 52px; text-align: right; }
+  .rk-sc { width: 62px; text-align: right; font-size: 13px; opacity: .85; }
+  .rk-tm { width: 44px; text-align: right; font-size: 12px; opacity: .75; }
+  .rk-empty { padding: 12px; font-size: 14px; opacity: .9; }
+  #rankForm { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  #rankForm input {
+    width: 130px; padding: 8px 10px; border: 3px solid #fff; border-radius: 12px;
+    background: #fffdf5; font-family: inherit; font-size: 15px; color: #5a3a2a;
+  }
+  #rankForm input:focus { outline: none; border-color: #ff9f68; }
+  @media (max-width: 520px) {
+    #menuBtn, #codexBtn, #rankBtn { font-size: 13px; padding: 4px 10px; }
+    #rankBtn { left: 52px; }
+    #fsBtn { right: 52px; }
+    .overlay h1 { font-size: 34px; }
+    .modes { flex-direction: column; gap: 10px; }
+    .mode { width: 210px; }
+    .cards { gap: 6px; }
+    .card { width: 30vw; max-width: 122px; padding: 10px 6px; }
+    .card .ic { font-size: 30px; }
+    .card .nm { font-size: 14px; }
+    .card .ds { font-size: 11px; }
+  }
 </style>
 </head>
 <body>
@@ -115,6 +157,16 @@
   <button id="menuBtn">메뉴</button>
   <button id="muteBtn" title="소리 켜기/끄기">🔊</button>
   <button id="codexBtn" title="유물 족보 (Tab)">📖 족보</button>
+  <button id="rankBtn" title="이번 주 순위표">🏆 순위</button>
+  <button id="fsBtn" title="전체화면">⛶</button>
+
+  <div id="rank" class="overlay" hidden>
+    <h2>🏆 이번 주 순위표</h2>
+    <p class="small" id="rankWeek"></p>
+    <div class="rk-wrap" id="rankList"><div class="rk-empty">불러오는 중…</div></div>
+    <p class="small" id="rankReset"></p>
+    <button class="btn ghost" id="rankClose">닫기</button>
+  </div>
 
   <div id="codex" class="overlay" hidden>
     <h2>📖 유물 족보</h2>
@@ -138,6 +190,7 @@
       </div>
     </div>
     <p class="small" id="records"></p>
+    <button class="btn ghost" id="toOnline" style="width:220px">🌐 온라인 대전 (최대 7명)</button>
   </div>
 
   <div id="cards" class="overlay" hidden>
@@ -157,6 +210,10 @@
       <div class="stat"><div class="v" id="ovTime">00:00</div><div class="k">⏱ 시간</div></div>
     </div>
     <p id="overText"></p>
+    <div id="rankForm">
+      <input id="rankNick" maxlength="8" placeholder="닉네임">
+      <button class="btn ghost" id="rankSubmit" style="padding:8px 18px;font-size:15px">🏆 순위 등록</button>
+    </div>
     <button class="btn" id="retry">다시 하기 (Space)</button>
     <div class="row">
       <button class="btn ghost" id="shareBtn">📸 결과 저장</button>
@@ -168,6 +225,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="fruit-art.js"></script>
 <script src="sound.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="rank.js"></script>
 <script>
 (() => {
   const { Engine, Bodies, Body, Composite, Events } = Matter;
@@ -675,6 +735,10 @@
     }
     document.getElementById('overTitle').textContent = isRecord ? '🎉 신기록!' : '게임 오버';
     document.getElementById('overText').innerHTML = line;
+    const rf = document.getElementById('rankForm'), rs = document.getElementById('rankSubmit');
+    rf.style.display = window.Rank ? 'flex' : 'none';
+    rs.disabled = false;
+    document.getElementById('rankNick').value = localStorage.getItem('sk_nick') || '';
     overEl.hidden = false;
   }
 
@@ -829,11 +893,21 @@
     const rect = canvas.getBoundingClientRect();
     return { x: (e.clientX - rect.left) / rect.width * W, y: (e.clientY - rect.top) / rect.height * H };
   }
-  canvas.addEventListener('pointermove', e => { const g = toGame(e); mouseX = g.x; mouseY = g.y; });
+  let aiming = false;
+  canvas.addEventListener('pointermove', e => { const g = toGame(e); mouseX = g.x; mouseY = g.y; if (aiming) e.preventDefault(); }, { passive: false });
   canvas.addEventListener('pointerdown', e => {
     const g = toGame(e); mouseX = g.x; mouseY = g.y;
-    if (g.y < BOX.b) drop();
+    if (g.y >= BOX.b) return;
+    if (e.pointerType === 'touch') { aiming = true; try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }   // 모바일: 끌어서 조준
+    else drop();
   });
+  canvas.addEventListener('pointerup', e => {
+    if (!aiming) return;
+    aiming = false;
+    const g = toGame(e); mouseX = g.x;
+    drop();
+  });
+  canvas.addEventListener('pointercancel', () => { aiming = false; });
   // 첫 입력에서 오디오 시작 (브라우저 자동재생 정책)
   let audioReady = false;
   function initAudio() {
@@ -858,6 +932,7 @@
   document.getElementById('shareBtn').onclick = shareImage;
 
   window.addEventListener('keydown', e => {
+    if (!rankEl.hidden) { if (e.code === 'Escape') closeRank(); return; }
     if (e.code === 'Tab') { e.preventDefault(); codexEl.hidden ? openCodex() : closeCodex(); return; }
     if (!codexEl.hidden) { if (e.code === 'Escape') closeCodex(); return; }
     if (!overEl.hidden) {    // 게임오버: Space/Enter 로 바로 다시
@@ -907,12 +982,56 @@
   document.getElementById('codexBtn').onclick = openCodex;
   document.getElementById('codexClose').onclick = closeCodex;
 
+  // ── 전체화면 ──
+  const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function toggleFullscreen() {
+    const el = document.documentElement;
+    try {
+      if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    } catch (e) { showToast('이 브라우저는 전체화면을 지원하지 않아요'); }
+    setTimeout(resize, 300);
+  }
+  document.getElementById('fsBtn').onclick = () => { sfx('click'); toggleFullscreen(); };
+  document.addEventListener('fullscreenchange', () => setTimeout(resize, 150));
+  window.addEventListener('orientationchange', () => setTimeout(resize, 300));
+
+  // ── 주간 순위표 ──
+  const rankEl = document.getElementById('rank');
+  let rankResume = false;
+  function openRank() {
+    if (!rankEl.hidden) return;
+    rankResume = !paused && !gameOver;
+    paused = true; rankEl.hidden = false; sfx('click');
+    if (!window.Rank) { document.getElementById('rankList').innerHTML = '<div class="rk-empty">순위표를 쓸 수 없어요 (오프라인)</div>'; return; }
+    document.getElementById('rankWeek').textContent = Rank.weekLabel() + ' · 월요일 오전 9시 초기화 (' + Rank.untilResetText() + ')';
+    document.getElementById('rankReset').textContent = '수박 개수 → 점수 순 · 같은 닉네임은 최고 기록만';
+    document.getElementById('rankList').innerHTML = '<div class="rk-empty">불러오는 중…</div>';
+    Rank.top(10).then(rows => Rank.renderInto(document.getElementById('rankList'), rows, localStorage.getItem('sk_nick') || ''))
+      .catch(() => { document.getElementById('rankList').innerHTML = '<div class="rk-empty">순위표를 불러오지 못했어요</div>'; });
+  }
+  function closeRank() { if (rankEl.hidden) return; rankEl.hidden = true; if (rankResume) paused = false; sfx('click'); }
+  document.getElementById('rankBtn').onclick = openRank;
+  document.getElementById('rankClose').onclick = closeRank;
+  document.getElementById('rankSubmit').onclick = () => {
+    const input = document.getElementById('rankNick');
+    const nick = (input.value || '').trim();
+    if (nick.length < 2) { input.focus(); showToast('닉네임을 2자 이상 입력해 주세요'); return; }
+    if (!window.Rank) { showToast('순위표를 쓸 수 없어요'); return; }
+    localStorage.setItem('sk_nick', nick);
+    document.getElementById('rankSubmit').disabled = true;
+    Rank.submit({ nick, melons, score, secs: Math.round(runTime / 1000), mode: 'single' })
+      .then(() => { showToast('🏆 순위표에 등록했어요'); document.getElementById('rankForm').style.display = 'none'; openRank(); })
+      .catch(() => { showToast('등록에 실패했어요'); document.getElementById('rankSubmit').disabled = false; });
+  };
+
   function showMenu() {
     paused = true;
     document.getElementById('records').innerHTML =
       `클래식 Best 🍉 ${classicBest.melons}개 (${classicBest.score}점) · 로그라이크 Best 🍉 ${rogueBest.melons}개 (${rogueBest.score}점)`;
     overEl.hidden = true; cardsEl.hidden = true; codexEl.hidden = true; startEl.hidden = false;
   }
+  document.getElementById('toOnline').onclick = () => { location.href = '../suika-online.html'; };
   document.getElementById('menuBtn').onclick = () => { sfx('click'); showMenu(); };
   document.getElementById('toMenu').onclick = () => { sfx('click'); showMenu(); };
   document.getElementById('retry').onclick = () => newGame(mode);

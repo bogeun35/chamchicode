@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>수박게임 온라인</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #c8874a; color: #5a3a2a;
+    font-family: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    min-height: 100vh; user-select: none; -webkit-user-select: none;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── 홈 / 대기실 ── */
+  .wrap { max-width: 520px; margin: 0 auto; padding: 22px 16px 40px; }
+  h1 { font-size: 34px; color: #fff; text-align: center; text-shadow: 3px 3px 0 #9a5a2a; margin-bottom: 4px; }
+  .sub { text-align: center; color: #ffeccd; font-size: 15px; margin-bottom: 18px; text-shadow: 1px 1px 0 #9a5a2a; }
+  .card { background: #fff3d6; border: 4px solid #fff; border-radius: 22px; padding: 16px; box-shadow: 0 6px 0 #a8703c; margin-bottom: 14px; }
+  .card h3 { font-size: 17px; margin-bottom: 10px; color: #8a5a2a; }
+  label { display: block; font-size: 13px; color: #a8804f; margin-bottom: 4px; }
+  input {
+    width: 100%; padding: 11px 13px; border: 3px solid #e8c79a; border-radius: 14px;
+    background: #fffdf5; font-family: inherit; font-size: 17px; color: #5a3a2a; margin-bottom: 10px;
+  }
+  input:focus { outline: none; border-color: #ff9f68; }
+  .btn {
+    display: block; width: 100%; padding: 13px; border: 3px solid #fff; border-radius: 999px;
+    background: #ff7b5e; color: #fff; font-size: 19px; font-family: inherit;
+    cursor: pointer; box-shadow: 0 5px 0 #c9502e;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c9502e; }
+  .btn.alt { background: #6fbf73; box-shadow: 0 5px 0 #3e8a42; }
+  .btn.alt:active { box-shadow: 0 2px 0 #3e8a42; }
+  .btn.ghost { background: #ffefd0; color: #8a5a2a; box-shadow: 0 5px 0 #b8834a; }
+  .btn.ghost:active { box-shadow: 0 2px 0 #b8834a; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 10px; }
+  .row .btn { margin: 0; }
+  .codebox { text-align: center; font-size: 34px; letter-spacing: 5px; color: #e8546b; padding: 6px 0 2px; }
+  .plist { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pchip { background: #fff; border: 3px solid #ffe0c0; border-radius: 999px; padding: 6px 13px; font-size: 15px; }
+  .pchip.me { border-color: #ff9f68; background: #fff6e8; }
+  .pchip .host { font-size: 11px; color: #e8546b; }
+  .hint { font-size: 13px; color: #a8804f; line-height: 1.55; }
+
+  /* ── 게임 ── */
+  #game { padding: 8px; }
+  #game.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+  .arena { display: flex; gap: 12px; justify-content: center; align-items: center; width: 100%; }
+  .side { display: flex; flex-direction: column; gap: 8px; }
+  .mini { background: #b3763f; border: 3px solid #a8703c; border-radius: 12px; padding: 4px 4px 2px; width: 166px; flex: none; }
+  .mini.dead { filter: grayscale(.8) brightness(.75); }
+  .mini.win { border-color: #ffd36b; box-shadow: 0 0 0 3px #ffd36b; }
+  .mini canvas { display: block; border-radius: 7px; background: #ffdca6; width: 100%; }
+  .mini .nm { font-size: 13px; color: #fff; text-align: center; padding: 3px 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini .st { font-size: 12px; color: #ffe9c4; text-align: center; padding-bottom: 3px; }
+  .mini .st b { color: #ffe08a; }
+  #board { display: block; border-radius: 10px; touch-action: none; cursor: crosshair; }
+  #topbar { display: flex; justify-content: center; align-items: center; gap: 10px; color: #fff; text-shadow: 2px 2px 0 #9a5a2a; font-size: 15px; margin-bottom: 6px; flex-wrap: wrap; }
+  #topbar b { font-size: 19px; }
+  .iconbtn {
+    border: 3px solid #fff; border-radius: 999px; background: #ffefd0; color: #8a5a2a;
+    font-family: inherit; font-size: 15px; padding: 3px 12px; cursor: pointer; box-shadow: 0 3px 0 #9c6532;
+  }
+  .iconbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c6532; }
+
+  /* 순위표 */
+  .rk-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .rk-head .wk { font-size: 12px; color: #a8804f; }
+  .rk-row { display: flex; align-items: center; gap: 6px; font-size: 14px; padding: 5px 6px; border-radius: 10px; }
+  .rk-row:nth-child(odd) { background: #fff8e8; }
+  .rk-row.me { background: #ffe6c9; box-shadow: inset 0 0 0 2px #ff9f68; }
+  .rk-no { width: 26px; text-align: center; font-size: 15px; }
+  .rk-nick { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rk-nick em { font-size: 10px; color: #c98a4a; font-style: normal; }
+  .rk-mel { width: 52px; text-align: right; }
+  .rk-sc { width: 64px; text-align: right; color: #a8804f; font-size: 13px; }
+  .rk-tm { width: 46px; text-align: right; color: #a8804f; font-size: 12px; }
+  .rk-empty { font-size: 14px; color: #a8804f; text-align: center; padding: 10px 0; }
+
+  /* ── 오버레이 ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(90,50,20,.72); color: #fff;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 14px; text-align: center; z-index: 30;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h2 { font-size: 40px; text-shadow: 3px 3px 0 #9a5a2a; }
+  .overlay p { font-size: 18px; text-shadow: 2px 2px 0 #9a5a2a; }
+  .overlay .btn { width: 220px; }
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    background: rgba(50,25,10,.9); color: #fff; padding: 10px 18px; border-radius: 999px;
+    font-size: 15px; opacity: 0; transition: .25s; pointer-events: none; z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%); }
+  @media (max-width: 900px) {
+    #game { padding: 4px 0 0; }
+    .arena { flex-direction: column; align-items: center; gap: 6px; }
+    .side { flex-direction: row; gap: 6px; width: 100%; overflow-x: auto; padding: 0 6px 4px; scrollbar-width: none; }
+    .side::-webkit-scrollbar { display: none; }
+    .side:empty { display: none; }
+    #sideL { order: -1; }
+    #sideR { order: 1; }
+    .mini { width: 108px; }
+    .mini .nm { font-size: 11px; }
+    .mini .st { font-size: 10px; }
+    #topbar { font-size: 13px; gap: 8px; margin-bottom: 2px; }
+    #topbar b { font-size: 16px; }
+    .wrap { padding: 16px 12px 30px; }
+    h1 { font-size: 28px; }
+  }
+  html, body { overscroll-behavior: none; }
+  body { -webkit-tap-highlight-color: transparent; }
+  body.fs { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+</style>
+</head>
+<body>
+
+<!-- ══ 홈 ══ -->
+<div class="screen active" id="home">
+  <div class="wrap">
+    <h1>🍉 수박게임 온라인</h1>
+    <div class="sub">최대 7명 실시간 대결 · 먼저 수박을 만들면 승리</div>
+    <div class="card">
+      <label>닉네임</label>
+      <input id="nick" maxlength="8" placeholder="2~8자">
+      <button class="btn" id="btnCreate">방 만들기</button>
+    </div>
+    <div class="card">
+      <label>초대 코드로 참가</label>
+      <input id="joinCode" maxlength="6" placeholder="6자리 코드" style="text-transform:uppercase">
+      <button class="btn alt" id="btnJoin">참가하기</button>
+    </div>
+    <div class="card">
+      <div class="rk-head"><h3 style="margin:0">🏆 이번 주 순위표</h3><span class="wk" id="rkWeek"></span></div>
+      <div id="rkList"><div class="rk-empty">불러오는 중…</div></div>
+      <div class="hint" style="margin-top:8px" id="rkReset"></div>
+    </div>
+    <div class="card">
+      <h3>❓ 어떻게 하나요?</h3>
+      <div class="hint">
+        1. 방을 만들고 코드를 친구에게 보내요 (최대 7명)<br>
+        2. 방장이 시작하면 모두 동시에 시작해요<br>
+        3. 같은 과일을 합쳐 <b>먼저 수박을 만들면 승리</b>!<br>
+        4. 상자가 넘치면 탈락 — 마지막까지 살아남아도 승리<br>
+        5. 옆에 다른 사람 상자가 실시간으로 보여요
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" onclick="location.href='suika/index.html'">← 혼자 하기</button>
+      <button class="btn ghost" id="btnFsHome">⛶ 전체화면</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 대기실 ══ -->
+<div class="screen" id="lobby">
+  <div class="wrap">
+    <h1>대기실</h1>
+    <div class="card">
+      <h3>초대 코드</h3>
+      <div class="codebox" id="roomCode">------</div>
+      <div class="row">
+        <button class="btn ghost" id="btnCopy">코드 복사</button>
+        <button class="btn ghost" id="btnCopyLink">링크 복사</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>참가자 <span id="pcount"></span></h3>
+      <div class="plist" id="plist"></div>
+    </div>
+    <button class="btn" id="btnStart">게임 시작</button>
+    <div class="hint" id="startHint" style="text-align:center;margin:8px 0 12px;color:#ffeccd"></div>
+    <button class="btn ghost" id="btnLeave">나가기</button>
+  </div>
+</div>
+
+<!-- ══ 게임 ══ -->
+<div class="screen" id="game">
+  <div id="topbar"></div>
+  <div class="arena">
+    <div class="side" id="sideL"></div>
+    <div><canvas id="board"></canvas></div>
+    <div class="side" id="sideR"></div>
+  </div>
+  <div class="overlay" id="result" hidden>
+    <h2 id="resTitle">게임 오버</h2>
+    <p id="resText"></p>
+    <button class="btn" id="btnAgain">대기실로</button>
+    <button class="btn ghost" id="btnQuit" style="width:220px">나가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="suika/fruit-art.js"></script>
+<script src="suika/sound.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="suika/rank.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const rpath = c => `games/sk_${c}`;            // 규칙상 games/ 아래 · sk_ 접두로 다른 게임과 분리
+const MAX_PLAYERS = 7;
+
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+
+// ═══════════ 게임 엔진 (싱글과 같은 수치) ═══════════
+const { Engine, Bodies, Body, Composite, Events } = Matter;
+const BW = 500, BH = 700;                      // 내 보드 캔버스
+const BOX = { l: 15, r: 485, t: 120, b: 640 }; // 470 × 520 (싱글과 동일)
+const RIM = 22, WALL = 120, MAX_SPEED = 18;
+const DROP_COOLDOWN = 450, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
+const dropY = () => BOX.t - 75;
+const deadY = () => BOX.t + 4;
+const FRUITS = [
+  { name: '체리',     r: 20,  color: '#F76B7E', score: 1 },
+  { name: '딸기',     r: 28,  color: '#FFA5AB', score: 3 },
+  { name: '포도',     r: 37,  color: '#CDB4FF', score: 6 },
+  { name: '한라봉',   r: 47,  color: '#FFD08A', score: 10 },
+  { name: '감',       r: 56,  color: '#FFB884', score: 15 },
+  { name: '사과',     r: 68,  color: '#FF9797', score: 21 },
+  { name: '배',       r: 80,  color: '#FFF5BC', score: 28 },
+  { name: '복숭아',   r: 92,  color: '#FFD9E2', score: 36 },
+  { name: '파인애플', r: 106, color: '#FFE99A', score: 45 },
+  { name: '멜론',     r: 122, color: '#DDF7BF', score: 55 },
+  { name: '수박',     r: 138, color: '#A8ECB4', score: 66 },
+];
+const ART = window.FRUIT_ART;
+const artBroken = [];
+const sfx = (n, o) => { try { if (window.Sound) window.Sound.play(n, o); } catch (e) {} };
+
+const canvas = $('board'), ctx = canvas.getContext('2d');
+let scale = 1;
+function resizeBoard() {
+  const wide = window.innerWidth > 900;
+  // 데스크톱: 양옆 미니 2열(166px) 자리를 빼고 / 모바일: 위쪽 미니 줄 높이를 빼고
+  const maxW = wide ? window.innerWidth - 2 * 178 - 24 : window.innerWidth - 12;
+  const maxH = window.innerHeight - (wide ? 70 : 190);
+  scale = Math.max(0.35, Math.min(1.25, Math.min(maxH / BH, maxW / BW)));
+  canvas.width = BW * devicePixelRatio * scale;
+  canvas.height = BH * devicePixelRatio * scale;
+  canvas.style.width = BW * scale + 'px';
+  canvas.style.height = BH * scale + 'px';
+}
+window.addEventListener('resize', resizeBoard);
+
+const engine = Engine.create({ gravity: { x: 0, y: 2.0 } });
+const world = engine.world;
+engine.positionIterations = 10;
+engine.velocityIterations = 8;
+const wallOpt = { isStatic: true, friction: 0.3, restitution: 0, label: 'wall' };
+Composite.add(world, [
+  Bodies.rectangle((BOX.l + BOX.r) / 2, BOX.b + WALL / 2, BOX.r - BOX.l + WALL * 2, WALL, wallOpt),
+  Bodies.rectangle(BOX.l - WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
+  Bodies.rectangle(BOX.r + WALL / 2, BH / 2, WALL, BH * 3, wallOpt),
+]);
+
+const fruitsInBox = () => Composite.allBodies(world).filter(b => b.label === 'fruit');
+function makeFruit(x, y, level) {
+  const b = Bodies.circle(x, y, FRUITS[level].r, {
+    label: 'fruit', restitution: 0.25, friction: 0.15, frictionStatic: 0.5, frictionAir: 0.002, density: 0.0012,
+  });
+  Body.setInertia(b, b.inertia * 0.15);
+  Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3);
+  b.level = level; b.born = performance.now(); b.deadSince = 0;
+  return b;
+}
+
+// ── 내 게임 상태 ──
+let current = null, nextQueue = [], mouseX = (BOX.l + BOX.r) / 2;
+let canDrop = true, playing = false, myAlive = true;
+let mergeQueue = [], effects = [], particles = [];
+let myMelons = 0, myBest = 0, myScore = 0, startedAt = 0;
+const randLevel = () => Math.floor(Math.random() * (MAX_DROP_LEVEL + 1));
+const clampX = (x, lv) => Math.max(BOX.l + FRUITS[lv].r + 2, Math.min(BOX.r - FRUITS[lv].r - 2, x));
+
+function resetBoard() {
+  fruitsInBox().forEach(b => Composite.remove(world, b));
+  mergeQueue = []; effects = []; particles = [];
+  current = randLevel();
+  nextQueue = [randLevel(), randLevel(), randLevel()];
+  canDrop = true; myAlive = true; myMelons = 0; myBest = 0; myScore = 0;
+}
+function drop() {
+  if (!playing || !canDrop || !myAlive || current === null) return;
+  const b = makeFruit(clampX(mouseX, current), dropY(), current);
+  b.dropped = true;
+  Body.setVelocity(b, { x: 0, y: 4 });
+  Composite.add(world, b);
+  sfx('drop', { level: current });
+  current = null; canDrop = false;
+  setTimeout(() => { current = nextQueue.shift(); nextQueue.push(randLevel()); canDrop = true; }, DROP_COOLDOWN);
+}
+function spawnParticles(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = 3 * (0.4 + Math.random());
+    particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, color, t: performance.now(), life: 500, size: 5 });
+  }
+}
+
+Events.on(engine, 'collisionStart', ev => {
+  for (const { bodyA: a, bodyB: b } of ev.pairs) {
+    for (const f of [a, b]) if (f.label === 'fruit' && f.dropped && !f.landed) { f.landed = true; sfx('land', { level: f.level }); }
+    if (a.label !== 'fruit' || b.label !== 'fruit' || a.merging || b.merging) continue;
+    if (a.level !== b.level) continue;
+    a.merging = b.merging = true;
+    mergeQueue.push([a, b, a.level >= FRUITS.length - 1 ? -1 : a.level + 1]);
+  }
+});
+Events.on(engine, 'beforeUpdate', () => {
+  for (const b of fruitsInBox()) if (b.speed > MAX_SPEED) {
+    const k = MAX_SPEED / b.speed;
+    Body.setVelocity(b, { x: b.velocity.x * k, y: b.velocity.y * k });
+  }
+});
+Events.on(engine, 'afterUpdate', () => {
+  const now = performance.now();
+  for (const [a, b, lv] of mergeQueue) {
+    const x = (a.position.x + b.position.x) / 2, y = (a.position.y + b.position.y) / 2;
+    Composite.remove(world, a); Composite.remove(world, b);
+    if (lv < 0) {   // 수박 + 수박 → 소멸
+      spawnParticles(x, y, '#9be8a8', 20); effects.push({ x, y, r: FRUITS[10].r, t: now, pop: true }); sfx('melonPop');
+      continue;
+    }
+    const nb = makeFruit(x, y, lv);
+    Body.setVelocity(nb, { x: (a.velocity.x + b.velocity.x) / 2, y: (a.velocity.y + b.velocity.y) / 2 });
+    Composite.add(world, nb);
+    effects.push({ x, y, r: FRUITS[lv].r, t: now });
+    spawnParticles(x, y, FRUITS[lv].color, 5 + lv);
+    sfx('merge', { level: lv, combo: 1 });
+    myScore += FRUITS[lv].score;
+    myBest = Math.max(myBest, lv);
+    if (lv === FRUITS.length - 1) { myMelons++; sfx('melon'); claimWin(); }
+  }
+  mergeQueue = [];
+  if (!playing || !myAlive) return;
+  for (const b of fruitsInBox()) {
+    const top = b.position.y - b.circleRadius;
+    const counting = now - b.born > 400 && !(b.velocity.y > 3 && !b.landed);
+    if (top < deadY() && counting) {
+      if (!b.deadSince) b.deadSince = now;
+      else if (now - b.deadSince > DEAD_TIME) { die(); break; }
+    } else b.deadSince = 0;
+  }
+});
+
+// ── 입력 ──
+function toGameX(clientX) {
+  const rect = canvas.getBoundingClientRect();
+  return (clientX - rect.left) / rect.width * BW;
+}
+let aiming = false;
+canvas.addEventListener('pointermove', e => { mouseX = toGameX(e.clientX); if (aiming) e.preventDefault(); }, { passive: false });
+canvas.addEventListener('pointerdown', e => {
+  initAudio(); mouseX = toGameX(e.clientX);
+  if (e.pointerType === 'touch') { aiming = true; try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
+  else drop();
+});
+canvas.addEventListener('pointerup', e => { if (!aiming) return; aiming = false; mouseX = toGameX(e.clientX); drop(); });
+canvas.addEventListener('pointercancel', () => { aiming = false; });
+window.addEventListener('keydown', e => {
+  if (!playing) return;
+  if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'Enter') { e.preventDefault(); initAudio(); drop(); }
+  if (e.code === 'ArrowLeft') mouseX -= 14;
+  if (e.code === 'ArrowRight') mouseX += 14;
+});
+let audioReady = false;
+function initAudio() { if (audioReady || !window.Sound) return; audioReady = true; try { window.Sound.init(); } catch (e) {} }
+
+// ── 전체화면 (모바일) ──
+function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function toggleFullscreen() {
+  const el = document.documentElement;
+  try {
+    if (fsOn()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    else { (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+  } catch (e) { toast('이 브라우저는 전체화면을 지원하지 않아요'); }
+  setTimeout(resizeBoard, 300);
+}
+document.addEventListener('fullscreenchange', () => { document.body.classList.toggle('fs', fsOn()); setTimeout(resizeBoard, 150); });
+window.addEventListener('orientationchange', () => setTimeout(resizeBoard, 300));
+
+// ── 그리기 ──
+function drawFruit(c, x, y, level, angle, k) {
+  const f = FRUITS[level];
+  c.save(); c.translate(x, y); c.rotate(angle || 0); c.scale(k || 1, k || 1);
+  let drawn = false;
+  if (!artBroken[level] && ART && ART[level] && typeof ART[level].draw === 'function') {
+    try { ART[level].draw(c, f.r); drawn = true; }
+    catch (err) { artBroken[level] = true; for (let i = 0; i < 32; i++) c.restore(); c.save(); c.translate(x, y); }
+  }
+  if (!drawn) {
+    c.beginPath(); c.arc(0, 0, f.r, 0, Math.PI * 2);
+    c.fillStyle = f.color; c.fill();
+    c.lineWidth = Math.max(1.5, f.r * 0.07); c.strokeStyle = 'rgba(90,40,30,.3)'; c.stroke();
+  }
+  c.restore();
+}
+function drawCloud(c, x, y) {
+  c.save(); c.translate(x, y);
+  for (const pass of [['#e8d9b8', 2.5], ['#fffdf5', 0]]) {
+    c.fillStyle = pass[0];
+    for (const [px, py, pr] of [[-22, 4, 15], [0, -5, 21], [22, 4, 15], [-10, 10, 13], [11, 10, 13]]) {
+      c.beginPath(); c.arc(px, py, pr + pass[1], 0, Math.PI * 2); c.fill();
+    }
+  }
+  c.fillStyle = '#6a4a3a';
+  c.beginPath(); c.arc(-7, 2, 2, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(7, 2, 2, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#6a4a3a'; c.lineWidth = 1.5; c.lineCap = 'round';
+  c.beginPath(); c.arc(0, 6, 4, 0.2, Math.PI - 0.2); c.stroke();
+  c.restore();
+}
+function outlined(c, text, x, y, size) {
+  c.font = `${size}px Jua, "Malgun Gothic", sans-serif`;
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+  c.lineWidth = size * 0.22; c.strokeStyle = '#8a5a2a'; c.strokeText(text, x, y);
+  c.fillStyle = '#fff'; c.fillText(text, x, y);
+}
+function render() {
+  ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, 0, 0);
+  ctx.fillStyle = '#c8874a'; ctx.fillRect(0, 0, BW, BH);
+
+  // Next
+  const nx = [70, 110, 142], nk = [20, 15, 12];
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.roundRect(28, 22, 140, 52, 24); ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
+  const shown = [current !== null ? current : nextQueue[0], ...(current !== null ? nextQueue : nextQueue.slice(1))].slice(0, 3);
+  for (let i = 0; i < shown.length; i++) drawFruit(ctx, nx[i], 48, shown[i], 0, Math.min(1, nk[i] / FRUITS[shown[i]].r));
+  outlined(ctx, '현재 › 다음', 98, 12, 13);
+  outlined(ctx, `🍉 ${myMelons}`, 260, 26, 20);
+  outlined(ctx, `최고: ${FRUITS[myBest].name}`, 400, 26, 15);
+
+  // 상자
+  const { l, r, t, b } = BOX;
+  ctx.fillStyle = '#ffdca6'; ctx.fillRect(l, t, r - l, b - t);
+  ctx.fillStyle = '#efc98c';
+  ctx.fillRect(l, t, 10, b - t); ctx.fillRect(r - 10, t, 10, b - t); ctx.fillRect(l, b - 10, r - l, 10);
+  ctx.fillStyle = '#ffefd0';
+  ctx.beginPath(); ctx.moveTo(l, t); ctx.lineTo(l + 18, t - RIM); ctx.lineTo(r - 18, t - RIM); ctx.lineTo(r, t); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#d8ab66'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.strokeStyle = '#d8ab66'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(l, t); ctx.lineTo(l, b); ctx.lineTo(r, b); ctx.lineTo(r, t); ctx.stroke();
+
+  // 게임오버 선
+  let danger = false;
+  for (const f of fruitsInBox()) if (f.position.y - f.circleRadius < deadY() + 30 && f.deadSince) danger = true;
+  const blink = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 120) : 0;
+  ctx.setLineDash([8, 8]);
+  ctx.strokeStyle = danger ? `rgba(255,40,40,${0.5 + blink * 0.5})` : 'rgba(220,90,60,.35)';
+  ctx.lineWidth = danger ? 4 : 2;
+  ctx.beginPath(); ctx.moveTo(l, deadY()); ctx.lineTo(r, deadY()); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 손에 든 과일
+  if (playing && myAlive && current !== null) {
+    const x = clampX(mouseX, current), fr = FRUITS[current].r;
+    ctx.strokeStyle = 'rgba(160,110,60,.25)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, dropY() + fr); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
+    drawCloud(ctx, x, dropY() - fr - 16);
+    drawFruit(ctx, x, dropY(), current, 0, 1);
+  }
+
+  // 과일
+  ctx.save();
+  ctx.beginPath(); ctx.rect(l, t - RIM - 40, r - l, b - t + RIM + 40); ctx.clip();
+  const now = performance.now();
+  for (const f of fruitsInBox()) {
+    const age = now - f.born;
+    const k = age < 120 ? 0.85 + 0.15 * (age / 120) : 1;
+    drawFruit(ctx, f.position.x, f.position.y, f.level, f.angle, k);
+  }
+  effects = effects.filter(e => now - e.t < 250);
+  for (const e of effects) {
+    const p = (now - e.t) / 250;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r * (1 + p * 0.4), 0, Math.PI * 2);
+    ctx.strokeStyle = e.pop ? `rgba(255,120,120,${1 - p})` : `rgba(255,255,255,${1 - p})`;
+    ctx.lineWidth = (e.pop ? 8 : 5) * (1 - p); ctx.stroke();
+  }
+  particles = particles.filter(pt => now - pt.t < pt.life);
+  for (const pt of particles) {
+    const p = (now - pt.t) / pt.life;
+    pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.25;
+    ctx.globalAlpha = 1 - p * p;
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size * (1 - p * 0.5), 0, Math.PI * 2);
+    ctx.fillStyle = pt.color; ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  if (!myAlive) {
+    ctx.fillStyle = 'rgba(90,50,20,.55)'; ctx.fillRect(l, t, r - l, b - t);
+    outlined(ctx, '탈락 — 관전 중', (l + r) / 2, (t + b) / 2, 26);
+  }
+}
+
+// ═══════════ 보드 인코딩 / 미니 렌더 ═══════════
+function encodeBoard() {
+  const out = [];
+  for (const f of fruitsInBox()) out.push(f.level + ':' + Math.round(f.position.x) + ',' + Math.round(f.position.y));
+  return out.join('|');
+}
+function decodeBoard(s) {
+  if (!s) return [];
+  return s.split('|').map(t => {
+    const [lv, xy] = t.split(':'); if (!xy) return null;
+    const [x, y] = xy.split(',');
+    return { lv: +lv, x: +x, y: +y };
+  }).filter(Boolean);
+}
+function drawMini(cv, board, alive) {
+  const c = cv.getContext('2d');
+  const W0 = cv.clientWidth || 160, H0 = Math.round(W0 * (BOX.b - BOX.t) / (BOX.r - BOX.l));
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(W0 * dpr)) { cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr); cv.style.height = H0 + 'px'; }
+  const k = W0 / (BOX.r - BOX.l);
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.fillStyle = alive ? '#ffdca6' : '#d9c4a2'; c.fillRect(0, 0, W0, H0);
+  c.strokeStyle = 'rgba(220,90,60,.5)'; c.lineWidth = 1; c.setLineDash([3, 3]);
+  c.beginPath(); c.moveTo(0, (deadY() - BOX.t) * k); c.lineTo(W0, (deadY() - BOX.t) * k); c.stroke(); c.setLineDash([]);
+  // 과일 그림을 그대로 축소 — 수박·멜론이 한눈에 구분된다
+  for (const f of board) {
+    const x = (f.x - BOX.l) * k, y = (f.y - BOX.t) * k;
+    if (FRUITS[f.lv].r * k < 3.5) {   // 너무 작으면 점으로
+      c.beginPath(); c.arc(x, y, Math.max(1.2, FRUITS[f.lv].r * k), 0, Math.PI * 2);
+      c.fillStyle = FRUITS[f.lv].color; c.fill();
+    } else drawFruit(c, x, y, f.lv, 0, k);
+  }
+}
+
+// ═══════════ 방 / 동기화 ═══════════
+let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [];
+let players = {};          // key → { nick, alive, best, melons, b, t }
+const miniEls = {};        // key → { wrap, canvas, nm, st }
+
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+function roomRef() { return db.ref(rpath(code)); }
+function meRef() { return db.ref(`${rpath(code)}/players/${myKey}`); }
+
+(function init() {
+  const saved = localStorage.getItem('sk_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+  resizeBoard();
+})();
+
+function loadRank() {
+  if (!window.Rank) return;
+  $('rkWeek').textContent = Rank.weekLabel();
+  $('rkReset').textContent = '월요일 오전 9시에 초기화돼요 · ' + Rank.untilResetText();
+  Rank.top(10).then(rows => Rank.renderInto($('rkList'), rows, localStorage.getItem('sk_nick') || ''))
+    .catch(() => { $('rkList').innerHTML = '<div class="rk-empty">순위표를 불러오지 못했어요</div>'; });
+}
+loadRank();
+$('btnFsHome').onclick = toggleFullscreen;
+
+function getNick() {
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = '수박' + Math.floor(Math.random() * 900 + 100); $('nick').value = n; toast('닉네임을 자동으로 정했어요: ' + n); }
+  localStorage.setItem('sk_nick', n);
+  return n;
+}
+$('btnCreate').onclick = async () => {
+  myNick = getNick(); myKey = sanitizeKey(myNick); code = genCode(); isHost = true;
+  await roomRef().set({
+    host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 2 * 3600e3, status: 'lobby',
+    players: { [myKey]: { nick: myNick, joinedAt: Date.now(), alive: true, best: 0, melons: 0 } }
+  });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  myNick = getNick();
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const snap = await db.ref(rpath(c)).once('value');
+  const r = snap.val();
+  if (!r) return toast('방을 찾을 수 없어요');
+  if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
+  if (!r.status || !r.host) { db.ref(rpath(c)).remove(); return toast('끊어진 방이에요 — 새로 만들어 주세요'); }
+  const k = sanitizeKey(myNick);
+  const already = r.players && r.players[k];
+  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 재접속 가능)');
+  if (!already && Object.keys(r.players || {}).length >= MAX_PLAYERS) return toast(`정원(${MAX_PLAYERS}명)이 찼어요`);
+  myKey = k; code = c; isHost = r.host === k;
+  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: myNick, joinedAt: Date.now(), alive: true, best: 0, melons: 0 });
+  enterRoom();
+};
+
+function enterRoom() {
+  offAll();
+  history.replaceState(null, '', location.pathname + '?room=' + code);
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); goHome(); return; }
+    isHost = room.host === myKey;
+    players = room.players || {};
+    if (enterRoom.setDisco) enterRoom.setDisco(room.status === 'lobby');
+    if (room.status === 'lobby') { show('lobby'); renderLobby(); }
+    else if (room.status === 'playing') { if (!playing) beginGame(); renderArena(); checkLastStanding(); }
+    else if (room.status === 'ended') { renderArena(); showResult(); }
+  });
+  listeners.push(() => ref.off('value', cb));
+  // 방장이 새로고침해도 방은 유지(만료 시각으로 정리) · 손님은 대기실에 있을 때만 자동 퇴장
+  const pref = meRef();
+  let guestDisco = false;
+  enterRoom.setDisco = on => {
+    if (isHost || on === guestDisco) return;
+    guestDisco = on;
+    if (on) pref.onDisconnect().remove(); else pref.onDisconnect().cancel();
+  };
+  listeners.push(() => { if (guestDisco) pref.onDisconnect().cancel(); guestDisco = false; });
+  $('roomCode').textContent = code;
+}
+function goHome() {
+  offAll(); playing = false; stopSync();
+  history.replaceState(null, '', location.pathname);
+  show('home');
+}
+
+function renderLobby() {
+  const ps = Object.entries(players).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+  $('pcount').textContent = `${ps.length} / ${MAX_PLAYERS}`;
+  $('plist').innerHTML = ps.map(([k, p]) =>
+    `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}</div>`).join('');
+  $('btnStart').disabled = !isHost || ps.length < 1;
+  $('startHint').textContent = isHost
+    ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작!')
+    : '방장이 시작하기를 기다리는 중…';
+}
+$('btnCopy').onclick = () => { navigator.clipboard.writeText(code); toast('코드를 복사했어요'); };
+$('btnCopyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '?room=' + code); toast('링크를 복사했어요'); };
+$('btnLeave').onclick = () => {
+  if (!confirm('방을 나갈까요?')) return;
+  if (isHost) roomRef().remove(); else meRef().remove();
+  goHome();
+};
+$('btnStart').onclick = () => {
+  const upd = { status: 'playing', startedAt: Date.now(), winner: null };
+  Object.keys(players).forEach(k => { upd[`players/${k}/alive`] = true; upd[`players/${k}/best`] = 0; upd[`players/${k}/melons`] = 0; upd[`players/${k}/b`] = ''; });
+  roomRef().update(upd);
+};
+$('btnQuit').onclick = () => { if (isHost) roomRef().remove(); else meRef().remove(); goHome(); };
+$('btnAgain').onclick = () => {
+  $('result').hidden = true;
+  if (isHost) roomRef().update({ status: 'lobby', winner: null });
+  else toast('방장이 다시 시작하기를 기다려요');
+};
+
+// ── 게임 시작/종료 ──
+let syncTimer = null;
+function beginGame() {
+  playing = true; startedAt = Date.now(); showResult._done = false; claimTried = false;
+  resetBoard(); resizeBoard();
+  $('result').hidden = true;
+  show('game');
+  initAudio();
+  meRef().update({ alive: true, best: 0, melons: 0, b: '' });
+  startSync();
+}
+function startSync() {
+  stopSync();
+  syncTimer = setInterval(() => {
+    if (!playing || !room || room.status !== 'playing') return;   // 방이 사라졌는데 쓰면 유령 방이 생긴다
+    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, alive: myAlive, t: Date.now() });
+  }, 200);
+}
+function stopSync() { if (syncTimer) clearInterval(syncTimer); syncTimer = null; }
+
+function die() {
+  if (!myAlive) return;
+  myAlive = false;
+  sfx('gameover');
+  meRef().update({ alive: false, b: encodeBoard(), best: myBest, melons: myMelons });
+  checkLastStanding();
+}
+function claimWin() {
+  db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'melon', at: Date.now() },
+    (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); });
+}
+// 방 상태가 바뀔 때마다 모두가 검사: 살아남은 사람이 나 하나뿐이면 내가 승리 선언
+let claimTried = false;
+function checkLastStanding() {
+  if (!room || room.status !== 'playing' || room.winner) return;
+  const ps = Object.entries(room.players || {});
+  if (ps.length < 2) return;
+  const alive = ps.filter(([, p]) => p.alive !== false);
+  if (alive.length === 0) { if (isHost) roomRef().update({ status: 'ended' }); return; }
+  if (alive.length === 1 && alive[0][0] === myKey && myAlive && !claimTried) {
+    claimTried = true;
+    db.ref(`${rpath(code)}/winner`).transaction(cur => cur ? undefined : { key: myKey, nick: myNick, how: 'last', at: Date.now() },
+      (err, committed) => { if (committed) roomRef().update({ status: 'ended' }); else claimTried = false; });
+  }
+}
+
+// ── 아레나 (내 보드 + 미니들) ──
+function renderArena() {
+  const ps = Object.entries(players).filter(([k]) => k !== myKey)
+    .sort((a, b) => (b[1].melons || 0) - (a[1].melons || 0) || (b[1].best || 0) - (a[1].best || 0));
+  const sides = [$('sideL'), $('sideR')];
+  const want = new Set(ps.map(([k]) => k));
+  // 사라진 사람 제거
+  Object.keys(miniEls).forEach(k => { if (!want.has(k)) { miniEls[k].wrap.remove(); delete miniEls[k]; } });
+  ps.forEach(([k, p], i) => {
+    let el = miniEls[k];
+    if (!el) {
+      const wrap = document.createElement('div');
+      wrap.className = 'mini';
+      wrap.innerHTML = `<canvas></canvas><div class="nm"></div><div class="st"></div>`;
+      el = miniEls[k] = { wrap, canvas: wrap.querySelector('canvas'), nm: wrap.querySelector('.nm'), st: wrap.querySelector('.st') };
+    }
+    const side = window.innerWidth > 900 ? sides[i % 2] : sides[0];   // 모바일은 위쪽 한 줄에 모아서 가로 스크롤
+    if (el.wrap.parentElement !== side) side.appendChild(el.wrap);
+    el.nm.textContent = p.nick;
+    el.st.innerHTML = p.alive === false ? '탈락' : `🍉<b>${p.melons || 0}</b> · ${FRUITS[p.best || 0].name}`;
+    el.wrap.classList.toggle('dead', p.alive === false);
+    el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
+    drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
+  });
+  const aliveN = Object.values(players).filter(p => p.alive !== false).length;
+  $('topbar').innerHTML = `<span>생존 <b>${aliveN}</b>/${Object.keys(players).length}</span>`
+    + `<span>내 수박 <b>${myMelons}</b></span>`
+    + `<button class="iconbtn" id="btnFs">⛶</button>`
+    + `<button class="iconbtn" id="btnMute">${window.Sound && window.Sound.muted ? '🔇' : '🔊'}</button>`;
+  $('btnFs').onclick = toggleFullscreen;
+  $('btnMute').onclick = () => { if (!window.Sound) return; window.Sound.setMuted(!window.Sound.muted); renderArena(); };
+}
+function showResult() {
+  playing = false; stopSync();
+  const w = room.winner;
+  const iWon = w && w.key === myKey;
+  $('resTitle').textContent = iWon ? '🎉 승리!' : (w ? '게임 종료' : '전멸…');
+  $('resText').innerHTML = w
+    ? `<b>${esc(w.nick)}</b> 님이 ${w.how === 'melon' ? '먼저 수박을 만들었어요! 🍉' : '마지막까지 살아남았어요!'}`
+    : '모두 탈락했어요';
+  $('btnAgain').textContent = isHost ? '대기실로 (모두 이동)' : '대기실 기다리기';
+  $('result').hidden = false;
+  if (iWon) sfx('melon');
+  // 주간 순위표 등록 (내 결과)
+  if (!showResult._done && window.Rank) {
+    showResult._done = true;
+    Rank.submit({ nick: myNick, melons: myMelons, score: myScore, secs: Math.round((Date.now() - startedAt) / 1000), mode: 'online' })
+      .then(() => toast('🏆 순위표에 기록했어요')).catch(() => {});
+  }
+}
+
+// ── 루프 ──
+const STEP = 1000 / 60;
+let acc = 0, last = performance.now();
+setInterval(() => {
+  const now = performance.now();
+  acc += Math.min(now - last, 100); last = now;
+  while (acc >= STEP) { if (playing && myAlive) Engine.update(engine, STEP); acc -= STEP; }
+  if ($('game').classList.contains('active')) {
+    if (resizeBoard.w !== window.innerWidth || resizeBoard.h !== window.innerHeight) {
+      resizeBoard.w = window.innerWidth; resizeBoard.h = window.innerHeight; resizeBoard();
+    }
+    render();
+  }
+}, STEP);
+
+window.suikaOnline = { get state() { return { code, myKey, isHost, playing, myAlive, myMelons, myBest, players, room }; }, drop, roomRef, die };
+</script>
+</body>
+</html>
