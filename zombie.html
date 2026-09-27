@@ -380,6 +380,12 @@ const MAX_WAVE = 50;      // 50웨이브를 버티면 방어 성공
 const SHOP_MS = 25000;    // 상점 + 투표 시간
 const W = 1280, H = 800;                       // 아레나 (월드 좌표)
 const BASE = { x: W / 2, y: H / 2, r: 66 };
+// 벙커를 둘러싼 성벽. 12조각 중 3곳이 출입구(길목)다.
+// 좀비는 길목으로 몰려들고, 길목을 바리케이드로 막으면 성벽을 부수기 시작한다.
+const WALL_R = 190, SEG_N = 12, SEG_A = Math.PI * 2 / SEG_N;
+const GATE_SEGS = [1, 5, 9];
+const GATE_NAME = { 1: '남문', 5: '북서문', 9: '북동문' };
+const WALL_HP = 520;
 const DIFF = {
   easy:   { name: '쉬움',   hpMul: 0.62, spdMul: 0.88, cntMul: 0.65, baseHp: 1100, money: 1.2 },
   normal: { name: '보통',   hpMul: 1,    spdMul: 1,    cntMul: 1,    baseHp: 750,  money: 1 },
@@ -414,8 +420,9 @@ const ITEMS = [
   { key: 'rate',      ic: '⚡', nm: '연사 +12%',     price: 300, ds: '영구 · 중첩 가능' },
   { key: 'mag',       ic: '🧰', nm: '탄창 +25%',     price: 280, ds: '한 탄창에 더 많이 · 중첩' },
   { key: 'reloadspd', ic: '🌀', nm: '재장전 -14%',   price: 300, ds: '재장전이 빨라져요 · 중첩' },
-  { key: 'turret',    ic: '🔩', nm: '터렛 설치',     price: 420, ds: '내 자리에 자동 포탑 (웨이브 동안)' },
-  { key: 'barrier',   ic: '🧱', nm: '바리케이드',    price: 200, ds: '기지 둘레에 장애물 3개 (좀비가 부수느라 멈춰요)' },
+  { key: 'turret',    ic: '🔩', nm: '터렛 설치',     price: 420, ds: '길목 안쪽에 자동 포탑. 부서지기 전까지 계속 남아요' },
+  { key: 'barrier',   ic: '🧱', nm: '길목 봉쇄',      price: 240, ds: '출입구 하나를 막아요. 다 막으면 좀비가 성벽을 부숩니다' },
+  { key: 'wall',      ic: '🧰', nm: '성벽 수리',      price: 300, ds: '부서진 성벽을 전부 복구해요' },
   { key: 'mine',      ic: '💣', nm: '지뢰 5개',      price: 260, ds: '밟으면 폭발 (범위 피해)' },
   { key: 'repair',    ic: '🛠️', nm: '기지 수리',      price: 350, ds: '기지 체력을 25% 회복해요' },
 ];
@@ -544,6 +551,14 @@ let status = 'lobby', wave = 0, diff = 'normal';
 
 // 시뮬레이션 (호스트가 권위)
 let zs = [], bullets = [], zshots = [], turrets = [], mines = [], barriers = [], fx = [], decals = [];
+let walls = [];
+let crates = [], evt = null;          // 보급 상자 · 이번 웨이브 사건
+const EVENTS = [
+  { key: 'supply',  ic: '📦', nm: '보급 낙하', ds: '성벽 밖에 보급 상자가 떨어졌다' },
+  { key: 'blackout',ic: '🔌', nm: '정전',      ds: '조명이 나갔다 — 시야가 좁아진다' },
+  { key: 'breach',  ic: '🚨', nm: '돌파조',    ds: '한 길목으로 러너 떼가 몰려온다' },
+  { key: 'frenzy',  ic: '⚡', nm: '폭주',      ds: '좀비가 흥분했다 — 전부 빨라진다' },
+];
 let units = {};              // key → { x, y, hp, dead, nick, ... }
 let baseHp = 750, baseMax = 750;
 let teamPerks = [];          // 적용된 팀 특성 key
@@ -567,6 +582,37 @@ const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 const perkHas = k => teamPerks.includes(k);
 const perkCount = k => teamPerks.filter(p => p === k).length;
 const nowMs = () => Date.now();
+// ── 성벽 도우미 ──
+const segAngle = i => (i + 0.5) * SEG_A;
+function segOf(x, y) {
+  let a = Math.atan2(y - BASE.y, x - BASE.x);
+  a = (a % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  return Math.floor(a / SEG_A) % SEG_N;
+}
+function angDiff(a, b) { return Math.abs(((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI); }
+const isSolid = i => walls[i] && !walls[i].gate && walls[i].hp > 0;
+const barAt = i => barriers.find(b => b.seg === i && b.hp > 0);
+const passable = i => !isSolid(i) && !barAt(i);
+function initWalls() {
+  walls = [];
+  for (let i = 0; i < SEG_N; i++) {
+    const gate = GATE_SEGS.includes(i);
+    walls.push({ hp: gate ? 0 : WALL_HP, maxHp: WALL_HP, gate });
+  }
+}
+// 성벽을 통과하지 못하게 막는다 (좀비·플레이어 공통)
+function blockWall(o) {
+  const dx = o.x - BASE.x, dy = o.y - BASE.y;
+  const d = Math.hypot(dx, dy);
+  if (d > WALL_R + 3 || d < WALL_R - 26) return false;
+  const i = segOf(o.x, o.y);
+  if (!isSolid(i)) return false;
+  const a = Math.atan2(dy, dx);
+  const push = d < WALL_R ? WALL_R - 26 : WALL_R + 3;      // 안쪽이면 안쪽으로, 바깥이면 바깥으로
+  o.x = BASE.x + Math.cos(a) * push; o.y = BASE.y + Math.sin(a) * push;
+  return true;
+}
+initWalls();
 
 function resize() {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -580,6 +626,8 @@ function resize() {
 addEventListener('resize', resize);
 const toWorld = (sx, sy) => ({ x: sx / viewScale + camX, y: sy / viewScale + camY });
 function shake(a) { if (!shakeOn) return; shakeAmt = Math.min(7, shakeAmt + a); }
+let msgs = [];
+function banner(text, color) { msgs.push({ text, c: color || '#9ef08a', t: nowMs() }); if (msgs.length > 3) msgs.shift(); }
 
 /* ═══════════ 유닛 / 스탯 ═══════════ */
 function gunOf(p) { return GUNS.find(g => g.key === (p.gun || 'pistol')) || GUNS[0]; }
@@ -755,38 +803,74 @@ function hostStep(dt) {
       if (Math.abs(z.ky) < 3) z.ky = 0;
       z.x = clamp(z.x, -40, W + 40); z.y = clamp(z.y, -40, H + 40);
     }
-    // 기본 목표는 기지. 종류마다 정해진 거리 안에 사람이 있을 때만 쫓는다.
-    // (전부 사람을 쫓으면 빙빙 돌기만 해도 기지가 안 맞아서 게임이 성립하지 않는다)
-    let tgt = BASE, best = 1e9;
+    // ── 목표 정하기 ──
+    // 가까이 있는 사람 → 길목(출입구) → 막혔으면 눈앞의 성벽 → 안에 들어왔으면 코어
+    let tgt = null, kind = 'core';
     const hunt = T.hunt || 70;
+    let best = hunt * hunt;
+    const zIn = Math.hypot(z.x - BASE.x, z.y - BASE.y) < WALL_R - 22;
     for (const k in units) {
       const u = units[k];
       if (u.dead) continue;
-      const d = dist2(z, u);
-      if (d < best && d < hunt * hunt) { best = d; tgt = u; }
+      const uIn = Math.hypot(u.x - BASE.x, u.y - BASE.y) < WALL_R - 22;
+      if (uIn !== zIn) continue;                  // 성벽 너머는 못 쫓는다
+      const dd = dist2(z, u);
+      if (dd < best) { best = dd; tgt = u; kind = 'unit'; }
     }
-    // 앞을 가로막은 바리케이드가 있으면 그것부터 부순다
-    let isBar = false;
-    if (tgt === BASE) {
-      for (const br of barriers) {
-        if (br.hp > 0 && dist2(z, br) < (z.r + 20) ** 2) { tgt = br; isBar = true; break; }
-      }
+    if (!tgt) {
+      const bx = z.x - BASE.x, by = z.y - BASE.y, dr = Math.hypot(bx, by) || 1;
+      if (dr > WALL_R - 22) {
+        const myA = Math.atan2(by, bx);
+        let pick = -1, bd = 9;
+        for (let i = 0; i < SEG_N; i++) if (passable(i)) { const dd = angDiff(segAngle(i), myA); if (dd < bd) { bd = dd; pick = i; } }
+        if (pick >= 0 && bd < 1.9) {                 // 돌아갈 만한 거리면 길목으로
+          const a = segAngle(pick);
+          tgt = { x: BASE.x + Math.cos(a) * (WALL_R - 40), y: BASE.y + Math.sin(a) * (WALL_R - 40) };
+          kind = 'gate';
+        } else {                                      // 아니면 눈앞을 부순다
+          const i = segOf(z.x, z.y);
+          const b = barAt(i);
+          if (b) { tgt = b; kind = 'bar'; }
+          else if (isSolid(i)) { tgt = { x: BASE.x + Math.cos(segAngle(i)) * WALL_R, y: BASE.y + Math.sin(segAngle(i)) * WALL_R, seg: i }; kind = 'wall'; }
+          else { tgt = BASE; kind = 'core'; }
+        }
+      } else { tgt = BASE; kind = 'core'; }
     }
+    const isBar = kind === 'bar';
+    const isWall = kind === 'wall';
     const dx = tgt.x - z.x, dy = tgt.y - z.y, d = Math.hypot(dx, dy) || 1;
     z.face = Math.atan2(dy, dx);
     // 침 뱉는 놈은 사거리 밖에서 멈춰 공격한다
-    const reach = T.ranged && tgt !== BASE && !isBar ? T.ranged
-      : (tgt === BASE ? BASE.r : isBar ? 18 : 16) + z.r;
-    if (d > reach) { z.x += dx / d * z.spd * dt; z.y += dy / d * z.spd * dt; }
+    const reach = kind === 'gate' ? 0                       // 길목은 경유점이라 멈추지 않고 통과한다
+      : T.ranged && kind === 'unit' ? T.ranged
+      : kind === 'core' ? BASE.r + z.r : isBar ? 18 + z.r : isWall ? 22 + z.r : 16 + z.r;
+    if (d > reach) {
+      const fz = (evt && evt.key === 'frenzy') ? 1.35 : 1;
+      z.x += dx / d * z.spd * fz * dt; z.y += dy / d * z.spd * fz * dt;
+      blockWall(z);                                   // 성벽을 뚫고 지나가지 못한다
+    }
     else {
       z.atk -= dt;
       if (z.atk <= 0) {
-        z.atk = T.ranged && tgt !== BASE && !isBar ? 1.9 : 1;
+        z.atk = T.ranged && kind === 'unit' ? 1.9 : 1;
         const dmg = zDmg(z.t);
-        if (T.ranged && tgt !== BASE && !isBar) {          // 원거리 침
+        if (T.ranged && kind === 'unit') {                 // 원거리 침
           const a = Math.atan2(dy, dx);
           zshots.push({ x: z.x, y: z.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, dmg: dmg * 0.8, life: 1.4 });
-        } else if (tgt === BASE) {
+        } else if (isWall) {                               // 성벽 부수기
+          const wl = walls[tgt.seg];
+          if (wl && wl.hp > 0) {
+            wl.hp -= dmg;
+            if (perkHas('thorn')) z.hp -= 14 * perkCount('thorn');
+            fx.push({ t: 'spark', x: z.x, y: z.y, life: 0.2, c: '#cbd5e1' });
+            if (wl.hp <= 0) {
+              wl.hp = 0;
+              fx.push({ t: 'boom', x: tgt.x, y: tgt.y, r: 60, life: 0.4 });
+              Snd.play('boom2', 0.7); shake(4);
+              banner('성벽이 뚫렸다!', '#f87171');
+            }
+          }
+        } else if (kind === 'core') {
           baseHp -= dmg * 0.9;
           if (perkHas('thorn')) z.hp -= 14 * perkCount('thorn');
           fx.push({ t: 'spark', x: z.x, y: z.y, life: 0.25, c: '#ff8a5c' });
@@ -795,7 +879,7 @@ function hostStep(dt) {
           tgt.hp -= dmg;
           if (perkHas('thorn')) z.hp -= 14 * perkCount('thorn');
           fx.push({ t: 'spark', x: z.x, y: z.y, life: 0.2, c: '#cbd5e1' });
-        } else { hurtUnit(tgt, dmg); }
+        } else if (kind === 'unit') { hurtUnit(tgt, dmg); }
       }
     }
   }
@@ -816,7 +900,15 @@ function hostStep(dt) {
       const z = nearestZombie(t, 320);
       if (z) { t.cd = 0.22; shoot(t, z, { dmg: 16, spd: 720, rng: 320, n: 1, spread: 0.05, pierce: 0 }, '#7dd3fc'); }
     }
+    // 붙은 좀비가 터렛을 부순다
+    for (const z of zs) {
+      if (z.hp <= 0 || dist2(z, t) > (z.r + 20) ** 2) continue;
+      z.atk -= dt;
+      if (z.atk <= 0) { z.atk = 1; t.hp -= zDmg(z.t); fx.push({ t: 'spark', x: t.x, y: t.y, life: 0.2, c: '#7dd3fc' }); }
+    }
+    if (t.hp <= 0) { fx.push({ t: 'boom', x: t.x, y: t.y, r: 50, life: 0.35 }); Snd.play('boom2', 0.6); t.dead = true; }
   }
+  turrets = turrets.filter(t => !t.dead);
   // 총알
   for (const b of bullets) {
     b.px = b.x; b.py = b.y;
@@ -852,6 +944,27 @@ function hostStep(dt) {
   mines = mines.filter(m => !m.dead);
   barriers = barriers.filter(b => b.hp > 0);
   zs = zs.filter(z => z.hp > 0);
+  // 보급 상자 줍기
+  for (const c of crates) {
+    if (c.taken) continue;
+    for (const k in units) {
+      const u = units[k];
+      if (u.dead || dist2(u, c) > 30 * 30) continue;
+      c.taken = true;
+      const gain = Math.round(160 + wave * 26);
+      for (const kk in units) {
+        hostMoney[kk] = (hostMoney[kk] || 0) + gain;
+        units[kk].hp = Math.min(units[kk].maxHp, units[kk].hp + units[kk].maxHp * 0.35);
+      }
+      killFx(c.x, c.y, 18, '#fbbf24', gain, 'walker');
+      banner('📦 보급 확보! 전원 +' + gain + ' · 체력 회복', '#9ef08a');
+      Snd.play('win', 0.5);
+      break;
+    }
+  }
+  crates = crates.filter(c => !c.taken);
+  // 사건 종료
+  if (evt && evt.until && nowMs() > evt.until) { banner('상황 종료', '#8ea0b8'); evt = null; }
   // 가끔 으르렁 (분위기)
   if (zs.length && Math.random() < dt * 0.7) Snd.play('growl', 0.6);
   // 웨이브 종료
@@ -950,6 +1063,32 @@ function startWave(n) {
   zs = []; bullets = []; zshots = []; fx = [];
   spawnLeft = spec.count; spawnTimer = 0;
   waveBanner = nowMs();
+  crates = []; evt = null;
+  if (n >= 4 && Math.random() < 0.55) {
+    const e = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+    evt = { key: e.key, at: nowMs(), until: nowMs() + (e.key === 'blackout' ? 20000 : e.key === 'frenzy' ? 14000 : 0) };
+    setTimeout(() => {
+      if (status !== 'playing' || wave !== n) return;
+      banner(e.ic + ' ' + e.nm + ' — ' + e.ds, '#fbbf24');
+      Snd.play('alarm', 0.8);
+      if (e.key === 'supply') {
+        const a = Math.random() * Math.PI * 2;
+        crates.push({ x: BASE.x + Math.cos(a) * rnd(300, 430), y: BASE.y + Math.sin(a) * rnd(300, 430), taken: false });
+      }
+      if (e.key === 'breach') {
+        const g = GATE_SEGS[Math.floor(Math.random() * GATE_SEGS.length)];
+        const ga = segAngle(g);
+        const spec2 = waveSpec(n);
+        for (let i = 0; i < 6 + n; i++) {
+          const aa = ga + rnd(-0.25, 0.25);
+          zs.push({ id: 'br' + i + nowMs(), t: 'runner', x: BASE.x + Math.cos(aa) * 620, y: BASE.y + Math.sin(aa) * 620,
+            hp: ZTYPES.runner.hp * spec2.hpMul, maxHp: ZTYPES.runner.hp * spec2.hpMul,
+            spd: ZTYPES.runner.spd * spec2.spdMul * 1.15, r: ZTYPES.runner.r, atk: 0,
+            kx: 0, ky: 0, ph: Math.random() * 6.28, face: 0, flash: 0 });
+        }
+      }
+    }, 3200);
+  }
   if (spec.boss) setTimeout(() => { if (status === 'playing' && wave === n) { spawnZombie('boss', spec); Snd.play('roar'); shake(5); } }, 2500);
   for (const k in units) { units[k].dead = false; units[k].hp = units[k].maxHp; units[k].reloadEnd = 0; units[k].ammo = baseStats(players[k] || {}).mag; }
   status = 'playing';
@@ -963,7 +1102,6 @@ function startWave(n) {
 function endWave() {
   if (wave >= MAX_WAVE) { endGame(true); return; }
   status = 'shop';
-  turrets = [];                      // 터렛은 한 웨이브 동안만 버틴다
   for (const k in units) hostMoney[k] = (hostMoney[k] || 0) + 40 + wave * 12;
   const upd = { status: 'shop', shopEndsAt: Date.now() + SHOP_MS, wave };
   for (const k in units) { upd[`players/${k}/money`] = Math.round(hostMoney[k] || 0); upd[`players/${k}/ready`] = false; }
@@ -1002,12 +1140,15 @@ function encodeState() {
   const b = bullets.map(o => `${o.x | 0},${o.y | 0},${o.px | 0},${o.py | 0}`).join(';');
   const u = Object.entries(units).map(([k, o]) =>
     `${k},${o.x | 0},${o.y | 0},${o.hp | 0},${o.dead ? 1 : 0},${o.kills},${n - o.swing < 160 ? 1 : 0}`).join(';');
-  const t = turrets.map(o => `${o.x | 0},${o.y | 0}`).join(';');
+  const t = turrets.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
   const m = mines.map(o => `${o.x | 0},${o.y | 0}`).join(';');
-  const br = barriers.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
+  const br = barriers.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)},${o.seg}`).join(';');
+  const wl = walls.map(o => (o.gate ? 'g' : Math.ceil(o.hp / o.maxHp * 9))).join('');
+  const cr = crates.map(o => `${o.x | 0},${o.y | 0}`).join(';');
+  const ev = evt ? evt.key : '';
   const sp = zshots.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const kf = killFeed.join(';'); killFeed = [];
-  return { z, b, u, t, m, br, sp, kf, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
+  return { z, b, u, t, m, br, sp, kf, wl, cr, ev, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
 }
 function applyState(s) {
   if (!s || isHost) return;
@@ -1027,9 +1168,20 @@ function applyState(s) {
   });
   bullets = (s.b || '').split(';').filter(Boolean).map(t => { const [x, y, px, py] = t.split(',').map(Number); return { x, y, px, py, color: '#ffe08a' }; });
   zshots = (s.sp || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
-  turrets = (s.t || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
+  turrets = (s.t || '').split(';').filter(Boolean).map(t => { const [x, y, h] = t.split(',').map(Number); return { x, y, hp: h, maxHp: 9 }; });
   mines = (s.m || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
-  barriers = (s.br || '').split(';').filter(Boolean).map(t => { const [x, y, h] = t.split(',').map(Number); return { x, y, hp: h, maxHp: 9 }; });
+  barriers = (s.br || '').split(';').filter(Boolean).map(t => { const [x, y, h, sg] = t.split(',').map(Number); return { x, y, hp: h, maxHp: 9, seg: sg }; });
+  if (s.wl && s.wl.length === SEG_N) {
+    for (let i = 0; i < SEG_N; i++) {
+      const ch = s.wl[i];
+      if (!walls[i]) walls[i] = { hp: 0, maxHp: 9, gate: ch === 'g' };
+      walls[i].gate = ch === 'g';
+      walls[i].maxHp = 9;
+      const nh = ch === 'g' ? 0 : +ch;
+      if (walls[i].hp > 0 && nh === 0 && !walls[i].gate) banner('성벽이 뚫렸다!', '#f87171');
+      walls[i].hp = nh;
+    }
+  }
   const seen = {};
   (s.u || '').split(';').filter(Boolean).forEach(t => {
     const p = t.split(',');
@@ -1058,6 +1210,13 @@ function applyState(s) {
     const type = Object.keys(ZTYPES).find(k => ZTYPES[k].ic === ic) || 'walker';
     killFx(x, y, r, ZTYPES[type].color, money, type);
   });
+  crates = (s.cr || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
+  const pe = evt && evt.key;
+  evt = s.ev ? { key: s.ev } : null;
+  if (s.ev && s.ev !== pe) {
+    const e = EVENTS.find(x => x.key === s.ev);
+    if (e) { banner(e.ic + ' ' + e.nm + ' — ' + e.ds, '#fbbf24'); Snd.play('alarm', 0.8); }
+  }
   const prevBase = baseHp;
   baseHp = s.hp; baseMax = s.mx || baseMax; wave = s.w || wave;
   if (baseHp < prevBase - 1) { Snd.play('alarm', 0.4); }
@@ -1187,6 +1346,7 @@ function step(dt) {
     const v = inputVec();
     u.x = clamp(u.x + v.x * st.speed * dt, 14, W - 14);
     u.y = clamp(u.y + v.y * st.speed * dt, 14, H - 14);
+    blockWall(u);                                  // 성벽은 사람도 못 지나간다 (길목으로 다녀야 한다)
     if (u.ammo === undefined) u.ammo = st.mag;
     // 재장전
     if (u.reloadEnd) {
@@ -1588,9 +1748,19 @@ function render(dt) {
   // 화면 밖은 그리지 않는다 (좀비가 172마리까지 나오므로 이게 제일 크게 먹힌다)
   const vis = (x, y, m) => x > camX - m && x < camX + vw + m && y > camY - m && y < camY + vh + m;
 
+  drawWalls(t);
   drawBase(t);
   for (const b of barriers) if (vis(b.x, b.y, 40)) drawBarrier(b);
   for (const m of mines) if (vis(m.x, m.y, 30)) { ctx.font = '17px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('💣', m.x, m.y); }
+  for (const c of crates) {                      // 보급 상자 — 멀리서도 보이게 빛기둥
+    const pulse = 0.55 + 0.45 * Math.sin(t * 4);
+    ctx.globalAlpha = 0.25 * pulse; ctx.fillStyle = '#fbbf24';
+    ctx.beginPath(); ctx.arc(c.x, c.y, 46, 0, 6.283); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#8a6a2a'; ctx.beginPath(); ctx.roundRect(c.x - 13, c.y - 11, 26, 22, 3); ctx.fill();
+    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = '#fbbf24'; ctx.fillRect(c.x - 13, c.y - 2.5, 26, 5);
+  }
   for (const tr of turrets) if (vis(tr.x, tr.y, 40)) drawTurret(tr, t);
   for (const z of zs) if (vis(z.x, z.y, 80)) drawZombie(z, t);
   // 좀비 침
@@ -1616,6 +1786,67 @@ function render(dt) {
   renderHud();
 }
 let baseGlow = null;
+function drawWalls(t) {
+  const TH = 15;                                   // 성벽 두께
+  for (let i = 0; i < SEG_N; i++) {
+    const wl = walls[i];
+    if (!wl) continue;
+    const a0 = i * SEG_A + 0.035, a1 = (i + 1) * SEG_A - 0.035;
+    const mid = segAngle(i);
+    if (wl.gate) {
+      // 길목: 양쪽 문기둥 + 바닥 표시
+      for (const aa of [a0, a1]) {
+        const px = BASE.x + Math.cos(aa) * WALL_R, py = BASE.y + Math.sin(aa) * WALL_R;
+        ctx.fillStyle = '#4b5875'; ctx.beginPath(); ctx.arc(px, py, 10, 0, 6.283); ctx.fill();
+        ctx.fillStyle = '#2b3448'; ctx.beginPath(); ctx.arc(px, py, 5.5, 0, 6.283); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(251,191,36,.3)'; ctx.lineWidth = 3; ctx.setLineDash([8, 8]);
+      ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R, a0, a1); ctx.stroke(); ctx.setLineDash([]);
+      continue;
+    }
+    const r = clamp(wl.hp / (wl.maxHp || 1), 0, 1);
+    if (r <= 0) {                                   // 무너진 구간 — 잔해만
+      ctx.strokeStyle = 'rgba(120,130,150,.30)'; ctx.lineWidth = 5; ctx.setLineDash([5, 9]);
+      ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R, a0, a1); ctx.stroke(); ctx.setLineDash([]);
+      continue;
+    }
+    // 성벽 본체
+    ctx.lineWidth = TH;
+    ctx.strokeStyle = '#3b465e';
+    ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R, a0, a1); ctx.stroke();
+    ctx.lineWidth = TH - 6;
+    ctx.strokeStyle = r > 0.6 ? '#59677f' : r > 0.3 ? '#6b5a4e' : '#6e4242';
+    ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R, a0, a1); ctx.stroke();
+    // 손상 균열
+    if (r < 0.85) {
+      ctx.strokeStyle = `rgba(0,0,0,${(1 - r) * 0.75})`; ctx.lineWidth = 2;
+      for (let k = 0; k < 4; k++) {
+        const aa = a0 + (a1 - a0) * (0.2 + k * 0.2);
+        ctx.beginPath();
+        ctx.moveTo(BASE.x + Math.cos(aa) * (WALL_R - TH / 2), BASE.y + Math.sin(aa) * (WALL_R - TH / 2));
+        ctx.lineTo(BASE.x + Math.cos(aa + 0.02) * (WALL_R + TH / 2), BASE.y + Math.sin(aa + 0.02) * (WALL_R + TH / 2));
+        ctx.stroke();
+      }
+    }
+    // 체력 게이지 (바깥쪽 얇은 선)
+    if (r < 0.999) {
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0,0,0,.5)';
+      ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R + TH / 2 + 4, a0, a1); ctx.stroke();
+      ctx.strokeStyle = r > 0.5 ? '#6ee7a0' : r > 0.25 ? '#fbbf24' : '#f87171';
+      ctx.beginPath(); ctx.arc(BASE.x, BASE.y, WALL_R + TH / 2 + 4, a0, a0 + (a1 - a0) * r); ctx.stroke();
+    }
+  }
+  // 길목 이름
+  ctx.font = '11px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const i of GATE_SEGS) {
+    const a = segAngle(i);
+    const bx = BASE.x + Math.cos(a) * (WALL_R + 26), by = BASE.y + Math.sin(a) * (WALL_R + 26);
+    const blocked = barAt(i);
+    ctx.fillStyle = blocked ? '#fbbf24' : 'rgba(180,200,225,.55)';
+    ctx.fillText((GATE_NAME[i] || '문') + (blocked ? ' 🧱' : ''), bx, by);
+  }
+}
 function drawBase(t) {
   const hpR = baseMax ? clamp(baseHp / baseMax, 0, 1) : 0;
   const col = hpR > 0.5 ? '#4ade80' : hpR > 0.25 ? '#fbbf24' : '#f87171';
@@ -2188,9 +2419,12 @@ function drawFx(cx, cy, vw, vh) {
   ctx.globalAlpha = 1;
 }
 function drawOverlay(t) {
-  // 가장자리 어둡게 (분위기)
-  const g = ctx.createRadialGradient(viewW / 2, viewH / 2, Math.min(viewW, viewH) * 0.34, viewW / 2, viewH / 2, Math.max(viewW, viewH) * 0.78);
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.62)');
+  // 가장자리 어둡게 (정전이면 훨씬 좁게)
+  const dark = evt && evt.key === 'blackout';
+  const inner = Math.min(viewW, viewH) * (dark ? 0.10 : 0.34);
+  const outer = Math.max(viewW, viewH) * (dark ? 0.40 : 0.78);
+  const g = ctx.createRadialGradient(viewW / 2, viewH / 2, inner, viewW / 2, viewH / 2, outer);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, dark ? 'rgba(0,0,6,.97)' : 'rgba(0,0,0,.62)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, viewW, viewH);
   const u = units[myKey];
   // 피격 / 빈사 경고
@@ -2224,6 +2458,17 @@ function drawOverlay(t) {
     ctx.font = 'bold 13px Jua, sans-serif'; ctx.fillStyle = '#ffd166'; ctx.textAlign = 'center';
     ctx.fillText('☠️ 보스', viewW / 2, by - 4);
   }
+  // 알림
+  msgs = msgs.filter(m => nowMs() - m.t < 2600);
+  msgs.forEach((m, i) => {
+    const age = (nowMs() - m.t) / 2600;
+    ctx.globalAlpha = age < 0.8 ? 1 : (1 - age) * 5;
+    ctx.font = 'bold 19px Jua, sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    const yy = viewH * 0.2 + i * 26;
+    ctx.strokeText(m.text, viewW / 2, yy); ctx.fillStyle = m.c; ctx.fillText(m.text, viewW / 2, yy);
+    ctx.globalAlpha = 1;
+  });
   // 웨이브 배너
   const ba = nowMs() - waveBanner;
   if (ba < 2200) {
@@ -2437,6 +2682,19 @@ function buildManual() {
     <div class="zoo">${zoo}</div>
     <div class="man-h">🧬 팀 특성 — 라운드마다 3개 중 <b>투표</b>로 1개 (전원 적용 · 최대 3중첩)</div>
     <div class="perk-l">${perks}</div>
+    <div class="man-h">🏰 성벽과 길목</div>
+    <div class="man-p">
+      벙커는 <b>성벽 12조각</b>으로 둘러싸여 있고 그중 <b>3곳이 길목</b>(남문·북서문·북동문)이에요.
+      좀비는 길목으로 몰려듭니다 — <b>길목을 지키는 게 핵심</b>이에요.<br>
+      <b>🧱 길목 봉쇄</b>로 문을 막으면 그쪽으로는 못 들어오지만, <b>갈 곳이 없어지면 성벽을 부수기 시작</b>해요.
+      부서진 성벽은 <b>🧰 성벽 수리</b>로 복구합니다.<br>
+      <b>🔩 터렛</b>은 길목 안쪽에 세워지고 <b>부서지기 전까지 계속 남아요</b>(체력이 있어서 좀비가 부술 수 있어요).<br>
+      사람도 성벽은 못 지나가니 밖으로 나가려면 길목을 이용해야 해요.
+    </div>
+    <div class="man-h">🚨 웨이브 사건</div>
+    <div class="man-p">4웨이브부터 절반 정도의 확률로 사건이 일어나요.<br>
+      ${EVENTS.map(e => `${e.ic} <b>${e.nm}</b> — ${e.ds}`).join('<br>')}
+    </div>
     <div class="man-h">📈 진행</div>
     <div class="man-p">
       웨이브 <b>1 → ${MAX_WAVE}</b>, <b>5웨이브마다 보스</b>. 전부 막아내면 방어 성공.<br>
@@ -2612,8 +2870,9 @@ $('btnStart').onclick = () => {
   const np = Math.max(1, Object.keys(players).length);
   const bh = Math.round(D.baseHp * (1 + (np - 1) * 0.18));   // 인원이 많으면 새는 좀비도 많다
   baseMax = bh; baseHp = bh; teamPerks = []; hostMoney = {};
+  initWalls(); barriers = []; turrets = []; crates = []; evt = null;
   const upd = { status: 'playing', wave: 1, perks: [], baseHp: bh, baseMax: bh, vote: null, startedAt: Date.now() };
-  Object.keys(players).forEach(k => { upd[`players/${k}/money`] = 0; upd[`players/${k}/kills`] = 0; upd[`players/${k}/gun`] = 'pistol'; upd[`players/${k}/ready`] = false; ['maxhp','speed','dmg','rate','mag','reloadspd','turret','barrier','mine','hp','repair'].forEach(b => upd[`players/${k}/buy_${b}`] = 0);
+  Object.keys(players).forEach(k => { upd[`players/${k}/money`] = 0; upd[`players/${k}/kills`] = 0; upd[`players/${k}/gun`] = 'pistol'; upd[`players/${k}/ready`] = false; ['maxhp','speed','dmg','rate','mag','reloadspd','turret','barrier','wall','mine','hp','repair'].forEach(b => upd[`players/${k}/buy_${b}`] = 0);
     upd[`players/${k}/melee`] = 'fist';
     GUNS.forEach(g => upd[`players/${k}/own_${g.key}`] = null);
     MELEE.forEach(m => upd[`players/${k}/ownm_${m.key}`] = null); });
@@ -2650,6 +2909,7 @@ function localSetup() {
   goLandscape(); checkRotate();
   units = {};
   zs = []; bullets = []; fx = []; turrets = []; mines = []; barriers = [];
+  if (!walls.length) initWalls();
   baseMax = room.baseMax || DIFF[diff].baseHp;
   baseHp = typeof room.baseHp === 'number' ? room.baseHp : baseMax;
   if (isHost) {
@@ -2690,8 +2950,31 @@ function checkShopDone() {
       u.maxHp = st.maxHp;
       if (p.buy_hp) { u.hp = st.maxHp; db.ref(`${rpath(code)}/players/${k}/buy_hp`).set(0); }
       if (p.buy_repair) { baseHp = Math.min(baseMax, baseHp + baseMax * 0.25 * p.buy_repair); db.ref(`${rpath(code)}/players/${k}/buy_repair`).set(0); }
-      if (p.buy_turret) { for (let i = 0; i < p.buy_turret; i++) turrets.push({ x: u.x + rnd(-30, 30), y: u.y + rnd(-30, 30), cd: 0 }); db.ref(`${rpath(code)}/players/${k}/buy_turret`).set(0); }
-      if (p.buy_barrier) { for (let i = 0; i < p.buy_barrier * 3; i++) { const a = Math.random() * Math.PI * 2; barriers.push({ x: BASE.x + Math.cos(a) * 118, y: BASE.y + Math.sin(a) * 118, hp: 260, maxHp: 260 }); } db.ref(`${rpath(code)}/players/${k}/buy_barrier`).set(0); }
+      if (p.buy_turret) {
+        for (let i = 0; i < p.buy_turret; i++) {
+          // 터렛이 가장 적은 길목 안쪽에 세운다
+          let g = GATE_SEGS[0], gn = 1e9;
+          for (const gs of GATE_SEGS) {
+            const a = segAngle(gs);
+            const gx = BASE.x + Math.cos(a) * (WALL_R - 58), gy = BASE.y + Math.sin(a) * (WALL_R - 58);
+            const n = turrets.filter(tt => dist2(tt, { x: gx, y: gy }) < 70 * 70).length;
+            if (n < gn) { gn = n; g = gs; }
+          }
+          const a = segAngle(g);
+          turrets.push({ x: BASE.x + Math.cos(a) * (WALL_R - 58) + rnd(-18, 18), y: BASE.y + Math.sin(a) * (WALL_R - 58) + rnd(-18, 18), cd: 0, hp: 260, maxHp: 260 });
+        }
+        db.ref(`${rpath(code)}/players/${k}/buy_turret`).set(0);
+      }
+      if (p.buy_barrier) {
+        for (let i = 0; i < p.buy_barrier; i++) {
+          const free = GATE_SEGS.filter(g => !barAt(g));
+          if (!free.length) break;
+          const g = free[0], a = segAngle(g);
+          barriers.push({ x: BASE.x + Math.cos(a) * WALL_R, y: BASE.y + Math.sin(a) * WALL_R, hp: 420, maxHp: 420, seg: g });
+        }
+        db.ref(`${rpath(code)}/players/${k}/buy_barrier`).set(0);
+      }
+      if (p.buy_wall) { walls.forEach(wl => { if (!wl.gate) wl.hp = wl.maxHp; }); db.ref(`${rpath(code)}/players/${k}/buy_wall`).set(0); }
       if (p.buy_mine) { for (let i = 0; i < p.buy_mine * 5; i++) { const a = Math.random() * Math.PI * 2; mines.push({ x: BASE.x + Math.cos(a) * rnd(120, 240), y: BASE.y + Math.sin(a) * rnd(120, 240), owner: k }); } db.ref(`${rpath(code)}/players/${k}/buy_mine`).set(0); }
     }
     applyVoteAndNext();
