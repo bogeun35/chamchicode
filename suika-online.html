@@ -291,18 +291,19 @@ const RIM = 22, WALL = 120, MAX_SPEED = 18;
 const DROP_COOLDOWN = 260, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
 const dropY = () => BOX.t - 75;
 const deadY = () => BOX.t + 4;
+// 과일 반지름 = 원작 FruitDefinition 충돌 반지름(0.23~1.78 유닛) × 75.7 (상자 안쪽 6.208 유닛 = 470px) — 싱글과 동일
 const FRUITS = [
-  { name: '체리',     r: 20,  color: '#F76B7E', score: 1 },
-  { name: '딸기',     r: 28,  color: '#FFA5AB', score: 3 },
-  { name: '포도',     r: 37,  color: '#CDB4FF', score: 6 },
-  { name: '한라봉',   r: 47,  color: '#FFD08A', score: 10 },
-  { name: '감',       r: 56,  color: '#FFB884', score: 15 },
-  { name: '사과',     r: 68,  color: '#FF9797', score: 21 },
-  { name: '배',       r: 80,  color: '#FFF5BC', score: 28 },
-  { name: '복숭아',   r: 92,  color: '#FFD9E2', score: 36 },
-  { name: '파인애플', r: 106, color: '#FFE99A', score: 45 },
-  { name: '멜론',     r: 122, color: '#DDF7BF', score: 55 },
-  { name: '수박',     r: 138, color: '#A8ECB4', score: 66 },
+  { name: '체리',     r: 17.4,  color: '#F76B7E', score: 1 },
+  { name: '딸기',     r: 22.7,  color: '#FFA5AB', score: 3 },
+  { name: '포도',     r: 31.8,  color: '#CDB4FF', score: 6 },
+  { name: '한라봉',   r: 36.3,  color: '#FFD08A', score: 10 },
+  { name: '감',       r: 45.4,  color: '#FFB884', score: 15 },
+  { name: '사과',     r: 59.8,  color: '#FF9797', score: 21 },
+  { name: '배',       r: 68.1,  color: '#FFF5BC', score: 28 },
+  { name: '복숭아',   r: 83.3,  color: '#FFD9E2', score: 36 },
+  { name: '파인애플', r: 94.6, color: '#FFE99A', score: 45 },
+  { name: '멜론',     r: 115.1, color: '#DDF7BF', score: 55 },
+  { name: '수박',     r: 134.8, color: '#A8ECB4', score: 66 },
 ];
 const ART = window.FRUIT_ART;
 const artBroken = [];

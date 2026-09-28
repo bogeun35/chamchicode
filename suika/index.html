@@ -222,7 +222,7 @@
 
   // ── 설정 ─────────────────────────────────────────────
   const W = 501, H = 990;                       // 게임 좌표계 (상자 470×610 + 위 HUD + 아래 유물/진화 줄) — 클래식·로그라이크 모두 같은 폭
-  const BOX_W = 470, BOX_CX = 250;              // 상자 기본 폭 / 중심 (원작 비율: 수박 지름 = 폭의 59%)
+  const BOX_W = 470, BOX_CX = 250;              // 상자 폭 / 중심 — 원작 상자 안쪽 6.208 유닛 = 470px (1유닛 = 75.7px)
   const BOX = { l: 15, r: 485, t: 260, b: 870 };  // 상자 안쪽 영역 (470×610 — 원작 비율 0.77; 폭은 고정, t 만 천장 유물로 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
@@ -234,18 +234,19 @@
 
   const SHAKE_TIME = 700;                       // ms
 
+  // 과일 반지름 = 원작 FruitDefinition 충돌 반지름(0.23~1.78 유닛) × 75.7 — 수박 지름 = 상자 폭의 57%
   const FRUITS = [
-    { name: '체리',     r: 20,  color: '#e0313f', score: 1 },
-    { name: '딸기',     r: 28,  color: '#ff5a5a', score: 3 },
-    { name: '포도',     r: 37,  color: '#9b5de5', score: 6 },
-    { name: '한라봉',   r: 47,  color: '#ffb02e', score: 10 },
-    { name: '감',       r: 56,  color: '#ff8c2e', score: 15 },
-    { name: '사과',     r: 68,  color: '#e63946', score: 21 },
-    { name: '배',       r: 80,  color: '#f6e58d', score: 28 },
-    { name: '복숭아',   r: 92,  color: '#ffb6b9', score: 36 },
-    { name: '파인애플', r: 106,  color: '#ffd43b', score: 45 },
-    { name: '멜론',     r: 122,  color: '#b8e994', score: 55 },
-    { name: '수박',     r: 138, color: '#4caf50', score: 66 },
+    { name: '체리',     r: 17.4,  color: '#e0313f', score: 1 },
+    { name: '딸기',     r: 22.7,  color: '#ff5a5a', score: 3 },
+    { name: '포도',     r: 31.8,  color: '#9b5de5', score: 6 },
+    { name: '한라봉',   r: 36.3,  color: '#ffb02e', score: 10 },
+    { name: '감',       r: 45.4,  color: '#ff8c2e', score: 15 },
+    { name: '사과',     r: 59.8,  color: '#e63946', score: 21 },
+    { name: '배',       r: 68.1,  color: '#f6e58d', score: 28 },
+    { name: '복숭아',   r: 83.3,  color: '#ffb6b9', score: 36 },
+    { name: '파인애플', r: 94.6,  color: '#ffd43b', score: 45 },
+    { name: '멜론',     r: 115.1,  color: '#b8e994', score: 55 },
+    { name: '수박',     r: 134.8, color: '#4caf50', score: 66 },
   ];
   const ART = window.FRUIT_ART;
   const artBroken = [];   // 그리다 에러난 과일은 폴백으로 (아트 파일 수정 중이어도 게임은 돌아가게)
