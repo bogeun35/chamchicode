@@ -193,15 +193,36 @@ function heardAt(p) {
 // ═══════════ 곡 ═══════════
 const SONGS = [
   { id: 'practice', title: '스타라이트 런', sub: '연습곡', artist: '참스코드 (합성)', icon: '⭐', synth: true },
-  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', audio: ['o2jam/ghost.mp3', 'o2jam/ghost.ogg', 'o2jam/ghost.m4a', 'o2jam/ghost.wav'], chart: 'o2jam/ghost.json' },
+  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', chart: 'o2jam/ghost.json' },
+  { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', chart: 'o2jam/xmas.json' },
 ];
+// 음원 파일은 공개 저장소에 올리지 않는다 — 개발 PC 의 로컬 파일, 아니면 플레이어가 한 번 고른 파일(이 브라우저 IndexedDB)을 쓴다
+const localUrls = id => ['mp3', 'ogg', 'm4a', 'wav'].flatMap(e => [`o2jam/${id}.${e}`, `o2jam/audio/${id}.${e}`]);
+const IDB = { db: null };
+function idb() { return new Promise((res, rej) => { if (IDB.db) return res(IDB.db); const q = indexedDB.open('o2jam', 1); q.onupgradeneeded = () => q.result.createObjectStore('audio'); q.onsuccess = () => { IDB.db = q.result; res(IDB.db); }; q.onerror = () => rej(q.error); }); }
+async function idbGet(k) { try { const db = await idb(); return await new Promise(res => { const q = db.transaction('audio').objectStore('audio').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } }
+async function idbPut(k, v) { try { const db = await idb(); return await new Promise(res => { const tx = db.transaction('audio', 'readwrite'); tx.objectStore('audio').put(v, k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); }); } catch (e) { return false; } }
+let pickFor = null;
+const picker = Object.assign(document.createElement('input'), { type: 'file', accept: 'audio/*,.mp3,.ogg,.wav,.m4a', hidden: true });
+document.body.appendChild(picker);
+picker.onchange = async () => {
+  const f = picker.files && picker.files[0], s = songById(pickFor); picker.value = '';
+  if (!f || !s) return;
+  const buf = await f.arrayBuffer();
+  await idbPut(s.id, { name: f.name, size: f.size, buf });
+  s.ok = true; s.src = 'idb'; s.fileName = f.name; s.buffer = null;
+  SET.song = s.id; saveSet(); renderMenu();
+  $('menuMsg').textContent = `🎵 "${f.name}" 을(를) 이 브라우저에 저장했어요. 다음부터는 자동으로 불러와요.`;
+};
 const songById = id => SONGS.find(s => s.id === id);
-async function probeSongs() {   // 음원 파일이 있는지 (없으면 목록에서 흐리게)
+async function probeSongs() {   // 음원이 있는지: 로컬 파일(개발 PC) → 이 브라우저에 저장된 파일 → 없으면 '파일 선택'
   for (const s of SONGS) {
     if (s.synth) { s.ok = true; continue; }
     s.ok = false;
-    for (const u of s.audio) { try { const r = await fetch(u, { method: 'HEAD', cache: 'no-store' }); if (r.ok) { s.ok = true; s.url = u; break; } } catch (e) {} }
-    if (s.ok) { try { const r = await fetch(s.chart, { cache: 'no-store' }); if (r.ok) s.data = await r.json(); } catch (e) {} }
+    try { const r = await fetch(s.chart, { cache: 'no-store' }); if (r.ok) s.data = await r.json(); } catch (e) {}
+    const isLocalHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    if (isLocalHost) for (const u of localUrls(s.id)) { try { const r = await fetch(u, { method: 'HEAD', cache: 'no-store' }); if (r.ok) { s.ok = true; s.src = 'url'; s.url = u; break; } } catch (e) {} }
+    if (!s.ok) { const v = await idbGet(s.id); if (v && v.buf) { s.ok = true; s.src = 'idb'; s.fileName = v.name; } }
   }
   renderMenu();
 }
@@ -209,8 +230,14 @@ async function loadSong(s) {
   const ac = audioInit();
   if (s.buffer && s.data) return s;
   if (s.synth) { const r = await renderPractice(ac.sampleRate); s.buffer = r.buffer; s.data = r.data; return s; }
-  const res = await fetch(s.url); if (!res.ok) throw new Error('음원을 못 불러왔어요');
-  s.buffer = await ac.decodeAudioData(await res.arrayBuffer());
+  let ab = null;
+  if (s.src === 'url') { const res = await fetch(s.url); if (!res.ok) throw new Error('음원을 못 불러왔어요'); ab = await res.arrayBuffer(); }
+  else { const v = await idbGet(s.id); if (!v || !v.buf) throw new Error('음원 파일을 다시 골라주세요'); ab = v.buf.slice(0); }
+  s.buffer = await ac.decodeAudioData(ab);
+  if (s.data && !s.data.auto && Math.abs((s.data.length || 0) - s.buffer.duration) > 1.5) {   // 채보를 만든 파일과 길이가 다르면 → 이 파일로 새로 분석
+    $('menuMsg').textContent = `⚠️ 채보를 만든 음원과 길이가 달라요(${s.buffer.duration.toFixed(1)}초 / ${(s.data.length || 0).toFixed(1)}초) — 이 파일로 자동 채보를 새로 만들었어요.`;
+    s.data = null;
+  }
   if (!s.data) s.data = await analyzeAudio(s.buffer, s.title);   // 채보 파일이 없으면 음원을 분석해서 즉석 생성
   return s;
 }
@@ -368,25 +395,54 @@ async function analyzeAudio(buffer, title) {
   const norm = flux.map(a => pct(a, .9) || 1);
   const envl = new Float32Array(nF);
   for (let f = 0; f < nF; f++) envl[f] = flux[0][f] / norm[0] * 1.2 + flux[1][f] / norm[1] + flux[2][f] / norm[2] * .8;
-  // 템포: 자기상관 + 120~150 선호
+  // 템포 ① 자기상관으로 후보 몇 개 (+ 2배·절반)
   const mean = envl.reduce((a, b) => a + b, 0) / Math.max(1, nF), e0 = envl.map(v => Math.max(0, v - mean));
-  let best = { score: -1, bpm: 120 };
-  for (let bpm = 70; bpm <= 200; bpm += .5) {
-    const lag = 60 * FR / bpm, L = Math.floor(lag), fr = lag - L; let s = 0;
-    for (let i = 0; i + L + 1 < nF; i += 2) s += e0[i] * (e0[i + L] * (1 - fr) + e0[i + L + 1] * fr);
-    const prior = Math.exp(-.5 * Math.pow(Math.log2(bpm / 135) / .8, 2));
-    if (s * prior > best.score) best = { score: s * prior, bpm };
+  const acs = [];
+  for (let b = 70; b <= 220; b += .5) {
+    const lag = 60 * FR / b, L = Math.floor(lag), fr = lag - L; let sAc = 0;
+    for (let i = 0; i + L + 1 < nF; i += 2) sAc += e0[i] * (e0[i + L] * (1 - fr) + e0[i + L + 1] * fr);
+    acs.push([b, sAc * Math.exp(-.5 * Math.pow(Math.log2(b / 135) / .9, 2))]);
   }
+  const acPeaks = acs.filter((v, i) => i > 0 && i < acs.length - 1 && v[1] >= acs[i - 1][1] && v[1] >= acs[i + 1][1]).sort((a, b) => b[1] - a[1]).slice(0, 3).map(v => v[0]);
+  const cands = new Set(); for (const c of acPeaks) for (const m of [1, 2, .5]) { const v = c * m; if (v >= 70 && v <= 230) cands.add(v); }
+  // 템포 ② 센 소리(봉우리 상위 400개)가 16분 격자에 ±15ms 로 몇 개 맞는지 → 우연 기대치 대비 z 점수로 ±4% 재검색
+  //   (자기상관만 쓰면 크리스마스 메모리즈가 167.3 으로 잡힘 — 실제 170)
+  const allPk = [];
+  for (let f = 2; f < nF - 2; f++) if (envl[f] >= envl[f - 1] && envl[f] > envl[f + 1]) {
+    const y0 = envl[f - 1], y1 = envl[f], y2 = envl[f + 1], den = y0 - 2 * y1 + y2, d = den ? clamp((y0 - y2) / (2 * den), -.5, .5) : 0;
+    allPk.push([(f + d) / FR + TOFF, y1]);
+  }
+  allPk.sort((a, b) => b[1] - a[1]);
+  const pk = allPk.slice(0, 400).map(p => p[0]), TOL = .015;
+  const align = (b, phStep, div) => {
+    const g = 60 / b / div; let top = -1, ph = 0;
+    for (let p = 0; p < g; p += phStep) { let c = 0; for (const t of pk) { let r = ((t - p) / g) % 1; if (r < 0) r += 1; if (r > .5) r -= 1; if (Math.abs(r * g) <= TOL) c++; } if (c > top) { top = c; ph = p; } }
+    const exp = pk.length * 2 * TOL / g; return { z: (top - exp) / Math.sqrt(exp + 1e-9), ph, b, div };
+  };
+  // ② 16분 격자로 템포를 먼저 찾고 → ③ 그 템포·2배 템포에서 셋잇단(셔플)이 확실히 더 맞으면 셋잇단
+  //   (셋잇단을 처음부터 같이 겨루면 128 BPM 의 8분 격자 = 85.3 BPM 셋잇단 격자라 연습곡이 85.3 으로 잡힘)
+  let bestA = { z: -1e9, ph: 0, b: 120, div: 4 };
+  for (const c of cands) for (let b = c * .96; b <= c * 1.04; b += .05) { if (b < 70 || b > 230) continue; const a = align(b, .004, 4); if (a.z > bestA.z) bestA = a; }
+  for (let b = bestA.b - .1; b <= bestA.b + .1; b += .005) { const a = align(b, .002, 4); if (a.z > bestA.z) bestA = a; }
+  {   // 셔플 검사 (크리스마스 메모리즈 = 170 셔플: 16분으론 85 로 잡히고, 170 셋잇단이 더 잘 맞음)
+    let tri = null;
+    for (const m of [1, 2]) { const c = bestA.b * m; if (c > 230) continue; for (let b = c * .995; b <= c * 1.005; b += .005) { const a = align(b, .002, 3); if (!tri || a.z > tri.z) tri = a; } }
+    if (tri && tri.z > bestA.z * 1.1) bestA = tri;
+  }
+  {   // 2배 템포: 격자 사이에 우연보다 확실히 많은 소리가 있으면 2배로 — 격자가 성기면 빠른 노트를 못 넣음
+    const g1 = 60 / bestA.b / bestA.div; let on = 0, mid = 0;
+    for (const t of pk) { let r = ((t - bestA.ph) / (g1 / 2)) % 1; if (r < 0) r += 1; if (r > .5) r -= 1; if (Math.abs(r * g1 / 2) > TOL) continue; const k = Math.round((t - bestA.ph) / (g1 / 2)); if (((k % 2) + 2) % 2) mid++; else on++; }
+    const expMid = pk.length * 2 * TOL / g1;
+    if (bestA.b * 2 <= 240 && mid > expMid * 1.8 && mid > on * .25) bestA = Object.assign({}, bestA, { b: bestA.b * 2 });
+  }
+  const DIV = bestA.div;
   const at = t => { const p = (t - TOFF) * FR, i = Math.floor(p); return i < 0 || i + 1 >= nF ? 0 : envl[i] * (1 - (p - i)) + envl[i + 1] * (p - i); };
-  let bpm = best.bpm, bestComb = -1;
-  for (let b = best.bpm - 1.5; b <= best.bpm + 1.5; b += .02) {   // 박 간격 미세 조정
-    const per = 60 / b; let s = 0; for (let t = 0; t < buffer.duration; t += per) s += at(t) + at(t + per / 2) * .5;
-    let s2 = 0; for (let t = per / 3; t < buffer.duration; t += per) s2 += at(t);
-    s = s * 1.0; if (s > bestComb) { bestComb = s; bpm = b; }
+  let bpm = Math.round(bestA.b * 1000) / 1000;
+  const per = 60 / bpm; let phase = bestA.ph, bestPh = -1;
+  for (let k = 0; k < DIV; k++) {   // 격자 위상 DIV 개 중 박(강박)이 어디인지: 박 위치 에너지 합이 가장 큰 쪽
+    const ph = bestA.ph + k * per / DIV; let sB = 0; for (let t = ph; t < buffer.duration; t += per) sB += at(t);
+    if (sB > bestPh) { bestPh = sB; phase = ph % per; }
   }
-  bpm = Math.round(bpm * 100) / 100;
-  const per = 60 / bpm; let phase = 0, bestPh = -1;
-  for (let ph = 0; ph < per; ph += 1 / FR / 2) { let s = 0; for (let t = ph; t < buffer.duration; t += per) s += at(t) * 1.0 + at(t + per / 2) * .4; if (s > bestPh) { bestPh = s; phase = ph; } }
   // 정밀 보정: 센 소리(온셋 봉우리)를 16분 격자 번호에 맞춰 직선 회귀 → 긴 곡에서도 박이 안 밀림
   {
     const thrP = pct(envl, .8), peaks = [];
@@ -394,7 +450,7 @@ async function analyzeAudio(buffer, title) {
       const y0 = envl[f - 1], y1 = envl[f], y2 = envl[f + 1], den = y0 - 2 * y1 + y2, d = den ? clamp((y0 - y2) / (2 * den), -.5, .5) : 0;
       peaks.push((f + d) / FR + TOFF);
     }
-    let A = phase, Bq = per / 4;
+    let A = phase, Bq = per / DIV;
     for (const tol of [.3, .2, .12]) {
       let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
       for (const tp of peaks) { const k = Math.round((tp - A) / Bq), res = tp - (A + k * Bq); if (Math.abs(res) > Bq * tol) continue; n++; sx += k; sy += tp; sxx += k * k; sxy += k * tp; }
@@ -403,33 +459,36 @@ async function analyzeAudio(buffer, title) {
       if (!(Math.abs(B2 / Bq - 1) < .01)) break;
       A = A2; Bq = B2;
     }
-    const bpm2 = 60 / (Bq * 4);
+    const bpm2 = 60 / (Bq * DIV);
     if (Math.abs(bpm2 / bpm - 1) < .01) { bpm = Math.round(bpm2 * 1000) / 1000; phase = ((A % (60 / bpm)) + 60 / bpm) % (60 / bpm); }
   }
   const per2 = 60 / bpm;
-  // 16분음 격자 값
-  const g = per2 / 4, first = phase % g, grid = [];
+  // 격자 값 (16분 또는 셋잇단)
+  const g = per2 / DIV, first = phase % g, grid = [], BAR = DIV * 4;
   const bandAt = (b, t) => { const i = Math.round((t - TOFF) * FR); let m = 0; for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < nF) m = Math.max(m, flux[b][k] / norm[b]); return m; };
   const enAt = (b, t) => { const i = Math.round((t - TOFF) * FR); return i >= 0 && i < nF ? energy[b][i] : 0; };
   for (let t = first, j = Math.round((first - phase) / g); t < buffer.duration - .2; t += g, j++) {
     const v = Math.max(at(t - 1 / FR), at(t), at(t + 1 / FR)), bl = bandAt(0, t), bm = bandAt(1, t), bh = bandAt(2, t);
-    grid.push({ t, j: ((j % 16) + 16) % 16, v, band: bl * 1.2 >= bm && bl * 1.2 >= bh ? 0 : bm >= bh ? 1 : 2 });
+    grid.push({ t, j: ((j % BAR) + BAR) % BAR, v, band: bl * 1.2 >= bm && bl * 1.2 >= bh ? 0 : bm >= bh ? 1 : 2 });
   }
   // 조용한 구간 판별 + 구간별 정규화
   const loud = grid.map(p => p.v);
   const winN = Math.round(4 / g);
   for (let i = 0; i < grid.length; i++) { let m = 0; for (let k = Math.max(0, i - winN); k < Math.min(grid.length, i + winN); k++) m = Math.max(m, loud[k]); grid[i].rel = grid[i].v / (m * .5 + .5); }
   const active = grid.filter(p => p.v > .35).length * g;
-  const W8 = j => j % 4 === 0 ? 1.35 : j % 2 === 0 ? 1 : .72;
+  const onBeat = j => j % DIV === 0, strong = j => DIV === 4 ? j % 2 === 0 : j % 3 !== 1;   // 강한 쪼개기: 16분이면 8분 자리, 셋잇단이면 박과 셔플 뒷박(3번째)
+  const W8 = j => onBeat(j) ? 1.35 : strong(j) ? 1 : .72;
   const make = (diff) => {
-    const target = { EX: 1.8, NX: 3.2, HX: 5.0 }[diff] * Math.max(20, active);
-    const allow = p => diff === 'EX' ? p.j % 2 === 0 : true;
+    const chordShare = { EX: .03, NX: .1, HX: .18 }[diff];
+    const target = { EX: 1.8, NX: 3.2, HX: 5.0 }[diff] * Math.max(20, active) * (1 - chordShare);
+    const allow = p => diff === 'EX' ? strong(p.j) : true;
     const sc = grid.map(p => allow(p) ? p.rel * (diff === 'HX' ? Math.pow(W8(p.j), .6) : W8(p.j)) : 0);
     let lo = 0, hi = 3, th = 1;
     for (let it = 0; it < 30; it++) { th = (lo + hi) / 2; const c = sc.filter(s => s > th).length; if (c > target) lo = th; else hi = th; }
     const r = rng(diff.charCodeAt(0) * 97 + Math.round(bpm)), notes = [];
-    const minGap = diff === 'EX' ? 2 : 1;   // 16분음 칸
+    const minGap = diff === 'EX' ? (DIV === 4 ? 2 : 1) : 1;   // 격자 칸
     let lastIdx = -99, lastLane = 3, hand = 0, run = 0;
+    const chordCand = [];
     const lanesFor = band => band === 0 ? [3, 2, 4] : band === 1 ? [1, 2, 4, 5] : [0, 6, 1, 5];
     for (let i = 0; i < grid.length; i++) {
       if (sc[i] <= th || i - lastIdx < minGap) continue;
@@ -445,15 +504,20 @@ async function analyzeAudio(buffer, title) {
         if (gapT >= per2 * (diff === 'HX' ? 1 : 1.5) && e1v > e0v * .78) len = gapT - g * 2;
       }
       notes.push([+p.t.toFixed(4), lane, +len.toFixed(4)]);
-      const chord = diff === 'NX' ? (p.j % 4 === 0 && sc[i] > th * 2.2) : diff === 'HX' ? (p.j % 2 === 0 && sc[i] > th * 1.7) : (p.j === 0 && sc[i] > th * 2.8);
-      if (chord) { const l2 = lane <= 3 ? lane + 3 : lane - 3; notes.push([+p.t.toFixed(4), l2, 0]); if (diff === 'HX' && sc[i] > th * 2.6) notes.push([+p.t.toFixed(4), 3 === lane || 3 === l2 ? (lane < 3 ? 6 : 0) : 3, 0]); }
+      if (diff === 'HX' ? strong(p.j) : onBeat(p.j)) chordCand.push({ t: +p.t.toFixed(4), lane, s: sc[i] });
       lastIdx = i; lastLane = lane;
     }
+    chordCand.sort((a, b) => b.s - a.s);
+    const nChord = Math.round(notes.length * chordShare / (1 - chordShare));
+    chordCand.slice(0, nChord).forEach((c, k) => {
+      const l2 = c.lane <= 3 ? c.lane + 3 : c.lane - 3; notes.push([c.t, l2, 0]);
+      if (diff === 'HX' && k < nChord / 4) notes.push([c.t, c.lane === 3 || l2 === 3 ? (c.lane < 3 ? 6 : 0) : 3, 0]);   // 가장 센 것들은 3개
+    });
     return normalizeNotes(notes, bpm);
   };
   const charts = {};
   for (const d of ['EX', 'NX', 'HX']) { const notes = make(d); charts[d] = { level: chartLevel(notes, buffer.duration), notes }; }
-  return { title, bpm, offset: +phase.toFixed(4), length: +buffer.duration.toFixed(2), charts, auto: true };
+  return { title, bpm, div: DIV, offset: +phase.toFixed(4), length: +buffer.duration.toFixed(2), charts, auto: true };
 }
 
 // ═══════════ 플레이 ═══════════
@@ -618,8 +682,12 @@ function renderMenu() {
   $('songList').innerHTML = SONGS.map(s => {
     const bests = ['EX', 'NX', 'HX'].map(d => BEST[s.id + ':' + d]).filter(Boolean);
     const top = bests.sort((a, b) => b.score - a.score)[0];
-    const info = s.ok ? (s.data ? `BPM ${Math.round(s.data.bpm)} · ${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}${s.data.auto ? ' · 자동 채보' : ''}` : '') : '음원 파일을 o2jam/ 폴더에 넣으면 열려요 (ghost.mp3 / .ogg / .wav)';
-    return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}"><div class="jk">${s.icon}</div><div><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}</div></div><div class="best">${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
+    const len = s.data ? `${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}` : '';
+    const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}${s.data.auto ? ' · 자동 채보' : ''}` : '';
+    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 🎵 로컬 파일') : '';
+    const pick = s.synth ? '' : `<button class="btn ghost" data-pick="${s.id}" style="font-size:14px;padding:8px 12px;margin-left:auto">${s.ok ? '파일 바꾸기' : '🎵 음원 파일 선택'}</button>`;
+    const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원은 사이트에 없어요 — 가지고 있는 파일을 한 번 고르면 이 브라우저에 저장돼요</div>' : '';
+    return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}"><div class="jk">${s.icon}</div><div><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
@@ -633,6 +701,8 @@ function renderMenu() {
   renderKeys();
 }
 document.addEventListener('click', e => {
+  const pk = e.target.closest('[data-pick]');
+  if (pk) { e.stopPropagation(); pickFor = pk.dataset.pick; picker.click(); return; }
   const t = e.target.closest('[data-song],[data-d],[data-act],[data-key]'); if (!t) return;
   audioInit();
   if (t.dataset.song) { const s = songById(t.dataset.song); if (s && s.ok) { SET.song = s.id; saveSet(); renderMenu(); if (!s.data && !s.synth) { /* 채보는 시작할 때 분석 */ } } return; }

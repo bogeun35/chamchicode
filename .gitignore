@@ -1,0 +1,8 @@
+# 오투잼 음원은 저장소(공개 사이트)에 올리지 않음 — 플레이어가 자기 PC 파일을 게임에서 골라 씀 (채보 json 만 올림)
+o2jam/*.mp3
+o2jam/*.ogg
+o2jam/*.m4a
+o2jam/*.wav
+o2jam/*.flac
+o2jam/audio/
+o2jam/src/
