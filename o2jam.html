@@ -497,15 +497,23 @@ async function analyzeAudio(buffer, title) {
   const hzBin = SR / N, B1 = Math.round(180 / hzBin), B2 = Math.round(2200 / hzBin);
   const flux = [new Float32Array(nF), new Float32Array(nF), new Float32Array(nF)], energy = [new Float32Array(nF), new Float32Array(nF), new Float32Array(nF)];
   let prev = new Float32Array(N / 2); const re = new Float32Array(N), im = new Float32Array(N), cur = new Float32Array(N / 2);
+  // 음높이·화성 (레인 배치용): 멜로디 대역(200~2500Hz) 무게중심(log2 Hz), 12음 분포(110~3520Hz)
+  const pitchF = new Float32Array(nF), chroma = new Float32Array(nF * 12), lf = new Float32Array(N / 2), pcOf = new Int8Array(N / 2).fill(-1);
+  const P1 = Math.round(200 / hzBin), P2 = Math.round(2500 / hzBin);
+  for (let k = 1; k < N / 2; k++) { const hz = k * hzBin; lf[k] = Math.log2(hz); if (hz >= 110 && hz <= 3520) pcOf[k] = ((Math.round(12 * Math.log2(hz / 440)) % 12) + 12) % 12; }
   for (let f = 0; f < nF; f++) {
     const o = f * HOP; for (let i = 0; i < N; i++) { re[i] = x[o + i] * win[i]; im[i] = 0; }
     fft(re, im);
+    let pw = 0, ps = 0;
     for (let k = 1; k < N / 2; k++) {
       const m = Math.log1p(10 * Math.hypot(re[k], im[k])); cur[k] = m;
       const band = k < B1 ? 0 : k < B2 ? 1 : 2, d = m - prev[k];
       if (d > 0) flux[band][f] += d;
       energy[band][f] += m;
+      if (k >= P1 && k <= P2) { const w2 = m * m * m; pw += w2; ps += w2 * lf[k]; }
+      if (pcOf[k] >= 0) chroma[f * 12 + pcOf[k]] += m;
     }
+    pitchF[f] = pw > 0 ? ps / pw : 0;
     const t = prev; prev = cur.slice(); void t;
     if (f % 2000 === 1999) await new Promise(r => setTimeout(r, 0));   // 화면 멈춤 방지
   }
@@ -596,6 +604,29 @@ async function analyzeAudio(buffer, title) {
   const active = grid.filter(p => p.v > .35).length * g;
   const onBeat = j => j % DIV === 0, strong = j => DIV === 4 ? j % 2 === 0 : j % 3 !== 1;   // 강한 쪼개기: 16분이면 8분 자리, 셋잇단이면 박과 셔플 뒷박(3번째)
   const W8 = j => onBeat(j) ? 1.35 : strong(j) ? 1 : .72;
+  const frameOf = t => clamp(Math.round((t - TOFF) * FR), 0, Math.max(0, nF - 1));
+  const pitchAt = t => { let a = 0, n = 0; for (let f = frameOf(t), e = frameOf(t + .07); f <= e; f++) if (pitchF[f] > 0) { a += pitchF[f]; n++; } return n ? a / n : 0; };
+  // 마디 닮음: 박자 모양(격자별 세기) + 화성(12음) 이 앞 마디와 비슷하면(코사인 > 0.92) 그 마디의 레인 배치를 다시 씀 → 반복 구간은 같은 패턴
+  const barLen = per2 * 4, nBars = Math.max(0, Math.ceil((buffer.duration - phase) / barLen));
+  const unit = v => { let n = 0; for (const x2 of v) n += x2 * x2; n = Math.sqrt(n) || 1; return v.map(x2 => x2 / n); };
+  const dot = (a, b) => { let d = 0; for (let k = 0; k < a.length; k++) d += a[k] * b[k]; return d; };
+  const barRh = [], barCh = [];
+  for (let b = 0; b < nBars; b++) {
+    const v = new Float32Array(BAR), t0b = phase + b * barLen;
+    for (const p of grid) { if (p.t < t0b - g / 2 || p.t >= t0b + barLen - g / 2) continue; const k = Math.round((p.t - t0b) / g); if (k >= 0 && k < BAR) v[k] = p.v; }
+    const c = new Float32Array(12); for (let f = frameOf(t0b), e = frameOf(t0b + barLen); f < e; f++) for (let q = 0; q < 12; q++) c[q] += chroma[f * 12 + q];
+    barRh.push(unit(v)); barCh.push(unit(c));
+  }
+  const barRef = new Array(nBars).fill(null);
+  for (let b = 1; b < nBars; b++) {
+    let best = -1, bi = null;
+    for (let a = Math.max(0, b - 32); a < b; a++) { const cr = dot(barRh[a], barRh[b]), cc = dot(barCh[a], barCh[b]); if (cr > .9 && cc > .95 && cr + cc > best) { best = cr + cc; bi = a; } }
+    if (bi != null) barRef[b] = barRef[bi] != null ? barRef[bi] : bi;
+  }
+  // 음역: 곡 전체 멜로디 음높이의 10~90% → 레인 0~6 (구절 시작은 이 절대 위치로: 낮은 음=왼쪽, 높은 음=오른쪽)
+  const pv = []; for (let f = 0; f < nF; f += 3) if (pitchF[f] > 0 && envl[f] > .15) pv.push(pitchF[f]); pv.sort((a, b) => a - b);
+  const pLo = pv.length ? pv[Math.floor(pv.length * .1)] : 8, pHi = pv.length ? pv[Math.floor(pv.length * .9)] : 10;
+  const laneOfPitch = p => clamp(Math.round((p - pLo) / Math.max(.25, pHi - pLo) * 6), 0, 6);
   const make = (diff) => {
     const chordShare = { EX: .03, NX: .1, HX: .18 }[diff];
     const target = { EX: 1.3, NX: 2.4, HX: 3.8 }[diff] * Math.max(20, active) * (1 - chordShare);   // 너무 어렵다고 해서 1.8/3.2/5.0 → 1.3/2.4/3.8
@@ -605,16 +636,25 @@ async function analyzeAudio(buffer, title) {
     for (let it = 0; it < 30; it++) { th = (lo + hi) / 2; const c = sc.filter(s => s > th).length; if (c > target) lo = th; else hi = th; }
     const r = rng(diff.charCodeAt(0) * 97 + Math.round(bpm)), notes = [];
     const minGap = diff === 'EX' ? (DIV === 4 ? 2 : 1) : 1;   // 격자 칸
-    let lastIdx = -99, lastLane = 3, hand = 0, run = 0;
-    const chordCand = [];
-    const lanesFor = band => band === 0 ? [3, 2, 4] : band === 1 ? [1, 2, 4, 5] : [0, 6, 1, 5];
+    let lastIdx = -99, lastLane = 3, lastT = -9, lastP = 0, dir = 1;
+    const chordCand = [], mem = new Map();   // 마디 → (칸 → 레인)
     for (let i = 0; i < grid.length; i++) {
       if (sc[i] <= th || i - lastIdx < minGap) continue;
-      const p = grid[i];
-      run = i - lastIdx === 1 ? run + 1 : 0;
-      let lane;
-      if (run > 0) { hand ^= 1; const seq = hand ? [4, 5, 6] : [2, 1, 0]; lane = seq[run % 3]; if (lane === lastLane) lane = 3; }   // 16분 연타: 좌우 번갈아 계단
-      else { const cand = lanesFor(p.band).filter(l => l !== lastLane || i - lastIdx >= 4); lane = cand[Math.floor(r() * cand.length)] ?? 3; }
+      const p = grid[i], dt = p.t - lastT, fast = dt < per2 / 2 - .005, pitch = pitchAt(p.t);
+      const bar = Math.floor((p.t - phase + g / 2) / barLen), pos = clamp(Math.round((p.t - phase - bar * barLen) / g), 0, BAR - 1), rb = bar >= 0 ? barRef[bar] : null;
+      let lane = rb != null && mem.has(rb) ? mem.get(rb).get(pos) : undefined;   // 반복 마디: 앞 마디와 같은 자리
+      if (lane == null) {
+        if ((pos === 0 || dt > per2 * 1.01) && pitch) lane = laneOfPitch(pitch);   // 구절 시작: 음역 위치 그대로
+        else {
+          const d = lastP && pitch ? pitch - lastP : 0;          // 옥타브 단위 음높이 변화 → 오르면 오른쪽, 내리면 왼쪽
+          let step = d > .22 ? 2 : d > .05 ? 1 : d < -.22 ? -2 : d < -.05 ? -1 : 0;
+          if (step === 0) step = fast || dt < per2 ? dir : (r() < .4 ? 0 : (r() < .5 ? 1 : -1));   // 같은 음이 빠르게 이어지면 계단으로 흘림
+          lane = lastLane + step;
+          if (lane > 6) { lane = 5; dir = -1; } else if (lane < 0) { lane = 1; dir = 1; } else if (step) dir = Math.sign(step);
+        }
+      }
+      if (lane === lastLane && dt < per2 / 2 + .005) { const nx = lastLane + dir; lane = nx < 0 || nx > 6 ? lastLane - dir : nx; }   // 빠른 같은 키 연타 금지
+      if (!mem.has(bar)) mem.set(bar, new Map()); mem.get(bar).set(pos, lane);
       let len = 0;
       if (diff !== 'EX' || r() < .4) {   // 롱노트: 소리가 1박 이상 이어지면
         let k = i + 1; while (k < grid.length && sc[k] <= th * 1.1) k++;
@@ -623,19 +663,30 @@ async function analyzeAudio(buffer, title) {
       }
       notes.push([+p.t.toFixed(4), lane, +len.toFixed(4)]);
       if (diff === 'HX' ? strong(p.j) : onBeat(p.j)) chordCand.push({ t: +p.t.toFixed(4), lane, s: sc[i] });
-      lastIdx = i; lastLane = lane;
+      lastIdx = i; lastLane = lane; lastT = p.t; if (pitch) lastP = pitch;
+    }
+    {   // 레인 고르게: 순서(멜로디 방향)는 그대로 두고 쓰임새만 펴기 — 레인별 누적 비율로 다시 배치 (70% 반영)
+      const cnt = new Array(7).fill(0); for (const n of notes) cnt[n[1]]++;
+      const map = [], N2 = Math.max(1, notes.length); let acc = 0;
+      for (let l = 0; l < 7; l++) { const mid = (acc + cnt[l] / 2) / N2; acc += cnt[l]; map[l] = clamp(Math.round(.3 * l + .7 * mid * 6), 0, 6); }
+      for (const n of notes) n[1] = map[n[1]];
+      for (const c of chordCand) c.lane = map[c.lane];
+      for (let k = 1; k < notes.length; k++) {   // 펴면서 생긴 빠른 같은 키 연타 → 옆 레인으로
+        const a2 = notes[k - 1], b2 = notes[k];
+        if (b2[1] === a2[1] && b2[0] - a2[0] < per2 / 2 + .005) { const nx = notes[k + 1]; const opts = [b2[1] + 1, b2[1] - 1].filter(l => l >= 0 && l <= 6 && !(nx && nx[1] === l && nx[0] - b2[0] < per2 / 2 + .005)); if (opts.length) b2[1] = opts[0]; }
+      }
     }
     chordCand.sort((a, b) => b.s - a.s);
     const nChord = Math.round(notes.length * chordShare / (1 - chordShare));
-    chordCand.slice(0, nChord).forEach((c, k) => {
-      const l2 = c.lane <= 3 ? c.lane + 3 : c.lane - 3; notes.push([c.t, l2, 0]);
-      if (diff === 'HX' && k < nChord / 4) notes.push([c.t, c.lane === 3 || l2 === 3 ? (c.lane < 3 ? 6 : 0) : 3, 0]);   // 가장 센 것들은 3개
+    chordCand.slice(0, nChord).forEach((c, k) => {   // 동시치기: 좌우 대칭 자리 (가운데면 양옆)
+      const l2 = c.lane === 3 ? 1 : 6 - c.lane; notes.push([c.t, l2, 0]);
+      if (diff === 'HX' && k < nChord / 4) notes.push([c.t, c.lane === 3 ? 5 : 3, 0]);   // 가장 센 것들은 3개
     });
     return normalizeNotes(notes, bpm);
   };
   const charts = {};
   for (const d of ['EX', 'NX', 'HX']) { const notes = make(d); charts[d] = { level: chartLevel(notes, buffer.duration), notes }; }
-  return { title, bpm, div: DIV, offset: +phase.toFixed(4), length: +buffer.duration.toFixed(2), charts, auto: true };
+  return { title, bpm, div: DIV, offset: +phase.toFixed(4), length: +buffer.duration.toFixed(2), charts, auto: true, stats: { bars: nBars, repeatedBars: barRef.filter(v => v != null).length } };
 }
 
 // ═══════════ 플레이 ═══════════
