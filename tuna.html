@@ -3,18 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>참스코드 참치 타이쿤 2.0</title>
+<title>참스코드 참치 타이쿤 2.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
 :root { --ink: #2a2118; --cream: #fff8ec; --paper: #fffdf7; --line: #e6d9bd; --brown: #8a5a2a; --brown-dark: #5c3a1a; --gold: #ffd36b; --gold-dark: #c9a13d; --green: #5cb85c; --sky: #4aa3df; --sky-dark: #2b6f9e; --coral: #ff8fab; --purple: #9b7bd8; --dia: #6fd3f7; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none; }   /* 2.1 C: 어느 화면에서도 문서가 스크롤되지 않게. overscroll-behavior 는 html(뷰포트)에 있어야 허브 iframe 부모로 스크롤이 번지지 않음(폰에서 끌면 허브 페이지가 밀리던 문제) */
 body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; background: #1c2a5a; }
 button { font-family: inherit; }
 .toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-24px); z-index: 90; background: var(--cream); color: var(--ink); padding: 10px 20px; border-radius: 999px; font-size: 15px; box-shadow: 0 5px 0 var(--brown-dark), 0 10px 20px rgba(0,0,0,.25); opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast { z-index: 96; }   /* 마감 B3: 항해 끝 정산 창과 동시에 오는 합류 토스트(레코드 선장)가 모달(95) 어둠막 뒤에 묻히지 않게. pointer-events:none 이라 클릭은 막지 않음 */
-.toast.voy { top: auto; transform: translateX(-50%) translateY(20px); font-size: 14px; padding: 8px 16px; } .toast.voy.show { transform: translateX(-50%) translateY(0); }   /* 마감 B3: 항해 중에는 HUD·콤보 배지를 가리지 않게 하단 능력바 위(bottom 은 toastPos 가 실제 위치로 계산) */
+@media (max-width: 620px) { .toast.port { top: var(--topH, 150px); } }   /* 배포마감: 세로 폰 항구는 HUD(레벨·골드·다이아·메뉴) 아래에. 위쪽 14px 에 뜨면 다이아 칸을 덮었음 */
+.vchip { position: fixed; left: 8px; top: 56px; z-index: 96; max-width: calc(50% - 44px); background: rgba(0,0,0,.55); color: #fff; border: 2px solid rgba(255,255,255,.6); border-radius: 12px; padding: 4px 10px; font-size: 12px; line-height: 1.3; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .25s, transform .25s, visibility .25s; }
+.vchip.show { opacity: 1; visibility: visible; transform: none; }   /* 배포마감: 항해 중 알림 칩. HUD 아래 왼쪽, 가운데 선장 초상 앞에서 멈춤(폭 50% − 44px) · 획득 숫자 영역(calcSafe 위끝) 밖 */
+.toast.voy { top: auto; transform: translateX(-50%) translateY(-8px); font-size: 14px; padding: 8px 16px; } .toast.voy.show { transform: translateX(-50%) translateY(0); }   /* 2.1 A-5: 숨을 때 아래(+20px)로 내려가며 능력바 위에 7px 걸치던 것 → 위로 살짝 떠오르며 사라짐 */   /* 마감 B3: 항해 중에는 HUD·콤보 배지를 가리지 않게 하단 능력바 위(bottom 은 toastPos 가 실제 위치로 계산) */
 .screen { position: fixed; inset: 0; display: none; }
 .screen.active { display: block; }
 
@@ -56,7 +59,7 @@ button { font-family: inherit; }
 .mb .dot { position: absolute; top: -6px; right: -5px; width: 13px; height: 13px; border-radius: 50%; background: var(--coral); border: 2px solid #fff; display: none; }
 .mb.alert .dot { display: block; animation: pulse .8s ease-in-out infinite alternate; }
 @keyframes pulse { to { transform: scale(1.15); } }
-.panel { position: absolute; top: var(--topH, 104px); left: 6px; right: 6px; bottom: 74px; background: rgba(255,248,236,.94); border: 4px solid #fff; border-radius: 20px; box-shadow: 0 6px 0 var(--brown-dark), 0 12px 24px rgba(0,0,0,.3); overflow: auto; padding: 12px 12px 64px; }
+.panel { overscroll-behavior: contain; position: absolute; top: var(--topH, 104px); left: 6px; right: 6px; bottom: 74px; background: rgba(255,248,236,.94); border: 4px solid #fff; border-radius: 20px; box-shadow: 0 6px 0 var(--brown-dark), 0 12px 24px rgba(0,0,0,.3); overflow: auto; padding: 12px 12px 64px; }
 .sail { position: absolute; right: 10px; bottom: 12px; z-index: 6; border: 4px solid #fff; border-radius: 999px; background: linear-gradient(180deg, #5cc6ff, #2f8fdc); color: #fff; font-size: 22px; padding: 13px 28px; cursor: pointer; box-shadow: 0 6px 0 #1f5f9a, 0 10px 20px rgba(0,0,0,.35); animation: sailglow 1.5s ease-in-out infinite alternate; }
 @keyframes sailglow { from { box-shadow: 0 6px 0 #1f5f9a, 0 0 0 0 rgba(140,230,255,.75); } to { box-shadow: 0 6px 0 #1f5f9a, 0 0 0 14px rgba(140,230,255,0); } }
 .sail:active { transform: translateY(4px); box-shadow: 0 2px 0 #1f5f9a; animation: none; }
@@ -65,7 +68,7 @@ button { font-family: inherit; }
 .panel h3 { font-size: 15px; color: var(--brown); margin: 4px 0 8px; display: flex; align-items: center; gap: 6px; }
 .panel h3 small { margin-left: auto; font-weight: normal; font-size: 12px; }
 /* 특성 트리 */
-.treewrap { position: relative; overflow: auto; height: 100%; margin: -12px; border-radius: 16px; background: radial-gradient(ellipse at 50% 50%, #3b57a8, #1c2a5a 70%); }
+.treewrap { position: relative; overflow: auto; overscroll-behavior: contain; height: 100%; margin: -12px; border-radius: 16px; background: radial-gradient(ellipse at 50% 50%, #3b57a8, #1c2a5a 70%); }
 .tree { position: relative; }
 .tree svg { position: absolute; left: 0; top: 0; pointer-events: none; }
 .tn { position: absolute; width: 50px; height: 50px; border-radius: 12px; background: #3d5fb8; border: 3px solid #2a4a9a; display: grid; place-items: center; font-size: 22px; cursor: pointer; transition: transform .1s; box-shadow: 0 3px 0 #1a2f6e; }
@@ -97,10 +100,12 @@ button { font-family: inherit; }
 .shake { animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .cd.lock { opacity: .55; } .cd.max { border-color: var(--purple); background: #f6f0ff; }
+.rtier { display: flex; align-items: baseline; gap: 8px; margin: 14px 2px 6px; font-size: 14px; color: var(--brown); } .rtier:first-of-type { margin-top: 4px; } .rtier small { font-size: 12px; opacity: .85; }   /* 2.1 E: 유물 단계 칸 제목 */
 .cd.on { border-color: var(--green); background: #f0fbe8; }
 .cd svg { display: block; margin: 0 auto; }
 .cd .stars { font-size: 12px; color: var(--gold-dark); letter-spacing: 1px; }
 .cd .badge { position: absolute; top: 6px; right: 8px; font-size: 11px; background: var(--sky); color: #fff; border-radius: 999px; padding: 1px 7px; }
+.cd .mk { opacity: .5; } .cd .mk.on { opacity: 1; color: #2e7d32; font-weight: bold; } .cd.ok[data-m], .cd.ok[data-r] { padding-bottom: 26px; }   /* 배포마감: 유물 카드(data-r)도 같은 이유로 */   /* 2.1 B: 숙련 카드 5·10단계 표시 · 더블클릭 배지가 비용(💰·💎)을 가리지 않게 */
 .cd .btn { padding: 6px 10px; font-size: 13px; }
 .btn { border: 3px solid #fff; border-radius: 999px; padding: 10px 18px; font-size: 16px; cursor: pointer; background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap; }
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
@@ -140,7 +145,9 @@ body { overscroll-behavior: none; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: none; }
 .vhud { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; align-items: flex-start; gap: 8px; pointer-events: none; z-index: 3; }
 .vhud .lvl, .vhud .cur { pointer-events: none; }
-.vhud .cur.gold { animation: none; } .vhud .cur.pop { animation: bump .25s ease; }
+.vhud .cur.gold { animation: none; } .vhud .cur.pop { animation: bump .25s ease; } .vhud .cur.pop2 { animation: bump2 .25s ease; } @keyframes bump2 { 40% { transform: scale(1.14); } }   /* 2.1 C: reAnim 짝(키프레임 동일) */
+.vhud .cur.shine2 { animation: hudshine2 .7s ease; } @keyframes hudshine2 { 0% { filter: brightness(1); } 25% { filter: brightness(1.7) drop-shadow(0 0 8px #fff3b0); transform: scale(1.1); } 100% { filter: brightness(1); transform: scale(1); } }
+.vhud .cur.shine { animation: hudshine .7s ease; } @keyframes hudshine { 0% { filter: brightness(1); } 25% { filter: brightness(1.7) drop-shadow(0 0 8px #fff3b0); transform: scale(1.1); } 100% { filter: brightness(1); transform: scale(1); } }   /* 2.1 A-4: 표류병·유물 결과를 중앙 배너 대신 HUD 반짝으로 */
 .vhud .timer { margin-left: auto; background: var(--cream); border: 3px solid #fff; border-radius: 999px; padding: 6px 14px; font-size: 20px; box-shadow: 0 3px 0 var(--brown-dark); min-width: 92px; text-align: center; }
 .vhud .timer.low { background: #ff6b6b; color: #fff; animation: pulse .5s ease-in-out infinite alternate; }
 @media (max-width: 520px) { .vhud { gap: 5px; } .vhud .xpbar { width: 58px; } .vhud .cur { padding: 4px 8px; font-size: 13px; } .vhud .timer { min-width: 64px; font-size: 16px; padding: 5px 8px; } .vhud .lvl .n { width: 28px; height: 28px; font-size: 13px; } .cap { top: 56px !important; width: 48px !important; height: 48px !important; } .cap svg { width: 42px !important; height: 42px !important; } }
@@ -168,6 +175,8 @@ body { overscroll-behavior: none; }
 @media (max-height: 500px) { .modal .box:has(.maplist) { max-width: 700px; padding: 10px 14px; } .modal .box:has(.maplist) h2 { font-size: 18px; margin-bottom: 4px; }
   .maplist { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .maplist .btn { padding: 5px 10px; font-size: 14px; line-height: 1.25; } .maplist .btn small { font-size: 11px !important; } .modal .box:has(.maplist) .row { margin-top: 6px; } }   /* 폰 가로(844×390): 2열로 6개가 한 화면에. 그래도 넘치면 .box 의 overflow:auto 로 스크롤 */
 .res div { background: var(--paper); border-radius: 12px; padding: 8px; font-size: 14px; } .res b { display: block; font-size: 20px; }
+@media (max-height: 500px) { .modal .box:has(#btnAgain) { max-width: 640px; padding: 10px 16px; } .modal .box:has(#btnAgain) h2 { font-size: 19px; margin-bottom: 2px; } .modal .box:has(#btnAgain) .res { grid-template-columns: repeat(4, 1fr); margin: 6px 0; } .modal .box:has(#btnAgain) .res div { padding: 5px 4px; font-size: 12px; } .modal .box:has(#btnAgain) .res b { font-size: 17px; }
+  .modal .box:has(#btnAgain) .card { padding: 4px 10px; margin: 4px 0; } .modal .box:has(#btnAgain) .card svg { width: 46px; height: 32px; } .modal .box:has(#btnAgain) p { margin: 2px 0; font-size: 12px; } .modal .box:has(#btnAgain) .row { margin-top: 6px; } .modal .box:has(#btnAgain) .btn { padding-top: 8px; padding-bottom: 8px; } }   /* 2.1 A-5: 폰 가로(844×390) 항해 끝 창 — 결과 4칸 한 줄·카드 축소로 버튼까지 첫 화면에 */
 .confetti { position: fixed; top: -30px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 96; }
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 .lvup { position: fixed; top: 20%; left: 50%; transform: translateX(-50%); font-size: 34px; color: var(--gold); text-shadow: 3px 3px 0 var(--brown-dark); z-index: 60; pointer-events: none; animation: lvup 1.6s ease-out forwards; }
@@ -231,6 +240,7 @@ body { overscroll-behavior: none; }
 .cur.mode.hard { background: linear-gradient(180deg, #ffd9cc, #ff9f85); color: #7a1e0c; }
 .vhud .cur.mode { cursor: default; }
 @media (max-width: 520px) { .vhud .cur.mode { display: none; } }   /* 폰에서는 HUD 폭이 모자라 배지 대신 선장 초상 테두리로 표시 */
+@media (max-width: 560px) { #modeBadge { padding: 3px 7px; flex: none; } #modeBadge span { display: none; } }   /* 배포마감: 세로 폰 항구 HUD 는 모드 칸을 아이콘만(🌊/🔥). 천상 세이브(골드·다이아 자릿수 큼)에서 '일반' 칸이 오른쪽 끝에서 잘렸음 */
 body.hard .cap { border-color: #ff6b6b; box-shadow: 0 3px 0 #b83232; }
 .mb.home { background: var(--cream); box-shadow: 0 4px 0 var(--brown-dark); font-size: 20px; }
 .mb.home:active { box-shadow: 0 1px 0 var(--brown-dark); }
@@ -245,9 +255,9 @@ body.hard .hardTint { display: block; }
 .notes div { padding: 4px 0; border-bottom: 1px dashed var(--line); } .notes div:last-child { border-bottom: none; }
 /* ── 이펙트·연출 (2.0 단계 C) ── */
 .vhud .combo { display: none; background: rgba(0,0,0,.45); color: #ffd36b; border: 2px solid rgba(255,255,255,.6); border-radius: 999px; padding: 6px 12px; font-size: 16px; white-space: nowrap; }
-.vhud .combo.on { display: block; } .vhud .combo.bump { animation: bump .25s ease; } .vhud .combo.fade { animation: fadeout .4s ease forwards; }
+.vhud .combo.on { display: block; } .vhud .combo.bump { animation: bump .25s ease; } .vhud .combo.bump2 { animation: bump2 .25s ease; } .vhud .combo.fade { animation: fadeout .4s ease forwards; }
 @keyframes fadeout { to { opacity: 0; } }
-.vhud .timer.beat { animation: beat .3s ease; } @keyframes beat { 50% { transform: scale(1.25); } }
+.vhud .timer.beat { animation: beat .3s ease; } @keyframes beat { 50% { transform: scale(1.25); } } .vhud .timer.beat2 { animation: beat2 .3s ease; } @keyframes beat2 { 50% { transform: scale(1.25); } }
 .vhud.fitm .timer, .vhud.fitm .cur, .vhud.fitm .combo { transform: none !important; }   /* 검증수정2: hudFit 이 폭을 재는 순간에만 붙음 */
 .xpbar i.flash { box-shadow: 0 0 0 2px #fff inset; transition: box-shadow .4s; }
 .bossbar { position: absolute; top: 118px; left: 50%; transform: translateX(-50%); width: 240px; display: none; background: rgba(0,0,0,.5); border: 2px solid #fff; border-radius: 999px; padding: 3px 10px; color: #fff; font-size: 13px; z-index: 3; pointer-events: none; }
@@ -264,21 +274,28 @@ body.hard .hardTint { display: block; }
 @media (max-width: 520px) { .vhud .cur.mode.hard { display: block; padding: 4px 6px; font-size: 13px; flex: none; } .vhud .cur.mode.hard span { display: none; } }
 .vhud.tight5 .cur.mode.hard { position: absolute; top: 46px; left: 0; }   /* 검증수정1: 짧은 표기로도 한 줄에 안 들어가면 🔥 배지를 레벨 숫자 아래로 */
 .vhud.tight3 .xpbar { display: none; } .vhud.tight3 .lvl { padding-right: 4px; } .vhud.tight3 .cur b { font-size: 18px; }   /* 세로 폰(390): 경험치 바까지 숨김. 레벨 숫자·골드·다이아·타이머만 */
+/* 2.1 C: 전체화면 버튼(⛶). 🔊(party-sound)와 같은 모양. 로비 오른쪽 위 · 항구 메뉴 아래 오른쪽(좁은 화면은 맨 위 오른쪽) · 항해 🔊 위. 미지원·차단이면 hidden */
+.fsbtn { position: absolute; z-index: 7; width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,.7); background: rgba(0,0,0,.35); color: #fff; cursor: pointer; padding: 0; display: grid; place-items: center; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.fsbtn[hidden] { display: none; } .fsbtn svg { width: 18px; height: 18px; display: block; } .fsbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+#lobby .fsbtn { top: 12px; right: 12px; } #port .fsbtn { top: 62px; right: 10px; } #voyage .fsbtn { left: 10px; bottom: 56px; z-index: 4; }
+@media (max-width: 620px) { #port .fsbtn { top: 7px; right: 6px; } }
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+<div class="vchip" id="vchip"></div>
 
 <div class="screen active" id="lobby">
   <canvas id="lcv"></canvas>
   <div class="stars"></div>
   <div class="lwrap">
-    <div class="logo"><div class="fish" id="logoFish"></div><h1>참치 타이쿤<span class="ver">2.0</span></h1><div class="sub">참스코드 · 그물로 물고기를 잡아 배를 키워요</div></div>
+    <div class="logo"><div class="fish" id="logoFish"></div><h1>참치 타이쿤<span class="ver">2.1</span></h1><div class="sub">참스코드 · 그물로 물고기를 잡아 배를 키워요</div></div>
     <div class="modes" id="modes"></div>
     <button class="lplay" id="btnPlay">▶ 이어하기</button>
     <div class="lsub"><button class="btn light" id="btnLobbyReset" style="color:#c0392b">🗑 초기화</button><div class="lhelp">🖱 마우스·손가락으로 그물 이동 · ESC 귀항</div></div>
   </div>
-  <div class="lver">v2.0</div>
+  <div class="lver">v2.1</div>
+  <button class="fsbtn" title="전체화면" aria-label="전체화면" hidden></button>
 </div>
 
 <div class="screen" id="port">
@@ -305,6 +322,7 @@ body.hard .hardTint { display: block; }
   <button class="cfg" id="btnCfg" title="기록·저장·도움말">⚙️</button>
   <button class="mapbtn" id="btnMap">📍 갯바위</button>
   <button class="sail" id="btnSail">⚓ 출항하기</button>
+  <button class="fsbtn" title="전체화면" aria-label="전체화면" hidden></button>
 </div>
 
 <div class="screen" id="voyage">
@@ -319,6 +337,7 @@ body.hard .hardTint { display: block; }
   <div class="bossbar" id="bossbar"></div>
   <div class="pbar" id="pbar"></div>
   <button class="endbtn" id="btnEnd">⏹ 귀항</button>
+  <button class="fsbtn" title="전체화면" aria-label="전체화면" hidden></button>
   <div class="relicpop" id="relicpop"><div class="in"><div class="rays"></div><div class="ic" id="rpIc"></div><div class="nm" id="rpNm"></div></div></div>
 </div>
 
@@ -327,11 +346,12 @@ body.hard .hardTint { display: block; }
 <script src="party-sound.js"></script>
 <script>
 'use strict';
-const VERSION = '2.0';
+const VERSION = '2.1';
 Sound.theme('lounge'); Sound.scene('game');
 // 단계 F 2회차 성능: 같은 효과음은 실시간 45ms 에 한 번만. 후반엔 한 항해 수천 마리(초당 100마리 가까이)라 치명타·빙결·폭발음이 수십 겹 동시에 합성돼
 // 모바일 오디오 스레드가 밀리고, 배속 시뮬(측정 도구)에서는 수천 개가 한꺼번에 예약돼 점점 느려졌다. 사람 귀로는 45ms 안의 같은 소리는 구분이 안 됨
 { const raw = Sound.play.bind(Sound), last = {}; Sound.play = (n, o) => { const t = performance.now(); if (t - (last[n] || -1e9) < 45) return false; last[n] = t; return raw(n, o); }; }
+function reAnim(el, cls) { const b = el._an === cls ? cls + '2' : cls; el.classList.remove(cls, cls + '2'); el.classList.add(b); el._an = b; }   // 2.1 C: CSS 애니메이션 재시작을 강제 리플로(void offsetWidth) 없이 — 키프레임이 같은 두 클래스(cls / cls+'2')를 번갈아 붙이면 animation-name 이 바뀌어 새로 시작. 모양·길이 동일
 const reflowOk = (k, ms) => { const t = performance.now(); if (t - (reflowOk[k] || -1e9) < ms) return false; reflowOk[k] = t; return true; };   // 강제 리플로(void offsetWidth)로 CSS 애니메이션을 다시 거는 곳의 실시간 간격 제한
 const $ = id => document.getElementById(id);
 const UNITS = ['', '만', '억', '조', '경', '해', '자', '양', '구'];
@@ -370,13 +390,24 @@ function fmtS(n) {   // 검증수정1: 좁은 HUD 용 짧은 표기(500조 1,234
 }
 // 마감 B5: 토스트 대기열. 동시에 여러 개(고로케·레코드 동시 합류 등)가 와도 덮어쓰지 않고 순서대로 하나씩. 뒤에 기다리는 게 있으면 1.9초, 마지막은 2.4초. 같은 문구 연속은 한 번, 최대 6개 대기
 // 마감 B3: 항해 화면에서는 .voy 로 하단 능력바·귀항 버튼 위 끝보다 10px 위에 띄움(상단 HUD·콤보 배지·폰 HUD 를 가리지 않게)
-function toastPos(t) { const voy = $('voyage').classList.contains('active'); t.classList.toggle('voy', voy); if (!voy) { t.style.bottom = ''; return; }
+function toastPos(t) { const voy = $('voyage').classList.contains('active'); t.classList.toggle('voy', voy); t.classList.toggle('port', !voy && $('port').classList.contains('active')); if (!voy) { t.style.bottom = ''; return; }
   let top = innerHeight; for (const id of ['pbar', 'btnEnd']) { const r = $(id).getBoundingClientRect(); if (r.height > 0 && r.top < top) top = r.top; } t.style.bottom = Math.round(innerHeight - top + 10) + 'px'; }
-function toast(m) { const q = toast._q; if (q[q.length - 1] === m || (!q.length && toast._cur === m)) return; q.push(m); if (q.length > 6) q.shift(); if (!toast._cur) toast._next(); }
+/* 배포마감: 항구 토스트(항구에서 쌓인 것 + k='port' 도감 등록·새 별·연출 해금·새 어종)는 항해 화면에서는 보류했다가 항구(항해 밖)로 돌아오면 이어서 보여 줌. 항해 화면에서 새로 생긴 알림(선장 합류·해금 등)은 chip() — HUD 아래 왼쪽 작은 칩 */
+const onVoy = () => $('voyage').classList.contains('active');
+function toast(m, k) { if (k !== 'port' && onVoy()) return chip(m); const q = toast._q; if (q[q.length - 1] === m || (!q.length && toast._cur === m)) return; q.push(m); if (q.length > 6) q.shift(); if (!toast._cur) toast._next(); }
 toast._q = []; toast._cur = null;
-toast._next = () => { const t = $('toast'); clearTimeout(toast._t); if (!toast._q.length) { toast._cur = null; return; }
+toast._screen = id => { const t = $('toast');   /* screen() 이 부름. 항해로 들어가면 떠 있던 항구 토스트를 대기열 맨 앞으로 되돌리고 숨김, 항해를 나오면 칩 대기분을 토스트로 넘기고 이어서 보여 줌 */
+  if (id === 'voyage') { if (toast._cur) { clearTimeout(toast._t); toast._q.unshift(toast._cur); toast._cur = null; t.classList.remove('show'); } return; }
+  clearTimeout(chip._t); $('vchip').classList.remove('show'); const cq = chip._q.splice(0); chip._cur = null; cq.forEach(m => toast(m)); if (!toast._cur && toast._q.length) toast._next(); };
+toast._next = () => { const t = $('toast'); clearTimeout(toast._t); if (!toast._q.length || onVoy()) { toast._cur = null; return; }
   const m = toast._cur = toast._q.shift(); toastPos(t); t.textContent = m; t.classList.add('show');
   toast._t = setTimeout(() => { t.classList.remove('show'); toast._t = setTimeout(toast._next, 280); }, toast._q.length ? 1900 : 2400); };
+function chip(m) { const q = chip._q; if (q[q.length - 1] === m || (!q.length && chip._cur === m)) return; q.push(m); if (q.length > 4) q.shift(); if (!chip._cur) chip._next(); }   /* 배포마감: 항해 중 알림 칩(대기열·시간은 토스트와 같음, 최대 4개) */
+chip._q = []; chip._cur = null;
+chip._next = () => { const c = $('vchip'); clearTimeout(chip._t); if (!chip._q.length || !onVoy()) { chip._cur = null; return; }
+  const m = chip._cur = chip._q.shift(); let top = 0; for (const s of ['#voyage .vhud', '#vmode']) { const r = document.querySelector(s).getBoundingClientRect(); if (r.width && r.height && r.left < innerWidth / 2) top = Math.max(top, r.bottom); }   /* HUD(와 레벨 아래로 내려간 🔥 배지) 아래끝 + 6px */
+  c.style.top = Math.round((top || 50) + 6) + 'px'; c.textContent = m; c.classList.add('show'); if (V) V.needSafe = 1;
+  chip._t = setTimeout(() => { c.classList.remove('show'); if (V) V.needSafe = 1; chip._t = setTimeout(() => { chip._cur = null; chip._next(); }, 280); }, chip._q.length ? 1900 : 2600); };
 const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
 
 // ═══════════ 데이터 ═══════════
@@ -412,6 +443,13 @@ const TREE_CENTER = 1;
 const FISH_ORIG = [[4,10,10,2000],[12,30,30,1940],[8,40,40,1880],[16,60,60,1820],[25,980,100,1760],[30,1250,120,1700],[45,3295,150,1640],[70,5320,200,1580],[95,7717,300,1520],[145,12080,450,1460],[178,17680,700,1400],[225,25035,995,1340],[279,31000,1485,1280],[358,42880,2500,1220],[450,75540,3500,1160],[645,116620,4400,1100],[887,202299,8545,1040],[1025,330372,18450,980],[1258,600380,43525,920],[1488,1505110,72000,860],[50000,2000000,666666,800]];
 FISH.forEach((f, i) => { const o = FISH_ORIG[i]; f.i = i; f.hp = o[0] * 1.25; f.gold = o[1]; f.xp = o[2]; f.w = o[3];
   if (f.beh === 'tank') f.hp *= 1.8; });   // 2.0: 속도 후처리 삭제(표 값 그대로), 체력 배수만 유지
+// 2.1 A-1 초반 경제: 시작은 멸치 1종, 정어리·흰동가리·새우는 레벨로 차례로 등장(lv). 0~3번 가치는 1~3원대(gold, 실제 획득은 × ECON.gold)로 낮추고
+// 4번 고등어(980)부터는 원작값 그대로 → 새우 → 고등어 도약이 "촥촥" 구간의 시작. 경험치·체력은 원작값 유지
+// 측정(early.js 사람형 봇): 권장 Lv3·6·9 는 경험치가 안 따라와 새우가 25항해 넘어 나오고 골드 수여 Ⅰ 까지 9분 → Lv2·4·6(약 3·8·14항해째) 으로 당김.
+// 가치 4.5·7.5·12 는 체력(15·10·20) 대비 멸치보다 효율이 낮아 어종이 늘수록 항해당 골드가 오히려 제자리 → 6·10·16(실제 약 4·7·11원)으로 레벨마다 조금씩 오르게
+const EARLY_FISH = { gold: [1.6, 6, 10, 16], lv: [1, 2, 4, 6] };   // 멸치 1.6 → 실제 약 1원(첫 항해 사람형 봇 약 20원, 첫 특성 50원은 3항해째)
+FISH.slice(0, 4).forEach((f, i) => { f.gold = EARLY_FISH.gold[i]; });
+FISH[1].hp = 9;   // 2.1 A-3: 정어리 체력 15 → 9. 단계 0 은 반전 없이 한 번만 지나가는데 그물 지름(140)을 지나는 1.1초로는 15 를 못 깎아 방치(그물 고정)로는 영영 못 잡았음
 // 2.0 움직임 패턴: mv(패턴 이름)·dev(개체 속도 편차)·mvp(파라미터). beh 는 그대로(가치·체력·도감 문구 담당)
 const MVP = {
   anchovy: { mv: 'school', dev: .15, grp: [2, 3], wob: [10, 1.7] }, sardine: { mv: 'school', dev: .15, grp: [2, 3], wob: [10, 1.7], scatter: 1 },   // 단계 F: 떼 크기 축소(원본은 떼 대부분이 화면 밖에서 사라져 실효 1~2마리였음)
@@ -496,6 +534,30 @@ const RELICS = [
   { id: 'buoy', name: '유리 부표', icon: '🎈', k: 'spawn', v: .03, u: '물고기 출현 +3%' }, { id: 'scale', name: '용의 비늘', icon: '🐉', k: 'all', v: .02, u: '모든 효과 +2%' },
 ];
 const relicById = Object.fromEntries(RELICS.map(r => [r.id, r]));
+// 2.1 E: 유물 3단계. 약한 효과는 초반, 강한 효과(모래시계·황금 이빨·고래 뼈·용의 비늘 …)는 후반. 그 단계 어장부터(이하 단계 포함) 나온다
+// 강화 비용 기준(gold) = 그 단계가 열리는 시점의 항해당 골드(progress 추적 봇: 난파선 해금 무렵 일반 6.7만~9.5만·하드 5.2만~8.3만). 초반은 예전 값 500
+// 검증수정v1: 후반 4억 → 15억. 환상 해금 직후 3항해 평균이 실측 일반 18.6억·하드 11억~13억이라 4억은 0.22~0.35배였음 → 15억이면 일반 약 0.8·하드 약 1.2
+// 배포마감: 초반 500 → 2,500(첫 유물 무렵 항해당 약 4,500원의 약 0.5배. 500 은 0.11배라 얻자마자 몇 단계씩 올라갔음). 후반 15억 → 25억(일반 첫 후반 유물 시점 0.38배였음)
+const RELIC_TIERS = [
+  { n: '초반', maps: '갯바위·산호초', from: 0, gold: 2500, dia: [10, 12], ids: ['bottle', 'beads', 'coral', 'talisman', 'scope', 'pearl'] },
+  { n: '중반', maps: '난파선·심해', from: 2, gold: 7e4, dia: [25, 20], ids: ['map', 'bone', 'tear', 'ship', 'shell', 'anchor', 'compass'] },
+  { n: '후반', maps: '환상의 바다·천상의 심해', from: 4, gold: 2.5e9, dia: [60, 40], ids: ['timer', 'tooth', 'whalebone', 'coin', 'buoy', 'star', 'scale'] },
+];
+RELIC_TIERS.forEach((T, t) => T.ids.forEach(id => relicById[id].t = t));
+const RELIC = { p: .002, first: 3, gap: [250, 600, 2000], sure: 150, cur: 2, dup: .35, chest: .05, bottle: .1 };   // gap: 유물 사이 최소 포획 수(단계별 초반/중반/후반. 뽑히는 유물의 단계 기준 — 단계마다 S.relicDry[단계] 카운터. 물고기·보물상자·표류병 유물 공통). sure: 새 세이브 첫 유물 보장 — 간격이 열린 뒤 이만큼 더 잡도록 유물이 없으면 그 포획에서 바로 1개. first: 첫 유물 확률 배수. bottle: 표류병 유물 몫(예전 20%)   // chest: 보물상자 유물 몫(예전 15% — 난파선 상자 3배와 겹쳐 중반 7종이 3분 만에 다 모였음). p: 포획당 기본 확률(예전 .6%). cur: 지금 단계 유물 가중치(아래 단계는 1). dup: 이미 가진 유물 가중치(주우면 조각 → 💎+3)
+const relicTierAt = i => i >= RELIC_TIERS[2].from ? 2 : i >= RELIC_TIERS[1].from ? 1 : 0;   // 어장 번호 → 유물 단계
+const relicCt = () => relicTierAt(V ? MAPS.indexOf(V.map) : S.map);   // 지금 어장의 유물 단계(풀 = 이 단계 이하)
+const relicGapT = t => { const g = RELIC.gap; return Array.isArray(g) ? g[t] : g; };   // 유물 단계 t 의 간격
+const relicDry = () => { let d = S.relicDry; if (!Array.isArray(d) || d.length < 3) { const n = +d || 0; d = S.relicDry = [n, n, n]; } return d; };   // 2.1 E3: 단계별 '마지막 유물 뒤 포획 수' [초반, 중반, 후반]. 옛 세이브의 숫자는 세 칸에 똑같이
+const relicOpenTiers = () => { const d = relicDry(), ct = relicCt(), o = []; for (let t = 0; t <= ct; t++) if (d[t] > relicGapT(t)) o.push(t); return o; };   // 풀에 있는 단계 중 간격이 찬 단계
+const relicOpen = () => relicOpenTiers().length > 0;   // 보물상자·표류병 유물도 간격이 찬 단계가 있어야 나옴(없으면 다이아·없음으로)
+const relicTook = id => { relicDry()[relicById[id].t] = 0; return id; };   // 뽑힌 유물의 단계 카운터만 0 으로
+function pickRelic(onlyNew) {   // 지금 어장 단계 이하 + 간격이 찬 단계의 유물 중 가중치 뽑기. onlyNew: 안 가진 게 있으면 그중에서(보물상자). 뽑힌 단계 카운터는 relicTook 으로 0
+  const ct = relicCt(), open = relicOpenTiers(); let pool = RELICS.filter(r => r.t <= ct && open.includes(r.t)); if (!pool.length) pool = RELICS.filter(r => r.t <= ct);
+  if (onlyNew && pool.some(r => !S.relics[r.id])) pool = pool.filter(r => !S.relics[r.id]);
+  const w = pool.map(r => (r.t === ct ? RELIC.cur : 1) * (S.relics[r.id] ? RELIC.dup : 1)); let x = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++) { x -= w[i]; if (x <= 0) return pool[i].id; } return pool[pool.length - 1].id;
+}
 
 // ── 특성 트리: 원작 격자 그대로 173칸 (중앙에서 시작, 산 칸 바로 옆만 보임) ──
 const TREE = [], TREE_BY = {};
@@ -574,18 +636,18 @@ const MODES = {
     // 하드는 마리당 골드 ×1.2, 물고기 수가 적어 항해당 골드는 일반보다 적지만 전체 클리어는 1.4배 오래 (팀장 실측 새 세이브→클리어: 일반 77.2분/방치 101.5분, 하드 ×1.2 110.4분/150.1분. ×2.6 은 41.6분으로 일반보다 쉬워 원복)
     flee: 1.25, fleeCd: .75, dartT: .75, frenzySpd: 1.4, frenzySpawn: .5, frenzyGold: 1.3, comboT: .9, forceTop: [2.5, 7, 11],
     earlyCap: .3, earlyLv: 10,   // 단계 F 2회차: 레벨 10 전까지는 물고기 수를 일반(.3)과 같게. 방치하면 첫 50분 가까이 거의 못 잡던(10항해 0~8마리) 초반 굶주림 완화. 적극 플레이는 3~4분이면 지나감
-    earlyRamp: ['hp', 'net'],    // 단계 F 3회차: 체력·그물 배수는 Lv1 일반값 → Lv10 하드값으로 레벨마다 조금씩(mod·earlyK). 보스 체력(bossHp)은 제외
+    earlyRamp: ['hp', 'net', 'spd'],    // 2.1: 속도(spd)도 Lv1 ×1 → Lv10 ×1.35. 연출 단계 0~1 은 물고기가 한 번 지나가고 마는데 ×1.35 로는 방치 그물을 너무 빨리 지나쳐 하드 방치가 35~55항해째 0마리였음   // 단계 F 3회차: 체력·그물 배수는 Lv1 일반값 → Lv10 하드값으로 레벨마다 조금씩(mod·earlyK). 보스 체력(bossHp)은 제외
     rulesNote: '→ 표시는 Lv.10까지 레벨마다 조금씩 세져요',
     rules: [
-      { ic: '💨', k: '물고기 속도', v: '×1.35' }, { ic: '❤️', k: '물고기 체력', v: '×1→1.2 (보스 ×1.5)' }, { ic: '🐟', k: '물고기 수', v: '×0.5 (Lv.10부터)' }, { ic: '⏱', k: '항해 시간', v: '×0.85' },
+      { ic: '💨', k: '물고기 속도', v: '×1→1.35' }, { ic: '❤️', k: '물고기 체력', v: '×1→1.2 (보스 ×1.5)' }, { ic: '🐟', k: '물고기 수', v: '×0.5 (Lv.10부터)' }, { ic: '⏱', k: '항해 시간', v: '×0.85' },
       { ic: '🕸', k: '그물 크기', v: '×1→0.85' }, { ic: '💰', k: '마리당 골드', v: '×1.2' }, { ic: '💎', k: '다이아 확률', v: '×2' }, { ic: '📗', k: '경험치', v: '×1.2' }, { ic: '👑', k: '보스 보상', v: '×2.2' },
     ] },
 };
-const MODE_KEY = 'tuna_mode', SEEN_KEY = 'tuna_seen_v2';
+const MODE_KEY = 'tuna_mode', SEEN_KEY = 'tuna_seen_v21';   // 검증수정v1 b: 2.1 안내(예전 키 tuna_seen_v2 는 2.0 안내)
 let MODE = null;                                   // 현재 슬롯. 로비(단계 B)에서는 null → save() 가 아무것도 쓰지 않음
 const mod = k => { if (!MODE || MODE[k] == null) return 1; const v = MODE[k]; return MODE.earlyRamp && MODE.earlyRamp.includes(k) ? 1 + (v - 1) * earlyK() : v; };
 // 단계 F 3회차: 하드 초반 경사. earlyRamp 에 든 배수(체력·그물)는 Lv1 에서 일반(×1)으로 시작해 레벨마다 조금씩 붙어 Lv.earlyLv 에 하드 값이 됨(레벨당 그물 약 −1.7%, 눈에 띄는 계단 없음).
-// 방치 플레이(그물 중앙 고정)가 하드 첫 60항해(약 16분) 동안 한 항해 0~9마리로 Lv1 에 머물던 문제. 적극 플레이는 3분이면 Lv10 을 지나 영향이 거의 없음. 속도 ×1.35 는 처음부터(하드 체감 유지)
+// 방치 플레이(그물 중앙 고정)가 하드 첫 60항해(약 16분) 동안 한 항해 0~9마리로 Lv1 에 머물던 문제. 적극 플레이는 3분이면 Lv10 을 지나 영향이 거의 없음. 속도 ×1.35 도 2.1 부터는 같은 경사(earlyRamp)
 const earlyK = () => MODE && MODE.earlyLv && S.lv < MODE.earlyLv ? (S.lv - 1) / (MODE.earlyLv - 1) : 1;
 // 단계 F: 전체 진행 속도 보정(모든 모드 공통). 2.0 은 화면 안 스폰이라 물고기가 바로 잡을 수 있는 자리에 생기고(원본은 가장자리 밖에서 들어오다 상당수가 사라짐),
 // 같은 빌드에서 항해당 골드가 원본의 약 1.5~2배였다. 특성 트리 값(원작 이식)은 그대로 두고 획득 골드만 이 배수로 맞춘다. 하드 배수(MODES.hard.gold)는 이 위에 곱하는 상대값
@@ -593,12 +655,14 @@ const earlyK = () => MODE && MODE.earlyLv && S.lv < MODE.earlyLv ? (S.lv - 1) / 
 // 곡선이 기하급수라 전체 배수는 레벨을 일정하게 약 10 낮출 뿐 11항해 이후 구간의 상승 폭은 그대로 → 첫 구간만 +15 이내로 들어옴(측정: .4 → +15, .35 → +14~16 으로 판마다 ±1.5 흔들려 .25 로 여유). 하드 xp(MODES.hard.xp)는 이 위에 곱하는 상대값
 // ECON.xpEarly(단계 F 3회차): .25 를 Lv1 부터 걸면 첫 레벨(400)에 멸치 130마리 이상이 필요해 방치 플레이가 5~15분 Lv1 에 머묾 → Lv1 ×1 · Lv2 ×.6 · Lv3 ×.4, Lv4 부터 ECON.xp.
 // Lv1~3 필요 경험치 합이 1,389 뿐이라 적극 플레이는 첫 항해에 지나가고 첫 10항해 상승 폭(+12~13)은 그대로
-const ECON = { gold: .65, xp: .25, xpEarly: [1, .6, .4] };
+// 2.1 A-1: 초반 어종·스폰을 조이면서 경험치 수여 Ⅰ 구매가 늦어져 Lv4 에서 수십 항해 멈춤 → xpEarly 를 Lv8 까지 완만하게 늘림(Lv1~2 ×1 → Lv8 ×.3, Lv9 부터 ECON.xp)
+const ECON = { gold: .65, xp: .25, xpEarly: [1, 1, .8, .6, .5, .4, .35, .3] };
 const goldMul = () => mod('gold') * ECON.gold;
 const xpMul = () => mod('xp') * (ECON.xpEarly[S.lv - 1] != null ? ECON.xpEarly[S.lv - 1] : ECON.xp);
 function fresh() { return { ending: 0, gold: 0, dia: 0, xp: 0, lv: 1, tree: {}, powers: {}, pups: {}, base: { power: 0, net: 0 }, captains: { chamchi: 1 }, captain: 'chamchi', relics: {}, mastery: {}, counts: {}, map: 0, voyages: 0, best: 0, totalGold: 0, tab: 'tree', started: Date.now(), playTime: 0, mode: 'normal', capAch: {} }; }   // capAch: 업적형 선장 합류 알림을 이미 띄웠는지(한 번만)
 let S = fresh();
-function load() { try { const v = JSON.parse(localStorage.getItem(MODE.key) || 'null'); S = v && typeof v === 'object' ? Object.assign(fresh(), v) : fresh(); } catch (e) { S = fresh(); } S.mode = MODE.id; }
+function load() { try { const v = JSON.parse(localStorage.getItem(MODE.key) || 'null'); S = v && typeof v === 'object' ? Object.assign(fresh(), v) : fresh(); } catch (e) { S = fresh(); } S.mode = MODE.id;
+  if (S.dexSeen == null || typeof S.dexSeen !== 'object') S.dexSeen = dexSnap(); }   // 2.1 B: 도감 알림 기준(어종별 이미 알린 별 수). 새 세이브는 {} , 옛 세이브는 지금 별로 조용히 맞춤(한꺼번에 알림 폭탄 방지)
 function save() { if (!MODE) return; try { S.savedAt = Date.now(); S.ver = VERSION; localStorage.setItem(MODE.key, JSON.stringify(S)); localStorage.setItem(MODE_KEY, MODE.id); } catch (e) {} }
 
 // ═══════════ 계산 ═══════════
@@ -628,9 +692,56 @@ const power = () => 10 * (1 + E.pflat) * Math.pow(1.08, S.base.power) * Math.pow
 const netR = () => NET_BASE * Math.pow(1.04, S.base.net) * (1 + E.net + E.netall) * mod('net');
 const voyTime = () => (15 + E.time) * mod('time');   // 원작 기본 15초
 const xpNeed = lv => Math.floor(400 * Math.pow(1.15, lv - 1));
-const masteryMult = f => 1 + 0.05 * (S.mastery[f.id] || 0);
-const unlockedFish = () => FISH.filter(f => f.i < 4 || E.un.fish[f.i]);   // 원작처럼 처음부터 4종
+// 2.1 B 어종 숙련: 그 어종이 풀리고(unlockedFish) 도감에 등록(1마리 이상)돼야 올릴 수 있음. 예전엔 레벨(1+i×3) 조건뿐이라 특성 트리에서 해금도 안 한 어종을 먼저 올렸고,
+// 비용(가치×40×2.2^단계)이 그 레벨의 경제와 무관해 너무 쌌음(처음에만 사고 안 봄). 이미 올린 단계는 잠긴 어종이어도 그대로 두고(효과 유지) 추가 구매만 막는다
+// 비용 = 기준값 U(그 어종이 풀리는 시점의 경제 = 특성 트리 해금 노드 비용, 0~3번은 해금 노드가 없어 등장 레벨 시점 벌이로 추정) × k × r^단계
+// 효과: 골드 +5%/단계(최대 10) · 5단계 그 어종 출현 +30% · 10단계 그 어종 체력 −20%(보스 제외)
+// 보정(progress.js chase, 2.1 A 빌드): 해금 시점 항해당 골드 G 는 U 의 약 1~3배, 다음 어종이 열릴 때까지 경제는 ×3~5 뿐 → 단계 배수 2.2 면 10단계가 서너 어종 뒤로 밀림.
+// k 1.5 · r 1.25 → 1단계 ≈ 해금 직후 항해 1~2회 벌이, 10단계 합 ≈ 그 사이 벌이를 전부 넣으면 다음 어종 해금 즈음. 0~3번 U 는 등장 시점 G(약 17·20·65·110)로 잡음
+// 검증수정v1: 후반 어종은 해금 직후 항해당 골드가 해금 노드 비용의 5~25배(어장 배수·천상 곱배수) → 1단계 비용 ÷ 항해당 골드가 참치 .25·빛해파리 .2·우주고래 .09·고래상어 .05 였음.
+// uMul = 어종별 보정 배수(progress chase 일반 2회·하드 1회 로그의 해금 직후 3항해 평균 기준, 목표 비율 0.5~3 가운데 약 1.2). 순서도 실제 해금 순서(연어<참치, 대왕오징어<우주고래)와 맞음
+const MASTERY = { max: 10, per: .05, k: 1.5, r: 1.25, early: [12, 30, 60, 120], uMul: { 4: 1.5, 5: 2, 10: 4, 11: 1.6, 14: 2.5, 16: 6, 17: 2.5, 18: 10, 19: 25 }, spawnLv: 5, spawn: .3, hpLv: 10, hp: .8 };
+const masteryMult = f => 1 + MASTERY.per * (S.mastery[f.id] || 0);
+let _mU = null;
+const masteryU = f => (_mU || (_mU = FISH.map(g => { const n = TREE.find(x => x.ef === 'fish' && x.tg === g.i); return (n ? n.costs[0] : MASTERY.early[g.i] || 1) * (MASTERY.uMul[g.i] || 1); })))[f.i];
+const masteryLock = f => !unlockedFish().includes(f) ? (f.i < 4 ? `🔒 Lv.${EARLY_FISH.lv[f.i]}부터 나와요` : '🔒 특성 트리에서 해금') : (S.counts[f.id] || 0) > 0 ? '' : '🔒 먼저 1마리 잡기';
+const masteryCan = f => !masteryLock(f) && (S.mastery[f.id] || 0) < MASTERY.max && canPay(masteryCost(f));
+const masterySpawn = f => (S.mastery[f.id] || 0) >= MASTERY.spawnLv ? 1 + MASTERY.spawn : 1;
+const masteryHp = f => (S.mastery[f.id] || 0) >= MASTERY.hpLv && f.beh !== 'boss' ? MASTERY.hp : 1;
+// 2.1 B 도감 보상: 별(10·100·1천·1만·10만 마리)마다 그 어종 골드 +2%(어종당 5개 +10% 상한). 새 별은 항구 복귀 때 토스트 + 도감 탭 점(dexCheck)
+const DEX = { per: .02, next: [10, 100, 1000, 1e4, 1e5] };
+const dexMult = f => 1 + DEX.per * stars(S.counts[f.id] || 0);
+const fishMult = f => masteryMult(f) * dexMult(f);
+function dexSnap() { const o = {}; FISH.forEach(f => { if (S.counts[f.id] > 0) o[f.id] = stars(S.counts[f.id]); }); return o; }
+function dexCheck() {   // 항구로 돌아왔을 때: 새로 등록한 어종(= 숙련 열림)·새 별을 토스트 하나씩으로 묶어 알림. 항해 중엔 부르지 않음
+  if (!MODE || V) return; const seen = S.dexSeen || (S.dexSeen = {}), reg = [], up = [];
+  FISH.forEach(f => { const n = S.counts[f.id] || 0; if (!n) return; const st = stars(n);
+    if (seen[f.id] == null) { reg.push(f); if (st) up.push([f, st]); } else if (st > seen[f.id]) up.push([f, st]); seen[f.id] = st; });
+  if (reg.length) { toast(`📖 도감 등록: ${reg.map(f => f.name).join(' · ')} — 어종 숙련이 열렸어요`, 'port'); S.mNew = 1; S.dexNew = 1; }
+  if (up.length) { toast(`⭐ 도감 새 별: ${up.map(([f, st]) => `${f.name} ★${st}`).join(' · ')} — 별마다 그 어종 골드 +${DEX.per * 100}%`, 'port'); S.dexNew = 1; Sound.play('meld'); }
+  if (reg.length || up.length) renderTop();
+}
+const earlyFishOk = f => f.i === 0 || earlyRamp() + 1 >= EARLY_FISH.lv[f.i] || (S.counts[f.id] || 0) > 0;   // 2.1 A-1: 0~3번은 레벨(또는 항해 수, earlyRamp)로 등장. 이미 잡아 본 어종(기존 세이브)은 레벨과 무관하게 그대로
+const unlockedFish = () => FISH.filter(f => (f.i < 4 && earlyFishOk(f)) || E.un.fish[f.i]);   // 4번부터는 원작처럼 특성 트리
 const mapUnlocked = i => i === 0 || !!E.un.map[i];
+// 2.1 A-2 연출 단계(JUICE 0~4): 연출 자체가 성장 보상. 0 시작 / 1 Lv10 또는 산호초 / 2 Lv25 또는 난파선 / 3 Lv45 또는 심해 / 4 환상의 바다. 항해 중에는 시작 시점 값(V.J)으로 고정
+let JUICE_OVR = null; const JUICE_VOY = 30;   // 단계 1 안전판: 항해 30회(약 9분)면 레벨과 무관하게 단계 1. 방치(그물 고정)는 단계 0(반전 없이 한 번 지나감)에서 거의 못 잡아 하드 방치가 Lv10 까지 33분 걸렸음
+const juiceLv = () => JUICE_OVR != null ? JUICE_OVR : !MODE ? 4 : mapUnlocked(4) ? 4 : S.lv >= 45 || mapUnlocked(3) ? 3 : S.lv >= 25 || mapUnlocked(2) ? 2 : S.lv >= 10 || mapUnlocked(1) || (S.voyages || 0) >= JUICE_VOY ? 1 : 0;
+const JL = () => V && V.J != null ? V.J : juiceLv();
+const JUICE_MSG = [null, '콤보 — 연속으로 잡으면 골드가 늘어요', '광란의 5초 · 치명타 — 마지막 5초엔 물고기가 몰려요', '희귀 광채 — 큰 수확은 번쩍여요', '35 콤보 — 콤보 배수 ×1.5'];
+function juiceCheck() {   // 항구로 돌아왔을 때 단계가 올랐으면 토스트 + 작은 꽃가루. 기존 세이브는 처음 한 번 진행도로 조용히 맞춤(juiceSeen 없음)
+  if (!MODE || V) return; const j = juiceLv();   // 검증수정v1 c: 항해 중(V 있음 — '한 판 더!')에는 알리지 않고 다음 항구 복귀 때
+  if (S.juiceSeen == null) { S.juiceSeen = j; return; }
+  if (j <= S.juiceSeen) return;
+  for (let k = S.juiceSeen + 1; k <= j; k++) if (JUICE_MSG[k]) toast('✨ 새 연출 해금: ' + JUICE_MSG[k], 'port');
+  S.juiceSeen = j; confetti(10); Sound.play('meld');
+}
+function earlyFishArrive() {   // 초반 어종이 처음 등장하는 순간(레벨업·항해 시작) 알림 한 번(S.earlyAnn 비트). 항해 중이면 풀에 바로 넣어 이번 항해부터 나오게
+  if (!MODE) return; const nf = FISH.filter(f => f.i > 0 && f.i < 4 && earlyFishOk(f) && !((S.earlyAnn || 0) & (1 << f.i)));
+  if (!nf.length) return;
+  nf.forEach(f => { S.earlyAnn = (S.earlyAnn || 0) | (1 << f.i); if (!(S.counts[f.id] > 0)) setTimeout(() => toast(`🐟 새 어종: ${f.name}`, 'port'), 700); });   // 이미 잡아 본 어종(기존 세이브)은 비트만 켜고 조용히
+  if (V) { V.pool = unlockedFish(); V.pool.forEach(sprite); }
+}
 const powerUnlocked = id => !!E.un.pw[id];
 const capUnlocked = id => id === 'chamchi' || !!E.un.cap[id] || !!S.captains[id] || !!(CAP_ACH[id] && CAP_ACH[id].ok());
 const capLockTxt = id => CAP_ACH[id] ? CAP_ACH[id].s : '특성 트리';   // 선장 탭 잠금 문구
@@ -646,12 +757,12 @@ const pupCost = (id, i) => { const k = POWERS[id].sk[i], pi = Object.keys(POWERS
   return { gold: Math.round(120 * Math.pow(2.6, lv + i * .6) * Math.pow(2.2, pi) * (k.max === 1 ? 6 : 1)), dia: Math.round((3 + 5 * lv + 4 * i) * (k.max === 1 ? 4 : 1)) }; };
 const skDone = () => Object.keys(POWERS).reduce((a, id) => a + POWERS[id].sk.filter((k, i) => pupLv(id, i) > 0).length, 0);
 const baseCost = k => Math.round((k === 'power' ? 30 : 60) * Math.pow(k === 'power' ? 1.22 : 1.35, S.base[k]));
-const relicUpCost = id => ({ gold: Math.round(500 * Math.pow(2.6, (S.relics[id] || 1) - 1)), dia: 10 + 12 * ((S.relics[id] || 1) - 1) });
-const masteryCost = f => ({ gold: Math.round(f.gold * 40 * Math.pow(2.2, S.mastery[f.id] || 0)), dia: 2 + 3 * (S.mastery[f.id] || 0) + f.i });
+const relicUpCost = id => { const T = RELIC_TIERS[(relicById[id] || {}).t || 0], k = (S.relics[id] || 1) - 1; return { gold: Math.round(T.gold * Math.pow(2.6, k)), dia: T.dia[0] + T.dia[1] * k }; };   // 2.1 E: 단계별 기준 × 2.6^(단계-1), 다이아도 단계별(RELIC_TIERS)
+const masteryCost = f => { const lv = S.mastery[f.id] || 0; return { gold: Math.round(masteryU(f) * MASTERY.k * Math.pow(MASTERY.r, lv)), dia: 2 + 3 * lv + f.i }; };   // 2.1 B: 기준값 U × k × r^단계(위 MASTERY)
 function addXp(n) {
   S.xp += n; let up = 0;
   while (S.xp >= xpNeed(S.lv)) {
-    S.xp -= xpNeed(S.lv); S.lv++; up++;
+    S.xp -= xpNeed(S.lv); S.lv++; up++; earlyFishArrive();
     const u = unlocksAt(S.lv);
     if (u.length) { u.forEach(x => { const b = document.querySelector(`[data-tab="${x.tab}"]`); if (b && S.tab !== x.tab) b.classList.add('alert'); }); setTimeout(() => { toast('🔓 ' + u.map(x => x.s).join(' · ')); Sound.play('meld'); confetti(12); }, 600); }
   }
@@ -668,16 +779,16 @@ function lvUpFx(up) {   // P-6: 연속 레벨업은 "LEVEL UP! ×3 (Lv.12)" 한 
   const e2 = document.createElement('div'); e2.className = 'lvup'; e2.textContent = up > 1 ? `LEVEL UP! ×${up} (Lv.${S.lv})` : `LEVEL UP! ${S.lv}`; document.body.appendChild(e2); addXp._el = e2; addXp._n = up; addXp._t = setTimeout(() => e2.remove(), 1600);
 }
 // 이 레벨에서 열리는 것들
-function unlocksAt(lv) {
+function unlocksAt(lv) {   // 2.1 B: 숙련 레벨 해금(1+i×3) 삭제(숙련은 도감 등록으로 열림) → 초반 어종 등장 레벨만 안내. 이미 나온 어종은 뺌(레벨업 순간엔 earlyFishArrive 가 먼저 토스트)
   const out = [];
-  FISH.forEach((f, i) => { if (1 + i * 3 === lv) out.push({ tab: 'mastery', s: `🐟 ${f.name} 숙련 열림` }); });
+  FISH.forEach(f => { if (f.i > 0 && f.i < 4 && EARLY_FISH.lv[f.i] === lv && !earlyFishOk(f)) out.push({ tab: 'dex', s: `🐟 ${f.name} 등장` }); });
   return out;
 }
 function nextUnlock(from) { for (let lv = from + 1; lv <= 300; lv++) { const u = unlocksAt(lv); if (u.length) return { lv, u }; } return null; }
 function levelInfo() {
   const n = nextUnlock(S.lv);
   showSheet('📗', `레벨 ${S.lv}`, `물고기를 잡으면 경험치가 올라요 · <b>낚시력 +${Math.round((Math.pow(1.02, S.lv - 1) - 1) * 100)}%</b> (레벨당 +2%)` +
-    (n ? `<br>다음 해금 → <b>Lv.${n.lv}</b>: ${n.u.map(x => x.s).join(', ')}` : '<br>더 열릴 건 없어요 — 이제 순수 성장!'), null,
+    (n ? `<br>다음 해금 → <b>Lv.${n.lv}</b>: ${n.u.map(x => x.s).join(', ')}` : '<br>새 어종·어장은 특성 트리에서 열려요'), null,
     `<span class="pz">${fmt(Math.floor(S.xp))} / ${fmt(xpNeed(S.lv))}<small>다음 레벨까지</small></span>`);
 }
 function stars(n) { return n >= 1e5 ? 5 : n >= 1e4 ? 4 : n >= 1000 ? 3 : n >= 100 ? 2 : n >= 10 ? 1 : 0; }
@@ -691,16 +802,27 @@ let PT = TOP_PAD, PB = 60;   // 물고기 y 안전 여백(월드). 기본은 원
 const sprites = {};
 function sprite(f) {   // 논리 크기 90*f.s 고정. 선명도는 SPR_K 로 래스터만 키움
   const k = f.id + '@' + SPR_K; if (sprites[k]) return sprites[k];
-  const w = Math.round(90 * f.s), h = Math.round(w * 92 / 136), img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fishArt(f, w * SPR_K));
-  return sprites[k] = { img, w, h };
+  const w = Math.round(90 * f.s), h = Math.round(w * 92 / 136), img = new Image(), sp = sprites[k] = { img, w, h };
+  const K = SPR_K; img.onload = () => { sp.img = rasterSvg(img, w, h, K); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fishArt(f, w * SPR_K));
+  return sp;
+}
+function rasterSvg(img, w, h, K) {   // 2.1 C: SVG 이미지를 SPR_K 배율 비트맵(캔버스)으로 1회 래스터. 매 프레임 SVG 를 drawImage 하던 게 후반 draw 시간의 약 40%(CPU 프로파일 drawImage 1위)였음. 모양은 같은 해상도 그대로. .complete 는 draw 의 로딩 확인용
+  try { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * K)); c.height = Math.max(1, Math.round(h * K)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.complete = true; return c; } catch (e) { return img; }
 }
 function spriteWhite(f) {   // fill·stroke 를 전부 #fff 로 치환한 SVG. 피격 플래시·포획 팝에 씀. 원본 아트 불변
   const sp = sprite(f); if (sp.white) return sp.white;
   const src = fishArt(f, sp.w * SPR_K).replace('<svg ', '<svg fill="#fff" ').replace(/fill="(?!none)[^"]*"/g, 'fill="#fff"').replace(/fill:(?!none)[^;"]+/g, 'fill:#fff').replace(/stroke="(?!none)[^"]*"/g, 'stroke="#fff"');
-  const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+  const img = new Image(), K = SPR_K; img.onload = () => { sp.white = rasterSvg(img, sp.w, sp.h, K); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);   // 2.1 C: 흰 실루엣도 비트맵으로
   return sp.white = img;
 }
 const glowCache = {};
+const GLY = {};   // 2.1 C: 캔버스 이모지(바닥 장식·보스 왕관·보물상자·표류병·유물) 비트맵 캐시. fillText(이모지)는 글꼴 조합·래스터가 매 프레임 다시 돌아 비쌈
+function glyph(ch, px, x, y) {   // fillText(ch, x, y) 와 같은 자리(textAlign center · alphabetic 기준선 · `${px}px serif`)에 비트맵으로
+  const sc = VS * DPR, k = ch + '@' + px + '@' + sc; let g = GLY[k];
+  if (!g) { const c = document.createElement('canvas'), q = c.getContext('2d'), pad = Math.ceil(px * .35); q.font = `${px}px serif`; const mw = q.measureText(ch).width, lw = mw + pad * 2, lh = px * 1.3 + pad * 2;
+    c.width = Math.max(1, Math.ceil(lw * sc)); c.height = Math.max(1, Math.ceil(lh * sc)); q.setTransform(sc, 0, 0, sc, 0, 0); q.font = `${px}px serif`; q.textAlign = 'center'; q.fillText(ch, lw / 2, pad + px); g = GLY[k] = { c, lw, lh, by: pad + px }; }
+  ctx.drawImage(g.c, x - g.lw / 2, y - g.by, g.lw, g.lh);
+}
 function glowImg(color) {   // 128px 오프스크린 radialGradient 1회 렌더 후 캐시. 희귀 어종 광채(단계 C #15)
   if (glowCache[color]) return glowCache[color];
   const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
@@ -725,12 +847,29 @@ function hudPad() {   // HUD(.vhud 아래끝)·능력바(#pbar 위끝)를 월드
   const tb = toWorld(0, hud.getBoundingClientRect().bottom).y, pt = toWorld(0, pb.getBoundingClientRect().top).y;
   PT = Math.min(H * .35, Math.max(TOP_PAD, Math.ceil(tb) + 8)); PB = Math.min(H * .25, Math.max(60, Math.ceil(H - pt) + 8));
 }
-function hudFit() {   // HUD 한 줄 폭 맞춤(2.0 마감). 넘치면 .tight → 그래도 넘치면 .tight2. 바뀌었으면 true(호출자가 hudPad 로 여백 재측정). 타이머는 CSS flex:none 이라 밀리지 않음
-  const hud = document.querySelector('#voyage .vhud'); if (!hud || !hud.clientWidth) return false;
-  const was = hud.className.replace(' fitm', ''); hud.classList.remove('tight', 'tight2', 'tight3', 'tight4', 'tight5'); hud.classList.add('fitm'); if (V) { V.hudShort = 0; hudNums(); }   // 검증수정2: .fitm = 재는 동안만 타이머 .beat·골드 .pop·콤보 .bump 의 scale 을 끔(커진 모양이 scrollWidth 를 늘려 데스크톱 카운트다운 때 tight~tight5 로 바뀌던 문제). transform 만 덮어써 애니메이션은 다시 시작되지 않음
-  for (const c of ['tight', 'tight2', 'tight3', 'tight4', 'tight5']) { if (hud.scrollWidth <= hud.clientWidth + 1) break; hud.classList.add(c); if (c === 'tight4' && V) { V.hudShort = 1; hudNums(); } }   // 검증수정1: tight4 = 골드·다이아 짧은 표기, tight5 = 하드 🔥 배지를 레벨 아래로 내림(타이머가 화면 밖으로 밀리지 않게)
-  hud.classList.remove('fitm');
+function hudFit(from) {   // HUD 한 줄 폭 맞춤(2.0 마감). 넘치면 .tight → 그래도 넘치면 .tight2. 바뀌었으면 true(호출자가 hudPad 로 여백 재측정). 타이머는 CSS flex:none 이라 밀리지 않음
+  const hud = document.querySelector('#voyage .vhud'); if (!hud || !hud.clientWidth) { if (V) V.hudCal = { k: 0, cal: [] }; return false; }
+  const LV = ['tight', 'tight2', 'tight3', 'tight4', 'tight5'], k0 = V && V.hudCal && V.hudCal.cal.length ? Math.max(0, Math.min(5, from | 0)) : 0;   /* 배포마감 2회차: from = 이 단계부터 잼(hudCheck 가 예측으로 고른 단계). 기준값이 없으면 0 부터 */
+  const was = hud.className.replace(' fitm', ''); hud.classList.remove(...LV); for (let i = 0; i < k0; i++) hud.classList.add(LV[i]); hud.classList.add('fitm'); if (V) { V.hudShort = k0 >= 4 ? 1 : 0; hudNums(); }   // 검증수정2: .fitm = 재는 동안만 타이머 .beat·골드 .pop·콤보 .bump 의 scale 을 끔(커진 모양이 scrollWidth 를 늘려 데스크톱 카운트다운 때 tight~tight5 로 바뀌던 문제). transform 만 덮어써 애니메이션은 다시 시작되지 않음
+  const cal = k0 ? V.hudCal.cal.slice(0, k0) : []; let k = k0; while (k < 5) { const o = hud.scrollWidth - hud.clientWidth; if (V) cal[k] = hudCalAt(hud, o); if (o <= 1) break; hud.classList.add(LV[k]); k++; if (k === 4 && V) { V.hudShort = 1; hudNums(); } }   /* 배포마감 2회차: 단계마다 글꼴·글자 폭·남는 폭(room)을 기록(같은 레이아웃에서 읽어 추가 리플로 없음). 이후 hudCheck 는 DOM 을 읽지 않고 캔버스 measureText 로만 판단. from 아래 단계의 기록은 그대로 둠(단계별 고정 폭은 글자와 무관해 계속 유효) */   // 검증수정1: tight4 = 골드·다이아 짧은 표기, tight5 = 하드 🔥 배지를 레벨 아래로 내림(타이머가 화면 밖으로 밀리지 않게)
+  hud.classList.remove('fitm'); if (V) V.hudCal = { k, cal };
   return hud.className !== was;
+}
+const HMC = document.createElement('canvas').getContext('2d');   /* 배포마감 2회차: HUD 폭 예측 전용 measureText 캔버스(그리기 ctx 의 글꼴 상태를 건드리지 않게) */
+const hudW = (f, s) => s ? mtw(HMC, f[0], s) + f[1] * s.length : 0;   /* 글자 폭 + letter-spacing(.cur b 는 -.5px) × 글자 수 */
+const hudTxt = (r, g, d, n, c) => hudW(r.fg, g) + hudW(r.fd, d) + (r.gainOn ? hudW(r.fn, n) : 0) + (c && r.cx >= 0 ? r.cx + hudW(r.fc, c) : 0);   /* 한 줄에서 폭이 바뀌는 글자(골드·다이아·가산·한 줄 안의 콤보)의 합. 레벨 원·경험치 글자·타이머는 폭 고정이라 뺌 */
+function hudCalAt(hud, o) {   /* 배포마감 2회차: hudFit 이 한 단계를 잰 그 레이아웃에서 기준값 기록 */
+  const fo = el => { const s = getComputedStyle(el); return [`${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`, parseFloat(s.letterSpacing) || 0]; }, g = $('vgold'), d = $('vdia'), n = $('vgain'), cb = $('combo'), cs = getComputedStyle(cb);
+  const r = { fg: fo(g), fd: fo(d), fn: fo(n), fc: fo(cb), gainOn: getComputedStyle(n).display !== 'none', cx: -1, room: -o };   /* room = 이 단계에서 남는 폭(넘쳤으면 넘친 폭만큼 음수) */
+  if (cs.position !== 'absolute') r.cx = ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'].reduce((a, p) => a + (parseFloat(cs[p]) || 0), 0) + (parseFloat(getComputedStyle(hud).columnGap) || 0);
+  r.t0 = hudTxt(r, g.textContent, d.textContent, n.textContent, cb.classList.contains('on') ? cb.textContent : ''); if (o <= 1) r.room = Math.max(0, hudFree(hud)); return r;
+}
+function hudWant() {   /* 배포마감 2회차: DOM 을 읽지 않고 판단. 2 = 지금 단계가 넘침(바로 hudFit), 1 = 한 단계 넓혀도 들어감(0.5초 간격), 0 = 그대로 */
+  const C = V.hudCal; if (!C || !C.cal.length) return 2; const k = C.k, hs = V.hs || {}, cb = $('combo'), c = cb.classList.contains('on') ? cb.textContent : '';
+  const tx = L => { const f = L >= 4 ? fmtS : fmt; return hudTxt(C.cal[L], f(Math.floor(V.shown || 0)), f(S.dia), hs.vgain || '', c); };
+  if (C.cal[k] && tx(k) - C.cal[k].t0 > C.cal[k].room + 1) return 2;   /* 늘어난 글자 폭이 잴 때 남던 폭을 넘음 */
+  if (k > 0 && C.cal[k - 1] && tx(k - 1) - C.cal[k - 1].t0 <= C.cal[k - 1].room - 2) return 1;   /* 한 단계 넓힌 모양에서도 들어갈 만큼 글자가 줄었음 */
+  return 0;
 }
 function hudNums() { if (!V) return; const f = V.hudShort ? fmtS : fmt; $('vgold').textContent = f(Math.floor(V.shown || 0)); $('vdia').textContent = f(S.dia); }
 function hudGoldPos() { const el = $('curGoldV'); if (!el) return { x: W / 2, y: 40 }; const r = el.getBoundingClientRect(); return toWorld(r.left + r.width / 2, r.top + r.height / 2); }   // 단계 C 의 코인 비행 종점
@@ -740,15 +879,15 @@ function remapWorld(ow, oh, nw, nh) {   // 가로↔세로 전환 시 논리 좌
   V.trail.forEach(mv); V.fly.forEach(f => { f.x0 *= kx; f.y0 *= ky; f.cx *= kx; f.cy *= ky; }); if (V.lastNet) mv(V.lastNet);
 }
 window.addEventListener('resize', () => { if (V) resize(); });
-function screen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
+function screen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); toast._screen(id); }   /* 배포마감: 항해 중 토스트 보류·복귀 시 이어 보이기 */
 
 function startVoyage() {
   if (!MODE) return false;   // 최종검수 수정: 로비(슬롯 미선택)에서 tuna.startVoyage() 를 부르면 MODE null 로 중간에 예외가 나며 항해 화면만 켜진 채 남던 문제
-  const map = MAPS[S.map]; const pool = unlockedFish();   // 원작: 해금한 물고기는 어느 어장에서나 나옴
+  earlyFishArrive(); const map = MAPS[S.map]; const pool = unlockedFish();   // 원작: 해금한 물고기는 어느 어장에서나 나옴. 2.1: 항해 수로 초반 어종이 풀리면 여기서 알림
   screen('voyage'); resize(); document.querySelectorAll('.confetti').forEach(e => e.remove());   // 검증수정2: 항구에서 떨어지던 DOM 꽃가루가 항해 화면(숫자·배너) 위로 이어지지 않게
   pool.forEach(sprite);   // SPR_K 확정 후 래스터
   V = { map, pool, t: 0, left: voyTime(), fish: [], texts: [], fx: [], parts: [], shk: 0, relicsOnScreen: [], chests: [], bottles: [], bottleT: rnd(5, 10), fpsT: 0, gold: 0, dia: 0, xp: 0, caught: 0, best: null, net: { x: W / 2, y: H / 2 }, cd: {}, spawnT: 0, chestT: rnd(4, 9), sndT: 0, ended: false, newRelics: [], bosses: 0,
-    grpSeq: 0, topDone: [], fr: { spd: 1, spawn: 1, gold: 1 }, frenzyOn: 0, portrait: H > W, hudGold: null,
+    grpSeq: 0, topDone: [], fr: { spd: 1, spawn: 1, gold: 1 }, frenzyOn: 0, portrait: H > W, hudGold: null, J: juiceLv(),   // J: 2.1 연출 단계(항해 동안 고정)
     // 단계 C: 콤보·연출 상태. 상한은 parts 420 / texts 60 / fx 40 / fly 60 / trail 8 / banner 1 / slowmo 1
     combo: 0, comboT: 0, comboStep: 0, comboShown: '', fly: [], trail: [], trailT: 0, banner: null, dim: 0, slowmo: 0, vign: 0, lastSec: -1, rippleT: 0, whooshT: 0, bubT: 0, lastNet: null, bossShown: '', fitT: 9,   // fitT 9 = 첫 update 에서 바로 hudFit
     rips: [], bq: [], agg: [], lvTx: null,   // 연출 폴리시(P): 스폰 물결(상한 20) · 배너 대기열(상한 6) · 합친 숫자 · 레벨업 글자
@@ -759,23 +898,27 @@ function startVoyage() {
   for (let i = 0; i < 6 + E.school && V.fish.length < maxFish(); i++) spawnFish();   // 초기 물고기 떼
   $('capPortrait').innerHTML = catArt(CAPTAINS.find(c => c.id === S.captain), 56);
   renderPbar(); hudFit(); hudPad(); calcSafe(); Sound.theme('playful'); Sound.play('deal');   // 능력바가 그려진 뒤 실측(위 resize() 시점엔 V 도 pbar 내용도 없음)
-  lastF = __now(); clearInterval(startVoyage._iv); startVoyage._iv = setInterval(tick, 16); requestAnimationFrame(frame);
+  V.needFit = 1; lastF = __now(); clearInterval(startVoyage._iv); startVoyage._iv = setInterval(bgTick, 100); if (!frame._on) { frame._on = 1; requestAnimationFrame(frame); }   // 2.1 C: 한 루프(rAF 에서 update → draw). setInterval 은 rAF 가 멈춘(탭 숨김) 동안만 로직을 이어 감. frame._on: 항해를 연달아 열어도 rAF 루프는 하나
 }
+function bgTick() { if (V && performance.now() - (frame._t || 0) > 150) tick(); }   // 2.1 C: rAF 가 0.15초 넘게 안 돌면(탭 숨김·iframe 숨김) 여기서 로직만 진행. 보이는 동안은 아무것도 안 함(예전: 16ms setInterval update + rAF draw 이중 루프)
 function renderPbar() { $('pbar').innerHTML = Object.keys(POWERS).map(id => `<div class="ps ${powerUnlocked(id) ? '' : 'lock'}" id="ps-${id}">${POWERS[id].icon}<div class="cd" id="cd-${id}" style="display:none"></div></div>`).join(''); }
-// 로직은 setInterval(백그라운드에서도 실시간 유지), 그리기는 rAF
+// 로직·그리기 모두 rAF(frame). 탭이 숨겨져 rAF 가 멈추면 bgTick(setInterval)이 로직을 실시간으로 이어 감
 function tick() {
   if (!V) return; const now = __now(); const dt = Math.min(2, (now - lastF) / 1000); lastF = now; tickDt(dt);
 }
 function tickDt(dt) {   // 실시간 dt 를 게임 시간으로. 슬로모(보스 포획 .6s)는 실시간으로 줄고 게임만 ×.25, 마지막 0.5초는 ×.4 (단계 C-3)
   while (dt > 0 && V) { const k = V.slowmo > 0 ? .25 : V.left <= .5 ? .4 : 1, step = Math.min(0.05, dt); dt -= step; if (V.slowmo > 0) V.slowmo -= step; update(step * k); }
 }
-function frame() { if (!V) return; draw(); requestAnimationFrame(frame); }
+function frame() { if (!V) { frame._on = 0; return; } frame._t = performance.now(); hudCheck(); const t = performance.now(); tick(); frame._u = performance.now() - t; if (V) draw(); requestAnimationFrame(frame); }   // 2.1 C: 프레임 시작에 HUD 실측(hudCheck, 리플로 없음) → 로직(tick) → 그리기. frame._u = 이번 프레임 update 시간(tuna.perf)
 // ── 2.0 스폰: 월드 안 임의 위치 팝인 → 가장자리 반전 → 수명 끝나면 빠져나감. 보스만 가장자리 입장 ──
 const SPAWN = {
   bornT: 1.2,          // 등장 연출 길이(초). 스케일인. 단계 C 가 기포·소리를 얹음. 단계 F: .35→1.2 — 원본은 가장자리 밖에서 들어오는 1~2초 동안 못 잡았음(생기자마자 그물에 걸리는 연쇄 완화)
   hitWhileBorn: false, // 등장 중에는 피해 0 (그물 밑에서 팝인해 즉사하는 일 방지)
   life: [1.5, 16],     // 개체 수명 하한·상한(초). 지나면 반전 없이 가장자리로 빠져나가 사라짐. 단계 F: 하한 1.5초 — 참치·황새치처럼 빠른 어종은 금방 지나가 실제로 더 어렵게
   lifeDist: [.6, 1],   // 단계 F: 수명 = 헤엄친 거리 기준(월드 폭 W × 이 배수 ÷ 속도). 원본은 화면을 한 번 가로질러(≈1.1~1.2W) 빠져나갔음 → 체류 거리를 원본 수준으로. 빠른 어종일수록 짧게 머묾
+  early: [9, .5, 1.5],   // 2.1 A-1: 초반 상한 = 9 + 물고기 떼 급증×.5 + (레벨−1)×1.5 (earlyCapN). 기존 상한보다 작을 때만 적용(Lv15 즈음 만남). 7·1 은 방치(그물 고정) 하드가 35~55항해째 한 마리도 못 잡음 → 9·1.5(방치 Lv1 화면 8~10마리, 적극은 잡는 속도가 스폰에 막혀 2~3마리 그대로)
+  rampVoy: 3,          // 2.1 A-1: 항해 3회 = 레벨 1 만큼 결핍 해소(earlyRamp)
+  j0Int: [3.6, .3, 1.2],   // 2.1 A-1: 3·.25 는 빠른 봇(cluster)이 2항해 만에 첫 특성(50원) → 3.6·.3 으로 3항해째. 연출 단계 0(Lv1~9·갯바위) 스폰 간격 배수 = max(하한, 시작 − 레벨당 감소×(레벨−1)). 떼 없이 한 마리씩 + 간격 넓게 → 첫 항해가 "한 마리씩 잡는" 결핍 구간, 레벨마다 조금씩 해소
   capBase: 80,         // 단계 F: 동시 개체 상한의 바닥. 상한 = max(capBase, 40+떼 급증) × 모드 fishCap(일반 .3 → 24~37마리)
   respawnSingle: true, // 단계 F: 활력 급증(포획 후 생성)은 한 마리만. 떼 전체가 화면 안에 생기면 포획→생성이 연쇄 폭발(원본은 가장자리 밖에서 생겨 대부분 곧바로 사라졌음)
   bounceJitterY: 40,   // 반전 시 y 흔들림(논리)
@@ -785,16 +928,18 @@ const SPAWN = {
 function leave(fs) { fs.leaving = true; fs.dir = fs.x < W / 2 ? -1 : 1; fs.vx = fs.dir * Math.max(Math.abs(fs.vx), SPAWN.leaveSpd); }   // 이탈 시작: 최근접 가장자리로, 최소 속도 보장
 function spawnPos(sp) { const px = sp.w * .5 + 4, top = PT + sp.h * .5, bot = PB + sp.h * .5; return { x: rnd(px, W - px), y: rnd(top, H - bot) }; }   // 월드 안 임의 위치, 스프라이트가 온전히 보이는 여백만 확보
 const capK = () => MODE && MODE.earlyCap && S.lv < MODE.earlyLv ? MODE.earlyCap : mod('fishCap');   // 하드 초반(레벨 earlyLv 전)만 earlyCap. 일반은 earlyCap 없음 → fishCap 그대로
-const maxFish = () => Math.round(Math.max(SPAWN.capBase + Math.min(E.school, 22), 40 + E.school) * capK());   // 단계 F: 초반 상한이 너무 작으면 방치 플레이가 굶음. 마감: 예전 max(80, 40+떼)는 떼 급증 40 전까지 효과 0 → 80+min(떼,22) 로 초반부터 조금씩 오름(떼 62 이상은 40+떼 그대로, 후반 상한 불변)
+const earlyRamp = () => Math.max(S.lv - 1, (S.voyages || 0) / SPAWN.rampVoy);   // 2.1 A-1: 초반 결핍 해소 진행도 = 레벨−1 과 항해 수÷rampVoy 중 큰 값. 방치(그물 고정)는 레벨이 안 올라 결핍에 갇히던 문제 → 항해를 거듭하면 레벨과 무관하게 풀림
+const earlyCapN = () => SPAWN.early[0] + Math.min(E.school, 40) * SPAWN.early[1] + earlyRamp() * SPAWN.early[2];   // 2.1 A-1: 초반 동시 개체 상한. Lv1 새 세이브 8마리 → 물고기 떼 급증·레벨로 늘어 Lv20 즈음 기존 상한과 만남
+const maxFish = () => Math.round(Math.min(earlyCapN(), Math.max(SPAWN.capBase + Math.min(E.school, 22), 40 + E.school) * capK()));   // 단계 F: 초반 상한이 너무 작으면 방치 플레이가 굶음. 마감: 예전 max(80, 40+떼)는 떼 급증 40 전까지 효과 0 → 80+min(떼,22) 로 초반부터 조금씩 오름(떼 62 이상은 40+떼 그대로, 후반 상한 불변)
 const fishSpd = f => f.spd * (V.map.mod.speed || 1) * (V.map.mod.slow || 1) * rnd(1 - f.dev, 1 + f.dev) * mod('spd');   // 속도는 여기 한 곳. 논리 px/초
 const lifeFor = f => Math.max(SPAWN.life[0], Math.min(SPAWN.life[1], rnd(SPAWN.lifeDist[0], SPAWN.lifeDist[1]) * W / Math.max(30, fishSpd(f))));   // 단계 F: 거리 기준 수명(초)
 function addFish(f, x, y, dir, o) {
   o = o || {}; const sp = sprite(f), p = f.mvp;
-  const hp = f.hp * (1 - Math.min(.5, E.soft)) * mod(f.beh === 'boss' ? 'bossHp' : 'hp') * (f.beh === 'boss' ? 1 : (V.map.mod.hp || 1));   // 보스는 bossHp 만 적용(hp 와 곱하지 않음) → 규칙 문구 '보스 ×1.5' 와 일치. 어장 hp(천상 1.5)도 보스 제외
+  const hp = f.hp * masteryHp(f) * (1 - Math.min(.5, E.soft)) * mod(f.beh === 'boss' ? 'bossHp' : 'hp') * (f.beh === 'boss' ? 1 : (V.map.mod.hp || 1));   // 보스는 bossHp 만 적용(hp 와 곱하지 않음) → 규칙 문구 '보스 ×1.5' 와 일치. 어장 hp(천상 1.5)도 보스 제외
   const fs = { f, x, y, dir, vx: dir * fishSpd(f), vy: 0, hp, max: hp, hpShown: hp, w: sp.w, h: sp.h, ph: rnd(0, 6.28), hit: 0, flash: 0, jetT: 0, src: null,
     tank: f.beh === 'tank' || f.beh === 'boss', mvSpd: 1, dmgMul: 1, ph2: 0, phT: rnd(0, p.every ? 0 : .5), dartT: p.every ? rnd(p.every[0], p.every[1]) * mod('dartT') * (V.map.mod.dartT || 1) : 99, dart: 0, pre: 0, squash: 0,
     fleeT: 0, fleeCd: 0, inT: 0, puffT: 0, inked: 0, turnChk: 0, scT: 0, grp: o.grp || 0, lead: null,
-    born: o.noBorn ? 1 : 0, age: 0, life: o.life != null ? o.life : lifeFor(f), leaving: false, entering: !!o.entering, bounces: 0,
+    born: o.noBorn ? 1 : 0, age: 0, life: !V.J && f.beh !== 'boss' ? 999 : o.life != null ? o.life : lifeFor(f), leaving: false, entering: !!o.entering, bounces: 0,   // 2.1 A-3: 단계 0 은 수명 이탈(가까운 가장자리로 방향 전환) 없이 가던 방향으로만
     em: o.noBorn ? 0 : .15 + (o.delay || 0), rip: o.noBorn ? 0 : (o.delay || 0), pt: o.noBorn ? 1 : 0, wf: 0 };   // P-5: em = 물 밖으로 나오기까지(물결 0.15초 + 떼 시차), rip = 물결 시작까지, pt = 튀어나온 뒤 경과, wf = 흰 실루엣 번쩍
   if (f.mv === 'glide') fs.vy = (Math.random() < .5 ? -1 : 1) * f.spd * .35 * mod('spd');
   if (f.mv === 'drift') { fs.vx = 0; fs.vy = -f.spd * mod('spd'); }   // 해파리는 세로로 움직임
@@ -816,16 +961,17 @@ function spawnBoss(f, dir) {   // 보스만 가장자리 입장. 왕복 3회 뒤
   const sp = sprite(f), b = addFish(f, dir > 0 ? -sp.w : W + sp.w, rnd(PT + sp.h * .5, H - PB - sp.h * .5), dir, { life: 999, noBorn: 1, entering: 1 }); b.boss = 1; V.bosses++; return b;   // 보스도 스프라이트 끝 기준(반높이 58) 여백
 }
 // 단계 C 상한 헬퍼. 장식 이펙트는 상한을 넘기면 그냥 버린다(게임 로직 이펙트인 능력은 기존 push 유지)
-const pushPart = p => { if (V.parts.length < 420) V.parts.push(p); };
+const PART_MAX = 200;   // 2.1 C: 파티클 상한 420 → 200(후반 대량 포획에서 동전·기포·꽃가루가 상한에 붙어 매 프레임 400개 넘게 arc 를 그렸음). 기포(물결·궤적)는 상한의 85%·70% 까지만 → 동전·꽃가루 몫을 남김
+const pushPart = p => { if (V.parts.length < PART_MAX) V.parts.push(p); };
 const pushFx = f => { if (V.fx.length < 40) V.fx.push(f); };
 // ── 연출 폴리시(P): 글자 상한·안전 영역·획득 숫자 합치기·특별 글자 비켜 쌓기·중앙 배너 대기열·스폰 물결 ──
-const BOSS_BAN_GAP = { arrive: 12, caught: 8 };   // 검증수정2: 보스 등장·포획 배너 최소 간격(초)
+const BOSS_BAN_GAP = { arrive: 30, caught: 30 };   // 검증수정2: 보스 등장·포획 배너 최소 간격(초). 2.1 A-4: 12·8 은 천상 후반 항해의 22~39% 를 배너가 덮음(리바이어던 4~6회/항해) → 등장·포획 배너는 각각 30초에 한 번(항해당 약 1회). 나머지는 물결·충격파·소리·보스바·보상 숫자로
 const TXT_MAX = 12, AGG_WIN = .2, AGG_LIFE = .8, AGG_NEAR = 40, RIP_MAX = 20, POP_T = .32;   // 화면 글자 상한 12 · 합치기 창 0.2초(첫 팝부터 최대 0.8초) · 동시 물결 20 · 튀어나옴 0.32초
 let SAFE = { t: TOP_PAD, b: 660 };   // 캔버스 글자·배너 안전 영역(월드 y). calcSafe() 가 HUD·콤보·타이머·선장 초상·보스바(위) · 능력바·귀항(아래) 실측으로 갱신
 function calcSafe() {
   SAFE = { t: PT, b: H - PB }; if (!CW || !$('voyage').classList.contains('active')) return SAFE;
   let top = 0, bot = 1e9;
-  for (const s of ['#voyage .vhud', '#combo', '#timer', '#vmode', '#capPortrait', '#bossbar']) { const el = document.querySelector(s); if (!el) continue; const r = el.getBoundingClientRect(); if (r.width && r.height) top = Math.max(top, r.bottom); }
+  for (const s of ['#voyage .vhud', '#combo', '#timer', '#vmode', '#capPortrait', '#bossbar', '#vchip.show']) { const el = document.querySelector(s); if (!el) continue; const r = el.getBoundingClientRect(); if (r.width && r.height) top = Math.max(top, r.bottom); }
   for (const s of ['#pbar', '#btnEnd']) { const el = document.querySelector(s); if (!el) continue; const r = el.getBoundingClientRect(); if (r.width && r.height) bot = Math.min(bot, r.top); }
   const t = top ? toWorld(0, top).y + 6 : PT, b = bot < 1e9 ? toWorld(0, bot).y - 6 : H - PB;
   SAFE = { t: Math.max(0, Math.min(H * .4, t)), b: Math.min(H, Math.max(H * .6, b)) }; return SAFE;
@@ -835,8 +981,11 @@ function pushText(tx) {   // 화면 글자 상한 TXT_MAX: 넘치면 합친 숫�
   while (V.texts.length >= TXT_MAX) { let k = V.texts.findIndex(o => !o.keep); if (k < 0) k = V.texts.findIndex(o => o.pas); if (k < 0) k = 0; V.texts.splice(k, 1); }   // 검증수정1: 그다음은 패시브 발동 글자(pas)
   V.texts.push(tx); return tx;
 }
-const txtW = tx => { const k = V && V.portrait ? 1.3 : 1, sz = Math.min(tx.sz || 23, tx.maxSz || 48) * k; if (tx._mw == null || tx._ms !== tx.s || tx._mz !== sz) { ctx.save(); ctx.font = `${sz}px Jua`; tx._mw = ctx.measureText(tx.s).width; tx._ms = tx.s; tx._mz = sz; ctx.restore(); }
-  const f = TXT_POP * (1 + (tx.bump || 0) * .28), w = tx._mw * f, c = w > W * .4 ? W * .4 / w : 1; return { w: (tx._mw + sz * .22) * f * c + 4, h: sz * 1.26 * f * c }; };   // 외곽선(글자 크기의 22%)까지 포함한 눈에 보이는 폭·높이   // 검증수정1: draw 가 실제로 그리는 크기(팝 최대 1.12 × 합칠 때 튕김 최대 1.28, 폭 40% 상한)로 잼. 기본 크기로 재면 튕기는 동안·가장자리에서 이웃과 겹쳤음
+const MT = new Map();   // 2.1 C: measureText 캐시(글꼴+문자열 → 폭). 후반 CPU 의 약 15%가 같은 문자열을 반복해 재던 것(fitNum 은 숫자 하나에 최대 5번). 웹폰트(Jua)가 늦게 로드되면 비움
+const mtw = (c, font, s) => { const k = font + '\u0001' + s; let w = MT.get(k); if (w == null) { if (MT.size > 4000) MT.clear(); const f0 = c.font; c.font = font; w = c.measureText(s).width; c.font = f0; MT.set(k, w); } return w; };
+try { document.fonts.addEventListener('loadingdone', () => { MT.clear(); if (V) { V.needFit = 1; V.hudRefit = 1; } }); } catch (e) {}
+const txtW = tx => { const k = V && V.portrait ? 1.3 : 1, sz = Math.min(tx.sz || 23, tx.maxSz || 48) * k; if (tx._mw == null || tx._ms !== tx.s || tx._mz !== sz) { const S = Math.max(1, Math.round(sz * TXT_POP)); tx._mw = mtw(ctx, `${S}px Jua`, tx.s) * sz / S; tx._ms = tx.s; tx._mz = sz; }   // 2.1 C: textImg·fitNum 과 같은 글꼴 크기로 재서(캐시 적중) 비례 환산 — 새 문자열마다 measureText 3번 → 1번
+  const f = TXT_POP * (1 + (tx.bump || 0) * .28), w = tx._mw * f, cap = W * (tx.gv != null ? NUM_WMAX * (1 + (tx.bump || 0) * .28) : .4), c = w > cap ? cap / w : 1; return { w: (tx._mw + sz * .22) * f * c + 4, h: sz * 1.26 * f * c }; };   // 외곽선(글자 크기의 22%)까지 포함한 눈에 보이는 폭·높이   // 검증수정1: draw 가 실제로 그리는 크기(팝 최대 1.12 × 합칠 때 튕김 최대 1.28, 폭 40% 상한)로 잼. 기본 크기로 재면 튕기는 동안·가장자리에서 이웃과 겹쳤음. 2.1 D: 획득 숫자(gv)는 폭 50%(fitNum 이 표기로 맞춤)
 function stackText(tx) {   // 특별 글자(희귀·보스·크리·콤보 단계·레벨업·합친 숫자)는 생길 때 겹치면 세로로 비켜 둠: 제자리 → 한 줄 위 → 한 줄 아래 → 두 줄 위 … 가장 가까운 빈 줄(무리가 한쪽으로 길게 뻗지 않게). 이후 겹침은 매 틱 settleTexts
   const a = txtW(tx), top = txtTop(), y0 = Math.max(top + a.h * .9, Math.min(SAFE.b - a.h * .3, tx.y)), d = a.h + 3;
   const free = y => !V.texts.some(o => o !== tx && o.keep && o.t < 1 && (() => { const b = txtW(o); return Math.abs(o.y - y) < (a.h + b.h) / 2 + 2 && Math.abs(o.x - tx.x) < (a.w + b.w) / 2; })());
@@ -877,49 +1026,64 @@ function aggText(kind, x, y, v) {   // 일반 획득 숫자 합치기(P-1): 0.2�
   V.agg = V.agg.filter(a => V.texts.includes(a.tx) && V.t - a.born <= AGG_LIFE + .5);
   let a = V.agg.find(a => a.kind === kind && V.t - a.last <= AGG_WIN && V.t - a.born <= AGG_LIFE && (nearNet ? a.net : !a.net && Math.hypot(a.sx - x, a.sy - y) <= R + AGG_NEAR));
   if (a) { a.v += v; a.n++; a.last = V.t; const tx = a.tx, st = kind === 'g' ? numStyle(a.v) : null; if (a.net) tx.x += (V.net.x + (kind === 'd' ? 40 : 0) - tx.x) * .35;   // 그물을 끌며 잡는 중이면 가로로 살짝 따라감
-    tx.s = AGG_FMT[kind](a.v) + ' ×' + a.n; if (st) { tx.c = st.c; tx.glow = st.glow; tx.grad = st.grad; }
-    tx.sz = Math.min(48, (st ? st.sz : a.sz0) * (1 + Math.min(.3, .07 * Math.log2(a.n)))); if (tx.t > .18) tx.t = .18; tx.bump = 1; return tx; }
-  const ofs = kind === 'g' ? 0 : kind === 'x' ? 30 : 56, st = kind === 'g' ? numStyle(v) : null;
-  const tx = { x: nearNet ? V.net.x + (kind === 'd' ? 40 : 0) : x, y: (nearNet ? V.net.y - R - 14 : y - 10) + ofs, s: AGG_FMT[kind](v), c: st ? st.c : kind === 'x' ? '#9fe0a8' : '#9fe9ff', t: kind === 'x' ? -.06 : 0, sz: st ? st.sz : kind === 'x' ? 20 : 22, glow: st && st.glow, grad: st && st.grad, keep: 1, agg: 1 };
+    const j0 = !V.J;   // 2.1 A-2 단계 0: 합치기만(×N 배지 없음) · 작게(20px) · 튕김 작게
+    if (st) { tx.c = st.c; tx.glow = st.glow; tx.grad = st.grad; tx.sz = st.sz; tx.gv = a.v; tx.suf = j0 ? '' : ' ×' + a.n; fitNum(tx); }   // 2.1 D: 골드 합친 숫자는 합계 금액 기준 크기(numSz, 마리 수로 키우지 않음) + 폭 넘치면 표기 단축
+    else { tx.s = AGG_FMT[kind](a.v) + (j0 ? '' : ' ×' + a.n); tx.sz = j0 || tx.xpDim ? Math.min(20, a.sz0) : Math.min(48, a.sz0 * (1 + Math.min(.3, .07 * Math.log2(a.n)))); }
+    if (tx.t > .18) tx.t = .18; tx.bump = j0 ? .4 : 1; return tx; }
+  const xd = kind === 'x' && V.J <= 1;   // 검증수정v1 a: 연출 단계 0~1 경험치 숫자는 골드(+1)의 60% 크기·반투명·골드 아래로 — 같은 크기 초록 '+10' 이 돈으로 읽혔음("200원씩 벌려")
+  const ofs = kind === 'g' ? 0 : kind === 'x' ? (xd ? 40 : 30) : 56, st = kind === 'g' ? numStyle(v) : null;
+  const tx = { x: nearNet ? V.net.x + (kind === 'd' ? 40 : 0) : x, y: (nearNet ? V.net.y - R - 14 : y - 10) + ofs, s: AGG_FMT[kind](v), c: st ? st.c : kind === 'x' ? '#9fe0a8' : '#9fe9ff', t: kind === 'x' ? -.06 : 0, sz: st ? st.sz : xd ? Math.round(numSz(1, 'n') * .6) : Math.min(V.J ? 99 : kind === 'x' ? 16 : 20, kind === 'x' ? 20 : 22), glow: st && st.glow, grad: st && st.grad, keep: 1, agg: 1, xpDim: xd ? 1 : 0, a: xd ? .6 : 1 };
+  if (st) { tx.gv = v; tx.pre = '+'; tx.suf = ''; tx.maxSz = 999; fitNum(tx); }   // 2.1 D
   pushText(tx); stackText(tx);
   V.agg.push({ kind, v, n: 1, born: V.t, last: V.t, net: nearNet, sx: x, sy: y, tx, sz0: tx.sz }); return tx;
 }
+const BAN_GAP = 6;   // 2.1 A-4: 같은 종류(kind) 배너 최소 간격(초)
 function showBanner(b) {   // 중앙 배너 대기열(P-4): 보스 등장·보스 포획·광란·유물 발견·표류병 결과는 한 번에 하나. 대기 중인 게 있으면 현재 배너는 0.4초 지나는 순간 퇴장 시작
   if (!V) return; b.t = 0;
+  if (b.kind) {   // 2.1 A-4: 같은 종류가 대기열에 있으면 합치고(merge), 6초 안에 또 오면 배너 대신 작은 글자(alt)
+    V.banT = V.banT || {}; const q = V.bq.find(o => o.kind === b.kind);
+    if (q && b.merge) { q.n = (q.n || 1) + 1; q.s = b.merge(q.n); return; }
+    if (V.t - (V.banT[b.kind] ?? -99) < (b.gap || BAN_GAP)) { if (b.alt) b.alt(); return; }   // b.gap: 종류별 간격(유물 15초)
+    V.banT[b.kind] = V.t;
+  }
   if (!V.banner) { V.banner = b; return; }
   V.bq.push(b); if (V.bq.length > 6) V.bq.splice(V.bq.findIndex(o => !o.boss) >= 0 ? V.bq.findIndex(o => !o.boss) : 0, 1);   // 대기 상한 6, 넘치면 보스 아닌 것부터 버림
 }
 function spawnRip(fs) {   // 스폰 등장 0.15초 전(P-5): 물결 1~2 + 기포 폭발 6~8. 희귀(14+)·보스는 금색 물결 2겹·더 크게·기포 10. 동시 물결 RIP_MAX, 기포는 parts 360 까지만(상한 420 중 여유 남김)
-  const gold = fs.rare || fs.boss, n = gold ? 2 : Math.random() < .5 ? 2 : 1, r1 = fs.w * (gold ? 1.15 : .72);
+  const J = V.J;   // 2.1 A-2 스폰 등장: 단계 0 작은 기포 2~3 · 1 물결 1 · 2 물결+기포 · 3+ 희귀 금색 물결
+  if (!J) { const nb0 = 2 + (Math.random() < .5 ? 1 : 0); for (let i = 0; i < nb0 && V.parts.length < PART_MAX * .85; i++) { const a = rnd(0, 6.28), sp = rnd(30, 70); V.parts.push({ type: 'bub', x: fs.x + Math.cos(a) * 5, y: fs.y + Math.sin(a) * 5, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, t: 0, life: rnd(.3, .45), r: rnd(1.5, 2.5), c: '#fff' }); } return; }
+  const gold = (fs.rare && J >= 3) || fs.boss, n = J === 1 ? 1 : gold ? 2 : Math.random() < .5 ? 2 : 1, r1 = fs.w * (gold ? 1.15 : .72);
   for (let k = 0; k < n && V.rips.length < RIP_MAX; k++) V.rips.push({ x: fs.x, y: fs.y, t: -k * .07, life: gold ? .62 : .42, r0: fs.w * .12, r1: r1 * (1 - k * .22), c: gold ? '255,211,107' : '255,255,255', lw: gold ? 4 : 2.5 });
-  const nb = gold ? 10 : 6 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < nb && V.parts.length < 360; i++) { const a = rnd(0, 6.28), sp = rnd(50, 140); V.parts.push({ type: 'bub', x: fs.x + Math.cos(a) * 6, y: fs.y + Math.sin(a) * 6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, t: 0, life: rnd(.3, .55), r: rnd(1.5, 3.5), c: '#fff' }); }
+  const nb = J === 1 ? 0 : gold ? 10 : 6 + Math.floor(Math.random() * 3);   // 단계 1 은 물결만
+  for (let i = 0; i < nb && V.parts.length < PART_MAX * .85; i++) { const a = rnd(0, 6.28), sp = rnd(50, 140); V.parts.push({ type: 'bub', x: fs.x + Math.cos(a) * 6, y: fs.y + Math.sin(a) * 6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, t: 0, life: rnd(.3, .55), r: rnd(1.5, 3.5), c: '#fff' }); }
 }
+function hudShine(k) { const el = k === 'dia' ? document.querySelector('#voyage .cur.dia') : $('curGoldV'); if (!el || !reflowOk('shine' + k, 300)) return; reAnim(el, 'shine'); }   // 2.1 A-4: 표류병·유물 획득 때 HUD 골드/다이아 반짝
 function flyCoins(x0, y0, n, tier) {   // 포획 지점 → HUD 골드로 코인 비행(#3). 2차 베지어, 도착 시 소리·.pop 은 update 가 처리
   if (V.fly.length > 60) n = 1;
   for (let i = 0; i < n && V.fly.length < 60; i++) V.fly.push({ x0, y0, cx: x0 + rnd(-60, 60), cy: Math.min(y0, V.hudGold ? V.hudGold.y : 40) - 120, t: -i * .03, life: .55, tier });
 }
 const COMBO = [[35, 1.5], [20, 1.35], [10, 1.2], [5, 1.1]], COMBO_CAP2 = 2;   // 콤보 단계별 골드 배수. 고로케 선장(comboCap)은 마지막 단계만 COMBO_CAP2
-const comboMult = () => { if (!V) return 1; for (let i = 0; i < COMBO.length; i++) if (V.combo >= COMBO[i][0]) return i === 0 && E.comboCap ? COMBO_CAP2 : COMBO[i][1]; return 1; };   // 콤보 골드 배수(#4). 상한 ×1.5
+const comboMult = () => { if (!V || !V.J) return 1; for (let i = V.J >= 4 ? 0 : 1; i < COMBO.length; i++) if (V.combo >= COMBO[i][0]) return i === 0 && E.comboCap ? COMBO_CAP2 : COMBO[i][1]; return 1; };   // 콤보 골드 배수(#4). 상한 ×1.5. 2.1: 단계 0 은 잠김(×1), 35 단계(×1.5)는 단계 4 부터 — 그 전 상한 ×1.35
 const easeOutBack = t => 1 + 2.7 * Math.pow(t - 1, 3) + 1.7 * Math.pow(t - 1, 2);
 function starBurst(x, y, n, c) { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(80, 260); pushPart({ type: 'star', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, t: 0, life: .6, r: rnd(3, 5), rot: rnd(0, 6.28), c: c || '#fff8c4' }); } }
 function forceTop(idx) { const f = V.pool[idx]; if (!f) return; const dir = Math.random() < .5 ? 1 : -1; if (f.beh === 'boss') spawnBoss(f, dir); else { const p = spawnPos(sprite(f)); addFish(f, p.x, p.y, dir); } }
 function pickFish() {
   const rareBoost = 1 + E.rare + (V.map.mod.rare || 0), pool = V.pool;
-  const ws = pool.map((f, k) => f.w * (k >= pool.length - 2 ? rareBoost : 1) * (f.beh === 'school' ? .5 : 1));   // 원작 출현 가중치
+  const ws = pool.map((f, k) => f.w * (k >= pool.length - 2 ? rareBoost : 1) * (f.beh === 'school' && V.J ? .5 : 1) * masterySpawn(f));   // 원작 출현 가중치. 떼 어종 ×.5 는 떼로 여러 마리 나오는 몫 — 2.1 단계 0 은 한 마리씩이라 제외
   let t = ws.reduce((a, b) => a + b) * Math.random();
   for (let k = 0; k < pool.length; k++) { t -= ws[k]; if (t <= 0) return pool[k]; }
   return pool[0];
 }
 function spawnFish(single) {   // single: 떼 어종이어도 한 마리만(활력 급증 생성, 단계 F)
-  const f = pickFish(), sp = sprite(f), dir = Math.random() < .5 ? 1 : -1;
+  const f = pickFish(), sp = sprite(f); let dir = Math.random() < .5 ? 1 : -1;
   if (f.beh === 'boss') return spawnBoss(f, dir);
-  const p = spawnPos(sp);
-  if (f.beh === 'school' && !single) { const g = f.mvp.grp || [3, 6], n = g[0] + Math.floor(Math.random() * (g[1] - g[0] + 1)), life = lifeFor(f), grp = ++V.grpSeq;
+  const p = spawnPos(sp); if (!V.J) dir = p.x < W / 2 ? 1 : -1;   // 2.1 A-3: 연출 단계 0 은 먼 쪽 가장자리로 곧게 지나감(반전 없이 반대편으로 빠져나감)
+  // 2.1 A-1: 연출 단계 0 은 떼 없이 한 마리씩(첫 항해가 담백하게). 떼는 단계 1(Lv10·산호초)부터 성장 보상처럼 나타남
+  if (f.beh === 'school' && !single && V.J) { const g = f.mvp.grp || [3, 6], n = g[0] + Math.floor(Math.random() * (g[1] - g[0] + 1)), life = lifeFor(f), grp = ++V.grpSeq;
     let dl = 0; for (let i = 0; i < n; i++) { addFish(f, Math.max(sp.w / 2, Math.min(W - sp.w / 2, p.x - i * dir * 22 + rnd(-30, 30))), Math.max(PT, Math.min(H - PB, p.y + rnd(-40, 40))), dir, { life, grp, delay: dl }); dl += rnd(.03, .06); } }   // 떼는 같은 수명·같은 그룹 → 같이 빠져나감. P-5: 개체마다 0.03~0.06초 시차로 차례로 튀어나옴
   else addFish(f, p.x, p.y, dir);
 }
-const frenzy = () => V.left <= 5 ? { spd: mod('frenzySpd'), spawn: mod('frenzySpawn'), gold: mod('frenzyGold') } : { spd: 1, spawn: 1, gold: 1 };   // 마지막 5초 광란
+const frenzy = () => V.left <= 5 && V.J >= 2 ? { spd: mod('frenzySpd'), spawn: mod('frenzySpawn'), gold: mod('frenzyGold') } : { spd: 1, spawn: 1, gold: 1 };   // 마지막 5초 광란. 2.1: 연출 단계 2 부터
 const canHit = (fs, d, R) => d < R + fs.w * .3 && !(fs.em > 0) && (SPAWN.hitWhileBorn || fs.born >= 1);   // P-5: 물결 단계(아직 물 밖으로 안 나옴)는 항상 제외
 function dmg(fs, a) { fs.hp -= a * fs.dmgMul; fs.hit = .4; fs.flash = .12; fs.src = null; }
 const reverse = fs => { fs.vx *= -1; fs.dir *= -1; fs.squash = .2; };
@@ -961,15 +1125,15 @@ function update(dt) {
   if (V.left <= 0) { endVoyage(); return; }
   // 스폰
   V.spawnT -= dt; const mf = maxFish();
-  if (V.spawnT <= 0 && V.fish.length < mf && V.slowmo <= 0) { spawnFish(); V.spawnT = 0.45 / (1 + E.spawn + (V.map.mod.spawn || 0)) * V.fr.spawn; }   // 슬로모 중엔 스폰 건너뜀(단계 C-3)
+  if (V.spawnT <= 0 && V.fish.length < mf && V.slowmo <= 0) { spawnFish(); V.spawnT = 0.45 / (1 + E.spawn + (V.map.mod.spawn || 0)) * V.fr.spawn * (V.J ? 1 : Math.max(SPAWN.j0Int[2], SPAWN.j0Int[0] - SPAWN.j0Int[1] * earlyRamp())); }   // 슬로모 중엔 스폰 건너뜀(단계 C-3). 2.1: 연출 단계 0 은 스폰 간격 ×j0Int(레벨마다 줄어듦)
   if (E.fps) { V.fpsT += dt * E.fps; while (V.fpsT >= 1) { V.fpsT -= 1; if (V.fish.length < mf) spawnFish(); } }   // 물고기 소환: 1초마다 +N
   // 항해마다 그 어장의 최고급 어종이 최소 한 번은 지나가게 (해금했는데 구경도 못 하는 일 방지). 시점은 모드별(MODE.forceTop)
   MODE.forceTop.forEach((tt, i) => { if (!V.topDone[i] && V.t > tt && V.pool.length > 2 + i) { V.topDone[i] = 1; forceTop(V.pool.length - 1 - i); } });
   const P = power(), R = netR(), nx = V.net.x, ny = V.net.y; V.fr = frenzy();
-  if (!V.frenzyOn && V.left <= 5) { V.frenzyOn = 1; showBanner({ s: '광란의 5초!', life: 1.3, c: '#ff7ab8', small: 1 }); Sound.play('warn'); }   // P-4: 배너 대기열로
+  if (!V.frenzyOn && V.left <= 5 && V.J >= 2) { V.frenzyOn = 1; showBanner({ s: '광란의 5초!', life: 1.3, c: '#ff7ab8', small: 1, kind: 'frenzy' }); Sound.play('warn'); }   // P-4: 배너 대기열로. 2.1: 단계 2 부터
   // 마지막 5초 긴장(#8): 비네트 펄스 + 정수 초마다 timer .beat + tick(3·2·1 은 vote)
-  V.vign = V.left <= 5 ? .15 + .15 * Math.sin(V.t * 6) : 0;
-  { const sec = Math.ceil(V.left); if (sec !== V.lastSec) { V.lastSec = sec; if (V.left <= 5) { const tm = $('timer'); tm.classList.remove('beat'); void tm.offsetWidth; tm.classList.add('beat'); Sound.countdown(sec); if (sec >= 1 && sec <= 3) Sound.play('vote'); } } }
+  V.vign = V.left <= 5 && V.J >= 2 ? .15 + .15 * Math.sin(V.t * 6) : 0;   // 2.1: 붉은 비네트도 광란과 함께 단계 2 부터(타이머 박동·초읽기 소리는 그대로)
+  { const sec = Math.ceil(V.left); if (sec !== V.lastSec) { V.lastSec = sec; if (V.left <= 5) { reAnim($('timer'), 'beat'); Sound.countdown(sec); if (sec >= 1 && sec <= 3) Sound.play('vote'); } } }
   // 그물 잔상(#12: 30ms 샘플, 8개) · 물결(#13: 900px/s 넘게 움직이면 0.15초당 1개, whoosh 는 0.5초 간격)
   V.trailT += dt; if (V.trailT >= .03) { V.trailT = 0; V.trail.push({ x: nx, y: ny }); if (V.trail.length > 8) V.trail.shift(); }
   if (V.lastNet) { const sp = Math.hypot(nx - V.lastNet.x, ny - V.lastNet.y) / dt; if (sp > 900 && V.t - V.rippleT > .15) { V.rippleT = V.t; pushFx({ type: 'ripple', x: nx, y: ny, t: 0, life: .35, r0: R * .6, r1: R * 1.3 }); if (V.t - V.whooshT > .5) { V.whooshT = V.t; Sound.play('whoosh'); } } }
@@ -992,14 +1156,15 @@ function update(dt) {
     // 단계 C 개체 연출: hp바 추종(#2c) · 피격 스파크(#2b) · 기포 궤적(#14) · 오징어 분사(#21) · 우주 고래 별(#22) · 문어 잉크·복어 부풂(#17) · 보스 2페이즈(#20)
     fs.hpShown += (fs.hp - fs.hpShown) * Math.min(1, dt / .15);
     if (fs.hit > 0) { fs.sparkT = (fs.sparkT || 0) + dt; if (fs.sparkT >= .08) { fs.sparkT = 0; for (let i = 0; i < 2; i++) pushPart({ type: 'spark', x: fs.x + rnd(-fs.w * .3, fs.w * .3), y: fs.y + rnd(-fs.h * .3, fs.h * .3), vx: rnd(-80, 80), vy: rnd(-80, 80), t: 0, life: .25, r: 2, c: '#fff' }); } }
-    if (Math.abs(fs.vx) * fs.mvSpd > 220 || fs.dart > 0) { fs.bubT = (fs.bubT || 0) + dt; if (fs.bubT >= .06) { fs.bubT = 0; if (V.parts.length < 300) pushPart({ type: 'bub', x: fs.x - fs.dir * fs.w * .5, y: fs.y + rnd(-4, 4), vx: -fs.dir * 20, vy: -40, t: 0, life: .6, r: rnd(2, 3), c: '#fff' }); } }
+    if (Math.abs(fs.vx) * fs.mvSpd > 220 || fs.dart > 0) { fs.bubT = (fs.bubT || 0) + dt; if (fs.bubT >= .06) { fs.bubT = 0; if (V.parts.length < PART_MAX * .7) pushPart({ type: 'bub', x: fs.x - fs.dir * fs.w * .5, y: fs.y + rnd(-4, 4), vx: -fs.dir * 20, vy: -40, t: 0, life: .6, r: rnd(2, 3), c: '#fff' }); } }
     if (fs.jetPuff) { fs.jetPuff = 0; for (let i = 0; i < 3; i++) pushPart({ type: 'bub', x: fs.x - fs.dir * fs.w * .45, y: fs.y + rnd(-8, 8), vx: -fs.dir * rnd(40, 90), vy: rnd(-30, 10), t: 0, life: .5, r: rnd(2, 4), c: '#fff' }); }
     if (fs.f.id === 'spacewhale' && fs.mvSpd > 0) { fs.starT = (fs.starT || 0) + dt; if (fs.starT >= .2) { fs.starT = 0; pushPart({ type: 'star', x: fs.x - fs.dir * fs.w * .4, y: fs.y + rnd(-10, 10), vx: -fs.dir * 20, vy: -30, t: 0, life: .7, r: rnd(3, 5), rot: rnd(0, 6.28), c: '#fff8c4' }); } }
     if (fs.inkFx) { fs.inkFx = 0; pushFx({ type: 'ink', x: nx, y: ny, t: 0, life: .8, r: R * 2 }); Sound.play('whoosh'); }
     if (fs.puffed) { fs.puffed = 0; passText('puff', fs.x, fs.y - fs.h * .7 + 34, '🐡!', '#ffe08a', 22); Sound.play('neutral'); }
     if (fs.p2Fx) { fs.p2Fx = 0; Sound.play('phase'); }
     if (!fs.leaving && !fs.entering) { const hw = fs.w / 2;   // 경계: 머무는 개체는 반전, leaving 은 통과(아래 이탈 판정이 지움)
-      if ((fs.x < hw && fs.vx < 0) || (fs.x > W - hw && fs.vx > 0)) { reverse(fs); fs.bounces++; fs.y += rnd(-SPAWN.bounceJitterY, SPAWN.bounceJitterY); if (fs.boss && fs.bounces >= SPAWN.bossBounces) fs.leaving = true; }
+      if (!fs.boss && V.J < 2 && fs.bounces >= V.J && ((fs.x < hw && fs.vx < 0) || (fs.x > W - hw && fs.vx > 0))) fs.leaving = true;   // 2.1 A-3: 가장자리 반전 횟수 상한 = 단계 0 은 0회 · 1 은 1회 · 2+ 는 기존(무제한)
+      else if ((fs.x < hw && fs.vx < 0) || (fs.x > W - hw && fs.vx > 0)) { reverse(fs); fs.bounces++; fs.y += rnd(-SPAWN.bounceJitterY, SPAWN.bounceJitterY); if (fs.boss && fs.bounces >= SPAWN.bossBounces) fs.leaving = true; }
       fs.x = Math.max(hw - 2, Math.min(W - hw + 2, fs.x)); }
     if (!fs.leaving) {   // leaving 개체는 세로 반전·클램프도 풀어 위아래로도 빠져나감(해파리처럼 vx=0 인 개체가 영원히 남는 일 방지)
       if (fs.vy && ((fs.y < PT + fs.h / 2 && fs.vy < 0) || (fs.y > H - PB - fs.h / 2 && fs.vy > 0))) fs.vy *= -1;
@@ -1051,20 +1216,37 @@ function update(dt) {
   if (V.banner) { const b = V.banner; b.t += dt; if (V.bq.length && b.t >= .4 && b.life - b.t > .3) b.life = b.t + .3; if (b.t >= b.life) V.banner = null; }   // P-4: 대기 중인 배너가 있으면 0.4초 지난 현재 배너를 퇴장(0.3초)시키고
   if (!V.banner && V.bq.length) { V.banner = V.bq.shift(); V.banner.t = 0; }                                                                                   // 다음 배너
   // HUD 비행 코인(#3): 도착하면 소리(0.07초 간격) + 골드 .pop
-  for (const fl of V.fly) { fl.t += dt; if (fl.t >= fl.life && !fl.done) { fl.done = 1; if (V.t - V.sndT > 0.07) { V.sndT = V.t; Sound.play(fl.tier >= 8 ? 'coin' : 'bubble', { pitch: Math.min(1, V.combo / 20) }); } const cg = $('curGoldV'); if (cg && reflowOk('pop', 90)) { cg.classList.remove('pop'); void cg.offsetWidth; cg.classList.add('pop'); } } }   // .pop 재시작은 실시간 90ms 간격(애니메이션 .25s 라 체감 동일, 코인마다 강제 리플로 방지)
+  for (const fl of V.fly) { fl.t += dt; if (fl.t >= fl.life && !fl.done) { fl.done = 1; if (V.t - V.sndT > 0.07) { V.sndT = V.t; Sound.play(fl.tier >= 8 ? 'coin' : 'bubble', { pitch: Math.min(1, V.combo / 20) }); } const cg = $('curGoldV'); if (cg && reflowOk('pop', 90)) reAnim(cg, 'pop'); } }   // .pop 재시작은 실시간 90ms 간격(애니메이션 .25s 라 체감 동일, 코인마다 강제 리플로 방지)
   V.fly = V.fly.filter(fl => !fl.done);
-  // HUD
-  $('timer').textContent = V.left.toFixed(1); $('timer').classList.toggle('low', V.left <= 5);
+  // HUD — 2.1 C: DOM 은 값이 바뀔 때만 쓴다(예전엔 매 틱 textContent·style 을 다시 써서 스타일 재계산·레이아웃 무효화가 매 프레임 났음). 숫자 포맷(fmt)도 값이 바뀔 때만
+  const hs = V.hs || (V.hs = {}), setT = (id, s) => { if (hs[id] !== s) { hs[id] = s; $(id).textContent = s; } }, setN = (id, n, f) => { const k = n + '|' + (V.hudShort ? 1 : 0); if (hs['#' + id] !== k) { hs['#' + id] = k; setT(id, f(n)); } };
+  setT('timer', V.left.toFixed(1)); { const low = V.left <= 5; if (hs.low !== low) { hs.low = low; $('timer').classList.toggle('low', low); } }
   { const cb = $('combo'), cm = comboMult(), s = V.combo >= 2 ? `${V.combo} COMBO` + (cm > 1 ? ` ×${cm.toFixed(2).replace(/\.?0+$/, '')}` : '') : '';   // 콤보 DOM(#4a): 값이 바뀔 때만 갱신. 배수 1 이면 "N COMBO" 만, 끝자리 0 제거(×1.1 · ×1.35 · ×2)
-    if (s !== V.comboShown) { V.comboShown = s; if (s) { clearTimeout(update._cf); cb.textContent = s; cb.classList.remove('fade'); cb.classList.add('on'); if (reflowOk('combo', 120)) { cb.classList.remove('bump'); void cb.offsetWidth; cb.classList.add('bump'); } } else if (!cb.classList.contains('fade')) cb.classList.remove('on'); } }
+    if (s !== V.comboShown) { V.comboShown = s; if (s) { clearTimeout(update._cf); cb.textContent = s; cb.classList.remove('fade'); cb.classList.add('on'); if (reflowOk('combo', 120)) reAnim(cb, 'bump'); } else if (!cb.classList.contains('fade')) cb.classList.remove('on'); } }   // 2.1 C: bump 재시작은 리플로 없이(reAnim)
   { const bb = $('bossbar'), b = V.fish.find(f => f.boss && f.hp > 0);   // 보스 HP 바(#20): 이름 + 잔량, 2페이즈면 빨강
     const s = b ? `${b.f.name}|${Math.round(Math.max(0, b.hpShown / b.max) * 100)}|${b.phase2 ? 1 : 0}` : '';
-    if (s !== V.bossShown) { V.bossShown = s; if (b) { bb.innerHTML = `👑 ${b.f.name}<i style="width:${s.split('|')[1]}%"></i>`; bb.classList.add('on'); bb.classList.toggle('p2', !!b.phase2); } else bb.classList.remove('on', 'p2'); } }
+    if (s !== V.bossShown) { const o = V.bossShown.split('|'), n = s.split('|'); V.bossShown = s; if (b) { const bi = bb.querySelector('i'); if (bi && o[0] === n[0] && o[2] === n[2]) bi.style.width = n[1] + '%'; else { bb.innerHTML = `👑 ${b.f.name}<i style="width:${n[1]}%"></i>`; bb.classList.add('on'); bb.classList.toggle('p2', !!b.phase2); } } else bb.classList.remove('on', 'p2'); } }   // 2.1 C: 같은 보스·같은 페이즈면 잔량 띠 폭만
   V.shown = V.shown || 0; V.shown += (S.gold - V.shown) * Math.min(1, dt * 7);
-  $('vgold').textContent = (V.hudShort ? fmtS : fmt)(Math.floor(V.shown)); $('vgain').textContent = V.gold > 0 ? '+' + fmt(Math.floor(V.gold * (V.shown / Math.max(1, S.gold)))) : ''; $('vdia').textContent = (V.hudShort ? fmtS : fmt)(S.dia); $('vlv').textContent = S.lv; $('vxpFill').style.width = (S.xp / xpNeed(S.lv) * 100) + '%'; $('vxpTxt').textContent = `${fmt(Math.floor(S.xp))} / ${fmt(xpNeed(S.lv))}`;
-  for (const id in POWERS) { const el = $('cd-' + id); if (!el) continue; const on = powerUnlocked(id) && V.cd[id] > 0.05; el.style.display = on ? '' : 'none'; if (on) el.textContent = V.cd[id].toFixed(1); }
-  { const hk = [$('vgold').textContent.length, $('vgain').textContent.length, $('vdia').textContent.length, $('vxpTxt').textContent.length, S.lv, V.comboShown.length].join('|');   // 콤보는 글자 수만(단계 F 2회차: 문자열이면 포획마다 hudFit 레이아웃 측정)   // HUD 폭 맞춤(2.0 마감): 글자 수·콤보 배지가 바뀐 그 틱에 바로(다음 프레임에 잘린 채 그려지지 않게), 그 외엔 0.25초마다
-    V.fitT += dt; if (hk !== V.hudKey || V.fitT >= .25) { V.hudKey = hk; V.fitT = 0; if (hudFit()) hudPad(); calcSafe(); } }   // calcSafe: 콤보 배지·보스바가 켜지고 꺼지는 것까지 0.25초 안에 반영(P-3)
+  const fS = V.hudShort ? fmtS : fmt; setN('vgold', Math.floor(V.shown), fS); setN('vgain', V.gold > 0 ? Math.floor(V.gold * (V.shown / Math.max(1, S.gold))) : -1, n => n < 0 ? '' : '+' + fmt(n)); setN('vdia', S.dia, fS); setT('vlv', '' + S.lv);
+  { const xn = xpNeed(S.lv), w = (S.xp / xn * 100).toFixed(2) + '%'; if (hs.xw !== w) { hs.xw = w; $('vxpFill').style.width = w; } setN('vxpTxt', Math.floor(S.xp) + '/' + xn, () => `${fmt(Math.floor(S.xp))} / ${fmt(xn)}`); }
+  for (const id in POWERS) { const on = powerUnlocked(id) && V.cd[id] > 0.05, s = on ? V.cd[id].toFixed(1) : ''; if (hs['cd' + id] === s) continue; const el = $('cd-' + id); if (!el) continue; if (!hs['cd' + id] !== !s) el.style.display = on ? '' : 'none'; hs['cd' + id] = s; if (on) el.textContent = s; }
+  { const hk = [hs.vgold.length, hs.vgain.length, hs.vdia.length, hs.vxpTxt.length, S.lv, V.comboShown.length].join('|'), gk = [$('combo').className, $('bossbar').className].join('|');   // 콤보는 글자 수만(단계 F 2회차: 문자열이면 포획마다 hudFit 레이아웃 측정)
+    // 2.1 C: HUD 폭 맞춤·안전 영역 실측은 글자 수가 늘어 넘칠 수 있을 때만 이 틱에(강제 리플로), 나머지는 다음 프레임 시작(hudCheck, 레이아웃이 깨끗해 공짜)에. 예전 '0.25초마다 hudFit+calcSafe' 는 프레임당 강제 리플로 0.47회의 주범
+    if (hk !== V.hudKey) { V.hudKey = hk; V.needFit = 1; }   /* 배포마감: 글자 수가 바뀌면 다음 프레임 시작(hudCheck)에서만 잼. update 안에서 바로 hudFit 하던 것이 세로 폰 강제 리플로의 주범(프레임당 0.04) */
+    if (gk !== V.geoKey) { V.geoKey = gk; V.needSafe = 1; } }   // 콤보 배지·보스바가 켜지고 꺼지면 다음 프레임에 calcSafe(P-3 의 0.25초 안)
+}
+const hudGrow = (a, b) => { if (!a) return 99; const x = a.split('|'), y = b.split('|'); let g = 0; for (const i of [0, 1, 2, 3, 5]) g += Math.max(0, (+y[i] || 0) - (+x[i] || 0)); return g; };   // 2.1 C: HUD 글자 수 증가분(늘어난 글자만)
+const hudLen = () => { const h = V && V.hs; return h ? (h.vgold || '').length + (h.vgain || '').length + (h.vdia || '').length + (h.vxpTxt || '').length + (V.comboShown || '').length : 0; };
+function hudFree(hud) {   // 2.1 C: HUD 한 줄의 남는 폭(px). 타이머가 margin-left:auto 라 scrollWidth 로는 늘 0 → 타이머 왼쪽 끝과 앞 요소들 오른쪽 끝의 간격으로 잼(줄 아래로 내려간 absolute 배지는 뺌). 넘치면(타이머가 오른쪽 밖으로 밀림) 음수
+  // offset* 는 transform 을 무시한 배치 크기 → 골드 .pop·타이머 .beat 확대 중에도 흔들리지 않음(scrollWidth·getBoundingClientRect 는 확대분이 섞여 넘친 것으로 보였음)
+  const tm = $('timer'), tb = tm.offsetTop + tm.offsetHeight - 2; let right = 0;
+  for (const el of hud.children) { if (el === tm || !el.offsetWidth || el.offsetTop >= tb) continue; right = Math.max(right, el.offsetLeft + el.offsetWidth); }
+  const ov = hud.clientWidth - (tm.offsetLeft + tm.offsetWidth), gap = parseFloat(getComputedStyle(hud).columnGap) || 0; return ov < -1 ? ov : Math.max(0, tm.offsetLeft - right - gap);
+}
+function hudCheck() {   // 2.1 C: 프레임 시작(아직 DOM 을 안 쓴 시점 → 레이아웃이 깨끗해 읽어도 강제 리플로 없음)에 HUD 여유 폭을 읽고, 필요할 때만 hudFit·calcSafe
+  if (!V) return;
+  if (V.needFit) { const w = V.hudRefit ? 3 : hudWant(), k = V.hudCal ? V.hudCal.k : 0; if (w >= 2 || (w === 1 && V.t - (V.fitAt ?? -9) >= .5)) { V.fitAt = V.t; V.needFit = 0; V.hudRefit = 0; if (hudFit(w === 3 ? k - 1 : w === 2 ? k + 1 : k - 1)) hudPad(); V.needSafe = 1; } else if (w === 0) V.needFit = 0; }   /* 넘침(2)은 한 단계 위부터, 넓히기(1)·웹폰트 로드 뒤 재기(3)는 한 단계 아래부터 잼 → DOM 측정 1~2번 */   /* 배포마감 2회차: 폭 판단은 measureText 예측(hudWant)만 → 실제로 단계를 바꿔야 할 때만 hudFit(DOM 측정). 넓히기는 0.5초 간격, 기다리는 동안 needFit 유지 */
+  if (V.needSafe) { V.needSafe = 0; calcSafe(); }
 }
 function zap(id, x, y, chains, dmg, pts) {   // 번개 한 갈래
   let cur = V.fish.filter(f => Math.hypot(f.x - x, f.y - y) < 300).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
@@ -1101,23 +1283,46 @@ function castPower(id) {
 }
 function shake(a) { V.shk = Math.max(V.shk || 0, a); }
 // 획득 숫자: 액수가 클수록 크고 뜨겁게 (작은 +3 → 거대한 +1.2억)
-function numStyle(g, o) {   // P-2: 크기 상한 논리 48px(보스 60) — 크다는 건 색·광택(glow·그라데이션)·짧은 흔들림으로. 세로 폭 40% 제한은 draw 가 글자 폭으로 맞춤
+// 2.1 D: 크기 규칙. 글자 크기는 금액 자릿수(log10)에 대해 단조 증가(1 < 10 < … < 1억 < 1조, 상한 없음: 1조까지 자릿수당 2.5px, 그 위는 1.2px, 10^20 에서 멈춤)
+// 크리 ×1.35(같은 금액 일반보다 항상 1.3배 이상) · 보스 ×1.55(크리보다 큼) · 보스+크리 ×1.7. 연출 단계 0 은 전체 ×0.9(순서는 그대로)
+// 폭이 화면 폭 50% 를 넘으면 글자를 줄이지 않고 표기를 짧게(fitNum): +1억 2,345만 → +1억 2천만 → +1억+. 예전 48px 상한 + 폭 40% 축소 때문에 긴 "+1억 2,345만" 이 "+1만 2,345" 보다 작게 그려졌음
+const NUM_K = { n: 1, c: 1.35, b: 1.55, bc: 1.7 }, NUM_WMAX = .5;
+function numSz(g, kind) { const m = Math.log10(Math.max(1, g)); return (20 + 2.5 * Math.min(12, m) + 1.2 * Math.max(0, Math.min(20, m) - 12)) * Math.pow(1.08, Math.floor(Math.min(20, m) / 4 + 1e-9)) * (NUM_K[kind] || 1) * (JL() === 0 ? .9 : 1); }   // 검증수정v1 e: 단위(만·억·조·경)가 바뀔 때마다 ×1.08 — 1,000만 → 1억 처럼 표기가 짧아지는 경계에서도 커진 게 보이게(단조 증가 유지)
+function fmtLv(n, lv) {   // 2.1 D: 짧은 표기 단계. 0 = fmt 그대로 · 1 = 둘째 단위를 앞자리 하나로(1억 2천만 · 1만 2천) · 2 = 첫 단위만 + '+'(1억+). 버림이라 실제보다 커 보이지 않음. k·M 없이 만·억·조만
+  n = Math.floor(n); if (!lv || !isFinite(n) || n < 0) return fmt(n);
+  const ld = v => { const e = Math.min(3, Math.floor(Math.log10(v))), q = Math.pow(10, e); return Math.floor(v / q) + ['', '십', '백', '천'][e] + (lv >= 2 && v % q ? '+' : ''); };   // 2,345 → 2천(단계 2 면 2천+)
+  if (n < 10000) return lv >= 2 && n >= 10 ? ld(n) : fmt(n);
+  const u = Math.floor(Math.log10(n) / 4); if (u >= UNITS.length) return fmt(n);
+  const p = Math.pow(10, u * 4), head = Math.floor(n / p), rest = n - head * p;
+  if (lv >= 2) return head >= 1000 ? ld(head).replace(/\+$/, '') + UNITS[u] + (head % 1000 || rest ? '+' : '') : head + UNITS[u] + (rest > 0 ? '+' : '');
+  if (head >= 1000) return fmt(n);
+  const r2 = Math.floor(rest / Math.pow(10, (u - 1) * 4)); return head + UNITS[u] + (r2 ? ' ' + ld(r2) + UNITS[u - 1] : '');
+}
+function fitNum(tx) {   // 2.1 D: 획득 숫자 표기를 폭(월드 폭 50%)에 맞춤. 글자 크기(tx.sz)는 건드리지 않음. 순서: 원래 표기 → 둘째 단위 앞자리(+1억 2천만) → CRIT!·×N 떼고 원래 표기 → 둘째 단위 앞자리 → 첫 단위+(+1억+). 금액을 뭉개기 전에 CRIT!·×N 부터 뗌(크리는 크기·색·외곽선으로 구분). 전부 넘치면 draw 가 폭 50% 로 자름(실측상 없음)
+  const k = V && V.portrait ? 1.3 : 1, sz = Math.round(tx.sz * TXT_POP * k), lim = W * NUM_WMAX, suf = tx.suf || '';
+  const font = `${sz}px Jua`;   // 2.1 C: 폭은 mtw 캐시로
+  for (const [p, lv, sf] of [[tx.pre, 0, suf], [tx.pre, 1, suf], ['+', 0, ''], ['+', 1, ''], ['+', 2, '']]) { tx.s = p + fmtLv(tx.gv, lv) + sf; tx.lv = lv; if (mtw(ctx, font, tx.s) + sz * .22 <= lim) break; }
+  return tx;
+}
+function numStyle(g, o) {   // 2.1 D: 크기는 numSz(상한 없음·단조 증가). 크다는 건 크기 + 색·광택(glow·그라데이션)·짧은 흔들림
   o = o || {}; const mag = Math.log10(Math.max(1, g));
-  const sz = Math.min(o.boss ? 60 : 48, Math.round((20 + Math.min(28, mag * 3.6)) * (o.crit ? 1.15 : 1) * (o.boss ? 1.25 : 1)));
+  const sz = numSz(g, o.boss ? (o.crit ? 'bc' : 'b') : o.crit ? 'c' : 'n');
   const c = mag < 2 ? '#ffffff' : mag < 3.5 ? '#fff4c4' : mag < 5 ? '#ffe066' : mag < 7 ? '#ffc247' : mag < 9 ? '#ff9f43' : '#ff7ab8';
-  return { sz, c, glow: mag >= 5, grad: mag >= 8 ? ['#fffbe0', c, '#ff5fa8'] : null, shk: mag >= 6 ? Math.min(7, (mag - 5) * 1.6) : 0, shine: mag >= 7 };
+  const j3 = JL() >= 3;   // 2.1 A-2: 큰 금액 광택(glow·그라데이션·흔들림·번쩍)은 연출 단계 3 부터
+  return { sz, c, glow: j3 && mag >= 5, grad: j3 && mag >= 8 ? ['#fffbe0', c, '#ff5fa8'] : null, shk: j3 && mag >= 6 ? Math.min(7, (mag - 5) * 1.6) : 0, shine: j3 && mag >= 7 };
 }
 function num(x, y, g, o) {
   o = o || {}; const st = numStyle(g, o);
-  return { x, y, s: (o.crit ? 'CRIT! +' : '+') + fmt(g), c: o.crit ? '#ff7ab8' : st.c, t: 0, sz: st.sz, maxSz: o.boss ? 60 : 48, boss: o.boss ? 1 : 0, vx: o.keep ? 0 : rnd(-26, 26), glow: st.glow || o.crit, grad: st.grad, shk: st.shk, shine: st.shine, keep: o.keep ? 1 : 0 };
+  return fitNum({ x, y, gv: g, pre: o.crit && !o.quiet ? 'CRIT! +' : '+', s: '', c: o.crit ? '#ff4d6d' : st.c, ol: o.boss ? '#2e1650' : o.crit ? (o.quiet ? '#8a2c00' : '#fff1a8') : null, t: 0, sz: st.sz, maxSz: 999, boss: o.boss ? 1 : 0, vx: o.keep ? 0 : rnd(-26, 26), glow: st.glow || o.crit, grad: o.crit && st.grad ? ['#ffe3e8', '#ff4d6d', '#c2185b'] : st.grad, shk: st.shk, shine: st.shine, keep: o.keep ? 1 : 0 });   // 2.1 D: 크리는 일반 색 띠(흰→노랑→주황→분홍)에 없는 진홍 + 밝은 외곽선, 보스는 남보라 외곽선(일반은 갈색). quiet = 단계 0~1 크리(CRIT! 글자 없이 크기 ×1.35 + 노랑 + 적갈색 외곽선)
 }
-function coins(x, y, n, c) { if (V.parts.length > 400) n = Math.min(n, 2); for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(90, 320); pushPart({ type: 'coin', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, t: 0, life: rnd(.5, .9), c: c || '#ffd36b', r: rnd(3, 7) }); } }
+function coins(x, y, n, c) { if (V.parts.length > PART_MAX * .95) n = Math.min(n, 2); for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(90, 320); pushPart({ type: 'coin', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, t: 0, life: rnd(.5, .9), c: c || '#ffd36b', r: rnd(3, 7) }); } }
 function catchFish(fs) {
   const f = fs.f; const crit = Math.random() < 0.05 + E.crit;
-  V.combo++; V.comboT = mod('comboT') * (1 + E.comboT);   // 콤보(#4): 포획마다 +1, 창 1.2초(하드 .9). 고로케 선장 ×1.5
-  if ([5, 10, 20, 35].includes(V.combo)) { V.comboStep = V.combo; if (V.comboTx) { const k = V.texts.indexOf(V.comboTx); if (k >= 0) V.texts.splice(k, 1); } V.comboTx = stackText(pushText({ x: V.net.x, y: V.net.y - netR() - 62, s: `${V.combo} COMBO!`, c: '#ffd36b', t: 0, sz: 28, keep: 1 })); Sound.play('meld'); }   // P-4: 콤보 단계는 그물 위(합친 숫자 한 줄 위). 안전 영역 클램프는 draw
-  pushFx({ type: 'pop', f, x: fs.x, y: fs.y, dir: fs.dir, w: fs.w, h: fs.h, t: 0, life: .28, c: fs.boss ? '#ffd36b' : null });   // 포획 팝(#3a): 흰 실루엣 1→1.5(보스 1.5→2.2), 보스는 금색 원
-  let g = (f.gold + E.gflat) * (1 + E.gold + (V.map.mod.gold || 0)) * (V.map.mod.gmul || 1) * (1 + (E.fv[f.i] || 0)) * masteryMult(f) * (crit ? 3 : 1) * (fs.tank ? 1.6 : 1) * goldMul() * V.fr.gold * (fs.boss ? mod('boss') : 1) * comboMult();   // 2.0: 모드 골드 배수 · 광란 배수 · 보스 보상 배수 · 콤보 배수(상한 ×1.5)
+  const J = V.J;   // 2.1 A-2 연출 단계
+  if (J >= 1) { V.combo++; V.comboT = mod('comboT') * (1 + E.comboT); }   // 콤보(#4): 포획마다 +1, 창 1.2초(하드 .9). 고로케 선장 ×1.5. 2.1: 단계 0 은 콤보 잠김(배수 1·배지 없음)
+  if (J >= 1 && (J >= 4 ? [5, 10, 20, 35] : [5, 10, 20]).includes(V.combo)) { V.comboStep = V.combo; if (V.comboTx) { const k = V.texts.indexOf(V.comboTx); if (k >= 0) V.texts.splice(k, 1); } const big = V.combo === 35; V.comboTx = stackText(pushText({ x: V.net.x, y: V.net.y - netR() - 62, s: `${V.combo} COMBO!`, c: big ? '#ff9f43' : '#ffd36b', t: 0, sz: big ? 34 : 28, glow: big ? 1 : 0, keep: 1 })); if (big) starBurst(V.net.x, V.net.y - netR(), 14, '#ffd36b'); Sound.play('meld'); }   // P-4: 콤보 단계는 그물 위(합친 숫자 한 줄 위). 안전 영역 클램프는 draw. 2.1: 35 단계는 단계 4 에서만(강화 글자·별)
+  pushFx({ type: 'pop', f, x: fs.x, y: fs.y, dir: fs.dir, w: fs.w, h: fs.h, t: 0, life: J ? .28 : .18, sm: J ? 0 : 1, c: fs.boss ? '#ffd36b' : null });   // 포획 팝(#3a): 흰 실루엣 1→1.5(보스 1.5→2.2), 보스는 금색 원. 2.1 단계 0: 1→1.12 · 0.18초
+  let g = (f.gold + E.gflat) * (1 + E.gold + (V.map.mod.gold || 0)) * (V.map.mod.gmul || 1) * (1 + (E.fv[f.i] || 0)) * fishMult(f) * (crit ? 3 : 1) * (fs.tank ? 1.6 : 1) * goldMul() * V.fr.gold * (fs.boss ? mod('boss') : 1) * comboMult();   // 2.1 B: 숙련 × 도감 별(fishMult). 2.0: 모드 골드 배수 · 광란 배수 · 보스 보상 배수 · 콤보 배수(상한 ×1.5)
   if (fs.src) g *= 1 + 0.2 * pupLv(fs.src, 4);
   if (fs.boss) g *= 1 + E.bossG; if (V.map === MAPS[5]) g *= 1 + E.heavenG;   // 레코드 선장: 보스 보상 +100% · 천상의 심해(어장 5) 골드 +30%
   S.gold += g; S.totalGold += g; V.gold += g; V.caught++; S.counts[f.id] = (S.counts[f.id] || 0) + 1;
@@ -1127,14 +1332,21 @@ function catchFish(fs) {
   if (E.frost && Math.random() * 100 < 5 + E.frostC) frostAt(fs.x, fs.y);
   // 마감 B9: 어장 다이아(난파선 +40% · 천상 +60%)는 확률이 아니라 개수에 곱함. 확률에 더하면 후반(E.dia≈2.6 → 희귀 확률 1.05)과 하드(×2)에서 확률이 1 을 넘어 잘려 효과가 0 이었음. 소수점은 확률로 올림(기댓값 유지)
   const diaChance = (f.i >= 6 ? 0.25 : 0.03) * (1 + E.dia) * mod('dia'); if (Math.random() < diaChance) { const dv = Math.max(1, Math.ceil(f.i / 4)) * (1 + (V.map.mod.dia || 0)), d = Math.floor(dv) + (Math.random() < dv % 1 ? 1 : 0); S.dia += d; V.dia += d; aggText('d', fs.x, fs.y, d); }
-  if (Math.random() < 0.006 * (1 + E.relic) * mod('relic') * (f.i >= 8 ? 2 : 1)) V.relicsOnScreen.push({ x: fs.x, y: fs.y, id: pick(RELICS).id, t: 0 });
-  if (crit || fs.boss || f.i >= 8) stackText(pushText(num(fs.x, fs.y - 10, g, { crit, boss: fs.boss, keep: 1 })));   // P-1: 희귀(8+)·보스·크리티컬은 합치지 않고 따로, 서로 겹치지 않게 세로로 비켜 쌓음(CRIT! 는 숫자 앞에 한 줄로)
+  { const d = relicDry(); d[0]++; d[1]++; d[2]++; }   // 2.1 E3: 단계별 카운터 모두 +1. 2.1 E: 물고기 유물은 지난번 뒤로 RELIC.gap 마리를 잡아야 다시 나올 수 있음(몰아서 나오는 것 방지). 첫 유물만 확률 ×RELIC.first
+  if (relicOpen()) { const none = !Object.keys(S.relics).length;   // 2.1 E2: 간격은 단계별(RELIC.gap[단계]). 첫 유물은 간격 + RELIC.sure 마리째에 반드시(바로 획득)
+    if (none && relicDry()[0] >= relicGapT(0) + RELIC.sure) collectRelic(relicTook(pickRelic()), fs.x, fs.y, 'fish');
+    else if (Math.random() < RELIC.p * (none ? RELIC.first : 1) * (1 + E.relic) * mod('relic') * (f.i >= 8 ? 2 : 1)) V.relicsOnScreen.push({ x: fs.x, y: fs.y, id: relicTook(pickRelic()), t: 0 }); }   // 2.1 E: 기본 확률 .6% → RELIC.p, 지금 어장 단계 이하 유물만
+  if ((crit && J >= 2) || fs.boss || f.i >= 8) stackText(pushText(num(fs.x, fs.y - 10, g, { crit: crit && J >= 2, boss: fs.boss, keep: 1 })));   // P-1: 희귀(8+)·보스·크리티컬은 합치지 않고 따로, 서로 겹치지 않게 세로로 비켜 쌓음(CRIT! 는 숫자 앞에 한 줄로)
+  else if (crit) { const tx = num(fs.x, fs.y - 10, g, { keep: 1, crit: 1, quiet: 1 }); tx.c = '#ffd36b'; tx.glow = 0; stackText(pushText(tx)); }   // 2.1: 단계 0~1 크리티컬은 노란 숫자만(CRIT!·흔들림·별 없음). 2.1 D: 크기는 크리 규칙(×1.35)·자주 외곽선
   else aggText('g', fs.x, fs.y, g);                                                                                  // 일반 숫자는 누적 팝 하나로
   if (xp >= 1) aggText('x', fs.x, fs.y, xp);
-  coins(fs.x, fs.y, fs.boss ? 30 : crit ? 18 : f.i >= 8 ? 12 : 6);
-  flyCoins(fs.x, fs.y, fs.boss ? 12 : crit ? 8 : f.i >= 8 ? 6 : 3, f.i);   // 코인 HUD 비행(#3b). 골드 .pop 과 소리는 도착 시점(update)
-  if (crit) { shake(7); V.flash = .18; starBurst(fs.x, fs.y, 18); if (V.t - (V.critSndT || -9) > .08) { V.critSndT = V.t; Sound.play('correct'); } }   // 크리티컬(#5). 글자는 위 숫자에 붙음(P-1). 소리는 0.08초 간격
-  if (fs.boss) { shake(18); confetti(18, fs.x, fs.y); Sound.play('win'); V.flash = .4; V.slowmo = .6; if (V.t - (V.bossCatchBanT ?? -99) >= BOSS_BAN_GAP.caught) { V.bossCatchBanT = V.t; showBanner({ s: `${f.name} 포획! +${fmt(Math.floor(g))}`, life: 1.2, c: '#ffd36b', boss: 1 }); } }   // 보스 포획(#7): 슬로모 .6s + 배너(대기열). 검증수정2: 꽃가루는 캔버스(글자 아래층), 포획 배너는 8초에 한 번(후반 연속 포획은 보스 보상 숫자만)
+  coins(fs.x, fs.y, fs.boss ? 30 : J === 0 ? 2 : J === 1 ? 4 : crit ? 18 : f.i >= 8 ? 12 : 6);   // 2.1: 튀는 동전 조각도 단계 0·1 은 적게
+  if (J >= 2) flyCoins(fs.x, fs.y, fs.boss ? 12 : crit ? 8 : f.i >= 8 ? 6 : 3, f.i);   // 코인 HUD 비행(#3b). 골드 .pop 과 소리는 도착 시점(update). 2.1: 단계 2+ 가치 비례
+  else if (J === 1) flyCoins(fs.x, fs.y, fs.boss ? 3 : crit || f.i >= 8 ? 2 : 1, f.i);   // 단계 1: 1~3개, 단계 0: 없음
+  if (crit && J >= 3) { shake(7); V.flash = .18; starBurst(fs.x, fs.y, 18); }   // 크리티컬(#5). 글자는 위 숫자에 붙음(P-1). 2.1: 별·플래시는 단계 3+, 단계 2 는 CRIT! + 작은 흔들림
+  else if (crit && J === 2) shake(3);
+  if (crit && J >= 2 && V.t - (V.critSndT || -9) > .08) { V.critSndT = V.t; Sound.play('correct'); }   // 소리는 0.08초 간격
+  if (fs.boss) { shake(18); confetti(18, fs.x, fs.y); Sound.play('win'); V.flash = .4; if (J >= 2) V.slowmo = .6; if (V.t - (V.bossCatchBanT ?? -99) >= BOSS_BAN_GAP.caught) { V.bossCatchBanT = V.t; showBanner({ s: `${f.name} 포획! +${fmt(Math.floor(g))}`, life: 1.2, c: '#ffd36b', boss: 1 }); } }   // 보스 포획(#7): 슬로모 .6s + 배너(대기열). 검증수정2: 꽃가루는 캔버스(글자 아래층), 포획 배너는 8초에 한 번(후반 연속 포획은 보스 보상 숫자만)
   if (!V.best || f.i > V.best.i) V.best = f;
   if (f.id === 'leviathan' && !S.ending) { S.ending = Date.now(); V.ending = 1; }
   if (S.counts[f.id] === 1) checkCapAch();   // 새 어종 첫 포획 때만 도감 조건 확인(고로케)
@@ -1142,8 +1354,8 @@ function catchFish(fs) {
 function openChest(x, y) {
   const r = Math.random(), tier = Math.max(1, E.chest);
   if (r < .5) { const g = Math.max(30, cps0() * 12) * rnd(.8, 1.4) * (1 + E.gold) * (1 + .6 * (tier - 1)) * goldMul(); S.gold += g; S.totalGold += g; V.gold += g; pushText(num(x, y, g, { boss: 1 })); }
-  else if (r < .85) { const d = Math.round((3 + 3 * tier) * (1 + E.dia)); S.dia += d; V.dia += d; pushText({ x, y, s: '💎 ' + d, c: '#9fe9ff', t: 0, sz: 30 }); }
-  else { const pool2 = RELICS.filter(r2 => !S.relics[r2.id]); collectRelic((pool2.length ? pick(pool2) : pick(RELICS)).id, x, y); }
+  else if (r < 1 - RELIC.chest || !relicOpen()) { const d = Math.round((3 + 3 * tier) * (1 + E.dia)); S.dia += d; V.dia += d; pushText({ x, y, s: '💎 ' + d, c: '#9fe9ff', t: 0, sz: 30 }); }
+  else collectRelic(relicTook(pickRelic(true)), x, y, 'chest');   // 2.1 E: 지금 어장 단계 이하 풀(안 가진 것 우선). E2: 간격 공유(열렸을 때만, 얻으면 간격 다시)
   Sound.play('coin'); V.fx.push({ type: 'boom', x, y, t: 0, life: .5 }); coins(x, y, 22); shake(9);
 }
 function openBottle(x, y) {   // 원작 표류병: 경험치 + 골드·다이아·유물
@@ -1152,8 +1364,8 @@ function openBottle(x, y) {   // 원작 표류병: 경험치 + 골드·다이아
   addXp(xv); V.xp += xv; let res = '📗 +' + fmt(xv);   // P-4: 표류병 결과는 한 줄 배너(대기열)로, 획득 위치엔 방사 연출만
   if (r < .45) { const g = Math.max(30, cps0() * 6) * tier * rnd(.8, 1.3) * goldMul(); S.gold += g; S.totalGold += g; V.gold += g; res += '  💰 +' + fmt(g); }
   else if (r < .8) { const d = Math.round((2 + 2 * tier) * (1 + E.dia)); S.dia += d; V.dia += d; res += '  💎 +' + fmt(d); }
-  rayFx(x, y, '🍾', '191,233,255', 80, 1.1); showBanner({ s: '🍾 표류병  ' + res, life: 1.5, c: '#bfe9ff', small: 1 });
-  if (r >= .8) collectRelic(pick(RELICS).id, x, y);
+  rayFx(x, y, '🍾', '191,233,255', 80, 1.1); stackText(pushText({ x, y: y - 30, s: '🍾 ' + res, c: '#bfe9ff', t: 0, sz: 20, keep: 1, life: 1.6 })); hudShine(r >= .45 && r < .8 ? 'dia' : 'gold');   // 2.1 A-4: 표류병 결과는 중앙 배너 대신 획득 위치 작은 글자 + HUD 반짝
+  if (r >= 1 - RELIC.bottle && relicOpen()) collectRelic(relicTook(pickRelic()), x, y, 'bottle');   // 2.1 E: 지금 어장 단계 이하 풀. E2: 간격 공유
   Sound.play('pickup'); coins(x, y, 14, '#9fe0a8');
 }
 function cps0() { return V.pool.reduce((a, f) => a + f.gold + E.gflat, 0) / V.pool.length * (1 + E.gold) * (1 + (V.map.mod.gold || 0)) * (V.map.mod.gmul || 1); }   // 보물상자·표류병 골드도 어장 곱 배수(gmul) 적용
@@ -1161,50 +1373,146 @@ function rayFx(x, y, icon, c, r, life) {   // P-4: 유물·표류병 방사 연�
   if (V.fx.filter(f => f.type === 'rays').length >= 3) return;
   V.fx.push({ type: 'rays', x: Math.max(r, Math.min(W - r, x)), y: Math.max(SAFE.t + r * .8, Math.min(SAFE.b - r * .8, y)), icon, c, r, t: 0, life });
 }
-function collectRelic(id, x, y) {   // x·y: 획득 위치(없으면 그물)
-  const r = relicById[id]; if (x == null) { x = V.net.x; y = V.net.y; }
-  if (!S.relics[id]) { S.relics[id] = 1; refreshEff(); V.newRelics.push(id); rayFx(x, y, r.icon, '255,255,255', 120, 1.8); showBanner({ s: `${r.icon} ${r.name} 발견! — ${r.u}`, life: 1.8, c: '#fff', small: 1 }); Sound.play('meld'); }   // 이전 #relicpop(화면 중앙 400px 방사) 대신 위치 방사 + 배너 대기열
+const RELIC_LOG = [];   // 2.1 E 측정용: 이번 접속에서 주운 유물(id·경로·새것·항해 수). 저장 안 함
+function collectRelic(id, x, y, src) {   // x·y: 획득 위치(없으면 그물). src: fish | chest | bottle
+  const r = relicById[id]; if (x == null) { x = V.net.x; y = V.net.y; } if (RELIC_LOG.length < 5000) RELIC_LOG.push({ id, src: src || 'fish', neu: S.relics[id] ? 0 : 1, v: S.voyages || 0 });
+  if (!S.relics[id]) { S.relics[id] = 1; refreshEff(); V.newRelics.push(id); rayFx(x, y, r.icon, '255,255,255', 120, 1.8); hudShine('gold');   // 이전 #relicpop(화면 중앙 400px 방사) 대신 위치 방사 + 배너 대기열
+    showBanner({ s: `${r.icon} ${r.name} 발견! — ${r.u}`, life: 1.5, c: '#fff', small: 1, kind: 'relic', gap: 15, merge: n => `🪸 새 유물 ${n}개 발견!`, alt: () => stackText(pushText({ x, y: y - 30, s: `${r.icon} ${r.name} 발견!`, c: '#fff', t: 0, sz: 22, keep: 1, life: 1.6 })) }); Sound.play('meld'); }   // 2.1 A-4: 처음 발견한 유물만 중앙 배너(6초 안 연속이면 작은 글자, 대기 중이면 합침)
   else { S.dia += 3; V.dia += 3; pushText({ x, y: y - 30, s: `${r.icon} 조각 → 💎+3`, c: '#9fe9ff', t: 0 }); Sound.play('coin'); }
 }
 function drawLetterbox(bg) {   // cssXf 상태. 월드 밖 띠를 '어둡게 이어진 바다'로. 경계 안쪽 28논리px 에 그림자 띠를 얹어 선이 안 보이게. bg = V.bg(하드면 색조 섞인 3색)
   if (OX < .5 && OY < .5) return;
   if (!V.bgDark) V.bgDark = [darken(bg[0]), darken(bg[1]), darken(mixColor(bg[2], '#000000', .28))];   // 1회 계산. 셋째는 두 번 어둡게(.72²)
-  const g = ctx.createLinearGradient(0, 0, 0, CH); g.addColorStop(0, V.bgDark[0]); g.addColorStop(.45, V.bgDark[1]); g.addColorStop(1, V.bgDark[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH);
+  const lk = CW + '|' + CH + '|' + OX + '|' + OY + '|' + VS; if (V.lbK !== lk) { V.lbK = lk; V.lbG = null; V.lbB = {}; }   // 2.1 C: 그라디언트는 화면 크기가 바뀔 때만 새로 만듦(예전엔 매 프레임 5개)
+  const g = V.lbG || (V.lbG = ctx.createLinearGradient(0, 0, 0, CH), V.lbG.addColorStop(0, V.bgDark[0]), V.lbG.addColorStop(.45, V.bgDark[1]), V.lbG.addColorStop(1, V.bgDark[2]), V.lbG); ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH);
   const e = 28 * VS, wl = OX, wr = OX + W * VS, wt = OY, wb = OY + H * VS;
-  const band = (x0, y0, x1, y1, gx0, gy0, gx1, gy1) => { const gg = ctx.createLinearGradient(gx0, gy0, gx1, gy1); gg.addColorStop(0, 'rgba(0,0,0,.28)'); gg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gg; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); };
+  const band = (x0, y0, x1, y1, gx0, gy0, gx1, gy1) => { const bk = gx0 + ',' + gy0 + ',' + gx1 + ',' + gy1; let gg = V.lbB[bk]; if (!gg) { gg = V.lbB[bk] = ctx.createLinearGradient(gx0, gy0, gx1, gy1); gg.addColorStop(0, 'rgba(0,0,0,.28)'); gg.addColorStop(1, 'rgba(0,0,0,0)'); } ctx.fillStyle = gg; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); };
   if (OX >= .5) { band(wl, wt, wl + e, wb, wl, 0, wl + e, 0); band(wr - e, wt, wr, wb, wr, 0, wr - e, 0); }
   if (OY >= .5) { band(wl, wt, wr, wt + e, 0, wt, 0, wt + e); band(wl, wb - e, wr, wb, 0, wb, 0, wb - e); }
 }
 function drawOverlay() {   // 전체 화면 오버레이(레터박스 포함), CSS px. flash → dim(보스 등장 암전) → 비네트(마지막 5초) 순
   if (V.flash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.flash * .5})`; ctx.fillRect(0, 0, CW, CH); }
   if (V.dim > 0) { ctx.fillStyle = `rgba(0,0,0,${V.dim})`; ctx.fillRect(0, 0, CW, CH); }
-  if (V.vign > 0) { const g = ctx.createRadialGradient(CW / 2, CH / 2, Math.min(CW, CH) * .35, CW / 2, CH / 2, Math.hypot(CW, CH) / 2); g.addColorStop(0, 'rgba(255,60,60,0)'); g.addColorStop(1, `rgba(255,60,60,${V.vign})`); ctx.fillStyle = g; ctx.fillRect(0, 0, CW, CH); }
+  if (V.vign > 0) { const vk = CW + '|' + CH; if (V.vgK !== vk) { V.vgK = vk; V.vgG = ctx.createRadialGradient(CW / 2, CH / 2, Math.min(CW, CH) * .35, CW / 2, CH / 2, Math.hypot(CW, CH) / 2); V.vgG.addColorStop(0, 'rgba(255,60,60,0)'); V.vgG.addColorStop(1, 'rgba(255,60,60,1)'); } ctx.globalAlpha = Math.min(1, V.vign); ctx.fillStyle = V.vgG; ctx.fillRect(0, 0, CW, CH); ctx.globalAlpha = 1; }   // 2.1 C: 끝 알파 1 그라디언트를 한 번 만들고 globalAlpha 로 세기(예전: 매 프레임 새 그라디언트, 결과 같음)
 }
 function drawBanner(b) {   // 화면 중앙 가로 띠(#6·#7). 텍스트 좌→중앙 0.3s, 유지, 우로 0.3s. 월드 좌표
   const { y, h } = bannerBand(b);   // P-4: 상단 1/3 레인(안전 영역 위끝 ~ H/3 가운데)
   const k = b.t < .3 ? b.t / .3 : b.t > b.life - .3 ? (b.life - b.t) / .3 : 1, ease = 1 - Math.pow(1 - Math.max(0, k), 3);
   ctx.globalAlpha = Math.max(0, Math.min(1, k * 1.5)); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, y - h / 2, W, h);
   const x = b.t < .3 ? -W * .5 + W * ease : b.t > b.life - .3 ? W * .5 + W * .5 * (1 - ease) : W * .5;   // 들어올 때 좌에서, 나갈 때 우로
-  let fz = b.small ? (V.portrait ? 26 : 30) : (V.portrait ? 32 : 38); ctx.font = `${fz}px Jua`; const tw = ctx.measureText(b.s).width; if (tw > W - 40) { fz = Math.floor(fz * (W - 40) / tw); ctx.font = `${fz}px Jua`; }   // 긴 문구는 폭에 맞게 줄임
+  let fz = b.small ? (V.portrait ? 26 : 30) : (V.portrait ? 32 : 38); ctx.font = `${fz}px Jua`; const tw = mtw(ctx, `${fz}px Jua`, b.s); if (tw > W - 40) { fz = Math.floor(fz * (W - 40) / tw); ctx.font = `${fz}px Jua`; }   // 긴 문구는 폭에 맞게 줄임
   ctx.textAlign = 'center'; ctx.lineWidth = Math.max(5, fz * .2); ctx.strokeStyle = '#4a2f12'; ctx.strokeText(b.s, x, y + fz * .36); ctx.fillStyle = b.c || '#fff'; ctx.fillText(b.s, x, y + fz * .36); ctx.globalAlpha = 1;
 }
 // 떠오르는 숫자·글자 비트맵 캐시(단계 F 2회차 성능). 텍스트 하나당 최대 팝 크기(TXT_POP)로 1회 렌더(외곽선·glow 포함) → 이후 drawImage 로 축소만.
 // 캔버스는 80장 링을 돌려 씀(살아 있는 텍스트 상한 60 < 80 이라 겹치지 않음, 겹쳐도 _owner 확인 후 다시 그림). 화면 배율(VS·DPR)이 바뀌면 다시 그림
-const TXT_POP = 1.12, TXT_RING = [], TXT_RING_N = 80; let txtRingI = 0;
-function textImg(tx, size) {
-  const sc = VS * DPR; let o = tx._ti; if (o && o.c._owner === tx && o.sc === sc && o.size === size && o.s === tx.s && o.col === tx.c) return o;   // P-1: 합친 숫자는 글자·색이 바뀌면 같은 캔버스에 다시 그림
-  const c = o && o.c._owner === tx ? o.c : (TXT_RING[txtRingI] || (TXT_RING[txtRingI] = document.createElement('canvas'))); txtRingI = (txtRingI + 1) % TXT_RING_N; c._owner = tx;
-  const x = c.getContext('2d'), lw = Math.max(5, size * .22), pad = lw + 4 + (tx.glow ? 22 / sc : 0);
-  x.font = `${size}px Jua`; const w = x.measureText(tx.s).width, cw = w + pad * 2, ch = size * 1.35 + pad * 2;
-  c.width = Math.max(1, Math.ceil(cw * sc)); c.height = Math.max(1, Math.ceil(ch * sc));   // 크기 대입 = 초기화
-  x.setTransform(sc, 0, 0, sc, 0, 0); x.font = `${size}px Jua`; x.textAlign = 'center';
-  const bx = cw / 2, by = pad + size;   // 기준선(alphabetic) 위치
-  if (tx.glow) { x.shadowColor = tx.c; x.shadowBlur = 18; }
-  x.lineWidth = lw; x.strokeStyle = '#4a2f12'; x.strokeText(tx.s, bx, by);
-  if (tx.grad) { const gr = x.createLinearGradient(0, by - size, 0, by); gr.addColorStop(0, tx.grad[0]); gr.addColorStop(.5, tx.grad[1]); gr.addColorStop(1, tx.grad[2]); x.fillStyle = gr; } else x.fillStyle = tx.c;   // P-2: 1억+ 는 세로 그라데이션(광택)
-  x.fillText(tx.s, bx, by); x.shadowBlur = 0;
-  return tx._ti = { c, sc, size, w, cw, ch, bx, by, s: tx.s, col: tx.c };
+const TXT_POP = 1.12;   // 검증수정v1: 링 캔버스 80장 → CPU 작업 캔버스 1장 + 표시용 링 32장(아래 textImg)
+// 2.1 C: 글자 광채(glow). 예전엔 글자 캔버스에 shadowBlur 18 을 걸어 그렸는데, 후반엔 초당 40장 넘게 다시 그려져(합친 숫자는 합칠 때마다) 그 래스터가 draw 의 가장 큰 몫(글자 drawImage 초당 약 170ms)이었음.
+// 같은 모양을 싸게: 실루엣을 ¼ 해상도 캔버스에 blur(σ 9px ÷ 4)로 그린 뒤 확대해 깐다. shadowBlur 18 = σ 9px. 예전처럼 외곽선 밑에 한 번(외곽선 그림자), 외곽선 위·채움 밑에 한 번(채움 그림자)
+// 검증수정v1 렉: canvas filter blur 가 glow 글자 한 장에 5~45ms(헤드리스 실측, 글자 래스터 시간의 약 90%) · 굵은 외곽선 여러 겹도 비슷하게 비쌈(굵은 획 = 복잡한 도형).
+// → 흐림 없이: 글자 실루엣을 ⅛ 해상도에 한 번만 채워 그리고(작은 글자라 싸다), 그걸 8배로 늘려(쌍선형 보간 = 부드러운 가장자리) 둘레 여러 방향으로 옅게 겹쳐 깐다 = 번진 광채. 외곽선 밑(stroke 1): 둘레 12방향, 외곽선 위(stroke 0): 제자리 1장
+// (늘려 까는 건 한 장씩만 — 헤드리스는 채우는 픽셀 수가 곧 비용이라, 둘레 겹치기는 ⅛ 캔버스 안에서 끝내고 결과만 한 번 확대)
+const GLOW_Q = 8, GLOW_RING = Array.from({ length: 12 }, (_, i) => [Math.cos(i * Math.PI / 6), Math.sin(i * Math.PI / 6)]); let glowCv = null, glowCv2 = null;
+function glowPass(x, tx, c, sc, size, lw, bx, by, stroke) {
+  const g = glowCv || (glowCv = document.createElement('canvas')), q = g.getContext('2d', { willReadFrequently: true }), k = sc / GLOW_Q, m = Math.ceil((lw / 2 + 12 / sc) * sc / GLOW_Q) + 2, key = `${tx.s}|${size}|${sc}|${tx.c}|${c.width}`;   // m: 둘레로 번지는 폭만큼 여백(⅛ px)
+  const gw = Math.ceil(c.width / GLOW_Q) + m * 2, gh = Math.ceil(c.height / GLOW_Q) + m * 2;
+  if (g._key !== key) { g._key = key; cvFit(g, q, gw, gh); q.setTransform(k, 0, 0, k, m, m); q.font = `${size}px Jua`; q.textAlign = 'center'; q.fillStyle = tx.c; q.fillText(tx.s, bx, by); }   // 두 번째 호출(외곽선 위)은 같은 실루엣 재사용
+  let src = g;
+  if (stroke) { const h = glowCv2 || (glowCv2 = document.createElement('canvas')), p = h.getContext('2d', { willReadFrequently: true }), R = (lw / 2 + 9 / sc) * sc / GLOW_Q; cvFit(h, p, gw, gh);   // R: 외곽선 반폭 + σ(9 device px), ⅛ px 단위
+    for (const f of [1, .55]) { p.globalAlpha = f === 1 ? .13 : .17; for (const [dx, dy] of GLOW_RING) p.drawImage(g, 0, 0, gw, gh, dx * R * f, dy * R * f, gw, gh); } p.globalAlpha = 1; src = h; }
+  x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = stroke ? 1 : .5; x.drawImage(src, 0, 0, gw, gh, -m * GLOW_Q, -m * GLOW_Q, gw * GLOW_Q, gh * GLOW_Q); x.restore();
 }
+// 검증수정v1 렉: 캔버스 크기 대입(= 새 GPU 버퍼)은 GPU 와 동기화를 기다려 한 번에 수~십수 ms 가 걸릴 때가 있음(여러 마리 동시 포획 순간 draw 튐의 주원인).
+// → 글자·광채 캔버스는 필요할 때만 넉넉히(128·64 px 단위) 키우고, 평소엔 쓸 영역만 지우고 다시 씀. 그릴 때는 원본 영역(pw·ph)만 잘라 씀
+function cvFit(c, x, pw, ph) { if (c.width < pw || c.height < ph) { c.width = Math.max(c.width, Math.ceil(pw / 128) * 128); c.height = Math.max(c.height, Math.ceil(ph / 64) * 64); } else { x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.clearRect(0, 0, pw + 2, ph + 2); } }
+// 검증수정v1 렉: 한꺼번에 여러 마리(평균 7마리)를 잡는 프레임에 새 글자 비트맵이 5~6장 몰려 draw 38ms·롱태스크가 났음 → 한 프레임에 새로 래스터하는 글자는 TXT_BUDGET 장까지(glow 는 2장 몫).
+// 예산이 없으면: 예전 비트맵이 있으면 그것을(합친 숫자는 한 프레임 늦게 새 합계), 없으면 이번 프레임은 건너뜀(다음 프레임에 그림 — 팝 시작이 16~33ms 늦을 뿐). 보스·크리(keep·glow)는 예산이 모자라도 1장은 먼저
+const TXT_BUDGET = 3; let txtBudget = TXT_BUDGET;
+// 검증수정v1 렉(핵심): 글자 비트맵을 GPU 캔버스에 그리면 외곽선(strokeText) 한글 도형을 메인 스레드에서 잘게 쪼개느라 새 글자를 처음 화면에 그릴 때 한 장 7~20ms(헤드리스 실측, drawImage 순간에 몰림).
+// 같은 글자를 CPU 캔버스(willReadFrequently)에 그리면 0.2~1ms. → 글자는 CPU 작업 캔버스 1장에 그리고, 결과 영역만 표시용 GPU 캔버스(링)로 한 번 복사해 씀(그 뒤 drawImage 는 싸다).
+// createImageBitmap 은 떠 가는 순간 한 장 4~14ms 라 쓰지 않음(실측)
+const TXT_RING = [], TXT_RING_N = 32; let txtRingI = 0, txtScr = null;   // 표시용 캔버스 32장(화면 글자 상한 TXT_MAX 12 의 2배 넘게, 살아 있는 글자 것은 건너뜀)
+const tiShow = t => t && t.bm && t.bm._owner === t.tx ? t : null;   // 링이 돌아 캔버스를 다른 글자가 가져갔으면 다시 그림
+function textImg(tx, size) {
+  const sc = VS * DPR; let o = tx._ti; if (o && o.sc === sc && o.size === size && o.s === tx.s && o.col === tx.c && o.ol === tx.ol) return tiShow(o);   // P-1: 합친 숫자는 글자·색이 바뀌면 다시 그림
+  if (tx.agg && o && o.sc === sc && performance.now() - o.at < 50) return tiShow(o);   // 2.1 C: 합친 숫자는 합칠 때마다 다시 그리던 것을 50ms(3프레임)에 한 번까지만 — 후반엔 초당 30번 넘게 글자 비트맵을 새로 래스터했음. 마지막 합계는 50ms 안에 반드시 그려짐
+  const cost = tx.glow ? 2 : 1, own = !!(o && o.sc === sc && tiShow(o));
+  if (txtBudget < cost && !(txtBudget > 0 && !own && (tx.boss || tx.glow))) return own ? tiShow(o) : null;   // 예산 초과: 헌 비트맵 또는 건너뜀
+  txtBudget -= cost;
+  const c = txtScr || (txtScr = document.createElement('canvas')), x = c.getContext('2d', { willReadFrequently: true }), lw = Math.max(5, size * .22), pad = lw + 4 + (tx.glow ? 22 / sc : 0);   // willReadFrequently = CPU 캔버스
+  const w = mtw(x, `${size}px Jua`, tx.s), cw = w + pad * 2, ch = size * 1.35 + pad * 2;
+  const pw = Math.max(1, Math.ceil(cw * sc)), ph = Math.max(1, Math.ceil(ch * sc)); cvFit(c, x, pw, ph);
+  x.setTransform(sc, 0, 0, sc, 0, 0); x.font = `${size}px Jua`; x.textAlign = 'center';
+  const bx = cw / 2, by = pad + size, dim = { width: pw, height: ph };   // 기준선(alphabetic) 위치. dim: 광채 캔버스 크기 기준(작업 캔버스는 재사용이라 실제 크기가 더 클 수 있음)
+  const gq = tx.glow;   // 2.1 C: glow 는 glowPass. 검증수정v1: filter 없이 모든 브라우저 같은 방식
+  if (gq) glowPass(x, tx, dim, sc, size, lw, bx, by, 1);
+  x.lineWidth = lw; x.lineJoin = 'round'; x.strokeStyle = tx.ol || '#4a2f12'; x.strokeText(tx.s, bx, by);   // 2.1 D: round — 기본(miter)은 큰 글자에서 '1' 꼭대기에 뾰족한 가시가 솟았음   // 2.1 D: 크리·보스 숫자는 외곽선 색이 다름(tx.ol)
+  if (gq) glowPass(x, tx, dim, sc, size, lw, bx, by, 0);
+  if (tx.grad) { const gr = x.createLinearGradient(0, by - size, 0, by); gr.addColorStop(0, tx.grad[0]); gr.addColorStop(.5, tx.grad[1]); gr.addColorStop(1, tx.grad[2]); x.fillStyle = gr; } else x.fillStyle = tx.c;   // P-2: 1억+ 는 세로 그라데이션(광택)
+  x.fillText(tx.s, bx, by);
+  // 표시용 캔버스(GPU)로 한 번 옮김: 링에서 이 글자가 쓰던 것 또는 화면에 없는 글자의 것을 골라(키우기만 하고 재사용) 작업 캔버스 영역을 복사 = 한 번만 올림
+  let k = o && o.bm && o.bm._owner === tx ? o.bm : null;
+  if (!k) { for (let i = 0; i < TXT_RING_N; i++) { const j = (txtRingI + i) % TXT_RING_N, r = TXT_RING[j]; if (!r || !r._owner || !V.texts.includes(r._owner)) { txtRingI = (j + 1) % TXT_RING_N; k = r || (TXT_RING[j] = document.createElement('canvas')); break; } }
+    if (!k) { k = TXT_RING[txtRingI]; txtRingI = (txtRingI + 1) % TXT_RING_N; } }
+  k._owner = tx; const kx = k.getContext('2d'); if (k.width < 256) { k.width = 256; k.height = 128; } cvFit(k, kx, pw, ph); kx.drawImage(c, 0, 0, pw, ph, 0, 0, pw, ph);   // 최소 256×128: 너무 작은 캔버스는 GPU 가속이 안 돼 매 프레임 다시 올라감
+  return tx._ti = { tx, bm: k, pw, ph, sc, size, w, cw, ch, bx, by, s: tx.s, col: tx.c, ol: tx.ol, at: performance.now() };
+}
+// 검증수정v1 렉(최종): 새 글자 비트맵은 어떻게 만들든 GPU 로 처음 올리는 순간 한 장 5~20ms 를 기다림(헤드리스·GPU 공유 실측). 획득 숫자는 글자 종류가 적으니(0~9 · + , × 만 억 조 경 천 백 십 · CRIT!)
+// 글자 한 자씩(모양 = 색·외곽선·광채·그라데이션 × 크기 계단) 큰 아틀라스 캔버스에 한 번만 그려 두고, 숫자는 매 프레임 그 조각을 이어 붙여 그림 → 한 번 본 모양이면 새로 올릴 것이 없음.
+// 조각은 두 겹(뒤: 광채·외곽선 / 앞: 채움) — 뒤를 전부 깐 다음 앞을 그려야 이웃 글자 외곽선이 채움을 덮지 않음(한 번에 그린 문자열과 같은 모양). 새 조각은 프레임당 GLY_BUDGET 개, 항구에서 쉬는 틈에 다음 크기를 미리(glyWarm)
+const GLY_RE = /^[0-9+,× 만억조경천백십CRIT!]+$/, GLY_CH = '0123456789+,×만억조경천백십', GLY_PW = 2048, GLY_PH = 1024, GLY_MAXP = 12, GLY_BUDGET = 2;   // 페이지 2048×1024(8MB) 필요할 때만 최대 12장(1920 화면 후반 실측 6~8장, 세로 폰은 조각이 작아 절반 이하) — 광채 여백 때문에 조각이 커서(1.5배 화면에서 한 자 두 겹 약 6만 px) 3장으로는 후반에 계속 넘쳐 비워졌음
+const GLY_BK = (() => { const a = []; for (let v = 10; v < 600; v *= 1.2) a.push(Math.round(v)); return a; })();   // 래스터 크기 계단(요청 크기 이상 중 가장 작은 것 → 최대 17% 축소해 그림). 계단이 촘촘하면 모양 수가 늘어 조각을 계속 새로 만듦
+const glyBk = s => { for (const b of GLY_BK) if (b >= s) return b; return Math.ceil(s); };
+const NGLY = new Map(), GLY_PAGES = []; let glyGen = 0, glyBudget = GLY_BUDGET;
+function glyAlloc(pw, ph) {   // 선반(shelf) 채우기. 페이지가 다 차면 새 페이지(최대 GLY_MAXP), 그것도 다 차면 전부 비우고 처음부터(glyGen 증가 → 쓰던 글자는 다시 조립)
+  let P = GLY_PAGES[GLY_PAGES.length - 1];
+  if (P && P.x + pw > GLY_PW) { P.y += P.rh + 2; P.x = 0; P.rh = 0; }
+  if (!P || P.y + ph > GLY_PH) { if (GLY_PAGES.length >= GLY_MAXP) { NGLY.clear(); glyGen++; for (const Q of GLY_PAGES) { Q.x = Q.y = Q.rh = 0; Q.x2.clearRect(0, 0, GLY_PW, GLY_PH); } P = GLY_PAGES[0]; GLY_PAGES.length = 1; GLY_PAGES[0] = P; }
+    else { const c = document.createElement('canvas'); c.width = GLY_PW; c.height = GLY_PH; P = { c, x2: c.getContext('2d'), x: 0, y: 0, rh: 0 }; GLY_PAGES.push(P); } }
+  const r = { c: P.c, x: P.x, y: P.y, pw, ph }; P.x += pw + 2; P.rh = Math.max(P.rh, ph); return r;
+}
+const glyStyle = tx => `${tx.c}|${tx.ol || ''}|${tx.glow ? 1 : 0}|${tx.grad ? tx.grad.join(',') : ''}`;
+function glyCell(tx, sk, B, sc, ch) {   // 글자 한 자 조각(뒤·앞 두 겹). 없으면 예산 안에서 만듦, 예산이 없으면 null
+  const key = sk + '|' + B + '|' + sc + '|' + ch; let g = NGLY.get(key); if (g) return g;
+  const c = txtScr || (txtScr = document.createElement('canvas')), x = c.getContext('2d', { willReadFrequently: true }), adv = mtw(x, `${B}px Jua`, ch);
+  if (ch === ' ') { g = { adv, sp: 1 }; NGLY.set(key, g); return g; }
+  if (glyBudget <= 0) return null; glyBudget--;
+  sc = Math.min(sc, 1.5);   // 조각 래스터 배율 상한 1.5(2560 등 큰 화면에서 아틀라스가 넘치지 않게 — 그만큼만 늘려 그림)
+  const lw = Math.max(5, B * .22), pad = lw / 2 + 4 + (tx.glow ? 18 / sc : 0), cw = adv + pad * 2, chh = B * 1.35 + pad * 2, pw = Math.max(1, Math.ceil(cw * sc)), ph = Math.max(1, Math.ceil(chh * sc)), bx = cw / 2, by = pad + B, dim = { width: pw, height: ph }, t1 = { s: ch, c: tx.c };
+  const L = [];
+  for (let layer = 0; layer < 2; layer++) { cvFit(c, x, pw, ph); x.setTransform(sc, 0, 0, sc, 0, 0); x.font = `${B}px Jua`; x.textAlign = 'center';
+    if (!layer) { if (tx.glow) glowPass(x, t1, dim, sc, B, lw, bx, by, 1); x.lineWidth = lw; x.lineJoin = 'round'; x.strokeStyle = tx.ol || '#4a2f12'; x.strokeText(ch, bx, by); if (tx.glow) glowPass(x, t1, dim, sc, B, lw, bx, by, 0); }
+    else { if (tx.grad) { const gr = x.createLinearGradient(0, by - B, 0, by); gr.addColorStop(0, tx.grad[0]); gr.addColorStop(.5, tx.grad[1]); gr.addColorStop(1, tx.grad[2]); x.fillStyle = gr; } else x.fillStyle = tx.c; x.fillText(ch, bx, by); }
+    const r = glyAlloc(pw, ph); r.c.getContext('2d').drawImage(c, 0, 0, pw, ph, r.x, r.y, pw, ph); L.push(r); }
+  g = { adv, cw, ch: chh, bx, by, L, gen: glyGen }; NGLY.set(key, g); return g;
+}
+function glyText(tx, size) {   // 획득 숫자 조립 정보. 글자·모양·크기가 그대로면 이전 것. 조각이 하나라도 없으면(예산) 이전 것 또는 null
+  const sc = VS * DPR, sk = glyStyle(tx), o = tx._tg;
+  if (o && o.s === tx.s && o.size === size && o.sk === sk && o.sc === sc && o.gen === glyGen) return o;
+  const B = glyBk(size), cells = []; let aw = 0;
+  for (const ch of tx.s) { const g = glyCell(tx, sk, B, sc, ch); if (!g) return o && o.gen === glyGen ? o : null; cells.push(g); aw += g.adv; }
+  const k = size / B; return tx._tg = { gl: 1, s: tx.s, size, sk, sc, gen: glyGen, B, k, cells, w: aw * k };
+}
+function drawGly(ti, px, py, s) {   // 뒤 겹 전부 → 앞 겹 전부. 기준선 py, 가운데 px
+  const k = ti.k * s, x0 = px - ti.w * s / 2;
+  for (let layer = 0; layer < 2; layer++) { let x = x0; for (const g of ti.cells) { const a = g.adv * k; if (!g.sp) { const r = g.L[layer]; ctx.drawImage(r.c, r.x, r.y, r.pw, r.ph, x + a / 2 - g.bx * k, py - g.by * k, g.cw * k, g.ch * k); } x += a; } }
+}
+function glyPlan() {   // 다음 항해에 나올 획득 숫자 모양 목록(출현 몫 4% 넘는 어종 × 콤보 배수 약 1.4 × 일반·크리·보스, 경험치 숫자). 나머지는 항해 중 프레임당 2자씩. 출현 몫이 큰 어종부터
+  const m = (MAPS[S.map] || MAPS[0]).mod || {}, pool = unlockedFish(), tw = pool.reduce((a, f) => a + f.w, 0) || 1, out = [], J = juiceLv();
+  for (const f of pool.slice().sort((p, q) => q.w - p.w)) { if (f.w / tw < .04 && f.beh !== 'boss') continue;
+    const g0 = (f.gold + E.gflat) * (1 + E.gold + (m.gold || 0)) * (m.gmul || 1) * (1 + (E.fv[f.i] || 0)) * fishMult(f) * goldMul() * (S.map === 5 ? 1 + E.heavenG : 1) * (f.beh === 'tank' || f.beh === 'boss' ? 1.6 : 1);
+    for (const cm of [J ? 1.4 : 1]) { out.push([g0 * cm, {}]); out.push([g0 * cm * 3, J >= 2 ? { crit: 1 } : { crit: 1, quiet: 1 }]); if (f.beh === 'boss') out.push([g0 * cm * mod('boss') * (1 + E.bossG), { boss: 1 }]); } }
+  return out;
+}
+let glyPlanQ = null, glyPlanAt = 0;
+function glyWarm() {   // 항구·로비에서 쉬는 틈에 다음 항해 숫자 모양을 미리 조각으로(30ms 마다 4자). 항해 중엔 하지 않음(새 조각 = GPU 동기화)
+  if (!V && MODE) { try { const cw = cv.clientWidth || innerWidth, chh = cv.clientHeight || innerHeight, [lw, lh] = chh > cw ? WORLD.port : WORLD.land, sc0 = Math.min(cw / lw, chh / lh) * Math.min(2, window.devicePixelRatio || 1), pk = chh > cw ? 1.3 : 1;   /* 항구에선 캔버스가 숨어 VS 가 옛값 → 창 크기로 항해 배율을 미리 셈(resize 와 같은 식) */
+    if (!glyPlanQ || performance.now() - glyPlanAt > 5000) { glyPlanAt = performance.now(); const seen = new Set(); glyPlanQ = [];
+      for (const [g, o] of glyPlan().concat([[0, { xp: 1 }]])) { const tx = o.xp ? { c: '#9fe0a8', sz: 20 } : num(0, 0, g, o); if (o.quiet) { tx.c = '#ffd36b'; tx.glow = 0; } const B = glyBk(Math.round(tx.sz * TXT_POP * pk)), sk = glyStyle(tx), key = sk + '|' + B; if (seen.has(key)) continue; seen.add(key);
+        for (const ch of GLY_CH + (o.crit && !o.quiet ? 'CRIT!' : '')) glyPlanQ.push([tx, sk, B, ch]); } }
+    glyBudget = 4; while (glyPlanQ.length && glyBudget > 0) { const [tx, sk, B, ch] = glyPlanQ.shift(); glyCell(tx, sk, B, sc0, ch); } } catch (e) {} }
+  setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(glyWarm, { timeout: 500 }) : glyWarm()), !V && glyPlanQ && glyPlanQ.length ? 30 : V ? 1500 : 300);
+}
+setTimeout(glyWarm, 1500);
 function drawFly() {   // HUD 비행 코인(#3). 월드 좌표, 클립 밖(HUD 가 월드 위 레터박스에 있어도 도착하게)
   const tg = V.hudGold || { x: W / 2, y: 40 }; ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,.8)';
   for (const fl of V.fly) { if (fl.t < 0) continue; const u = Math.min(1, fl.t / fl.life), v = 1 - u, x = v * v * fl.x0 + 2 * v * u * fl.cx + u * u * tg.x, y = v * v * fl.y0 + 2 * v * u * fl.cy + u * u * tg.y;
@@ -1216,18 +1524,18 @@ function draw() {
   cssXf(); drawLetterbox(V.bg);                                                     // ① CSS px 좌표계(하드는 V.bg 색조 기반)
   worldXf(); ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();         // ② 월드 좌표계 + 월드 밖 클립
   if (V.shk > .3) ctx.translate(rnd(-V.shk, V.shk), rnd(-V.shk, V.shk));
-  const m = V.map, g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, V.bg[0]); g.addColorStop(.45, V.bg[1]); g.addColorStop(1, V.bg[2]);
+  const m = V.map; if (V.bgGH !== H) { V.bgGH = H; V.bgG = ctx.createLinearGradient(0, 0, 0, H); V.bgG.addColorStop(0, V.bg[0]); V.bgG.addColorStop(.45, V.bg[1]); V.bgG.addColorStop(1, V.bg[2]); } const g = V.bgG;   // 2.1 C: 배경 그라디언트는 항해당 1회(세로 전환 때만 다시)
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // 빛줄기 + 바닥 장식 (하드는 빛줄기 .04)
   ctx.save(); ctx.globalAlpha = hard ? .04 : .07; ctx.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { const x = W * (0.15 + i * 0.25) + Math.sin(V.t * .3 + i) * 30; ctx.beginPath(); ctx.moveTo(x - 10, 0); ctx.lineTo(x + 10, 0); ctx.lineTo(x + 50, H * .8); ctx.lineTo(x - 30, H * .8); ctx.fill(); } ctx.restore();
   ctx.fillStyle = 'rgba(255,255,255,.25)'; for (let i = 0; i < 12; i++) { const t = (V.t * (0.08 + i * 0.013) + i * 0.37) % 1; ctx.beginPath(); ctx.arc(W * ((i * 0.083 + Math.sin(i) * 0.02) % 1), H - t * (H + 40), 3 + (i % 3) * 2, 0, 6.28); ctx.fill(); }
   ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.moveTo(0, H); ctx.quadraticCurveTo(W * .2, H - 70, W * .38, H - 30); ctx.quadraticCurveTo(W * .6, H - 90, W * .8, H - 40); ctx.quadraticCurveTo(W * .95, H - 20, W, H - 50); ctx.lineTo(W, H); ctx.fill();
   const deco = { rock: ['🪨', '🌿', '🪨', '🐚'], coral: ['🪸', '🌺', '🪸', '🌿'], wreck: ['⚓', '🪨', '🛶', '🪸'], deep: ['🪨', '💀', '🕳️', '🪨'], fantasy: ['✨', '🔮', '🌟', '💎'], heaven: ['🌠', '🪐', '⭐', '🔱'] }[m.deco];
-  ctx.font = '26px serif'; ctx.textAlign = 'center'; deco.forEach((d, i) => ctx.fillText(d, W * (0.12 + i * 0.25), H - 18 - (i % 2) * 22));
+  deco.forEach((d, i) => glyph(d, 26, W * (0.12 + i * 0.25), H - 18 - (i % 2) * 22));   // 2.1 C: 이모지는 비트맵 캐시(glyph)로
   // 희귀 어종 광채(#15): 스프라이트 뒤. 티어 14+ 금색, 리바이어던 보라, 보스 2페이즈 빨강. 동시 최대 6(보스 먼저)
   for (const rp of V.rips) { if (rp.t < 0) continue; const u = rp.t / rp.life, e = 1 - Math.pow(1 - u, 2), r = rp.r0 + (rp.r1 - rp.r0) * e;   // P-5 스폰 물결: 수면처럼 납작한 타원이 퍼지며 흐려짐(물고기 아래)
     ctx.strokeStyle = `rgba(${rp.c},${(1 - u) * .85})`; ctx.lineWidth = rp.lw * (1 - u * .5); ctx.beginPath(); ctx.ellipse(rp.x, rp.y, r, r * .5, 0, 0, 6.28); ctx.stroke(); }
-  const glows = V.fish.filter(fs => fs.boss).concat(V.fish.filter(fs => fs.rare && !fs.boss)).slice(0, 6);
+  const glows = V.J < 2 ? [] : V.fish.filter(fs => fs.boss).concat(V.J >= 3 ? V.fish.filter(fs => fs.rare && !fs.boss) : []).slice(0, 6);   // 2.1: 광채는 단계 2 보스만 · 3+ 희귀 전부
   for (const fs of glows) { if (fs.em > 0) continue; const gw = fs.w * 1.4 * (fs.pt < POP_T ? Math.max(.02, easeOutBack(fs.pt / POP_T)) : 1); ctx.globalAlpha = (.2 + .1 * Math.sin(V.t * 3 + fs.ph)) * (fs.born < 1 ? .55 + .45 * fs.born : 1); ctx.drawImage(glowImg(fs.phase2 ? '#ff5a5a' : fs.f.id === 'leviathan' ? '#b58cff' : '#ffd36b'), fs.x - gw / 2, fs.y - gw / 2, gw, gw); }
   ctx.globalAlpha = 1;
   // 물고기
@@ -1242,14 +1550,14 @@ function draw() {
     if (fs.hp < fs.max || fs.boss) { const bw = Math.max(30, sp.w * (fs.boss ? .9 : .6)), bh = fs.boss ? 7 : 5, by = fs.y - sp.h / 2 - 9; ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(fs.x - bw / 2, by, bw, bh);
       ctx.fillStyle = '#ff6b6b'; ctx.fillRect(fs.x - bw / 2, by, bw * Math.max(0, Math.min(1, fs.hpShown / fs.max)), bh);   // 잔량 띠(#2c): 늦게 따라오는 붉은 띠 위에 실제 hp
       ctx.fillStyle = fs.boss ? '#ff8fab' : fs.hit ? '#ffd36b' : hard ? '#ff8f6b' : '#7dff8a'; ctx.fillRect(fs.x - bw / 2, by, bw * Math.max(0, fs.hp / fs.max), bh); }
-    if (fs.boss) { ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.fillText('👑', fs.x, fs.y - sp.h / 2 - 14); }
+    if (fs.boss) glyph('👑', 16, fs.x, fs.y - sp.h / 2 - 14);
     if (fs.scared > 0) { ctx.font = '14px serif'; ctx.textAlign = 'center'; ctx.fillText('💨', fs.x - fs.dir * sp.w * .5, fs.y - sp.h * .4); }
   }
   // 효과
   for (const fx of V.fx) {
-    if (fx.type === 'bolt') { const a = 1 - fx.t / fx.life; ctx.shadowColor = '#7fd8ff'; ctx.shadowBlur = 30;
-      for (const [w, col] of [[14, `rgba(140,220,255,${a * .5})`], [7, `rgba(210,240,255,${a})`], [3, `rgba(255,255,255,${a})`]]) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); fx.pts.forEach((p, i) => { const jx = i ? rnd(-9, 9) : 0, jy = i ? rnd(-9, 9) : 0; i ? ctx.lineTo(p.x + jx, p.y + jy) : ctx.moveTo(p.x, p.y); }); ctx.stroke(); }
-      ctx.shadowBlur = 0; }
+    if (fx.type === 'bolt') { const a = 1 - fx.t / fx.life;   // 2.1 C: shadowBlur 30(캔버스에서 가장 비싼 연산) 대신 같은 하늘색의 넓고 옅은 선 2겹(둥근 이음)으로 번짐을 그림. 원래 선 3겹은 그대로
+      for (const [w, col] of [[44, `rgba(127,216,255,${a * .12})`], [28, `rgba(127,216,255,${a * .2})`], [14, `rgba(140,220,255,${a * .5})`], [7, `rgba(210,240,255,${a})`], [3, `rgba(255,255,255,${a})`]]) { ctx.strokeStyle = col; ctx.lineWidth = w; const gl = w > 14; ctx.lineJoin = gl ? 'round' : 'miter'; ctx.lineCap = gl ? 'round' : 'butt'; ctx.beginPath(); fx.pts.forEach((p, i) => { const jx = i ? rnd(-9, 9) : 0, jy = i ? rnd(-9, 9) : 0; i ? ctx.lineTo(p.x + jx, p.y + jy) : ctx.moveTo(p.x, p.y); }); ctx.stroke(); }
+      ctx.lineJoin = 'miter'; ctx.lineCap = 'butt'; }
     if (fx.type === 'bomb') { if (!fx.done) { ctx.font = '30px serif'; ctx.textAlign = 'center'; ctx.fillText('💣', fx.x, fx.y + 10); ctx.fillStyle = '#fff'; ctx.font = '14px Jua'; ctx.fillText((fx.fuse - fx.t).toFixed(1), fx.x, fx.y - 22); } else { const k = 1 - fx.boom / .35; ctx.fillStyle = `rgba(255,170,60,${(1 - k) * .45})`; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.4 + k), 0, 6.28); ctx.fill();
       ctx.strokeStyle = `rgba(255,220,120,${1 - k})`; ctx.lineWidth = 14 * (1 - k) + 3; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.5 + k * .9), 0, 6.28); ctx.stroke();
       ctx.strokeStyle = `rgba(255,255,255,${(1 - k) * .8})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.2 + k * 1.15), 0, 6.28); ctx.stroke(); } }
@@ -1257,7 +1565,7 @@ function draw() {
     if (fx.type === 'frost') { ctx.strokeStyle = `rgba(190,235,255,${1 - fx.t / fx.life})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.5 + fx.t / fx.life * .5), 0, 6.28); ctx.stroke(); }
     if (fx.type === 'bh') { const a = Math.max(0, Math.min(1, fx.t * 3, (fx.life - fx.t) * 2)), g = ctx.createRadialGradient(fx.x, fx.y, 4, fx.x, fx.y, fx.r * .6); g.addColorStop(0, `rgba(20,0,40,${.85 * a})`); g.addColorStop(1, 'rgba(90,40,160,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * .6, 0, 6.28); ctx.fill(); ctx.strokeStyle = `rgba(200,160,255,${.7 * a})`; ctx.lineWidth = 3; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r * (.18 + .14 * k), V.t * 4 + k * 2, V.t * 4 + k * 2 + 3.6); ctx.stroke(); } }
     if (fx.type === 'boom') { const u = fx.t / fx.life; ctx.strokeStyle = `rgba(255,211,107,${1 - u})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r0 != null ? fx.r0 + (fx.r1 - fx.r0) * (1 - Math.pow(1 - u, 2)) : 20 + fx.t * 140, 0, 6.28); ctx.stroke(); }   // r0/r1 지정 시 그 범위로 확장(#6·#10)
-    if (fx.type === 'pop') { const u = fx.t / fx.life, s = fx.c ? 1.5 + .7 * u : 1 + .5 * u, wi = spriteWhite(fx.f);   // 포획 팝(#3a): 흰 실루엣 확대·소멸, 보스는 금색 원 겹침
+    if (fx.type === 'pop') { const u = fx.t / fx.life, s = fx.c ? 1.5 + .7 * u : fx.sm ? 1 + .12 * u : 1 + .5 * u, wi = spriteWhite(fx.f);   // 2.1: sm = 연출 단계 0 작은 팝   // 포획 팝(#3a): 흰 실루엣 확대·소멸, 보스는 금색 원 겹침
       ctx.save(); ctx.translate(fx.x, fx.y); if (fx.dir > 0) ctx.scale(-1, 1); ctx.scale(s, s); ctx.globalAlpha = 1 - u; if (wi.complete) ctx.drawImage(wi, -fx.w / 2, -fx.h / 2, fx.w, fx.h);
       if (fx.c) { ctx.globalAlpha = (1 - u) * .5; ctx.fillStyle = fx.c; ctx.beginPath(); ctx.arc(0, 0, fx.w * .55, 0, 6.28); ctx.fill(); } ctx.restore(); }
     if (fx.type === 'ripple') { const u = fx.t / fx.life; ctx.strokeStyle = `rgba(255,255,255,${(1 - u) * .7})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r0 + (fx.r1 - fx.r0) * u, 0, 6.28); ctx.stroke(); }   // 그물 물결(#13)
@@ -1270,12 +1578,12 @@ function draw() {
   }
   // 보물상자
   ctx.font = '32px serif'; ctx.textAlign = 'center';
-  for (const c of V.chests) { ctx.save(); ctx.globalAlpha = .55 + Math.sin(c.t * 5) * .25; ctx.fillStyle = '#ffd36b'; ctx.beginPath(); ctx.arc(c.x, c.y - 4, 26, 0, 6.28); ctx.fill(); ctx.restore(); ctx.fillText('🎁', c.x, c.y + 8); }
-  for (const bt of V.bottles) { ctx.save(); ctx.globalAlpha = .45 + Math.sin(bt.t * 5) * .2; ctx.fillStyle = '#bfe9ff'; ctx.beginPath(); ctx.arc(bt.x, bt.y - 4, 22, 0, 6.28); ctx.fill(); ctx.restore(); ctx.fillText('🍾', bt.x, bt.y + 8); }
+  for (const c of V.chests) { ctx.save(); ctx.globalAlpha = .55 + Math.sin(c.t * 5) * .25; ctx.fillStyle = '#ffd36b'; ctx.beginPath(); ctx.arc(c.x, c.y - 4, 26, 0, 6.28); ctx.fill(); ctx.restore(); glyph('🎁', 32, c.x, c.y + 8); }
+  for (const bt of V.bottles) { ctx.save(); ctx.globalAlpha = .45 + Math.sin(bt.t * 5) * .2; ctx.fillStyle = '#bfe9ff'; ctx.beginPath(); ctx.arc(bt.x, bt.y - 4, 22, 0, 6.28); ctx.fill(); ctx.restore(); glyph('🍾', 32, bt.x, bt.y + 8); }
   // 유물
-  ctx.font = '28px serif'; for (const r of V.relicsOnScreen) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(r.x, r.y, 22 + Math.sin(r.t * 4) * 2, 0, 6.28); ctx.fill(); ctx.fillText(relicById[r.id].icon, r.x, r.y + 10); }
+  ctx.font = '28px serif'; for (const r of V.relicsOnScreen) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(r.x, r.y, 22 + Math.sin(r.t * 4) * 2, 0, 6.28); ctx.fill(); glyph(relicById[r.id].icon, 28, r.x, r.y + 10); }
   // 심해: 그물 주변만 밝게
-  if (V.map.mod.dark) { const gr = ctx.createRadialGradient(V.net.x, V.net.y, netR() * .6, V.net.x, V.net.y, netR() * 3.4); gr.addColorStop(0, 'rgba(0,0,20,0)'); gr.addColorStop(1, 'rgba(0,0,25,.82)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); }
+  if (V.map.mod.dark) { const r0 = netR(); if (V.dkR !== r0) { V.dkR = r0; V.dkG = ctx.createRadialGradient(0, 0, r0 * .6, 0, 0, r0 * 3.4); V.dkG.addColorStop(0, 'rgba(0,0,20,0)'); V.dkG.addColorStop(1, 'rgba(0,0,25,.82)'); } ctx.save(); ctx.translate(V.net.x, V.net.y); ctx.fillStyle = V.dkG; ctx.fillRect(-V.net.x, -V.net.y, W, H); ctx.restore(); }   // 2.1 C: 그물 중심 그라디언트는 원점 기준 1회 만들고 이동만
   if (V.map.mod.spark) { ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 16; i++) { const a = V.t * .6 + i * 2.1; ctx.globalAlpha = .3 + Math.abs(Math.sin(a)) * .6; ctx.beginPath(); ctx.arc((i * 137 + Math.sin(a) * 40) % W, (i * 211 + Math.cos(a) * 30) % H, 2.2, 0, 6.28); ctx.fill(); } ctx.globalAlpha = 1; }
   if (V.map.mod.aurora) {   // 천상의 심해: 오로라 띠 3줄(금·청록·보라). 상단 14~28% 높이, 25점 path ×3 고정(상한 = 그 자체, 누적 상태 없음)
     ctx.lineWidth = 34; ctx.lineCap = 'round';
@@ -1300,16 +1608,19 @@ function draw() {
   worldXf(); ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();         // ④ 글자·배너(월드 클립, 화면 흔들림은 따르지 않음 — 흔들려도 숫자는 읽히게)
   // 텍스트 (크게)
   settleTexts();   // 검증수정1: update 의 settle 뒤에 생긴 글자(레벨업 등)도 그리기 직전에 한 번 더 자리 확정
+  txtBudget = TXT_BUDGET; glyBudget = GLY_BUDGET;
   ctx.textAlign = 'center';
   for (const tx of V.texts) { if (tx.t < 0) continue;   // 단계 F 2회차 성능: 글자는 한 번만 오프스크린에 그려(textImg) 비트맵으로 확대·축소. 후반(초당 40마리+) 60개 텍스트를 매 프레임 strokeText·glow 로 다시 그리던 게 프레임 18fps 의 원인이었음
     const k = Math.min(1, tx.t * 7), pop = 0.55 + k * 0.5 + Math.max(0, .2 - tx.t) * 1.2;
-    const base = Math.min(tx.sz || (tx.big ? 32 : 23), tx.maxSz || 48), full = base * TXT_POP * (V.portrait ? 1.3 : 1), ti = textImg(tx, Math.round(full));   // P-2: 논리 48px(보스 60) 상한
-    let s = pop / TXT_POP * (1 + (tx.bump || 0) * .28); if (ti.w * s > W * .4) s = W * .4 / ti.w;   // 합칠 때 튕기며 커짐(P-1) · 글자 폭은 월드 폭 40% 이하(P-2, 세로 폰)
-    ctx.globalAlpha = Math.min(1, ((tx.life || 1.25) - tx.t) * 1.8);
+    const base = Math.min(tx.sz || (tx.big ? 32 : 23), tx.maxSz || 48), full = base * TXT_POP * (V.portrait ? 1.3 : 1), gl = (tx.gv != null || tx.agg) && GLY_RE.test(tx.s), ti = gl ? glyText(tx, Math.round(full)) : textImg(tx, Math.round(full));   // P-2: 논리 48px 상한(일반 글자). 2.1 D: 획득 숫자(gv)는 maxSz 999 = 상한 없음. 검증수정v1: 획득 숫자는 글자 조각 조립(glyText)
+    if (!ti) continue;   // 검증수정v1: 이번 프레임 글자 예산 초과(다음 프레임에 그림)
+    const cap = W * (tx.gv != null ? NUM_WMAX * (1 + (tx.bump || 0) * .28) : .4); let s = pop / TXT_POP * (1 + (tx.bump || 0) * .28); if (ti.w * s > cap) s = cap / ti.w;   // 합칠 때 튕기며 커짐(P-1) · 글자 폭은 월드 폭 40% 이하(P-2, 세로 폰). 2.1 D: 획득 숫자는 50% — fitNum 이 표기를 줄여 평소엔 안 걸림. 튕기는 0.2초는 상한도 같이 늘려 긴 숫자도 줄지 않고 튕김
+    ctx.globalAlpha = Math.min(1, ((tx.life || 1.25) - tx.t) * 1.8) * (tx.a || 1);   // tx.a: 단계 0~1 경험치 숫자 반투명
     const jit = tx.shk && tx.t < .35 ? tx.shk * (1 - tx.t / .35) : 0, w = ti.w * s, fh = ti.size * s;   // 큰 자릿수: 처음 0.35초 짧은 흔들림
     const px = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, tx.x)) + (jit ? rnd(-jit, jit) : 0), py = (tx.keep ? Math.min(SAFE.b - fh * .3, tx.y) : Math.max(SAFE.t + fh * .9, Math.min(SAFE.b - fh * .3, tx.y))) + (jit ? rnd(-jit, jit) * .6 : 0);   // P-3: 위 HUD·아래 능력바를 피하는 안전 영역 안으로(특별 글자는 settleTexts 가 이미 위끝을 맞춤 — 여기서 또 누르면 서로 겹침)
-    ctx.drawImage(ti.c, px - ti.bx * s, py - ti.by * s, ti.cw * s, ti.ch * s);
-    if (tx.shine && tx.t < .25) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - tx.t / .25) * .55; ctx.drawImage(ti.c, px - ti.bx * s, py - ti.by * s, ti.cw * s, ti.ch * s); ctx.globalCompositeOperation = 'source-over'; } }   // 광택: 처음 0.25초 밝게 번쩍
+    const paint = () => ti.gl ? drawGly(ti, px, py, s) : ctx.drawImage(ti.bm, 0, 0, ti.pw, ti.ph, px - ti.bx * s, py - ti.by * s, ti.cw * s, ti.ch * s);
+    paint();
+    if (tx.shine && tx.t < .25) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - tx.t / .25) * .55; paint(); ctx.globalCompositeOperation = 'source-over'; } }   // 광택: 처음 0.25초 밝게 번쩍
   ctx.globalAlpha = 1;
   if (V.banner) drawBanner(V.banner);                                               // 배너(#6·#7) 월드 중앙
   ctx.restore();
@@ -1332,8 +1643,8 @@ function endVoyage() {
     ${v.best ? `<div class="card" style="display:flex;align-items:center;gap:10px;text-align:left">${fishArt(v.best, 70)}<div>가장 큰 수확<br><b>${v.best.name}</b></div></div>` : ''}
     ${v.newRelics.length ? `<p>🪸 새 유물: ${v.newRelics.map(id => relicById[id].icon + ' ' + relicById[id].name).join(', ')}</p>` : ''}
     <div class="row" style="justify-content:center"><button class="btn green" id="btnAgain">🎣 한 판 더!</button><button class="btn light" id="btnPort">⛵ 항구로</button></div>`);
-  $('btnAgain').onclick = () => { hideModal(); startVoyage(); };
-  $('btnPort').onclick = () => { hideModal(); screen('port'); renderPort(); };
+  $('btnAgain').onclick = () => { hideModal(); dexCheck(); startVoyage(); };   // 검증수정v1 c: 연출 단계 알림은 항구에서만(juiceCheck 는 btnPort·항구 진입에서)   // 2.1 B: dexCheck 는 항해 시작 전(V 없음)에 불러야 알림이 나감 — 토스트는 항해 화면에도 보임
+  $('btnPort').onclick = () => { hideModal(); screen('port'); renderPort(); juiceCheck(); dexCheck(); };   // 2.1: 연출 단계가 올랐으면 항구에서 알림 · B: 도감 새 등록·새 별
   countUp([[v.gold, '+', fmt], [v.dia, '+', String], [v.caught, '', String], [v.xp, '+', fmt]]);   // .res b 4개 0→목표 0.75초 카운트업(#9)
 }
 function countUp(items) {   // 정산 카운트업: easeOutCubic 0.75초 rAF. 끝나면 최고 수확 카드 .popin
@@ -1361,6 +1672,9 @@ function renderTop() {
   document.querySelector('[data-tab="tree"]').classList.toggle('alert', treeOk && S.tab !== 'tree');
   if (S.capNew && S.tab === 'captain' && $('port').classList.contains('active')) S.capNew = 0;   // 마감 B6: 업적 합류 새 표시는 선장 탭을 보는 순간 꺼짐
   document.querySelector('[data-tab="captain"]').classList.toggle('alert', (!!S.capNew || CAPTAINS.some(c => !S.captains[c.id] && capUnlocked(c.id))) && S.tab !== 'captain');
+  if ($('port').classList.contains('active')) { if (S.tab === 'dex') S.dexNew = 0; if (S.tab === 'mastery') S.mNew = 0; }   // 2.1 B: 도감 새 별·새 등록(dexCheck) 점은 그 탭을 보는 순간 꺼짐
+  document.querySelector('[data-tab="dex"]').classList.toggle('alert', !!S.dexNew && S.tab !== 'dex');
+  document.querySelector('[data-tab="mastery"]').classList.toggle('alert', !!S.mNew && S.tab !== 'mastery');
 }
 function renderPort() { renderTop(); renderPanel(); }
 function setTab(t) { S.tab = t; document.querySelectorAll('.mb').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); $('btnCfg').style.background = t === 'etc' ? 'var(--gold)' : 'var(--cream)'; sel = null; hideSheet(); renderPort(); }
@@ -1438,18 +1752,24 @@ function renderPanel() {
       const infoThen = () => { info(); const b = $('btnAssign'); if (b) b.onclick = () => { S.captain = c.id; refreshEff(); Sound.play('meld'); toast(`${c.name} 선장 배정!`); renderPort(); infoThen(); }; };
       bindBuy(el, () => !S.captains[c.id] && capUnlocked(c.id), () => { S.captains[c.id] = 1; S.captain = c.id; refreshEff(); Sound.play('meld'); confetti(16); toast(`🎩 ${c.name} 선장 영입! ${c.sk}`); renderPort(); infoThen(); }, infoThen); });
   } else if (t === 'dex') {
-    const un = unlockedFish(); const found = FISH.filter(f => S.counts[f.id]).length;
-    Pn.innerHTML = `<h3>📖 도감 ${found} / ${FISH.length}<small>10·100·1천·1만·10만 마리마다 ★</small></h3><div class="cards">` + FISH.map(f => { const n = S.counts[f.id] || 0, u = un.includes(f); return `<div class="cd ${n ? '' : 'lock'}" title="${f.d}">${fishArt(f, 80)}<div class="nm" style="text-align:center">${n ? f.name : u ? '???' : '🔒 ' + f.name}</div><div class="stars" style="text-align:center">${n ? '★'.repeat(stars(n)) + '☆'.repeat(5 - stars(n)) : ''}</div><div class="ds" style="text-align:center">${n ? `${fmt(n)}마리 · 💰${fmt(f.gold)} · ❤️${fmt(f.hp)}<br><b style="color:var(--sky-dark)">${BEH[f.beh].n}</b>` : u ? '아직 못 잡았어요' : '특성 트리에서 해금'}</div></div>`; }).join('') + '</div>';
+    const un = unlockedFish(); const found = FISH.filter(f => S.counts[f.id]).length, starN = FISH.reduce((a, f) => a + stars(S.counts[f.id] || 0), 0);
+    // 2.1 B: 별이 보상 — 별마다 그 어종 골드 +2%(5개 +10%). 카드에 지금 보너스와 다음 별까지 남은 수
+    Pn.innerHTML = `<h3>📖 도감 ${found} / ${FISH.length} · ★${starN}<small>★마다 그 어종 골드 +${DEX.per * 100}%</small></h3><div class="cards">` + FISH.map(f => { const n = S.counts[f.id] || 0, u = un.includes(f), st = stars(n), nx = DEX.next[st]; return `<div class="cd ${n ? '' : 'lock'}" title="${f.d}">${fishArt(f, 80)}<div class="nm" style="text-align:center">${n ? f.name : u ? '???' : '🔒 ' + f.name}</div><div class="stars" style="text-align:center">${n ? '★'.repeat(st) + '☆'.repeat(5 - st) : ''}</div><div class="ds" style="text-align:center">${n ? `${fmt(n)}마리 · 💰${fmt(f.gold)} · ❤️${fmt(f.hp)}<br>${st ? `<b>골드 +${Math.round(st * DEX.per * 100)}%</b><br>` : ''}${nx ? `다음 ★까지 ${fmt(nx - n)}마리` : '★ 완성'}<br><b style="color:var(--sky-dark)">${BEH[f.beh].n}</b>` : u ? '아직 못 잡았어요' : f.i < 4 ? `Lv.${EARLY_FISH.lv[f.i]}부터 나와요` : '특성 트리에서 해금'}</div></div>`; }).join('') + '</div>';
   } else if (t === 'mastery') {
-    Pn.innerHTML = `<h3>🐟 어종 숙련<small>레벨 ${3}마다 하나씩 열려요 · 골드 +5%/단계 (최대 10)</small></h3><div class="cards">` + FISH.map((f, i) => { const need = 1 + i * 3, lv = S.mastery[f.id] || 0, c = masteryCost(f), lock = S.lv < need; return `<div class="cd ${lock ? 'lock' : lv >= 10 ? 'max' : canPay(c) ? 'ok' : ''}" data-m="${f.id}"><span class="badge">Lv.${need}</span>${fishArt(f, 64)}<div class="nm">${f.name} 숙련 ${lv}/10</div><div class="ds">${f.name} 골드 +${lv * 5}% → +${(lv + 1) * 5}%</div><div class="cost">${lock ? `🔒 레벨 ${need}` : lv >= 10 ? 'MAX' : costTxt(c)}</div></div>`; }).join('') + '</div>';
+    const M = MASTERY, fx = lv => `<br><span class="mk${lv >= M.spawnLv ? ' on' : ''}">${lv >= M.spawnLv ? '✓' : '·'} ${M.spawnLv}단계 출현 +${M.spawn * 100}%</span><br><span class="mk${lv >= M.hpLv ? ' on' : ''}">${lv >= M.hpLv ? '✓' : '·'} ${M.hpLv}단계 체력 −${Math.round((1 - M.hp) * 100)}%</span>`;   // 5·10단계 추가 효과: 달성은 초록 굵게, 아직은 흐리게
+    Pn.innerHTML = `<h3>🐟 어종 숙련<small>도감에 등록한 어종부터 · 골드 +${M.per * 100}%/단계 (최대 ${M.max})</small></h3><div class="cards">` + FISH.map(f => { const lv = S.mastery[f.id] || 0, c = masteryCost(f), lk = masteryLock(f); return `<div class="cd ${lk ? 'lock' : lv >= M.max ? 'max' : canPay(c) ? 'ok' : ''}" data-m="${f.id}">${fishArt(f, 64)}<div class="nm">${f.name} 숙련 ${lv}/${M.max}</div><div class="ds">골드 +${Math.round(lv * M.per * 100)}%${lv < M.max ? ` → +${Math.round((lv + 1) * M.per * 100)}%` : ''}${lk && !lv ? '' : fx(lv)}</div><div class="cost">${lk || (lv >= M.max ? 'MAX' : costTxt(c))}</div></div>`; }).join('') + '</div>';
     Pn.querySelectorAll('.cd[data-m]').forEach(el => { const f = fishById[el.dataset.m];
-      const info = () => { const lv = S.mastery[f.id] || 0; showSheet(fishArt(f, 50), `${f.name} 숙련 ${lv}/10`, S.lv < 1 + f.i * 3 ? `🔒 레벨 ${1 + f.i * 3}부터` : `${f.name} 골드 +${lv * 5}% → +${(lv + 1) * 5}% · ${BEH[f.beh].n}`, lv >= 10 || S.lv < 1 + f.i * 3 ? null : masteryCost(f)); };
-      bindBuy(el, () => S.lv >= 1 + f.i * 3 && (S.mastery[f.id] || 0) < 10 && canPay(masteryCost(f)), () => { pay(masteryCost(f)); S.mastery[f.id] = (S.mastery[f.id] || 0) + 1; Sound.play('correct'); renderPort(); info(); }, info); });
+      const info = () => { const lv = S.mastery[f.id] || 0, lk = masteryLock(f), nx = lv < M.spawnLv ? `${M.spawnLv}단계: ${f.name} 출현 +${M.spawn * 100}%` : lv < M.hpLv ? `${M.hpLv}단계: ${f.name} 체력 −${Math.round((1 - M.hp) * 100)}%` : `출현 +${M.spawn * 100}% · 체력 −${Math.round((1 - M.hp) * 100)}% 적용 중`;
+        showSheet(fishArt(f, 50), `${f.name} 숙련 ${lv}/${M.max}`, lk ? `${lk}${lv ? ` · 올려 둔 ${lv}단계 효과는 그대로` : ''}` : `${f.name} 골드 +${Math.round(lv * M.per * 100)}%${lv < M.max ? ` → +${Math.round((lv + 1) * M.per * 100)}%` : ''} · ${nx}`, lk || lv >= M.max ? null : masteryCost(f)); };
+      bindBuy(el, () => masteryCan(f), () => { pay(masteryCost(f)); S.mastery[f.id] = (S.mastery[f.id] || 0) + 1; const lv = S.mastery[f.id]; Sound.play('correct'); if (lv === M.spawnLv || lv === M.hpLv) { toast(lv === M.spawnLv ? `🐟 ${f.name} 숙련 ${lv}단계 — 출현 +${M.spawn * 100}%` : `🐟 ${f.name} 숙련 완성 — 체력 −${Math.round((1 - M.hp) * 100)}%`); confetti(10); } renderPort(); info(); }, info); });
   } else if (t === 'relic') {
     const n = Object.keys(S.relics).length;
-    Pn.innerHTML = `<h3>🪸 해양 유물 ${n} / ${RELICS.length}<small>항해 중 물고기가 떨어뜨려요 — 그물로 주우세요</small></h3><div class="cards">` + RELICS.map(r => { const lv = S.relics[r.id] || 0, c = relicUpCost(r.id); return `<div class="cd ${!lv ? 'lock' : lv >= 10 ? 'max' : canPay(c) ? 'ok' : ''}" data-r="${r.id}"><div class="ic">${lv ? r.icon : '❔'}</div><div class="nm">${lv ? r.name : '???'} ${lv ? lv + '/10' : ''}</div><div class="ds">${lv ? r.u + ' ×' + lv : '아직 발견 못 함'}</div><div class="cost">${!lv ? '' : lv >= 10 ? 'MAX' : costTxt(c)}</div></div>`; }).join('') + '</div>';
+    // 2.1 E: 초반·중반·후반 3칸. 칸마다 어느 어장부터 나오는지 한 줄(아직 못 연 어장이면 🔒)
+    const card = r => { const lv = S.relics[r.id] || 0, c = relicUpCost(r.id); return `<div class="cd ${!lv ? 'lock' : lv >= 10 ? 'max' : canPay(c) ? 'ok' : ''}" data-r="${r.id}"><div class="ic">${lv ? r.icon : '❔'}</div><div class="nm">${lv ? r.name : '???'} ${lv ? lv + '/10' : ''}</div><div class="ds">${lv ? r.u + ' ×' + lv : '아직 발견 못 함'}</div><div class="cost">${!lv ? '' : lv >= 10 ? 'MAX' : costTxt(c)}</div></div>`; };
+    Pn.innerHTML = `<h3>🪸 해양 유물 ${n} / ${RELICS.length}<small>물고기·보물상자·표류병에서 나와요</small></h3>` + RELIC_TIERS.map(T => { const m = MAPS[T.from], got = T.ids.filter(id => S.relics[id]).length;
+      return `<div class="rtier"><b>${T.n} 유물 ${got} / ${T.ids.length}</b><small>${mapUnlocked(T.from) ? '' : '🔒 '}${m.icon} ${m.name}부터 나와요</small></div><div class="cards">${T.ids.map(id => card(relicById[id])).join('')}</div>`; }).join('');
     Pn.querySelectorAll('.cd[data-r]').forEach(el => { const id = el.dataset.r, r = relicById[id];
-      const info = () => { const lv = S.relics[id] || 0; showSheet(lv ? r.icon : '❔', lv ? `${r.name} ${lv}/10` : '??? 아직 발견 못 함', lv ? `${r.u} — 지금 ×${lv}` : '항해 중 물고기가 떨어뜨려요. 그물로 주우세요', !lv || lv >= 10 ? null : relicUpCost(id)); };
+      const info = () => { const lv = S.relics[id] || 0; showSheet(lv ? r.icon : '❔', lv ? `${r.name} ${lv}/10` : '??? 아직 발견 못 함', lv ? `${r.u} — 지금 ×${lv}` : `${RELIC_TIERS[r.t].n} 유물 — ${MAPS[RELIC_TIERS[r.t].from].name}부터 나와요. 그물로 주우세요`, !lv || lv >= 10 ? null : relicUpCost(id)); };
       bindBuy(el, () => { const lv = S.relics[id] || 0; return lv > 0 && lv < 10 && canPay(relicUpCost(id)); }, () => { pay(relicUpCost(id)); S.relics[id]++; refreshEff(); Sound.play('correct'); renderPort(); info(); }, info); });
   } else if (t === 'etc') {
     Pn.innerHTML = `<h3>📊 기록</h3><div class="card">${[['버전', VERSION], ['모드', MODE.icon + ' ' + MODE.name], ['💾 마지막 저장', S.savedAt ? new Date(S.savedAt).toLocaleTimeString('ko', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'], ['항해 횟수', S.voyages], ['최고 수확', '💰' + fmt(Math.floor(S.best))], ['누적 골드', '💰' + fmt(Math.floor(S.totalGold))], ['잡은 물고기', fmt(Object.values(S.counts).reduce((a, b) => a + b, 0))], ['해금한 특성', `${Object.keys(S.tree).filter(id => id !== CENTER && S.tree[id]).length}개`], ['스킬', `${skDone()}개`], ['플레이 시간', fmtPlayS(S.playTime), 'playTimeV']].map(([k, v, id]) => `<div class="stat"><span>${k}</span><b${id ? ` id="${id}"` : ''}>${v}</b></div>`).join('')}</div>
@@ -1459,7 +1779,7 @@ function renderPanel() {
         <div class="step"><div class="no">2</div><p>물고기마다 <b>체력</b>이 있어요. 그물 안에 오래 둘수록 체력이 닳고, 잡히면 💰골드·📗경험치, 가끔 💎다이아·🪸유물.</p></div>
         <div class="step"><div class="no">3</div><p>항구에서 <b>⭐ 특성 트리</b>를 골드로 해금해요 (배에서 8방향으로 뻗어요): 새 어종, 새 지도, 능력, 골드/그물/낚시력 보너스…</p></div>
         <div class="step"><div class="no">4</div><p><b>⚡ 능력</b> 4종(번개·폭탄·물대포·전기 그물)은 항해 중 자동으로 터져요. <b>낚시력</b>과 <b>그물 크기</b>도 여기서 강화.</p></div>
-        <div class="step"><div class="no">5</div><p><b>🎩 선장</b> 12마리 고양이 — 레벨이 오르면 영입, 한 마리 배정하면 항해 보너스. <b>🐟 숙련</b>은 어종별 골드 보너스, <b>🪸 유물</b>은 주운 걸 강화.</p></div>
+        <div class="step"><div class="no">5</div><p><b>🎩 선장</b> 12마리 고양이 — 레벨이 오르면 영입, 한 마리 배정하면 항해 보너스. <b>🐟 숙련</b>은 도감에 등록한 어종의 골드·출현 보너스, <b>📖 도감</b>은 ★마다 그 어종 골드 +2%, <b>🪸 유물</b>은 주운 걸 강화.</p></div>
         <div class="step"><div class="no">6</div><p>📍 어장마다 보너스가 달라요(출현·보물상자·골드). 특성 트리 가장 깊은 곳의 <b>심연의 리바이어던</b>을 찾아보세요!</p></div>
       </div>`;
     $('btnExport').onclick = () => { save(); const s = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); navigator.clipboard.writeText(s).then(() => toast('저장 코드를 복사했어요')).catch(() => prompt('복사해 주세요', s)); };
@@ -1533,7 +1853,7 @@ document.addEventListener('keydown', e => { if (e.code === 'Escape' && V) endVoy
 // 로비 배경: 기존 fishArt 로 물고기가 헤엄침. 로비가 보일 때만 rAF. 스프라이트는 로비 전용 캐시(게임 sprite() 와 무관)
 const lobbyBg = (() => {
   const c = $('lcv'), x = c.getContext('2d'), cache = {}; let fs = [], raf = 0, last = 0, on = false, w = 0, h = 0, ls = 1;
-  function spr(f) { const k = f.id + '@' + ls; if (cache[k]) return cache[k]; const iw = Math.round(90 * f.s * ls), img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fishArt(f, iw)); return cache[k] = { img, w: iw, h: Math.round(iw * 92 / 136) }; }
+  function spr(f) { const k = f.id + '@' + ls; if (cache[k]) return cache[k]; const iw = Math.round(90 * f.s * ls), ih = Math.round(iw * 92 / 136), img = new Image(), o = cache[k] = { img, w: iw, h: ih }, d = Math.min(2, window.devicePixelRatio || 1); img.onload = () => { o.img = rasterSvg(img, iw, ih, d); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fishArt(f, iw * d)); return o; }   // 2.1 C: 로비 물고기도 비트맵으로(항해와 같은 rasterSvg)
   function size() { const d = Math.min(2, window.devicePixelRatio || 1); w = c.clientWidth; h = c.clientHeight; c.width = w * d; c.height = h * d; x.setTransform(d, 0, 0, d, 0, 0); ls = Math.max(1, Math.min(2.2, Math.min(w, h) / 430)); }
   function seed() { fs = []; for (let i = 0; i < 14; i++) { const f = FISH[i % 11], dir = Math.random() < .5 ? 1 : -1; fs.push({ f, dir, x: rnd(0, w), y: rnd(h * .06, h * .94), v: rnd(22, 55) * (.6 + f.s * .5), a: rnd(.45, .85), ph: rnd(0, 6) }); } }
   function frame(t) { if (!on) return; const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; x.clearRect(0, 0, w, h);
@@ -1563,7 +1883,7 @@ function enterGame(id) {
   if (!MODES[id]) return false; lobbyBg.stop(); if (MODE) playClock.tick();   // 항구에서 바로 재진입(가져오기)하면 이전 슬롯 시간을 먼저 마감
   setMode(id);                              // 슬롯 로드·마이그레이션·refreshEff (단계 A)
   document.body.classList.toggle('hard', id === 'hard'); applyModeBadge(); renderPanel._ts = null;   // 트리 스크롤 기억은 슬롯마다 다르니 초기화
-  screen('port'); playClock.reset(); checkCapAch(); setTab(S.tab || 'tree'); fitTop(); save(); return true;   // playClock.reset: 로비에 있던 시간이 첫 틱에 섞이지 않게   // checkCapAch: 이미 조건을 채운 기존 세이브는 들어올 때 한 번 합류 알림   // fitTop 은 #port 가 보인 뒤에(숨김 상태에선 높이 0)
+  screen('port'); playClock.reset(); checkCapAch(); juiceCheck(); dexCheck(); setTab(S.tab || 'tree'); fitTop(); save(); return true;   // playClock.reset: 로비에 있던 시간이 첫 틱에 섞이지 않게   // checkCapAch: 이미 조건을 채운 기존 세이브는 들어올 때 한 번 합류 알림   // fitTop 은 #port 가 보인 뒤에(숨김 상태에선 높이 0)
 }
 function showRules(id, onOk) {
   const md = MODES[id];
@@ -1572,10 +1892,10 @@ function showRules(id, onOk) {
     <div class="row racts" style="justify-content:center">${onOk ? `<button class="btn" id="btnRulesOk">🔥 시작하기</button><button class="btn light" id="btnRulesNo">돌아가기</button>` : `<button class="btn light" id="btnRulesNo">닫기</button>`}</div>`);
   $('btnRulesNo').onclick = hideModal; if (onOk) $('btnRulesOk').onclick = () => { hideModal(); onOk(); };
 }
-function notice20() {   // 기존 세이브 사용자에게 한 번만: 2.0 안내
-  if (localStorage.getItem(SEEN_KEY) || !readSlot('normal')) return; localStorage.setItem(SEEN_KEY, '1');
-  const L = ['🖥 어떤 화면 크기에서도 물고기 수와 속도가 같아요', '🎣 물고기가 화면 어디서든 나타나요. 그물을 가장자리에 두는 편법은 이제 안 통해요', '🐟 어종마다 빠르기와 움직임이 달라요. 참치·황새치는 정말 빨라요', '✨ 잡을 때, 연속으로 잡을 때, 시간이 끝날 때 연출이 생겼어요', '🔥 하드 모드가 생겼어요. 기록은 일반과 따로 저장돼요', '🌌 마지막 어장 천상의 심해가 열려요. 골드는 두 배, 물고기는 더 빨라요', '🎩 새 선장 2명이 생겼어요. 도감을 다 채우거나 큰 기록을 세우면 합류해요'];
-  showModal(`<h2>🎉 2.0 업데이트</h2><div class="notes">${L.map(t => `<div>${t}</div>`).join('')}</div><div class="row" style="justify-content:center"><button class="btn green" id="btnNoticeOk">확인</button></div>`);
+function notice20() {   // 기존 세이브 사용자에게 한 번만: 2.1 안내(검증수정v1 b: 키를 v21 로 바꿔 2.0 안내를 본 사람에게도 한 번 뜸)
+  try { if (localStorage.getItem(SEEN_KEY) || !(readSlot('normal') || readSlot('hard'))) return; localStorage.setItem(SEEN_KEY, '1'); } catch (e) { return; }
+  const L = ['🐟 처음엔 멸치 한 종, 한 마리에 1~3원부터 차근차근 늘어요', '✨ 연출은 성장하면서 하나씩 열려요. 콤보 → 광란의 5초 → 희귀 광채', '📖 숙련·도감은 잡은 어종부터 올려요. 도감 별마다 그 어종 골드가 조금씩 올라요', '🪸 유물이 초반·중반·후반으로 나뉘어요. 새 어장에 가면 새 유물이 나와요', '⛶ 전체화면 버튼이 생겼고 렉이 줄었어요'];
+  showModal(`<h2>🎉 2.1 업데이트</h2><div class="notes">${L.map(t => `<div>${t}</div>`).join('')}</div><div class="row" style="justify-content:center"><button class="btn green" id="btnNoticeOk">확인</button></div>`);
   $('btnNoticeOk').onclick = hideModal;
 }
 $('btnPlay').onclick = () => { Sound.play('click'); const m = lobbySel; if (m === 'hard' && !readSlot('hard')) showRules('hard', () => enterGame('hard')); else enterGame(m); };
@@ -1620,6 +1940,20 @@ setInterval(playClock.tick, 1000);
 document.addEventListener('visibilitychange', () => { if (document.hidden) playClock.tick(); else playClock.reset(); });   // 숨기기 직전까지는 세고, 돌아온 순간부터 다시 셈
 function fmtPlay(sec) { const m = Math.floor((sec || 0) / 60); return m < 60 ? m + '분' : Math.floor(m / 60) + '시간 ' + (m % 60) + '분'; }
 function fmtPlayS(sec) { const s = Math.floor((sec || 0) % 60); return fmtPlay(sec) + ' ' + s + '초'; }   // 기록 탭용(초까지). 로비 슬롯은 fmtPlay(분) 그대로
+// 2.1 C: 전체화면 토글(웹킷 접두 포함). 허브 iframe 안에서는 부모 iframe 에 allow="fullscreen" 이 있어야 fullscreenEnabled 가 참 → 아니면 버튼 숨김. 요청이 거절돼도 숨김
+const FS_ICON = { off: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>', on: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>' };
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const fsCan = () => { const el = document.documentElement; return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && !!(el.requestFullscreen || el.webkitRequestFullscreen); };
+let fsBlocked = false;
+function fsSync() { const on = fsOn(), show = on || (fsCan() && !fsBlocked); document.querySelectorAll('.fsbtn').forEach(b => { b.hidden = !show; if (b.dataset.fs !== (on ? 'on' : 'off')) { b.dataset.fs = on ? 'on' : 'off'; b.innerHTML = on ? FS_ICON.on : FS_ICON.off; b.title = on ? '전체화면 끝내기' : '전체화면'; b.setAttribute('aria-label', b.title); } }); }
+function fsToggle() {
+  const fail = () => { if (!fsOn()) { fsBlocked = true; fsSync(); } };
+  try { if (fsOn()) { const ex = document.exitFullscreen || document.webkitExitFullscreen; const p = ex && ex.call(document); if (p && p.catch) p.catch(() => {}); }
+    else { const el = document.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen; if (!rq) return fail(); const p = rq.call(el, { navigationUI: 'hide' }); if (p && p.catch) p.catch(fail); } } catch (e) { fail(); }
+}
+document.querySelectorAll('.fsbtn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); Sound.play('click'); fsToggle(); }));
+document.addEventListener('fullscreenchange', fsSync); document.addEventListener('webkitfullscreenchange', fsSync); document.addEventListener('fullscreenerror', () => { fsBlocked = true; fsSync(); });
+fsSync();
 window.addEventListener('beforeunload', save);
 window.addEventListener('pagehide', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
@@ -1629,16 +1963,24 @@ window.tuna = { speed: setSpeed, sim: dt => { if (V) update(dt); }, get S() { re
   // 단계 C: 연출 상태·상한 조사용
   combo: () => V && V.combo, comboMult, fxCount: () => V ? { parts: V.parts.length, texts: V.texts.length, fx: V.fx.length, fly: V.fly.length, trail: V.trail.length, rips: V.rips.length, bq: V.bq.length } : null,
   // 연출 폴리시(P): 안전 영역·배너 대기열·합친 숫자
-  calcSafe, safe: () => SAFE, showBanner, aggText, stackText, numStyle, num, spawnRip, lvUpFx, TXT_MAX,
+  calcSafe, safe: () => SAFE, showBanner, aggText, stackText, numStyle, num, numSz, fmtLv, fitNum, pushText, textImg, NUM_K, spawnRip, lvUpFx, TXT_MAX,
   spriteWhite, sprites, glowImg, mixColor, flyCoins, catchFish, tickDt, draw, countUp, easeOutBack,
+  // 2.1 C: 성능·전체화면 확인용(perf: 마지막 프레임 update·draw ms)
+  perf: () => ({ u: frame._u || 0, d: draw._ms || 0 }), PART_MAX, glyph, reAnim, hudCheck, fsToggle: () => fsToggle(), fsState: () => ({ on: fsOn(), can: fsCan() }),
   // 단계 E: 선장 12명·플레이 시간
   CAPTAINS, CAP_ACH, capUnlocked, checkCapAch, get E() { return E; }, voyTime, refreshEff,
   setCaptain: id => { if (!CAPTAINS.some(c => c.id === id)) return false; S.captains[id] = 1; S.captain = id; refreshEff(); if (MODE && !V && $('port').classList.contains('active')) renderPort(); return true; },   // 배정 버튼과 같은 경로(S.captain + refreshEff)
   fmtPlay, playClock, playTime: () => S.playTime,
   // 마감 B: 토스트 대기열·어장 골드 배수 확인용
-  toast, toastQ: () => ({ cur: toast._cur, q: toast._q.slice() }), mapGoldK, fmtPlayS,
+  toast, toastQ: () => ({ cur: toast._cur, q: toast._q.slice() }), chipQ: () => ({ cur: chip._cur, q: chip._q.slice() }), mapGoldK, fmtPlayS,
+  // 2.1 A: 초반 경제·연출 단계
+  juiceLv, setJuice: n => { JUICE_OVR = n == null ? null : Math.max(0, Math.min(4, +n)); if (V) V.J = juiceLv(); return juiceLv(); }, juiceCheck, EARLY_FISH, unlockedFish, earlyCapN,
+  // 2.1 B: 어종 숙련·도감 보상
+  MASTERY, masteryCost, masteryCan, masteryLock, masteryU, DEX, dexMult, fishMult, dexCheck, stars,
+  // 2.1 E: 유물 단계·확률·비용
+  RELICS, RELIC_TIERS, RELIC, relicUpCost, pickRelic, relicTierAt, relicGap: t => relicGapT(t ?? relicCt()), relicGapT, relicDry, relicOpenTiers, collectRelic, relicLog: () => RELIC_LOG,
   // 단계 F: 진행 밸런스 손잡이(측정·조정용)
-  textImg, TXT_RING, ECON, goldMul, xpMul, capK, lifeFor, COMBO, earlyK, balance: () => ({ econGold: ECON.gold, econXp: ECON.xp, xpEarly: ECON.xpEarly.slice(), xpMul: xpMul(), earlyK: MODE ? earlyK() : null, earlyRamp: MODE && MODE.earlyRamp ? MODE.earlyRamp.slice() : null, fishCap: mod('fishCap'), capK: MODE ? capK() : null, earlyCap: MODE && MODE.earlyCap || null, earlyLv: MODE && MODE.earlyLv || null, maxFish: MODE ? maxFish() : null, bornT: SPAWN.bornT, lifeDist: SPAWN.lifeDist.slice(), capBase: SPAWN.capBase, respawnSingle: SPAWN.respawnSingle, modeGold: mod('gold'), modeXp: mod('xp'), modeHp: mod('hp'), modeNet: mod('net') }) };
+  textImg, TXT_RING, gly: () => ({ n: NGLY.size, gen: glyGen, pages: GLY_PAGES.length, queue: glyPlanQ ? glyPlanQ.length : -1 }), ECON, goldMul, xpMul, capK, lifeFor, COMBO, earlyK, balance: () => ({ econGold: ECON.gold, econXp: ECON.xp, xpEarly: ECON.xpEarly.slice(), xpMul: xpMul(), earlyK: MODE ? earlyK() : null, earlyRamp: MODE && MODE.earlyRamp ? MODE.earlyRamp.slice() : null, fishCap: mod('fishCap'), capK: MODE ? capK() : null, earlyCap: MODE && MODE.earlyCap || null, earlyLv: MODE && MODE.earlyLv || null, maxFish: MODE ? maxFish() : null, bornT: SPAWN.bornT, lifeDist: SPAWN.lifeDist.slice(), capBase: SPAWN.capBase, respawnSingle: SPAWN.respawnSingle, modeGold: mod('gold'), modeXp: mod('xp'), modeHp: mod('hp'), modeNet: mod('net') }) };
 </script>
 </body>
 </html>
