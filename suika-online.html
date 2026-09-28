@@ -288,6 +288,7 @@ const { Engine, Bodies, Body, Composite, Events } = Matter;
 const BW = 500, BH = 790;                      // 내 보드 캔버스
 const BOX = { l: 15, r: 485, t: 120, b: 730 }; // 470 × 610 (싱글과 동일 · 원작 비율)
 const RIM = 22, WALL = 120, MAX_SPEED = 18;
+const FRUIT_MASS = 4, PUSH_SLOPE = 0.13;   // 원작처럼 무게 거의 같게 + 큰 과일 살짝 가볍게 → 원작보다 평균 12.5% 더 밀림 (싱글과 동일)
 const DROP_COOLDOWN = 260, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
 const dropY = () => BOX.t - 75;
 const deadY = () => BOX.t + 4;
@@ -305,6 +306,7 @@ const FRUITS = [
   { name: '멜론',     r: 115.1, color: '#DDF7BF', score: 55 },
   { name: '수박',     r: 134.8, color: '#A8ECB4', score: 66 },
 ];
+const fruitMass = lv => FRUIT_MASS * Math.pow(FRUITS[lv].r / 45.4, -PUSH_SLOPE);
 const ART = window.FRUIT_ART;
 const artBroken = [];
 const sfx = (n, o) => { try { if (window.Sound) window.Sound.play(n, o); } catch (e) {} };
@@ -344,7 +346,7 @@ function setFruitScale(v) {
   if (Math.abs(v - fruitScale) < 1e-6) return;
   const k = v / fruitScale;
   fruitScale = v;
-  for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+  for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setMass(o, fruitMass(o.level)); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
 }
 function applyCfg() {
   cfg = { ...BASE_CFG };
@@ -367,6 +369,7 @@ function makeFruit(x, y, level) {
   const b = Bodies.circle(x, y, FRUITS[level].r * fruitScale, {
     label: 'fruit', restitution: cfg.restitution, friction: cfg.friction, frictionStatic: 0.5, frictionAir: 0.002, density: 0.0012,
   });
+  Body.setMass(b, fruitMass(level));
   Body.setInertia(b, b.inertia * cfg.inertiaMul);
   Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3);
   b.level = level; b.born = performance.now(); b.deadSince = 0;
@@ -376,7 +379,7 @@ function makeFruit(x, y, level) {
 // ── 로그라이크: 규칙 묶음 + 유물 (싱글과 같은 내용) ──
 const BASE_CFG = {
   minDrop: 0, maxDrop: 4, nextCount: 3,
-  restitution: 0.25, friction: 0.15, inertiaMul: 0.15,
+  restitution: 0.25, friction: 0.15, inertiaMul: 0.136,
   deadTime: DEAD_TIME, fruitMul: 1, ceilingOffset: 0,
   cherryRate: 1, strawberryRate: 1, rainbowEvery: 0, insuranceCap: 0,
 };

@@ -231,6 +231,10 @@
   const deadY = () => BOX.t + 4;                // 이 선 위에 과일이 머물면 게임 오버
   const DROP_COOLDOWN = 260;                    // ms — 클릭 후 다음 과일까지 (너무 짧으면 연타로 쉬워짐)
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
+  // 과일 무게: 원작은 크기와 상관없이 전부 같음(작은 과일도 큰 과일을 잘 밀어냄). 여기선 큰 과일을 살짝 더 가볍게(반지름^-0.13)
+  // → 떨어진 과일에 밀리는 속도가 원작 규칙보다 평균 +12.5% (1:1 충돌 실측: 0.10=+9.7%, 0.12=+11.7%, 0.15=+14.8%)
+  const FRUIT_MASS = 4, PUSH_SLOPE = 0.13;
+  const fruitMass = lv => FRUIT_MASS * Math.pow(FRUITS[lv].r / 45.4, -PUSH_SLOPE);
 
   const SHAKE_TIME = 700;                       // ms
 
@@ -258,7 +262,7 @@
     gravity: 2.6,            // 낙하가 굼떠 보이지 않게 (0.77초 → 0.55초)
     restitution: 0.25,          // 원작처럼 살짝 튕겨서 흩어지게 (얌전하면 한 자리 연타로 다 합쳐짐)
     friction: 0.15,             // 과일 마찰 (낮을수록 굴러가서 흩어짐)
-    inertiaMul: 0.15,           // 낮을수록 잘 돈다
+    inertiaMul: 0.136,          // 낮을수록 잘 돈다 (0.15 → 0.136: 10% 더 잘 돎)
     scoreMul: 1,
     deadTime: 800,              // 게임오버 유예 ms (선 위에 이만큼 머물면 끝)
     fruitMul: 1,                // 과일 크기 배율 (넓은 상자 유물) — 상자를 키우는 대신 과일을 줄여 화면 폭은 그대로
@@ -371,6 +375,7 @@
       frictionAir: 0.002,             // 각속도에도 적용 — 낮을수록 오래 돈다 (속도 상한은 MAX_SPEED가 담당)
       density: 0.0012,
     });
+    Body.setMass(b, fruitMass(level));                     // 무게 (관성도 같은 비율로 따라감)
     Body.setInertia(b, b.inertia * cfg.inertiaMul);        // 관성↓ → 살짝만 닿아도 돈다
     Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3); // 떨굴 때부터 회전
     b.level = level;
@@ -476,7 +481,7 @@
     if (Math.abs(v - fruitScale) < 1e-6) return;
     const k = v / fruitScale;
     fruitScale = v;
-    for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+    for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setMass(o, fruitMass(o.level)); Body.setInertia(o, o.inertia * cfg.inertiaMul); }   // scale 이 무게를 면적으로 되돌리므로 다시 지정
   }
 
   function computeCfg() {
@@ -1197,7 +1202,7 @@
     outlinedText('수박', 75, 24, 20);
     bubble(75, 68, 34 + pulse * 6);
     outlinedText(`🍉${melons}`, 75, 70, 24 + pulse * 4);
-    outlinedText(`${score}점 · Best 🍉${curBest().melons}`, 75, 113, 12);
+    outlinedText(`Best 🍉${curBest().melons}`, 75, 113, 12);
     const npR = BOX.r - 6, npW = Math.min(196, BOX.r - 300), npL = npR - npW;   // 우측: Next
     outlinedText('현재 › 다음', (npL + npR) / 2, 22, 17);
     pill(npL, 38, npW, 62, 31);
@@ -1220,15 +1225,23 @@
         ctx.fillText('›', x + gap / 2, cy);
       }
     }
-    // 가운데 상단 (x 130~290): 시간·수박 / 다음 유물 게이지 — 이 아래(100~240)는 구름 전용으로 비움
-    const midX = (140 + npL) / 2;                                               // 중앙: 시간 · 다음 유물
-    outlinedText(mode === 'rogue' ? `⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}` : `⏱ ${fmtTime(runTime)}`, midX, 20, 14);
+    // 가운데 상단 (x 120~290, 수박 배지와 현재·다음 사이): 시간 / 점수(크게) / 다음 유물 게이지 — 이 아래(100~240)는 구름 전용으로 비움
+    const midX = (120 + npL) / 2;
+    const shield = insuranceCharges > 0 ? '  ' + '🛡️'.repeat(insuranceCharges) : '';
+    outlinedText((mode === 'rogue' ? `⏱ ${fmtTime(runTime)}   PHASE ${melons + 1}` : `⏱ ${fmtTime(runTime)}`) + shield, midX, 20, 14);
+    {   // 점수: 가운데 크게 (6자리 미만 가정, 넘치면 글자 줄임) + 오를 때 톡 튐
+      const txt = score.toLocaleString() + '점', maxW = npL - 128;
+      let size = mode === 'rogue' ? 28 : 32;
+      ctx.font = `${size}px Jua, "Malgun Gothic", sans-serif`;
+      const w = ctx.measureText(txt).width;
+      if (w > maxW) size = Math.floor(size * maxW / w);
+      outlinedText(txt, midX, mode === 'rogue' ? 49 : 58, size * (1 + pulse * 0.12));
+    }
     if (mode === 'rogue') {
-      const gw = Math.min(150, npL - 150), gh = 20, gx = midX - gw / 2, gy = 36;
+      const gw = Math.min(150, npL - 150), gh = 20, gx = midX - gw / 2, gy = 72;
       pill(gx, gy, gw, gh, 10);
       outlinedText(`🎁 ${nextRelicHint()}`, midX, gy + gh / 2 + 1, 12);
     }
-    if (insuranceCharges > 0) outlinedText('🛡️'.repeat(insuranceCharges), midX, 68, 15);
 
     // 흔들기 중이면 상자째로 살짝 흔들림
     const shakeNow = performance.now();
