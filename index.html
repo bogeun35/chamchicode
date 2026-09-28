@@ -629,7 +629,7 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
         <div class="landing-card" onclick="navigate('o2jam')">
           <div class="landing-card-icon">🎹</div>
           <div class="landing-card-title">오투잼</div>
-          <div class="landing-card-desc">7키 리듬게임<br>S D F Space J K L · PC 전용</div>
+          <div class="landing-card-desc">7키 리듬게임 · 최대 8명 온라인<br>S D F Space J K L · PC 전용</div>
         </div>
         <div class="landing-card" onclick="navigate('rummikub')">
           <div class="landing-card-icon">🔢</div>
@@ -839,8 +839,8 @@ function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
 // ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
 const NAV_GROUPS = [
-  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie'] },
-  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rhythm', 'o2jam', 'rock', 'mine', 'shell'] },
+  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie', 'o2jam'] },
+  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rhythm', 'rock', 'mine', 'shell'] },
   { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
   { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },
 ];

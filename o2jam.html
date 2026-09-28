@@ -55,6 +55,34 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 .stats div { display: flex; justify-content: space-between; border-bottom: 1px solid #1b2750; padding: 4px 0; }
 .stats b { font-size: 22px; }
 .newbest { color: var(--gold); font-size: 18px; margin-top: 6px; min-height: 24px; }
+.tabs { display: flex; gap: 8px; margin: 14px 0 2px; }
+.tab { padding: 9px 16px; border-radius: 10px; border: 2px solid #22306a; background: #0d1430; color: var(--dim); font-family: inherit; font-size: 16px; cursor: pointer; }
+.tab.on { color: var(--ink); border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(127,233,255,.12); }
+.inp { padding: 10px 12px; border-radius: 10px; border: 2px solid #2b3c73; background: #0b1128; color: var(--ink); font-family: inherit; font-size: 16px; outline: none; }
+.inp:focus { border-color: var(--cyan); }
+.rooms { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; max-height: 320px; overflow: auto; }
+.rm { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #0d1430; border: 1px solid #1b2750; }
+.rm .code { font-family: 'Black Han Sans', sans-serif; font-size: 20px; color: var(--cyan); letter-spacing: 2px; }
+.rm .info { color: var(--dim); font-size: 14px; flex: 1; }
+.seats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+.seat { min-height: 74px; border-radius: 12px; background: #0d1430; border: 2px dashed #1b2750; padding: 8px 10px; font-size: 14px; position: relative; }
+.seat.full { border-style: solid; border-color: #2b3c73; }
+.seat.ready { background: linear-gradient(135deg, #10301f, #0d1430); border-color: #6cf09a; }
+.seat.me { box-shadow: 0 0 0 3px rgba(127,233,255,.35); }
+.seat .nk { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 16px; }
+.seat .st { color: var(--dim); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+.seat .kick { position: absolute; right: 6px; top: 6px; background: none; border: 0; color: #ff5a6e; cursor: pointer; font-size: 14px; }
+.msong { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: #0d1430; border: 2px solid #1b2750; cursor: pointer; font-size: 15px; }
+.msong.on { border-color: var(--gold); }
+.msong .sm { color: var(--dim); font-size: 12px; }
+.mrt { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 16px; }
+.mrt th { color: var(--dim); font-weight: normal; font-size: 13px; text-align: right; padding: 4px 8px; border-bottom: 1px solid #1b2750; }
+.mrt th:nth-child(2), .mrt td:nth-child(2) { text-align: left; }
+.mrt td { text-align: right; padding: 7px 8px; border-bottom: 1px solid #141c3a; }
+.mrt tr.me td { background: rgba(127,233,255,.08); }
+.mrt .rk { font-family: 'Black Han Sans', sans-serif; font-size: 20px; }
+#toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%) translateY(-20px); z-index: 20; background: #16214a; border: 2px solid var(--cyan); color: var(--ink); padding: 9px 18px; border-radius: 12px; font-size: 15px; opacity: 0; transition: all .25s; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 9; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 18px 26px; font-size: 18px; }
 #loading[hidden] { display: none; }
 </style>
@@ -66,6 +94,8 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
   <div class="box">
     <h1>O2JAM · 오투잼</h1>
     <div class="sub">7키 리듬게임 — S D F <b>Space</b> J K L · 떨어지는 노트가 판정선에 닿을 때 누르세요</div>
+    <div class="tabs"><button class="tab on" data-tab="solo">🎮 혼자 하기</button><button class="tab" data-tab="online">🌐 온라인 (최대 8명)</button></div>
+    <div id="soloPane">
     <div class="songs" id="songList"></div>
     <div class="row" id="diffRow"></div>
     <div class="row">
@@ -80,8 +110,56 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
     </div>
     <div class="msg" id="menuMsg"></div>
     <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>Esc</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!</div>
+    </div>
+    <div id="onlinePane" hidden>
+      <div class="row" style="margin-top:16px">
+        <input class="inp" id="nick" maxlength="10" placeholder="닉네임" style="width:170px">
+        <button class="btn" id="mpCreateBtn">➕ 방 만들기</button>
+        <input class="inp" id="joinCode" maxlength="6" placeholder="방 코드 6자리" style="width:150px;text-transform:uppercase;letter-spacing:2px">
+        <button class="btn ghost" id="mpJoinBtn">참가</button>
+        <button class="btn ghost" id="mpRefresh" style="margin-left:auto" title="방 목록 새로고침">↻</button>
+      </div>
+      <div class="rooms" id="roomList"><div class="hint">불러오는 중…</div></div>
+      <div class="hint">최대 8명이 같은 곡·같은 채보를 동시에 연주해요. 곡 음원은 각자 이 브라우저에 있어야 해요 — 혼자 하기 탭이나 방 안의 <b>🎵 파일 선택</b>으로 한 번만 고르면 돼요. 연습곡은 누구나 바로 가능!<br>연주 중 <b>Esc</b> = 포기 · 체력이 0이 되면 그 곡은 탈락이에요.</div>
+    </div>
   </div>
 </div>
+
+<div id="roomOv" class="ov" hidden>
+  <div class="box">
+    <div class="row" style="margin-top:0">
+      <h1 style="font-size:32px">방 <span id="rmCode" style="letter-spacing:3px"></span></h1>
+      <button class="btn ghost" id="rmCopy" style="font-size:14px;padding:8px 12px">코드 복사</button>
+      <span class="sub" id="rmCount"></span>
+      <button class="btn ghost" id="rmLeave" style="margin-left:auto">나가기</button>
+    </div>
+    <div class="seats" id="rmSeats"></div>
+    <div class="sub" id="rmSongLabel">곡 선택</div>
+    <div class="row" id="rmSongs"></div>
+    <div class="row" id="rmDiffs"></div>
+    <div class="row">
+      <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×3.0</b><button data-act="spd+">+</button></div>
+      <div class="opt">내 싱크 <button data-act="off-">−</button><b class="offV">0ms</b><button data-act="off+">+</button></div>
+      <button class="btn ghost" id="rmReady" style="margin-left:auto">준비</button>
+      <button class="btn" id="rmStart">▶ 시작</button>
+    </div>
+    <div class="msg" id="rmMsg"></div>
+  </div>
+</div>
+
+<div id="mpResult" class="ov" hidden>
+  <div class="box">
+    <h1 style="font-size:32px" id="mrTitle">결과</h1>
+    <div class="sub" id="mrSong"></div>
+    <table class="mrt" id="mrTable"></table>
+    <div class="row" style="justify-content:center;margin-top:16px">
+      <button class="btn" id="mrBack">방으로 (다음 곡)</button>
+      <button class="btn ghost" id="mrLeave">나가기</button>
+    </div>
+    <div class="msg" id="mrMsg" style="text-align:center"></div>
+  </div>
+</div>
+<div id="toast"></div>
 
 <div id="pause" class="ov" hidden>
   <div class="box" style="width:min(420px,90vw);text-align:center">
@@ -113,6 +191,8 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 </div>
 <div id="loading" hidden>불러오는 중…</div>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 /* 오투잼 — 7키 세로 스크롤 리듬게임.
@@ -213,13 +293,14 @@ picker.onchange = async () => {
   s.ok = true; s.src = 'idb'; s.fileName = f.name; s.buffer = null;
   SET.song = s.id; saveSet(); renderMenu();
   $('menuMsg').textContent = `🎵 "${f.name}" 을(를) 이 브라우저에 저장했어요. 다음부터는 자동으로 불러와요.`;
+  if (MP.code) { meRef().update({ has: myHas() }); if (MP.room) renderRoom(MP.room); toast(`🎵 ${s.title} 음원을 저장했어요`); }
 };
 const songById = id => SONGS.find(s => s.id === id);
 async function probeSongs() {   // 음원이 있는지: 로컬 파일(개발 PC) → 이 브라우저에 저장된 파일 → 없으면 '파일 선택'
   for (const s of SONGS) {
     if (s.synth) { s.ok = true; continue; }
     s.ok = false;
-    try { const r = await fetch(s.chart, { cache: 'no-store' }); if (r.ok) s.data = await r.json(); } catch (e) {}
+    try { const r = await fetch(s.chart, { cache: 'no-store' }); if (r.ok) { s.chartData = await r.json(); s.data = s.chartData; } } catch (e) {}
     const isLocalHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
     if (isLocalHost) for (const u of localUrls(s.id)) { try { const r = await fetch(u, { method: 'HEAD', cache: 'no-store' }); if (r.ok) { s.ok = true; s.src = 'url'; s.url = u; break; } } catch (e) {} }
     if (!s.ok) { const v = await idbGet(s.id); if (v && v.buf) { s.ok = true; s.src = 'idb'; s.fileName = v.name; } }
@@ -523,16 +604,17 @@ async function analyzeAudio(buffer, title) {
 // ═══════════ 플레이 ═══════════
 let run = null;
 function startRun(song, diff, opt = {}) {
-  const ac = audioInit(), ch = song.data.charts[diff];
+  const ac = audioInit(), data = opt.data || song.data, ch = data.charts[diff];
   const notes = ch.notes.map((n, i) => ({ i, t: n[0], lane: n[1], len: n[2], state: 0, tail: n[2] > 0 ? 0 : 2 }));   // state 0=대기 1=판정됨 / tail 0=대기 1=누르는 중 2=끝
   const lanes = Array.from({ length: LANES }, () => []); notes.forEach(n => lanes[n.lane].push(n));
   const total = notes.reduce((a, n) => a + (n.len > 0 ? 2 : 1), 0);
   if (run && run.src) try { run.src.stop(); } catch (e) {}
-  const lead = 1.6, t0 = ac.currentTime + lead;
-  const src = ac.createBufferSource(); src.buffer = song.buffer; src.connect(AU.music); src.start(t0);
+  const lead = opt.delay != null ? opt.delay : 1.6, t0 = ac.currentTime + lead;   // 멀티: 서버 시각에 맞춘 지연(늦게 불러왔으면 음수 → 곡 중간부터)
+  const src = ac.createBufferSource(); src.buffer = song.buffer; src.connect(AU.music);
+  if (lead >= .05) src.start(t0); else src.start(ac.currentTime + .05, .05 - lead);
   run = { song, diff, notes, lanes, ptr: new Array(LANES).fill(0), hold: new Array(LANES).fill(null), down: new Array(LANES).fill(false), beam: new Array(LANES).fill(0), fx: [],
     t0, src, total, score: 0, combo: 0, maxCombo: 0, jam: 0, jamG: 0, maxJam: 0, life: 1000, cnt: { cool: 0, good: 0, bad: 0, miss: 0 }, judged: 0,
-    lastJ: null, lastJAt: -9, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, end: song.buffer.duration, bpm: song.data.bpm, offset: song.data.offset || 0 };
+    lastJ: null, lastJAt: -9, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, mp: !!opt.mp, end: song.buffer.duration, bpm: data.bpm, offset: data.offset || 0, level: ch.level };
   clk.off = null;
   $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
 }
@@ -556,7 +638,7 @@ function addJudge(kind, lane) {
   }
   r.lastJ = kind; r.lastJAt = performance.now();
   if (lane != null && kind !== 'miss') r.fx.push({ lane, t: performance.now(), kind });
-  if (r.life <= 0 && !SET.noFail && !r.auto && !r.failed) { r.failed = true; finish(); }
+  if (r.life <= 0 && !(SET.noFail && !r.mp) && !r.auto && !r.failed) { r.failed = true; finish(); }   // 멀티는 노페일 없음
 }
 function judgeOf(err) { const a = Math.abs(err); return a <= JW.cool ? 'cool' : a <= JW.good ? 'good' : a <= JW.bad ? 'bad' : null; }
 function press(lane, ts) {
@@ -612,6 +694,7 @@ function finish() {
   r.ended = true;
   try { r.src.stop(AU.ctx.currentTime + (r.failed ? .6 : 1.2)); } catch (e) {}
   if (r.failed) { const g = AU.music; g.gain.setTargetAtTime(0, AU.ctx.currentTime, .25); setTimeout(applyVol, 1400); }
+  if (r.mp) { setTimeout(() => { if (run === r) { mpPushLive(); if (MP.room && MP.room.status === 'playing') mpShowBoard(MP.room, 'done'); } }, r.failed ? 900 : 1300); return; }
   setTimeout(() => showResult(r), r.failed ? 1400 : 1600);
 }
 function showResult(r) {
@@ -621,7 +704,7 @@ function showResult(r) {
   let nb = '';
   if (!r.auto && !r.failed && (!old || r.score > old.score)) { BEST[key] = { score: r.score, rank, combo: r.maxCombo, at: Date.now() }; save('o2jam_best', BEST); nb = old ? '🎉 최고 기록 갱신!' : '🎉 첫 클리어!'; }
   const col = { SS: '#ffe066', S: '#ffcb3d', A: '#7fe9ff', B: '#9cff7a', C: '#b58cff', D: '#8e9cc4', F: '#ff5a6e' }[rank];
-  $('resSong').textContent = `${r.song.title} · ${r.diff} Lv.${r.song.data.charts[r.diff].level}${r.auto ? ' · 자동 연주' : ''}`;
+  $('resSong').textContent = `${r.song.title} · ${r.diff} Lv.${r.level}${r.auto ? ' · 자동 연주' : ''}`;
   $('resRank').textContent = rank; $('resRank').style.color = col; $('resRank').style.textShadow = `0 0 30px ${col}88`;
   $('resScore').textContent = String(r.score).padStart(7, '0');
   $('resBest').textContent = nb || (old ? `최고 ${old.score.toLocaleString()} (${old.rank})` : '');
@@ -654,25 +737,26 @@ async function startSelected(opt) {
 // ═══════════ 입력 ═══════════
 let waitKey = -1;
 addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
   if (waitKey >= 0) { e.preventDefault(); if (e.code !== 'Escape') { const i = SET.keys.indexOf(e.code); if (i >= 0) SET.keys[i] = SET.keys[waitKey]; SET.keys[waitKey] = e.code; saveSet(); } waitKey = -1; renderKeys(); return; }
   const lane = SET.keys.indexOf(e.code);
   if (run && !run.ended && !run.paused) {
     if (lane >= 0) { e.preventDefault(); if (!e.repeat) press(lane, e.timeStamp); return; }
     if (e.code === 'ArrowUp' || e.code === 'F4') { SET.speed = clamp(Math.round((SET.speed + .25) * 4) / 4, 1, 8); saveSet(); e.preventDefault(); return; }
     if (e.code === 'ArrowDown' || e.code === 'F3') { SET.speed = clamp(Math.round((SET.speed - .25) * 4) / 4, 1, 8); saveSet(); e.preventDefault(); return; }
-    if (e.code === 'Escape') { pauseGame(true); return; }
+    if (e.code === 'Escape') { if (run.mp) { if (confirm('이번 곡을 포기할까요? (탈락 처리)')) { run.failed = true; finish(); } } else pauseGame(true); return; }
     return;
   }
   if (run && run.paused) { if (e.code === 'Escape') pauseGame(false); return; }
-  if (!$('result').hidden) { if (e.code === 'KeyR' || e.code === 'Enter') { startRun(run.song, run.diff, { auto: run.auto }); } else if (e.code === 'Escape') quitToMenu(); return; }
-  if (!$('menu').hidden) {
+  if (!$('result').hidden && run && !run.mp) { if (e.code === 'KeyR' || e.code === 'Enter') { startRun(run.song, run.diff, { auto: run.auto }); } else if (e.code === 'Escape') quitToMenu(); return; }
+  if (!$('menu').hidden && MP.tab === 'solo') {
     if (e.code === 'Enter') { e.preventDefault(); startSelected(); }
     else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') { e.preventDefault(); const ok = SONGS.filter(s => s.ok); let i = ok.findIndex(s => s.id === SET.song); i = clamp(i + (e.code === 'ArrowDown' ? 1 : -1), 0, ok.length - 1); if (ok[i]) { SET.song = ok[i].id; saveSet(); renderMenu(); } }
     else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); const D = ['EX', 'NX', 'HX']; SET.diff = D[clamp(D.indexOf(SET.diff) + (e.code === 'ArrowRight' ? 1 : -1), 0, 2)]; saveSet(); renderMenu(); }
   }
 });
 addEventListener('keyup', e => { const lane = SET.keys.indexOf(e.code); if (lane >= 0 && run) { e.preventDefault(); release(lane, e.timeStamp); } });
-addEventListener('blur', () => { if (run && !run.ended && !run.paused) pauseGame(true); });
+addEventListener('blur', () => { if (run && !run.ended && !run.paused && !run.mp) pauseGame(true); });
 
 // ═══════════ 메뉴 ═══════════
 function renderKeys() {
@@ -696,6 +780,8 @@ function renderMenu() {
   }).join('');
   $('spdV').textContent = '×' + SET.speed.toFixed(2).replace(/0$/, '');
   $('offV').textContent = (SET.offset > 0 ? '+' : '') + SET.offset + 'ms';
+  document.querySelectorAll('.spdV').forEach(el => el.textContent = $('spdV').textContent);
+  document.querySelectorAll('.offV').forEach(el => el.textContent = $('offV').textContent);
   $('hitSnd').checked = !!SET.hitSound; $('noFail').checked = !!SET.noFail;
   $('startBtn').disabled = !(s && s.ok);
   renderKeys();
@@ -703,6 +789,15 @@ function renderMenu() {
 document.addEventListener('click', e => {
   const pk = e.target.closest('[data-pick]');
   if (pk) { e.stopPropagation(); pickFor = pk.dataset.pick; picker.click(); return; }
+  const mt = e.target.closest('[data-tab],[data-room],[data-msong],[data-mdiff],[data-kick]');
+  if (mt) {
+    audioInit();
+    if (mt.dataset.tab) { setTab(mt.dataset.tab); return; }
+    if (mt.dataset.room) { $('joinCode').value = mt.dataset.room; mpJoin(mt.dataset.room); return; }
+    if (mt.dataset.msong) { mpPickSong(mt.dataset.msong); return; }
+    if (mt.dataset.mdiff) { mpPickDiff(mt.dataset.mdiff); return; }
+    if (mt.dataset.kick) { mpKick(mt.dataset.kick); return; }
+  }
   const t = e.target.closest('[data-song],[data-d],[data-act],[data-key]'); if (!t) return;
   audioInit();
   if (t.dataset.song) { const s = songById(t.dataset.song); if (s && s.ok) { SET.song = s.id; saveSet(); renderMenu(); if (!s.data && !s.synth) { /* 채보는 시작할 때 분석 */ } } return; }
@@ -838,19 +933,37 @@ function draw() {
     ctx.fillStyle = lc; rr(lx, ly + lh * (1 - lf), 16, lh * lf, 8); ctx.fill();
     txt('HP', lx + 8, ly - 14, 13, '#8e9cc4');
     // 오른쪽 정보
-    const px = 640, s = r.song, ch = s.data.charts[r.diff];
+    const px = 640, s = r.song;
     txt(s.title, px, 70, 40, '#ffffff', 'left', 'Black Han Sans');
     txt(`${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 108, 18, '#8e9cc4', 'left');
     const dc = { EX: '#6cf09a', NX: '#ffcb3d', HX: '#ff5a6e' }[r.diff];
-    ctx.fillStyle = dc; rr(px, 128, 96, 30, 8); ctx.fill(); txt(`${r.diff} ${ch.level}`, px + 48, 143, 18, '#0b1230', 'center', 'Black Han Sans');
+    ctx.fillStyle = dc; rr(px, 128, 96, 30, 8); ctx.fill(); txt(`${r.diff} ${r.level}`, px + 48, 143, 18, '#0b1230', 'center', 'Black Han Sans');
     txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 112, 143, 16, '#8e9cc4', 'left');
     const prog = clamp(now / r.end, 0, 1);
     ctx.fillStyle = '#141c3a'; rr(px, 172, 560, 8, 4); ctx.fill(); ctx.fillStyle = '#7fe9ff'; rr(px, 172, 560 * prog, 8, 4); ctx.fill();
     txt('SCORE', px, 222, 18, '#8e9cc4', 'left');
     txt(String(r.score).padStart(7, '0'), px, 268, 64, '#ffffff', 'left', 'Black Han Sans');
-    const rows = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
-    rows.forEach(([k, v, c], i) => { const y = 340 + i * 34; txt(k, px, y, 20, c, 'left'); txt(String(v), px + 250, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
-    txt('↑↓ 속도  ·  Esc 일시정지', px, 580, 15, '#56648c', 'left');
+    if (r.mp && MP.room) {   // 멀티: 실시간 순위
+      txt(`COOL ${r.cnt.cool}   GOOD ${r.cnt.good}   BAD ${r.cnt.bad}   MISS ${r.cnt.miss}   ·   MAX ${r.maxCombo}`, px, 316, 16, '#8e9cc4', 'left');
+      const ps = Object.entries(MP.room.players || {}).filter(([, p]) => !p.spec).map(([k, p]) => ({ k, p, L: k === MP.key ? { s: r.score, c: r.combo, l: r.life, failed: r.failed, done: r.ended } : (p.live || {}) }));
+      ps.sort((a, b) => (b.L.s || 0) - (a.L.s || 0));
+      ps.slice(0, 8).forEach((e2, i) => {
+        const y = 352 + i * 30, me = e2.k === MP.key;
+        if (me) { ctx.fillStyle = 'rgba(127,233,255,.12)'; rr(px - 8, y - 14, 584, 28, 6); ctx.fill(); }
+        txt(String(i + 1), px, y, 18, i === 0 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
+        txt(String(e2.p.nick || '').slice(0, 10), px + 30, y, 17, me ? '#7fe9ff' : '#eef3ff', 'left');
+        txt((e2.L.s || 0).toLocaleString(), px + 330, y, 18, '#ffffff', 'right', 'Black Han Sans');
+        txt(e2.p.left ? '나감' : e2.L.failed ? 'FAILED' : e2.L.done ? '끝' : (e2.L.c || 0) + ' 콤보', px + 450, y, 14, e2.L.failed || e2.p.left ? '#ff5a6e' : '#8e9cc4', 'right');
+        const lf = clamp((e2.L.l == null ? 1000 : e2.L.l) / 1000, 0, 1);
+        ctx.fillStyle = '#141c3a'; rr(px + 466, y - 5, 100, 10, 5); ctx.fill();
+        ctx.fillStyle = lf > .5 ? '#6cf09a' : lf > .25 ? '#ffcb3d' : '#ff5a6e'; rr(px + 466, y - 5, 100 * lf, 10, 5); ctx.fill();
+      });
+      txt('↑↓ 속도  ·  Esc 포기', px, 600, 15, '#56648c', 'left');
+    } else {
+      const rows = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
+      rows.forEach(([k, v, c], i) => { const y = 340 + i * 34; txt(k, px, y, 20, c, 'left'); txt(String(v), px + 250, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
+      txt('↑↓ 속도  ·  Esc 일시정지', px, 580, 15, '#56648c', 'left');
+    }
     if (now < 0) { const c = Math.ceil(-now); txt(c > 0 ? 'READY' : '', FX + FW / 2, 250, 34, '#ffffff', 'center', 'Black Han Sans'); }
     if (r.failed) { ctx.fillStyle = 'rgba(40,0,10,.55)'; ctx.fillRect(FX, 0, FW, JY); txt('FAILED', FX + FW / 2, 300, 60, '#ff5a6e', 'center', 'Black Han Sans'); }
   } else {
@@ -862,9 +975,278 @@ requestAnimationFrame(frame);
 setInterval(() => { sampleClk(); update(); }, 8);   // 판정·MISS 처리는 화면 갱신과 별개로 (창이 가려져 rAF 가 멈춰도 곡은 진행)
 document.fonts && document.fonts.load('20px "Black Han Sans"').then(() => {}, () => {});
 
+// ═══════════ 온라인 (최대 8명) ═══════════
+// 방 = games/oj_<코드> { host, status: wait|playing|result, round, song, diff, startAt(서버 ms), players: { 키: { nick, joinedAt, ready, has, spec, live, t, left } } }
+// 방 목록 = games/oj_rooms/<코드> (games 전체는 규칙상 못 읽음 — 방장이 갱신). 곡 중 끊기면 left, 대기실에서 끊기면 퇴장. 방장이 사라지면 가장 먼저 들어온 사람이 이어받음
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const fdb = firebase.database();
+const MAXP = 8, rpath = c => `games/oj_${c}`, idxRef = c => fdb.ref('games/oj_rooms/' + c);
+const esc = v => { const d = document.createElement('div'); d.textContent = v == null ? '' : String(v); return d.innerHTML; };
+const sanitizeKey = v => v.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let o = ''; for (let i = 0; i < 6; i++) o += c[Math.floor(Math.random() * c.length)]; return o; };
+function toast(m, ms) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2400); }
+let srvOff = 0; fdb.ref('.info/serverTimeOffset').on('value', sn => { srvOff = sn.val() || 0; });
+const srvNow = () => Date.now() + srvOff;
+const MP = { code: null, key: null, nick: null, room: null, isHost: false, lastRound: 0, offs: [], liveT: null, beatT: null, disco: null, tab: 'solo', ending: false };
+const roomRef = () => fdb.ref(rpath(MP.code)), meRef = () => fdb.ref(`${rpath(MP.code)}/players/${MP.key}`);
+const myHas = () => Object.fromEntries(SONGS.map(x => [x.id, !!x.ok]));
+function getNick() { let n = ($('nick').value || '').trim().slice(0, 10); if (n.length < 2) { n = '잼러' + Math.floor(Math.random() * 900 + 100); $('nick').value = n; } try { localStorage.setItem('oj_nick', n); } catch (e) {} return n; }
+function setTab(t) { MP.tab = t; try { localStorage.setItem('oj_tab', t); } catch (e) {} document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); $('soloPane').hidden = t !== 'solo'; $('onlinePane').hidden = t !== 'online'; if (t === 'online') mpLoadRooms(); }
+function mpLoadRooms() {
+  const el = $('roomList');
+  fdb.ref('games/oj_rooms').orderByChild('at').limitToLast(15).once('value').then(sn => {
+    const rows = [];
+    sn.forEach(c => { const v = c.val(); if (!v) return; const age = Date.now() - (v.at || 0); if (age > 30 * 60e3) { idxRef(c.key).remove().catch(() => {}); return; } if (age < 3 * 60e3 && v.n > 0) rows.push(Object.assign({ code: c.key }, v)); });
+    rows.sort((a, b) => b.at - a.at);
+    el.innerHTML = rows.length ? rows.map(r => `<div class="rm"><span class="code">${esc(r.code)}</span><span class="info">${esc(r.host)} 님의 방 · ${esc(r.song || '')} · ${r.n}/${MAXP}명${r.status === 'wait' ? '' : ' · 연주 중'}</span><button class="btn ghost" data-room="${esc(r.code)}" style="font-size:14px;padding:8px 14px">${r.status === 'wait' ? '참가' : '👀 관전'}</button></div>`).join('')
+      : '<div class="hint">지금 열린 방이 없어요 — 방을 만들어 보세요!</div>';
+  }).catch(() => { el.innerHTML = '<div class="hint">방 목록을 불러오지 못했어요</div>'; });
+}
+async function mpCreate() {
+  audioInit();
+  const nick = getNick();
+  Object.assign(MP, { nick, key: sanitizeKey(nick), code: genCode(), isHost: true, lastRound: 0 });
+  const cur = songById(SET.song), song = cur && cur.ok ? cur.id : 'practice';
+  try {
+    await roomRef().set({ host: MP.key, createdAt: Date.now(), expiresAt: Date.now() + 4 * 3600e3, status: 'wait', round: 0, song, diff: SET.diff,
+      players: { [MP.key]: { nick, joinedAt: Date.now(), ready: false, has: myHas(), t: Date.now() } } });
+  } catch (e) { MP.code = null; return toast('방을 만들지 못했어요 — 잠시 후 다시'); }
+  mpEnter();
+}
+async function mpJoin(c) {
+  audioInit();
+  c = (c || '').trim().toUpperCase(); if (c.length !== 6) return toast('6자리 방 코드를 입력해 주세요');
+  const nick = getNick(), k = sanitizeKey(nick);
+  let r; try { r = (await fdb.ref(rpath(c)).once('value')).val(); } catch (e) { return toast('접속 실패 — 잠시 후 다시'); }
+  if (!r || !r.host || !r.players) { idxRef(c).remove().catch(() => {}); mpLoadRooms(); return toast('방을 찾을 수 없어요'); }
+  if (r.expiresAt && Date.now() > r.expiresAt) { fdb.ref(rpath(c)).remove(); idxRef(c).remove(); return toast('만료된 방이에요'); }
+  const already = r.players[k];
+  if (already && !already.left && already.t && Date.now() - already.t < 20000) return toast('같은 닉네임이 방에 있어요 — 닉네임을 바꿔 주세요');
+  if (!already && Object.keys(r.players).length >= MAXP) return toast(`정원(${MAXP}명)이 찼어요`);
+  const mid = r.status !== 'wait';
+  Object.assign(MP, { nick, key: k, code: c, isHost: r.host === k, lastRound: r.round || 0 });
+  await meRef().update({ nick, joinedAt: (already && already.joinedAt) || Date.now(), ready: false, has: myHas(), spec: mid, t: Date.now(), live: null, left: null, kicked: null });
+  if (mid) toast('👀 지금 곡이 끝나면 함께해요', 3000);
+  mpEnter();
+}
+function mpEnter() {
+  mpOff();
+  const ref = roomRef();
+  const cb = ref.on('value', sn => mpOnRoom(sn.val()), () => { toast('방 연결이 끊겼어요'); mpLeave(true); });
+  MP.offs.push(() => ref.off('value', cb));
+  MP.beatT = setInterval(mpBeat, 5000);
+  $('menu').hidden = true; $('result').hidden = true;
+  $('rmCode').textContent = MP.code;
+}
+function mpOff() {
+  MP.offs.forEach(f => f()); MP.offs = [];
+  clearInterval(MP.beatT); clearInterval(MP.liveT); MP.beatT = MP.liveT = null;
+  if (MP.code && MP.key) try { meRef().onDisconnect().cancel(); } catch (e) {}
+  MP.disco = null;
+}
+function mpSetDisco(mode) {   // 대기실에서 끊기면 퇴장, 곡 중에 끊기면 '나감'
+  if (MP.disco === mode) return; MP.disco = mode;
+  const pref = meRef(); pref.onDisconnect().cancel();
+  if (mode === 'wait') pref.onDisconnect().remove(); else pref.onDisconnect().update({ left: true });
+}
+function mpBeat() {
+  if (!MP.room || !MP.code) return;
+  meRef().update({ t: Date.now() });
+  mpMaybeMigrateHost(MP.room);
+  if (MP.isHost) { mpPublish(MP.room, true); if (MP.room.status === 'playing') mpCheckEnd(MP.room); }
+}
+function mpPublish(r, force) {
+  if (!r || !r.players) return;
+  const n = Object.keys(r.players).length, sig = `${r.status}|${n}|${r.song}`;
+  if (!force && mpPublish.sig === sig) return; mpPublish.sig = sig;
+  const sg = songById(r.song);
+  idxRef(MP.code).set({ host: (r.players[r.host] || {}).nick || MP.nick, n, status: r.status, song: sg ? sg.title : r.song, at: Date.now() }).catch(() => {});
+}
+function mpMaybeMigrateHost(r) {
+  if (!r || !r.players) return;
+  const now = Date.now(), dead = p => !p || p.left || (p.t && now - p.t > 40000);
+  if (!dead(r.players[r.host])) return;
+  const alive = Object.entries(r.players).filter(([, p]) => !dead(p)).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+  if (alive.length && alive[0][0] === MP.key) fdb.ref(`${rpath(MP.code)}/host`).transaction(cur => cur === r.host ? MP.key : undefined);
+}
+function mpOnRoom(r) {
+  MP.room = r;
+  if (!r || !r.players) { toast('방이 사라졌어요'); return mpLeave(true); }
+  const me = r.players[MP.key];
+  if (!me) { toast('방에서 나왔어요'); return mpLeave(true); }
+  if (me.kicked) { toast('방장이 내보냈어요'); return mpLeave(true); }
+  MP.isHost = r.host === MP.key;
+  mpMaybeMigrateHost(r);
+  if (MP.isHost) mpPublish(r);
+  mpSetDisco(r.status === 'wait' ? 'wait' : 'play');
+  if (r.status === 'wait') {
+    if (run && run.mp) mpStopRun();
+    $('mpResult').hidden = true; $('loading').hidden = true; $('roomOv').hidden = false;
+    renderRoom(r); mpPreload(r.song);
+    if (JSON.stringify(me.has || {}) !== JSON.stringify(myHas())) meRef().update({ has: myHas() });
+  } else if (r.status === 'playing') {
+    $('roomOv').hidden = true;
+    if ((r.round || 0) > MP.lastRound) { MP.lastRound = r.round || 0; mpBeginRound(r); }
+    else if (!(run && run.mp && !run.ended) && !MP.loading) mpShowBoard(r, run && run.mp ? 'done' : 'watch');
+    if (MP.isHost) mpCheckEnd(r);
+  } else if (r.status === 'result') {
+    $('roomOv').hidden = true;
+    if (run && run.mp && !run.ended) { run.failed = true; finish(); }
+    mpShowBoard(r, 'result');
+  }
+}
+function renderRoom(r) {
+  const ps = Object.entries(r.players || {}).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+  $('rmCount').textContent = `${ps.length} / ${MAXP}명`;
+  const song = songById(r.song);
+  let html = '';
+  for (let i = 0; i < MAXP; i++) {
+    const e = ps[i];
+    if (!e) { html += '<div class="seat"><div class="st">빈 자리</div></div>'; continue; }
+    const [k, p] = e, has = p.has && p.has[r.song], host = k === r.host;
+    html += `<div class="seat full${k === MP.key ? ' me' : ''}${p.ready || host ? ' ready' : ''}">`
+      + (MP.isHost && k !== MP.key ? `<button class="kick" data-kick="${esc(k)}" title="내보내기">✕</button>` : '')
+      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'}<br>${has ? '🎵 음원 있음' : '<span style="color:#ff8a70">🎵 음원 없음</span>'}</div></div>`;
+  }
+  $('rmSeats').innerHTML = html;
+  $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${x.icon} ${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
+  const data = song && (song.chartData || song.data);
+  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => `<button class="diff${r.diff === d ? ' on' : ''}" data-d-m="${d}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${d}${data && data.charts[d] ? ' Lv.' + data.charts[d].level : ''}</button>`).join('');
+  const me = r.players[MP.key] || {};
+  $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
+  $('rmReady').textContent = me.ready ? '준비 취소' : '✅ 준비';
+  const notReady = ps.filter(([k, p]) => k !== r.host && !p.ready).length;
+  $('rmStart').disabled = !(song && song.ok) || notReady > 0;
+  $('rmSongLabel').textContent = MP.isHost ? '곡 선택 (방장)' : '곡 — 방장이 골라요';
+  $('rmMsg').textContent = MP.isHost
+    ? (!(song && song.ok) ? '방장도 이 곡 음원이 있어야 시작할 수 있어요' : notReady ? `준비를 기다리는 중… (${notReady}명)` : ps.length < 2 ? '혼자서도 시작할 수 있어요' : '모두 준비 완료! 시작하세요')
+    : (song && song.ok ? (me.ready ? '방장이 시작하기를 기다리는 중…' : '준비를 눌러 주세요') : '이 곡 음원 파일을 먼저 선택해 주세요 (곡 옆 🎵 파일 선택)');
+  renderMenu();
+}
+function mpPickSong(id) {
+  const r = MP.room; if (!r) return;
+  if (!MP.isHost) return toast('곡은 방장이 골라요');
+  const x = songById(id); if (!x || !x.ok) return toast('방장도 음원이 있는 곡만 고를 수 있어요');
+  const upd = { song: id }; for (const k of Object.keys(r.players || {})) upd[`players/${k}/ready`] = false;
+  roomRef().update(upd);
+}
+function mpPickDiff(d) { if (MP.isHost && MP.room) roomRef().update({ diff: d }); }
+function mpKick(k) {
+  const p = MP.room && MP.room.players && MP.room.players[k]; if (!MP.isHost || !p) return;
+  if (!confirm(`${p.nick} 님을 내보낼까요?`)) return;
+  fdb.ref(`${rpath(MP.code)}/players/${k}`).update({ kicked: true });
+  setTimeout(() => fdb.ref(`${rpath(MP.code)}/players/${k}`).remove(), 1200);
+}
+function mpToggleReady() {
+  audioInit();
+  const r = MP.room, me = r && r.players[MP.key]; if (!me) return;
+  const x = songById(r.song);
+  if (!me.ready && !(x && x.ok)) return toast('이 곡 음원 파일을 먼저 선택해 주세요');
+  meRef().update({ ready: !me.ready, has: myHas() });
+}
+function mpStart() {
+  audioInit();
+  const r = MP.room; if (!r || !MP.isHost || r.status !== 'wait') return;
+  const x = songById(r.song); if (!x || !x.ok) return toast('방장도 이 곡 음원이 있어야 해요');
+  const ps = Object.entries(r.players || {});
+  const notReady = ps.filter(([k, p]) => k !== MP.key && !p.ready);
+  if (notReady.length) return toast(`준비 안 된 사람: ${notReady.map(([, p]) => p.nick).join(', ')}`);
+  const upd = { status: 'playing', round: (r.round || 0) + 1, startAt: srvNow() + 4500 };
+  for (const [k, p] of ps) { upd[`players/${k}/live`] = null; upd[`players/${k}/left`] = null; upd[`players/${k}/spec`] = !(k === MP.key || (p.has && p.has[r.song])); }
+  roomRef().update(upd);
+}
+function mpPreload(id) { const x = songById(id); if (!x || !x.ok || (x.buffer && x.data) || x._pre) return; x._pre = loadSong(x).catch(() => {}).then(() => { x._pre = null; }); }
+async function mpBeginRound(r) {
+  const me = r.players[MP.key], x = songById(r.song);
+  if (me.spec || !x || !x.ok) { mpShowBoard(r, 'watch'); return; }
+  $('mpResult').hidden = true; $('loading').hidden = false; MP.loading = true;
+  try { if (x._pre) await x._pre; await loadSong(x); }
+  catch (e) { MP.loading = false; $('loading').hidden = true; toast('음원을 불러오지 못해 이번 곡은 관전해요'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
+  MP.loading = false; $('loading').hidden = true;
+  if (!MP.room || MP.room.status !== 'playing' || (MP.room.round || 0) !== r.round) return;
+  const data = x.chartData || x.data;   // 멀티는 모두 같은 공식 채보
+  if (x.chartData && Math.abs((x.chartData.length || 0) - x.buffer.duration) > 1.5) toast('⚠️ 내 음원 길이가 채보와 달라서 싱크가 안 맞을 수 있어요', 4000);
+  const diff = data.charts[r.diff] ? r.diff : 'NX';
+  const delay = (r.startAt - srvNow()) / 1000;
+  startRun(x, diff, { mp: true, delay, data });
+  clearInterval(MP.liveT); MP.liveT = setInterval(mpPushLive, 250); mpPushLive();
+}
+function mpPushLive() {
+  const r = run; if (!r || !r.mp || !MP.code) return;
+  meRef().update({ t: Date.now(), live: { s: r.score, c: r.combo, mc: r.maxCombo, j: r.jam, l: Math.round(r.life), co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, tot: r.total,
+    p: +clamp(songNow() / r.end, 0, 1).toFixed(3), done: !!r.ended, failed: !!r.failed, rank: r.ended ? rankOf(r) : '' } });
+  if (r.ended) { clearInterval(MP.liveT); MP.liveT = null; }
+}
+function mpCheckEnd(r) {
+  if (!MP.isHost || !r || r.status !== 'playing' || MP.ending) return;
+  const now = Date.now(), ps = Object.values(r.players || {}).filter(p => !p.spec);
+  const x = songById(r.song), d = x && (x.chartData || x.data), len = (d && d.length) || 200;
+  const allDone = ps.length > 0 && ps.every(p => (p.live && p.live.done) || p.left || (p.t && now - p.t > 20000));
+  const overdue = srvNow() > (r.startAt || 0) + (len + 15) * 1000;
+  if (allDone || overdue) { MP.ending = true; roomRef().update({ status: 'result', endedAt: Date.now() }).catch(() => {}).then(() => { MP.ending = false; }); }
+}
+function mpShowBoard(r, mode) {
+  const x = songById(r.song), d = x && (x.chartData || x.data);
+  const all = Object.entries(r.players || {}).map(([k, p]) => ({ k, p, L: p.live || {} }));
+  const pl = all.filter(e => !e.p.spec).sort((a, b) => (b.L.s || 0) - (a.L.s || 0)), specs = all.filter(e => e.p.spec);
+  $('mrTitle').textContent = mode === 'result' ? '🏆 결과' : mode === 'done' ? '⏳ 다른 사람들이 연주 중…' : '👀 관전 중';
+  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.diff}${d && d.charts[r.diff] ? ' Lv.' + d.charts[r.diff].level : ''}`;
+  const rows = pl.map((e, i) => {
+    const L = e.L, acc = L.tot ? ((L.co * 100 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
+    const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';
+    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}</td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
+  }).join('');
+  $('mrTable').innerHTML = '<tr><th>#</th><th>닉네임</th><th>점수</th><th>최대 콤보</th><th>COOL</th><th>GOOD</th><th>BAD</th><th>MISS</th><th>정확도</th><th>상태</th></tr>' + rows
+    + (specs.length ? `<tr><td colspan="10" style="text-align:left;color:#8e9cc4">👀 관전: ${specs.map(e => esc(e.p.nick)).join(', ')}</td></tr>` : '');
+  $('mrBack').hidden = !(mode === 'result' && MP.isHost);
+  $('mrMsg').textContent = mode === 'result' ? (MP.isHost ? '' : '방장이 방으로 돌아가면 다음 곡을 골라요') : '';
+  $('mpResult').hidden = false;
+}
+function mpBackToRoom() {
+  const r = MP.room; if (!r || !MP.isHost) return;
+  const upd = { status: 'wait' };
+  for (const [k, p] of Object.entries(r.players || {})) {
+    if (p.left) { upd[`players/${k}`] = null; continue; }
+    upd[`players/${k}/ready`] = false; upd[`players/${k}/spec`] = false; upd[`players/${k}/live`] = null;
+  }
+  roomRef().update(upd);
+}
+function mpStopRun() { const r = run; if (!r) return; r.ended = true; try { r.src.stop(); } catch (e) {} run = null; applyVol(); }
+async function mpLeave(silent) {
+  const code = MP.code, key = MP.key, r = MP.room, wasHost = MP.isHost;
+  mpOff();
+  if (run && run.mp) mpStopRun();
+  if (!silent && code) {
+    const others = Object.entries((r && r.players) || {}).filter(([k, p]) => k !== key && !p.left);
+    try {
+      if (!others.length) { await fdb.ref(rpath(code)).remove(); await idxRef(code).remove(); }
+      else {
+        if (wasHost) { others.sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0)); await fdb.ref(rpath(code)).update({ host: others[0][0] }); }
+        await fdb.ref(`${rpath(code)}/players/${key}`).remove();
+      }
+    } catch (e) {}
+  }
+  Object.assign(MP, { code: null, room: null, lastRound: 0, isHost: false, loading: false });
+  $('roomOv').hidden = true; $('mpResult').hidden = true; $('pause').hidden = true; $('result').hidden = true; $('loading').hidden = true;
+  $('menu').hidden = false; setTab('online'); renderMenu();
+}
+$('mpCreateBtn').onclick = mpCreate;
+$('mpJoinBtn').onclick = () => mpJoin($('joinCode').value);
+$('joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') mpJoin($('joinCode').value); });
+$('mpRefresh').onclick = () => { $('roomList').innerHTML = '<div class="hint">불러오는 중…</div>'; mpLoadRooms(); };
+$('rmCopy').onclick = () => { try { navigator.clipboard.writeText(MP.code); toast('방 코드를 복사했어요: ' + MP.code); } catch (e) { toast('방 코드: ' + MP.code); } };
+$('rmLeave').onclick = () => { if (confirm('방을 나갈까요?')) mpLeave(false); };
+$('mrLeave').onclick = () => { if (confirm('방을 나갈까요?')) mpLeave(false); };
+$('rmReady').onclick = mpToggleReady;
+$('rmStart').onclick = mpStart;
+$('mrBack').onclick = mpBackToRoom;
+addEventListener('pagehide', () => { if (MP.code && MP.key) { try { meRef().update(MP.room && MP.room.status === 'wait' ? { left: true, t: 0 } : { left: true }); } catch (e) {} } });
+try { $('nick').value = localStorage.getItem('oj_nick') || ''; } catch (e) {}
+setTab((() => { try { return localStorage.getItem('oj_tab') === 'online' ? 'online' : 'solo'; } catch (e) { return 'solo'; } })());
+
 // ═══════════ 디버그 ═══════════
 window.o2jam = {
-  get run() { return run; }, SONGS, SET, analyzeAudio, normalizeNotes, chartLevel,
+  get run() { return run; }, SONGS, SET, analyzeAudio, normalizeNotes, chartLevel, MP,
   auto: (id = SET.song, d = SET.diff) => { SET.song = id; SET.diff = d; return startSelected({ auto: true }); },
   exportChart: id => { const s = songById(id || SET.song); return s && s.data ? JSON.stringify(s.data) : null; },
 };
