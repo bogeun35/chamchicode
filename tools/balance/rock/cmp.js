@@ -1,0 +1,10 @@
+// 기준선 대비 250분 비교: node cmp.js "<seeds>" base=globfiles... var=prefix(e.g. eo35-s)
+const fs=require('fs');const CUT=250;const seeds=process.argv[2].split(',').map(Number);
+const load=f=>JSON.parse(fs.readFileSync(f,'utf8')).res;
+const base={};for(const f of fs.readdirSync('.').filter(f=>/^d2b-[a-f]\.json$/.test(f)))for(const r of load(f))base[r.seed]=r;
+const one=r=>{const runs=r.runs.filter(x=>x.at<=CUT+0.2),last=runs[runs.length-1],s=k=>runs.reduce((a,x)=>a+(x[k]||0),0);const rr=k=>r.reach[k]!=null&&r.reach[k]<=CUT?r.reach[k]:null;
+ return{r10:rr(10),r15:rr(15),max:last.maxSec,runs:runs.length,crash:runs.filter(x=>x.end==='crash').length,col:s('col'),lost:s('lost'),kills:s('kills'),arti:r.artiAt.filter(t=>t<=CUT).length,cred:r.cred[Math.min(r.cred.length-1,CUT)],ess:runs.filter(x=>x.essOrbit).length}};
+const summ=(name,rows)=>{const S=k=>rows.reduce((a,x)=>a+(x[k]||0),0),n=rows.length;return{name,r10:rows.map(x=>x.r10??'-').join('/'),r10sum:+rows.reduce((a,x)=>a+(x.r10??CUT),0).toFixed(1),r15:rows.map(x=>x.r15??'-').join('/'),r15avg:+(rows.reduce((a,x)=>a+(x.r15??CUT),0)/n).toFixed(1),max:rows.map(x=>x.max).join('/'),maxAvg:+(S('max')/n).toFixed(2),artiH:+(S('arti')/(n*CUT/60)).toFixed(2),crashPct:+(S('crash')/S('runs')*100).toFixed(1),drop:+(S('col')/(S('col')+S('lost'))).toFixed(3),kpm:+(S('kills')/(n*CUT)).toFixed(1),credAvgEok:+(S('cred')/n/1e8).toFixed(1),ess:S('ess'),runs:S('runs')}};
+const B=summ('base',seeds.map(s=>one(base[s])));console.log(JSON.stringify(B));
+for(const a of process.argv.slice(3)){const rows=[];for(const s of seeds){const f=a+s+'.json';if(!fs.existsSync(f)){rows.push(null);continue}rows.push(one(load(f)[0]))}if(rows.includes(null)){console.log(a,'missing');continue}
+ const V=summ(a,rows);V.r10x=+(V.r10sum/B.r10sum).toFixed(3);V.r15x=+(V.r15avg/B.r15avg).toFixed(3);V.maxDiff=rows.map((x,i)=>x.max-one(base[seeds[i]]).max).join('/');V.artiX=+(V.artiH/B.artiH).toFixed(2);V.credX=+(V.credAvgEok/B.credAvgEok).toFixed(2);console.log(JSON.stringify(V))}
