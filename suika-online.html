@@ -288,7 +288,7 @@ const { Engine, Bodies, Body, Composite, Events } = Matter;
 const BW = 500, BH = 790;                      // 내 보드 캔버스
 const BOX = { l: 15, r: 485, t: 120, b: 730 }; // 470 × 610 (싱글과 동일 · 원작 비율)
 const RIM = 22, WALL = 120, MAX_SPEED = 18;
-const FRUIT_MASS = 4, PUSH_SLOPE = 0.13;   // 원작처럼 무게 거의 같게 + 큰 과일 살짝 가볍게 → 원작보다 평균 12.5% 더 밀림 (싱글과 동일)
+const FRUIT_MASS = 4, PUSH_SLOPE = 0;   // 원작처럼 과일 무게는 크기와 상관없이 전부 같음 (싱글과 동일)
 const DROP_COOLDOWN = 260, DEAD_TIME = 800, MAX_DROP_LEVEL = 4;
 const dropY = () => BOX.t - 75;
 const deadY = () => BOX.t + 4;

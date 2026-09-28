@@ -231,9 +231,9 @@
   const deadY = () => BOX.t + 4;                // 이 선 위에 과일이 머물면 게임 오버
   const DROP_COOLDOWN = 260;                    // ms — 클릭 후 다음 과일까지 (너무 짧으면 연타로 쉬워짐)
   const MAX_SPEED = 18;                         // px/step 상한 — 과일끼리 뚫고 지나가는 것 방지
-  // 과일 무게: 원작은 크기와 상관없이 전부 같음(작은 과일도 큰 과일을 잘 밀어냄). 여기선 큰 과일을 살짝 더 가볍게(반지름^-0.13)
-  // → 떨어진 과일에 밀리는 속도가 원작 규칙보다 평균 +12.5% (1:1 충돌 실측: 0.10=+9.7%, 0.12=+11.7%, 0.15=+14.8%)
-  const FRUIT_MASS = 4, PUSH_SLOPE = 0.13;
+  // 과일 무게: 원작처럼 크기와 상관없이 전부 같음 → 작은 과일도 큰 과일을 잘 밀어냄
+  // PUSH_SLOPE > 0 이면 큰 과일이 가벼워져 더 밀림 (0.13 = 원작 대비 +12.5% 였지만 큰 과일이 너무 가벼워 보여서 0 으로)
+  const FRUIT_MASS = 4, PUSH_SLOPE = 0;
   const fruitMass = lv => FRUIT_MASS * Math.pow(FRUITS[lv].r / 45.4, -PUSH_SLOPE);
 
   const SHAKE_TIME = 700;                       // ms
