@@ -221,9 +221,9 @@
   const { Engine, Bodies, Body, Composite, Events } = Matter;
 
   // ── 설정 ─────────────────────────────────────────────
-  let W = 600; const H = 990;                   // 게임 좌표계 (상자 470×610 + 위 HUD + 아래 유물/진화 줄)
+  const W = 501, H = 990;                       // 게임 좌표계 (상자 470×610 + 위 HUD + 아래 유물/진화 줄) — 클래식·로그라이크 모두 같은 폭
   const BOX_W = 470, BOX_CX = 250;              // 상자 기본 폭 / 중심 (원작 비율: 수박 지름 = 폭의 59%)
-  const BOX = { l: 15, r: 485, t: 260, b: 870 };  // 상자 안쪽 영역 (470×610 — 원작 비율 0.77; l/r 은 상자 폭에 따라 바뀜)
+  const BOX = { l: 15, r: 485, t: 260, b: 870 };  // 상자 안쪽 영역 (470×610 — 원작 비율 0.77; 폭은 고정, t 만 천장 유물로 바뀜)
   const RIM = 26;                               // 상자 윗테두리 원근 높이
   const WALL = 120;                             // 벽 두께 — 얇으면 빠른 과일이 뚫고 나감 (실측)
   const BOX_T_BASE = 260;                       // 상자 윗변 기본값 (천장 유물/저주로 BOX.t 가 오르내림)
@@ -260,7 +260,7 @@
     inertiaMul: 0.15,           // 낮을수록 잘 돈다
     scoreMul: 1,
     deadTime: 800,              // 게임오버 유예 ms (선 위에 이만큼 머물면 끝)
-    boxScale: 1,                // 상자 폭 배율
+    fruitMul: 1,                // 과일 크기 배율 (넓은 상자 유물) — 상자를 키우는 대신 과일을 줄여 화면 폭은 그대로
     ceilingOffset: 0,           // 상자 윗변 이동 px (+ 위로 = 상자가 커짐)
     cherryRate: 1,              // 체리 등장 확률 (0~1)
     strawberryRate: 1,          // 딸기 등장 확률 (0~1)
@@ -274,9 +274,9 @@
   const MAX_RELIC_LV = 3;
   const RELICS = [
     { key: 'wideBox', icon: '📏', name: '넓은 상자', levels: [
-      { desc: '상자 폭 +8%',                        apply: c => { c.boxScale += 0.08; } },
-      { desc: '상자 폭 +16%',                       apply: c => { c.boxScale += 0.16; } },
-      { desc: '상자 폭 +24%',                       apply: c => { c.boxScale += 0.24; } },
+      { desc: '과일이 4% 작아짐 → 상자 공간 +8%',    apply: c => { c.fruitMul = 0.96; } },
+      { desc: '과일이 7% 작아짐 → 상자 공간 +16%',   apply: c => { c.fruitMul = 0.93; } },
+      { desc: '과일이 10% 작아짐 → 상자 공간 +24%',  apply: c => { c.fruitMul = 0.90; } },
     ] },
     { key: 'ceiling', icon: '⬆️', name: '높은 천장', levels: [
       { desc: '상자가 25px 높아짐',                  apply: c => { c.ceilingOffset += 25; } },
@@ -409,7 +409,8 @@
   const CARD_LOCK_MS = 1000;
   const relicLevel = key => { const r = relics.find(x => x.def.key === key); return r ? r.level : 0; };
   let melons = 0, runTime = 0;
-  let fruitScale = 1;                     // 수박 만들 때마다 과일이 작아짐 = 상자가 커지는 효과
+  let fruitScale = 1;                     // 실제 과일 크기 배율 = growScale × cfg.fruitMul
+  let growScale = 1;                      // 수박 만들 때마다 과일이 작아짐 = 상자가 커지는 효과
   const MELON_GROW = 0.96, MIN_FRUIT_SCALE = 0.71;
   const fr = b => b.circleRadius || FRUITS[b.level].r;   // 몸체 실제 반지름
   let insuranceCharges = 0;               // 보험 충전 개수 (멜론 보험)
@@ -470,19 +471,22 @@
 
   }
 
+  function setFruitScale(v) {
+    if (Math.abs(v - fruitScale) < 1e-6) return;
+    const k = v / fruitScale;
+    fruitScale = v;
+    for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+  }
+
   function computeCfg() {
     const c = { ...BASE_CFG };
     for (const r of relics) { const L = r.def.levels[r.level - 1]; if (L.apply) L.apply(c); }
-    c.boxScale = Math.max(0.6, Math.min(1.3, c.boxScale));
+    c.fruitMul = Math.max(0.8, Math.min(1, c.fruitMul));
     return c;
   }
   function applyCfg() {
     cfg = computeCfg();
-    const w = BOX_W * cfg.boxScale;
-    BOX.l = Math.max(12, Math.round(BOX_CX - w / 2));   // 왼쪽 여백은 12px 이상
-    BOX.r = BOX.l + Math.round(w);
-    W = BOX.r + 16;                                    // 창고를 아래로 내려서 오른쪽 여백이 필요 없다
-    resize();
+    setFruitScale(growScale * cfg.fruitMul);           // 넓은 상자: 상자 대신 과일이 작아짐 (캔버스 폭은 클래식과 같게 고정)
     BOX.t = BOX_T_BASE - Math.max(-60, Math.min(60, cfg.ceilingOffset));
     buildWalls();
     engine.gravity.y = cfg.gravity;
@@ -511,7 +515,7 @@
     score = 0; gameOver = false;
     mergeCount = 0; lastMergeAt = 0; toast = null;
     relics = []; relicCount = 0; reached = new Set(); offerQueue = []; soldMelons = 0;
-    melons = 0; runTime = 0; fruitScale = 1;
+    melons = 0; runTime = 0; growScale = 1;
     insuranceCharges = 0;
     floaters = []; particles = []; shakeMag = 0; comboCount = 0; bestLevelMade = 0; danger = false;
     recordBefore = { ...curBest() };
@@ -836,9 +840,9 @@
       sfx('merge', { level: lv, combo: comboCount });
       if (lv === FRUITS.length - 1) {
         melons++;
-        if (fruitScale > MIN_FRUIT_SCALE) {   // 상자 성장: 모든 과일이 4% 작아짐 (= 폭·높이 +4%, 최대 +40%)
-          fruitScale = Math.max(MIN_FRUIT_SCALE, fruitScale * MELON_GROW);
-          for (const o of fruitsInBox()) { Body.scale(o, MELON_GROW, MELON_GROW); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+        if (growScale > MIN_FRUIT_SCALE) {   // 상자 성장: 모든 과일이 4% 작아짐 (= 폭·높이 +4%, 최대 +40%)
+          growScale = Math.max(MIN_FRUIT_SCALE, growScale * MELON_GROW);
+          setFruitScale(growScale * cfg.fruitMul);
           floatText(BOX_CX, BOX.t + 150, `📦 상자 성장! +${Math.round((1 / fruitScale - 1) * 100)}%`, '#9be8a8', 20);
         }
         shakeMag = 10; confetti(80); sfx('melon');

@@ -327,7 +327,7 @@ const engine = Engine.create({ gravity: { x: 0, y: 2.6 } });   // 싱글과 동�
 const world = engine.world;
 engine.positionIterations = 10;
 engine.velocityIterations = 8;
-const BOX_W0 = BOX.r - BOX.l, BOX_CX = (BOX.l + BOX.r) / 2, BOX_T0 = BOX.t;
+const BOX_T0 = BOX.t;
 let walls = [];
 function buildWalls() {
   Composite.remove(world, walls);
@@ -339,13 +339,17 @@ function buildWalls() {
   ];
   Composite.add(world, walls);
 }
+function setFruitScale(v) {
+  if (Math.abs(v - fruitScale) < 1e-6) return;
+  const k = v / fruitScale;
+  fruitScale = v;
+  for (const o of fruitsInBox()) { Body.scale(o, k, k); Body.setInertia(o, o.inertia * cfg.inertiaMul); }
+}
 function applyCfg() {
   cfg = { ...BASE_CFG };
   for (const r of relics) { const L = r.def.levels[r.level - 1]; if (L.apply) L.apply(cfg); }
-  cfg.boxScale = Math.max(0.6, Math.min(1.3, cfg.boxScale));
-  const w = BOX_W0 * cfg.boxScale;
-  BOX.l = Math.max(10, Math.round(BOX_CX - w / 2));
-  BOX.r = BOX.l + Math.round(w);
+  cfg.fruitMul = Math.max(0.8, Math.min(1, cfg.fruitMul));
+  setFruitScale(cfg.fruitMul);   // 넓은 상자: 상자 폭은 그대로(캔버스 밖으로 안 나가게), 과일이 작아짐
   BOX.t = BOX_T0 - Math.max(-60, Math.min(60, cfg.ceilingOffset));
   buildWalls();
   for (const b of fruitsInBox()) {
@@ -372,16 +376,16 @@ function makeFruit(x, y, level) {
 const BASE_CFG = {
   minDrop: 0, maxDrop: 4, nextCount: 3,
   restitution: 0.25, friction: 0.15, inertiaMul: 0.15,
-  deadTime: DEAD_TIME, boxScale: 1, ceilingOffset: 0,
+  deadTime: DEAD_TIME, fruitMul: 1, ceilingOffset: 0,
   cherryRate: 1, strawberryRate: 1, rainbowEvery: 0, insuranceCap: 0,
 };
 let cfg = { ...BASE_CFG };
 const MAX_RELIC_LV = 3;
 const RELICS = [
   { key: 'wideBox', icon: '📏', name: '넓은 상자', levels: [
-    { desc: '상자 폭 +8%',  apply: c => { c.boxScale += 0.08; } },
-    { desc: '상자 폭 +16%', apply: c => { c.boxScale += 0.16; } },
-    { desc: '상자 폭 +24%', apply: c => { c.boxScale += 0.24; } },
+    { desc: '과일이 4% 작아짐 → 상자 공간 +8%',   apply: c => { c.fruitMul = 0.96; } },
+    { desc: '과일이 7% 작아짐 → 상자 공간 +16%',  apply: c => { c.fruitMul = 0.93; } },
+    { desc: '과일이 10% 작아짐 → 상자 공간 +24%', apply: c => { c.fruitMul = 0.90; } },
   ] },
   { key: 'ceiling', icon: '⬆️', name: '높은 천장', levels: [
     { desc: '상자가 25px 높아짐', apply: c => { c.ceilingOffset += 25; } },
@@ -775,11 +779,11 @@ function render() {
 
   // 손에 든 과일
   if (playing && myAlive && current !== null) {
-    const x = clampX(mouseX, current), fr = FRUITS[current].r;
+    const x = clampX(mouseX, current), hr = FRUITS[current].r * fruitScale;
     ctx.strokeStyle = 'rgba(160,110,60,.25)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x, dropY() + fr); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
-    drawCloud(ctx, x, dropY() - fr - 16);
-    drawFruit(ctx, x, dropY(), current, 0, 1);
+    ctx.beginPath(); ctx.moveTo(x, dropY() + hr); ctx.lineTo(x, BOX.b - 10); ctx.stroke();
+    drawCloud(ctx, x, dropY() - hr - 16);
+    drawFruit(ctx, x, dropY(), current, 0, fruitScale);
   }
 
   // 관전: 상대 보드를 크게
@@ -787,7 +791,7 @@ function render() {
   if (fp) {
     ctx.save();
     ctx.beginPath(); ctx.rect(l, t, r - l, b - t); ctx.clip();
-    for (const f of decodeBoard(fp.b)) drawFruit(ctx, f.x, f.y, f.lv, 0, 1);
+    for (const f of decodeBoard(fp.b)) drawFruit(ctx, f.x, f.y, f.lv, 0, fp.fs || 1);
     ctx.restore();
     ctx.fillStyle = 'rgba(90,50,20,.75)';
     ctx.beginPath(); ctx.roundRect((l + r) / 2 - 150, t + 8, 300, 34, 17); ctx.fill();
@@ -804,7 +808,7 @@ function render() {
   for (const f of fruitsInBox()) {
     const age = now - f.born;
     const k = age < 120 ? 0.85 + 0.15 * (age / 120) : 1;
-    drawFruit(ctx, f.position.x, f.position.y, f.level, f.angle, k);
+    drawFruit(ctx, f.position.x, f.position.y, f.level, f.angle, k * fr(f) / FRUITS[f.level].r);
   }
   effects = effects.filter(e => now - e.t < 250);
   for (const e of effects) {
@@ -874,7 +878,7 @@ function decodeBoard(s) {
     return { lv: +lv, x: +x, y: +y };
   }).filter(Boolean);
 }
-function drawMini(cv, board, alive) {
+function drawMini(cv, board, alive, fs = 1) {
   const c = cv.getContext('2d');
   const W0 = cv.clientWidth || 160, H0 = Math.round(W0 * (BOX.b - BOX.t) / (BOX.r - BOX.l));
   const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -887,10 +891,10 @@ function drawMini(cv, board, alive) {
   // 과일 그림을 그대로 축소 — 수박·멜론이 한눈에 구분된다
   for (const f of board) {
     const x = (f.x - BOX.l) * k, y = (f.y - BOX.t) * k;
-    if (FRUITS[f.lv].r * k < 3.5) {   // 너무 작으면 점으로
-      c.beginPath(); c.arc(x, y, Math.max(1.2, FRUITS[f.lv].r * k), 0, Math.PI * 2);
+    if (FRUITS[f.lv].r * k * fs < 3.5) {   // 너무 작으면 점으로
+      c.beginPath(); c.arc(x, y, Math.max(1.2, FRUITS[f.lv].r * k * fs), 0, Math.PI * 2);
       c.fillStyle = FRUITS[f.lv].color; c.fill();
-    } else drawFruit(c, x, y, f.lv, 0, k);
+    } else drawFruit(c, x, y, f.lv, 0, k * fs);
   }
 }
 
@@ -1125,7 +1129,7 @@ function startSync() {
   stopSync();
   syncTimer = setInterval(() => {
     if (!playing || !room || room.status !== 'playing') return;   // 방이 사라졌는데 쓰면 유령 방이 생긴다
-    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, score: myScore, alive: myAlive, t: Date.now(),
+    meRef().update({ b: encodeBoard(), best: myBest, melons: myMelons, score: myScore, alive: myAlive, t: Date.now(), fs: Math.round(fruitScale * 1000) / 1000,
       rl: isRogue ? relics.map(r => r.def.icon + (r.level > 1 ? r.level : '')).join('') : '' });
   }, 200);
 }
@@ -1214,10 +1218,10 @@ function renderArena() {
     el.wrap.classList.toggle('win', !!(room.winner && room.winner.key === k));
     el.wrap.classList.toggle('focus', focusKey === k);
     el.wrap.classList.toggle('clickable', iSpectate || !myAlive);
-    const sig = `${p.b || ''}|${p.alive}|${p.best}`;      // 바뀐 사람만 다시 그린다 (7명이면 매 스냅샷마다 다 그리면 낭비)
+    const sig = `${p.b || ''}|${p.alive}|${p.best}|${p.fs || 1}`;      // 바뀐 사람만 다시 그린다 (7명이면 매 스냅샷마다 다 그리면 낭비)
     if (el.sig !== sig) {
       el.sig = sig;
-      drawMini(el.canvas, decodeBoard(p.b), p.alive !== false);
+      drawMini(el.canvas, decodeBoard(p.b), p.alive !== false, p.fs || 1);
       drawBadges(el.badge, p.best || 0);
     }
   });
