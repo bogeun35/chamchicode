@@ -183,6 +183,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <div class="opt">키 설정 <span class="sub" style="font-size:12px">(눌러서 바꾸기)</span> <div class="keys" id="keyBoxes"></div><button data-act="keys-reset" title="기본 키로" style="width:auto;padding:0 8px">기본</button></div>
       <button class="btn" id="startBtn" style="margin-left:auto">▶ 시작 (Enter)</button>
       <button class="btn ghost" id="autoBtn" title="자동 연주로 음악과 타격 효과 감상 · 기록 저장 안 함">자동 연주</button>
+      <label class="opt"><input type="checkbox" id="recordPlay"> 플레이 녹화</label>
     </div>
     <div class="msg" id="menuMsg"></div>
     <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>Esc</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>EXCELLENT·COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
@@ -218,6 +219,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×3.0</b><button data-act="spd+">+</button></div>
       <div class="opt">내 싱크 <button data-act="off-">−</button><b class="offV">0ms</b><button data-act="off+">+</button></div>
       <div class="opt">내 키 <div class="keys" id="rmKeys"></div></div>
+      <label class="opt"><input type="checkbox" id="recordRoom"> 플레이 녹화</label>
       <button class="btn ghost" id="rmReady" style="margin-left:auto">준비</button>
       <button class="btn" id="rmStart">▶ 시작</button>
     </div>
@@ -271,6 +273,8 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
   </div>
 </div>
 <div id="loading" hidden>불러오는 중…</div>
+<div id="recordStatus" hidden style="position:fixed;right:16px;top:58px;z-index:30;background:#381326;padding:10px;border-radius:10px"><span>● 녹화 중</span> <button class="btn ghost" id="recordStop" style="padding:5px 10px;font-size:14px">녹화 종료</button></div>
+<div id="recordDock" hidden style="position:fixed;right:16px;bottom:16px;z-index:30;max-width:min(400px,90vw);background:#101b30;padding:12px;border-radius:12px"><div id="recordReview" hidden><details><summary>녹화 영상 · 재생 및 다운로드</summary><video id="recordVideo" controls playsinline preload="metadata" style="width:100%;max-height:240px;margin-top:8px"></video></details><a id="recordDownload" class="btn ghost" style="display:inline-block;font-size:14px;margin-top:8px">영상 다운로드</a><button class="btn ghost" id="recordClose" style="padding:8px;font-size:14px">닫기</button></div></div>
 
 <div id="edPanel" hidden>
   <div class="row" style="margin-top:0">
@@ -371,6 +375,53 @@ const keyLabel = c => c === 'Space' ? '␣' : c.startsWith('Key') ? c.slice(3) :
 
 // ═══════════ 오디오 ═══════════
 const AU = { ctx: null, music: null, sfx: null };
+const REC = { session: null, url: null, timer: null };
+function recordingCleanup(session) {
+  for (const bus of [AU.music, AU.sfx]) try { bus.disconnect(session.audio); } catch (e) {}
+  for (const track of session.stream.getTracks()) track.stop();
+  for (const track of session.audio.stream.getTracks()) track.stop();
+}
+function recordingStop(delay = 0) {
+  clearTimeout(REC.timer); REC.timer = null;
+  const session = REC.session; if (!session) return;
+  if (delay) { REC.timer = setTimeout(() => { if (REC.session === session) recordingStop(); }, delay); return; }
+  if (session.recorder.state !== 'inactive') session.recorder.stop();
+  $('recordStatus').hidden = true;
+}
+function recordingStart(r) {
+  if (!$('recordPlay').checked || r.fromEditor) return;
+  if (REC.session) { recordingStop(); toast('이전 녹화를 저장 중입니다. 다음 플레이부터 녹화돼요.'); return; }
+  if (!cv.captureStream || typeof MediaRecorder === 'undefined') { toast('이 브라우저는 플레이 녹화를 지원하지 않아요.'); return; }
+  const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(type => MediaRecorder.isTypeSupported(type));
+  if (!mime) { toast('이 브라우저는 WebM 녹화를 지원하지 않아요.'); return; }
+  $('recordVideo').pause(); $('recordReview').hidden = true; $('recordDock').hidden = true;
+  let session;
+  try {
+    const stream = cv.captureStream(30), audio = AU.ctx.createMediaStreamDestination();
+    session = { stream, audio, chunks: [], song: r.song.title, recorder: null };
+    AU.music.connect(audio); AU.sfx.connect(audio);
+    audio.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+    const recorder = session.recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
+    recorder.ondataavailable = e => { if (e.data && e.data.size) session.chunks.push(e.data); };
+    recorder.onstop = () => {
+      recordingCleanup(session); if (REC.session === session) REC.session = null;
+      if (!session.chunks.length) { toast('녹화된 영상이 없어요.'); return; }
+      const blob = new Blob(session.chunks, { type: recorder.mimeType || mime });
+      if (REC.url) URL.revokeObjectURL(REC.url);
+      REC.url = URL.createObjectURL(blob); $('recordVideo').src = REC.url;
+      $('recordDownload').href = REC.url; $('recordDownload').download = session.song.replace(/[\\/:*?"<>|]/g, '_') + '.webm';
+      $('recordReview').hidden = false;
+      if (!$('result').hidden) { $('result').querySelector('.box').appendChild($('recordReview')); $('recordDock').hidden = true; }
+      else { $('recordDock').appendChild($('recordReview')); $('recordDock').hidden = false; }
+    };
+    recorder.onerror = () => { recordingStop(); toast('녹화 오류가 발생했어요. 저장 가능한 영상은 회수합니다.'); };
+    REC.session = session; recorder.start(1000); $('recordStatus').hidden = false;
+  } catch (e) { if (session) recordingCleanup(session); REC.session = null; toast('녹화를 시작하지 못했어요. 게임은 계속 진행됩니다.'); }
+}
+for (const id of ['recordPlay', 'recordRoom']) $(id).onchange = e => { $('recordPlay').checked = $('recordRoom').checked = e.target.checked; };
+$('recordStop').onclick = () => recordingStop();
+$('recordClose').onclick = () => { $('recordVideo').pause(); $('recordReview').hidden = true; $('recordDock').hidden = true; };
+addEventListener('beforeunload', () => { if (REC.session) recordingCleanup(REC.session); if (REC.url) URL.revokeObjectURL(REC.url); });
 function audioInit() {
   if (AU.ctx) { if (AU.ctx.state === 'suspended' && !(run && run.paused)) AU.ctx.resume(); return AU.ctx; }
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -900,6 +951,7 @@ function startRun(song, diff, opt = {}) {
   run.goal = goalForRecord(run.bestBefore);
   clk.off = null;
   $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
+  recordingStart(run);
 }
 function songNow() {
   if (!run) return 0;
@@ -980,6 +1032,7 @@ function finish() {
   const r = run; if (!r || r.ended) return;
   r.ended = true;
   r.achievement = achievementOf(r);
+  recordingStop(1800);
   try { r.src.stop(AU.ctx.currentTime + (r.failed ? .6 : 1.2)); } catch (e) {}
   if (r.failed) { const g = AU.music; g.gain.setTargetAtTime(0, AU.ctx.currentTime, .25); setTimeout(applyVol, 1400); }
   if (r.fromEditor) { setTimeout(() => { if (run === r) edBackFromTest(r); }, 1200); return; }
@@ -1033,10 +1086,12 @@ function showResult(r) {
 }
 function pauseGame(on) {
   const r = run; if (!r || r.ended) return;
-  if (on && !r.paused) { r.pauseAt = songNow(); r.paused = true; AU.ctx.suspend(); $('pause').hidden = false; }
-  else if (!on && r.paused) { $('pause').hidden = true; AU.ctx.resume().then(() => { clk.off = null; r.paused = false; }); }
+  if (on && !r.paused) { r.pauseAt = songNow(); r.paused = true; AU.ctx.suspend(); if (REC.session && REC.session.recorder.state === 'recording') REC.session.recorder.pause(); $('pause').hidden = false; }
+  else if (!on && r.paused) { $('pause').hidden = true; AU.ctx.resume().then(() => { clk.off = null; r.paused = false; if (REC.session && REC.session.recorder.state === 'paused') REC.session.recorder.resume(); }); }
 }
 function quitToMenu() {
+  recordingStop();
+  if (!$('recordReview').hidden) { $('recordDock').appendChild($('recordReview')); $('recordDock').hidden = false; }
   if (run && run.src) try { run.src.stop(); } catch (e) {}
   if (AU.ctx && AU.ctx.state === 'suspended') AU.ctx.resume();
   applyVol();
@@ -2362,7 +2417,7 @@ function mpBackToRoom() {
   }
   roomRef().update(upd);
 }
-function mpStopRun() { const r = run; if (!r) return; r.ended = true; try { r.src.stop(); } catch (e) {} run = null; applyVol(); }
+function mpStopRun() { recordingStop(); const r = run; if (!r) return; r.ended = true; try { r.src.stop(); } catch (e) {} run = null; applyVol(); }
 async function mpLeave(silent) {
   const code = MP.code, key = MP.key, r = MP.room, wasHost = MP.isHost;
   mpOff();
