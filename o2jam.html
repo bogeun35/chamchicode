@@ -900,7 +900,7 @@ function addJudge(kind, lane) {
     r.combo = 0; r.jam = 0; r.jamG = 0;
   }
   r.lastJ = kind; r.lastJAt = performance.now();
-  if (lane != null && kind !== 'miss') r.fx.push({ lane, t: performance.now(), kind });
+  if (lane != null && kind !== 'miss') r.fx.push({ lane, t: performance.now(), kind, strength: 1 + Math.min(1.5, r.combo / 120), fever: r.combo >= 50 });
   if (r.life <= 0 && !(SET.noFail && !r.mp) && !r.auto && !r.failed && !r.fromEditor) { r.failed = true; finish(); }   // 멀티는 노페일 없음
 }
 function judgeOf(err) { const a = Math.abs(err); return a <= JW.cool ? 'cool' : a <= JW.good ? 'good' : a <= JW.bad ? 'bad' : null; }
@@ -1860,12 +1860,14 @@ function drawImpactEffects(r, pn) {
     // BAD gets only subdued feedback; MISS can never produce a burst.
     if (f.kind !== 'cool' && f.kind !== 'good') continue;
     const age = pn - f.t, k = age / 460, fade = Math.pow(1 - k, 2);
+    const strength = f.strength || 1, fever = !!f.fever;
     const cx = FX + f.lane * LW + LW / 2;
     const color = fever ? '#ffcb66' : f.kind === 'cool' ? '#80edff' : '#b9ff87';
     ctx.globalAlpha = fade;
     const glow = ctx.createRadialGradient(cx, JY, 0, cx, JY, 44 * strength);
     glow.addColorStop(0, '#ffffff'); glow.addColorStop(.22, color); glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow; ctx.fillRect(cx - 65, JY - 65, 130, 130);
+    const radius = 44 * strength;
+    ctx.fillStyle = glow; ctx.fillRect(cx - radius, JY - radius, radius * 2, radius * 2);
     ctx.strokeStyle = color; ctx.lineWidth = 3 * fade + 1;
     ctx.beginPath(); ctx.ellipse(cx, JY, 10 + k * 48 * strength, 5 + k * 23, 0, 0, Math.PI * 2); ctx.stroke();
     // Short white hit core creates crisp physical contact at the judgment line.
@@ -1897,17 +1899,46 @@ function drawImpactEffects(r, pn) {
   if (elapsed < 1100 && r.combo >= milestone.combo) {
     ctx.save(); ctx.globalAlpha = Math.min(1, (1100 - elapsed) / 300);
     const pop = 1 + Math.max(0, 1 - elapsed / 200) * .12;
-    ctx.translate(FX + FW / 2, JY - 310); ctx.scale(pop, pop);
+    ctx.translate(FX + FW / 2, 75); ctx.scale(pop, pop);
     ctx.shadowColor = '#ffcb66'; ctx.shadowBlur = 18;
-    txt(milestone.combo + ' COMBO!', 0, 0, 28, '#ffe29b', 'center', 'Black Han Sans');
+    txt(milestone.combo + ' COMBO!', 0, 0, 22, '#ffe29b', 'center', 'Black Han Sans');
     ctx.restore();
   }
   if (fever && !r.failed && (r.lastJ === 'cool' || r.lastJ === 'good')) {
     ctx.save(); ctx.globalAlpha = .75 + Math.sin(pn / 160) * .2;
     ctx.shadowColor = '#ff9d36'; ctx.shadowBlur = 14;
-    txt('FEVER / ' + (r.combo >= 100 ? 'MAX FLOW' : 'ON FIRE'), FX + FW / 2, JY - 125, 16, '#ffcb66', 'center', 'Black Han Sans');
+    ctx.strokeStyle = '#ffcb66'; ctx.lineWidth = r.combo >= 100 ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(FX - 5, 95); ctx.lineTo(FX - 5, JY); ctx.moveTo(FX + FW + 5, 95); ctx.lineTo(FX + FW + 5, JY); ctx.stroke();
     ctx.restore();
   }
+}
+function drawFallingNotes(r, now, pxs) {
+    // 노트
+    const vis = JY / pxs + .1;
+    for (let l = 0; l < NL; l++) {
+      const L = r.lanes[l];
+      for (let i = Math.max(0, r.ptr[l] - 2); i < L.length; i++) {
+        const n = L[i]; if (n.t - now > vis) break;
+        const yH = JY - (n.t - now) * pxs;
+        if (n.len > 0) {
+          if (n.tail === 2 && !n.missed) continue;
+          const yT = JY - (n.t + n.len - now) * pxs, holding = n.tail === 1;
+          const yB = holding ? JY : yH;
+          if (yB < yT) continue;
+          const x = FX + l * LW + 8, w = LW - 16;
+          ctx.globalAlpha = n.missed ? .25 : holding ? .9 : .7;
+          const gr = ctx.createLinearGradient(x, 0, x + w, 0); const c = noteColor(l); gr.addColorStop(0, c); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, c);
+          ctx.fillStyle = gr; ctx.fillRect(x, Math.max(0, yT), w, Math.min(JY, yB) - Math.max(0, yT));
+          ctx.globalAlpha = 1;
+          drawNote(l, yT + 6, 6, n.missed ? .3 : 1);
+          if (!holding && yH <= JY + 12) drawNote(l, yH, 12, n.missed ? .3 : 1);
+        } else {
+          if (n.state && !n.missed) continue;
+          if (yH > JY + 30) continue;
+          drawNote(l, yH, 12, n.missed ? .3 : 1);
+        }
+      }
+    }
 }
 function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1936,32 +1967,7 @@ function draw() {
     const k0 = Math.floor((now - r.offset) / bar);
     ctx.strokeStyle = 'rgba(140,170,255,.28)'; ctx.lineWidth = 2;
     for (let k = k0; k < k0 + 12; k++) { const tm = r.offset + k * bar, y = JY - (tm - now) * pxs; if (y < 0) break; if (y > JY) continue; ctx.beginPath(); ctx.moveTo(FX, y); ctx.lineTo(FX + FW, y); ctx.stroke(); }
-    // 노트
-    const vis = JY / pxs + .1;
-    for (let l = 0; l < NL; l++) {
-      const L = r.lanes[l];
-      for (let i = Math.max(0, r.ptr[l] - 2); i < L.length; i++) {
-        const n = L[i]; if (n.t - now > vis) break;
-        const yH = JY - (n.t - now) * pxs;
-        if (n.len > 0) {
-          if (n.tail === 2 && !n.missed) continue;
-          const yT = JY - (n.t + n.len - now) * pxs, holding = n.tail === 1;
-          const yB = holding ? JY : yH;
-          if (yB < yT) continue;
-          const x = FX + l * LW + 8, w = LW - 16;
-          ctx.globalAlpha = n.missed ? .25 : holding ? .9 : .7;
-          const gr = ctx.createLinearGradient(x, 0, x + w, 0); const c = noteColor(l); gr.addColorStop(0, c); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, c);
-          ctx.fillStyle = gr; ctx.fillRect(x, Math.max(0, yT), w, Math.min(JY, yB) - Math.max(0, yT));
-          ctx.globalAlpha = 1;
-          drawNote(l, yT + 6, 6, n.missed ? .3 : 1);
-          if (!holding && yH <= JY + 12) drawNote(l, yH, 12, n.missed ? .3 : 1);
-        } else {
-          if (n.state && !n.missed) continue;
-          if (yH > JY + 30) continue;
-          drawNote(l, yH, 12, n.missed ? .3 : 1);
-        }
-      }
-    }
+
   }
   // 판정선·키
   const jg = ctx.createLinearGradient(FX, 0, FX + FW, 0); jg.addColorStop(0, '#ff6fa8'); jg.addColorStop(.5, '#7fe9ff'); jg.addColorStop(1, '#b58cff');
@@ -1978,20 +1984,21 @@ function draw() {
     drawImpactEffects(r, pn);
     // 판정 글자·콤보
     const pn2 = performance.now(), dt = pn2 - r.lastJAt;
-    if (r.lastJ && dt < 700) {
-      const pop = dt < 90 ? 1.25 - dt / 90 * .25 : 1, a = dt > 500 ? 1 - (dt - 500) / 200 : 1;
+    if (r.lastJ && dt < 380) {
+      const pop = dt < 90 ? 1.25 - dt / 90 * .25 : 1, a = dt > 200 ? 1 - (dt - 200) / 180 : 1;
       const col = { cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[r.lastJ];
       // Judgment and combo share the actual highway in every play mode.
       const judgeX = FX + FW / 2, judgeY = JY - 175;
       ctx.save(); ctx.globalAlpha = a; ctx.translate(judgeX, judgeY); ctx.scale(pop, pop);
-      ctx.shadowColor = col; ctx.shadowBlur = 10; txt(r.lastJ.toUpperCase(), 0, 0, 32, col, 'center', 'Black Han Sans'); ctx.restore();
+      ctx.shadowColor = col; ctx.shadowBlur = 10; txt(r.lastJ.toUpperCase(), 0, 0, 26, col, 'center', 'Black Han Sans'); ctx.restore();
     }
     {
       // The combo responds to successful hits inside the highway.
       const hitPop = r.lastHitAt ? 1 + Math.max(0, 1 - (pn2 - r.lastHitAt) / 110) * .16 : 1;
-      ctx.save(); ctx.translate(FX + FW / 2, JY - 235); ctx.scale(hitPop, hitPop);
+      ctx.save(); ctx.globalAlpha = .5 + Math.max(0, 1 - (pn2 - r.lastHitAt) / 110) * .45;
+      ctx.translate(FX + FW / 2, JY - 235); ctx.scale(hitPop, hitPop);
       ctx.shadowColor = r.combo >= 50 ? '#ffb94a' : '#67e8f9'; ctx.shadowBlur = r.combo >= 50 ? 18 : 5;
-      txt(String(r.combo).padStart(3, '0'), 0, 0, Math.min(68, FW * .23), r.combo >= 50 ? '#ffe3a0' : '#ffffff', 'center', 'Black Han Sans'); ctx.restore();
+      txt(String(r.combo).padStart(3, '0'), 0, 0, Math.min(60, FW * .21), r.combo >= 50 ? '#ffe3a0' : '#ffffff', 'center', 'Black Han Sans'); ctx.restore();
       txt('COMBO', FX + FW / 2, JY - 203, 12, '#a7bbd1');
     }
     if (!r.mp) {
@@ -2002,6 +2009,8 @@ function draw() {
       if (!r.auto) txt(!r.cnt.bad && !r.cnt.miss ? 'FULL COMBO 도전 중' : '다음 판은 FULL COMBO', 630, 632, 13, '#9baac0');
       if (r.comboBreak && pn2 - r.comboBreak.t < 900 && r.combo === 0) txt('RESET / KEEP GOING', FX + FW / 2, JY - 125, 13, '#ff8396');
     }
+    // Notes remain readable above floating feedback.
+    drawFallingNotes(r, now, pxs);
     // JAM
     const jx = FX, jy = 34;
     txt('JAM', jx + 2, jy, 16, '#ffcb3d', 'left', 'Black Han Sans');
