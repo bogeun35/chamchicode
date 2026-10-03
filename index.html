@@ -117,6 +117,18 @@ body::after {
 .lnb-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
 .lnb-nav::-webkit-scrollbar-track { background: transparent; }
 
+.nav-search {
+  width: calc(100% - 4px); margin: 0 2px 8px; padding: 9px 12px;
+  border: 1px solid var(--border-glass); border-radius: 10px;
+  background: rgba(255,255,255,.06); color: var(--text-primary);
+  font-family: inherit; font-size: .82rem; outline: none;
+}
+.nav-search::placeholder { color: var(--text-dim); }
+.nav-search:focus { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.1); }
+.nav-noresult { font-size: .8rem; color: var(--text-dim); padding: 10px 12px; }
+body.searching .nav-group-head { display: none; }
+body.searching .nav-group.closed .nav-group-body { display: flex; }
+.nav-item.hide { display: none; }
 /* 아코디언 대분류 */
 .nav-group { display: flex; flex-direction: column; }
 .nav-group-head {
@@ -301,6 +313,14 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+.landing-sec {
+  grid-column: 1 / -1; text-align: left; margin: 26px 0 2px;
+  font-size: .95rem; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.landing-sec::after { content: ''; flex: 1; height: 1px; background: var(--border-glass); }
+#recentWrap .landing-sec { margin-top: 4px; }
+@media (max-width: 640px) { .landing-cards { grid-template-columns: 1fr; } }
 .landing-card {
   background: var(--bg-glass);
   backdrop-filter: blur(12px);
@@ -398,156 +418,15 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
   </div>
 
   <div class="lnb-nav">
+    <input class="nav-search" id="navSearch" type="search" placeholder="🔍 게임 검색 (/)" autocomplete="off">
     <div class="nav-section-label">메뉴</div>
+    <div class="nav-noresult" id="navNoResult" hidden>찾는 게임이 없어요</div>
 
     <div class="nav-item active" data-page="home" onclick="navigate('home')">
       <span class="nav-icon">🏠</span>
       <span>홈</span>
     </div>
 
-    <div class="nav-item" data-page="auction" onclick="navigate('auction')">
-      <span class="nav-icon">⚽</span>
-      <span>경매 시스템</span>
-      <span class="nav-badge">PRO</span>
-    </div>
-
-    <div class="nav-item" data-page="online" onclick="navigate('online')">
-      <span class="nav-icon">🌐</span>
-      <span>온라인 팀짜기</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="roulette" onclick="navigate('roulette')">
-      <span class="nav-icon">🎮</span>
-      <span>게임 투표 룰렛</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="drawquiz" onclick="navigate('drawquiz')">
-      <span class="nav-icon">🎨</span>
-      <span>그림퀴즈</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="shell" onclick="navigate('shell')">
-      <span class="nav-icon">🐢</span>
-      <span>쉘다이버</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="mine" onclick="navigate('mine')">
-      <span class="nav-icon">⛏️</span>
-      <span>킵 온 마이닝</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="rock" onclick="navigate('rock')">
-      <span class="nav-icon">🪐</span>
-      <span>스페이스 록</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="tuna" onclick="navigate('tuna')">
-      <span class="nav-icon">🐟</span>
-      <span>참치 타이쿤</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="rhythm" onclick="navigate('rhythm')">
-      <span class="nav-icon">🥁</span>
-      <span>쿵짝항구 대소동</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="o2jam" onclick="navigate('o2jam')">
-      <span class="nav-icon">🎹</span>
-      <span>오투잼</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="zombie" onclick="navigate('zombie')">
-      <span class="nav-icon">🧟</span>
-      <span>좀비 디펜스</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="puyo" onclick="navigate('puyo')">
-      <span class="nav-icon">🫧</span>
-      <span>뿌요뿌요</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="suikaonline" onclick="navigate('suikaonline')">
-      <span class="nav-icon">🏆</span>
-      <span>수박게임 온라인</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="suika" onclick="navigate('suika')">
-      <span class="nav-icon">🍉</span>
-      <span>수박게임</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="davinci" onclick="navigate('davinci')">
-      <span class="nav-icon">🕵️</span>
-      <span>다빈치 코드</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="liar" onclick="navigate('liar')">
-      <span class="nav-icon">🤥</span>
-      <span>라이어 게임</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="codenames" onclick="navigate('codenames')">
-      <span class="nav-icon">🟥</span>
-      <span>코드네임</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="telephone" onclick="navigate('telephone')">
-      <span class="nav-icon">✏️</span>
-      <span>그림 전화기</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="rummikub" onclick="navigate('rummikub')">
-      <span class="nav-icon">🔢</span>
-      <span>루미큐브</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="pubgmap" onclick="navigate('pubgmap')">
-      <span class="nav-icon">🗺️</span>
-      <span>배그 맵</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="pubgpractice" onclick="navigate('pubgpractice')">
-      <span class="nav-icon">🎯</span>
-      <span>배그 연습</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="funnelkr" onclick="navigate('funnelkr')">
-      <span class="nav-icon">🌪️</span>
-      <span>퍼널러너스 한글패치</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="momkr" onclick="navigate('momkr')">
-      <span class="nav-icon">👾</span>
-      <span>메이헴 한글패치</span>
-      <span class="nav-badge">NEW</span>
-    </div>
-
-    <div class="nav-item" data-page="backrooms" onclick="navigate('backrooms')">
-      <span class="nav-icon">🚪</span>
-      <span>백룸 탈출 공략</span>
-      <span class="nav-badge">NEW</span>
-    </div>
   </div>
 
   <div class="lnb-footer">
@@ -566,248 +445,362 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
         팀 경매 시스템과 게임 투표 룰렛을 한 곳에서.<br>
         왼쪽 메뉴에서 원하는 기능을 선택하세요.
       </div>
-      <div class="landing-cards">
-        <div class="landing-card" onclick="navigate('auction')">
-          <div class="landing-card-icon">⚽</div>
-          <div class="landing-card-title">경매 시스템</div>
-          <div class="landing-card-desc">밸런스 랜덤, 드래프트 경매로<br>공정한 팀 구성</div>
-        </div>
-        <div class="landing-card" onclick="navigate('online')">
-          <div class="landing-card-icon">🌐</div>
-          <div class="landing-card-title">온라인 팀짜기</div>
-          <div class="landing-card-desc">둘이 각자 기기로 접속해<br>경매 · 가위바위보 · 자동분배</div>
-        </div>
-        <div class="landing-card" onclick="navigate('roulette')">
-          <div class="landing-card-icon">🎮</div>
-          <div class="landing-card-title">게임 투표 룰렛</div>
-          <div class="landing-card-desc">투표로 게임을 정하고<br>룰렛으로 결정!</div>
-        </div>
-        <div class="landing-card" onclick="navigate('drawquiz')">
-          <div class="landing-card-icon">🎨</div>
-          <div class="landing-card-title">그림퀴즈</div>
-          <div class="landing-card-desc">그려서 맞추는<br>실시간 파티게임</div>
-        </div>
-        <div class="landing-card" onclick="navigate('liar')">
-          <div class="landing-card-icon">🤥</div>
-          <div class="landing-card-title">라이어 게임</div>
-          <div class="landing-card-desc">한 명만 제시어를 몰라요<br>3~10명 · 음성과 함께</div>
-        </div>
-        <div class="landing-card" onclick="navigate('codenames')">
-          <div class="landing-card-icon">🟥</div>
-          <div class="landing-card-title">코드네임</div>
-          <div class="landing-card-desc">팀장 힌트로 단어 찾기<br>4~8명 · 두 팀 대결</div>
-        </div>
-        <div class="landing-card" onclick="navigate('telephone')">
-          <div class="landing-card-icon">✏️</div>
-          <div class="landing-card-title">그림 전화기</div>
-          <div class="landing-card-desc">그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개</div>
-        </div>
-        <div class="landing-card" onclick="navigate('zombie')">
-          <div class="landing-card-icon">🧟</div>
-          <div class="landing-card-title">좀비 디펜스</div>
-          <div class="landing-card-desc">1~8인 협동 웨이브 방어<br>상점 · 팀 특성 투표</div>
-        </div>
-        <div class="landing-card" onclick="navigate('shell')">
-          <div class="landing-card-icon">🐢</div>
-          <div class="landing-card-title">쉘다이버</div>
-          <div class="landing-card-desc">산소 안에 해파리 잡아 팔기<br>버블건·상점·스킬 트리</div>
-        </div>
-        <div class="landing-card" onclick="navigate('mine')">
-          <div class="landing-card-icon">⛏️</div>
-          <div class="landing-card-title">킵 온 마이닝</div>
-          <div class="landing-card-desc">커서를 올리면 곡괭이가 알아서<br>제련·스킬트리·특성 카드</div>
-        </div>
-        <div class="landing-card" onclick="navigate('rock')">
-          <div class="landing-card-icon">🪐</div>
-          <div class="landing-card-title">스페이스 록 브레이커</div>
-          <div class="landing-card-desc">소행성 채굴 → 플링코 가공<br>기술 트리로 끝없이 성장</div>
-        </div>
-        <div class="landing-card" onclick="navigate('tuna')">
-          <div class="landing-card-icon">🐟</div>
-          <div class="landing-card-title">참치 타이쿤</div>
-          <div class="landing-card-desc">탭해서 잡고, 사서 불리고<br>숫자가 끝없이 커지는 방치형</div>
-        </div>
-        <div class="landing-card" onclick="navigate('rhythm')">
-          <div class="landing-card-icon">🥁</div>
-          <div class="landing-card-title">쿵짝항구 대소동</div>
-          <div class="landing-card-desc">소리 듣고 박자에 딱!<br>한 버튼 리듬 미니게임 5곡</div>
-        </div>
-        <div class="landing-card" onclick="navigate('o2jam')">
-          <div class="landing-card-icon">🎹</div>
-          <div class="landing-card-title">오투잼</div>
-          <div class="landing-card-desc">7키 리듬게임 · 최대 8명 온라인<br>S D F Space J K L · PC 전용</div>
-        </div>
-        <div class="landing-card" onclick="navigate('rummikub')">
-          <div class="landing-card-icon">🔢</div>
-          <div class="landing-card-title">루미큐브</div>
-          <div class="landing-card-desc">같은 숫자 · 연속 숫자 묶기<br>2~4명 · 첫 등록 30점</div>
-        </div>
-        <div class="landing-card" onclick="navigate('davinci')">
-          <div class="landing-card-icon">🕵️</div>
-          <div class="landing-card-title">다빈치 코드</div>
-          <div class="landing-card-desc">숫자 추리 보드게임<br>2~4명 · 링크로 바로 참가</div>
-        </div>
-        <div class="landing-card" onclick="navigate('puyo')">
-          <div class="landing-card-icon">🫧</div>
-          <div class="landing-card-title">뿌요뿌요</div>
-          <div class="landing-card-desc">같은 색 4개로 연쇄!<br>최대 8인 온라인 대전</div>
-        </div>
-        <div class="landing-card" onclick="navigate('suikaonline')">
-          <div class="landing-card-icon">🏆</div>
-          <div class="landing-card-title">수박게임 온라인</div>
-          <div class="landing-card-desc">최대 7명 실시간 대결<br>먼저 수박 만들면 승리 · 주간 순위표</div>
-        </div>
-        <div class="landing-card" onclick="navigate('suika')">
-          <div class="landing-card-icon">🍉</div>
-          <div class="landing-card-title">수박게임</div>
-          <div class="landing-card-desc">오래 버티고 수박 많이 만들기<br>로그라이크: 유물 3택1 · 저주 누적</div>
-        </div>
-        <div class="landing-card" onclick="navigate('pubgmap')">
-          <div class="landing-card-icon">🗺️</div>
-          <div class="landing-card-title">배그 맵</div>
-          <div class="landing-card-desc">맵별 비밀창고 위치<br>확대해서 보기</div>
-        </div>
-        <div class="landing-card" onclick="navigate('pubgpractice')">
-          <div class="landing-card-icon">🎯</div>
-          <div class="landing-card-title">배그 연습</div>
-          <div class="landing-card-desc">TTK 계산기 · 탄도표<br>부착물 · 연습 루틴</div>
-        </div>
-        <div class="landing-card" onclick="navigate('funnelkr')">
-          <div class="landing-card-icon">🌪️</div>
-          <div class="landing-card-title">퍼널러너스 한글패치</div>
-          <div class="landing-card-desc">다운로드 · 설치 가이드<br>문구 2,935개 번역</div>
-        </div>
-        <div class="landing-card" onclick="navigate('momkr')">
-          <div class="landing-card-icon">👾</div>
-          <div class="landing-card-title">메이헴 한글패치</div>
-          <div class="landing-card-desc">다운로드 · 설치 가이드<br>문구 674개 번역</div>
-        </div>
-        <div class="landing-card" onclick="navigate('backrooms')">
-          <div class="landing-card-icon">🚪</div>
-          <div class="landing-card-title">백룸 탈출 공략</div>
-          <div class="landing-card-desc">세션별 공략 · 엔티티 대응<br>엔딩 4종 + 트루엔딩</div>
-        </div>
+      <div id="recentWrap" hidden>
+        <div class="landing-sec">🕘 최근 플레이</div>
+        <div class="landing-cards" id="recentCards"></div>
       </div>
+      <div id="landingCards"></div>
     </div>
   </div>
 
-  <!-- Auction iframe -->
-  <div class="page-frame" id="page-auction">
-    <iframe data-src="auction.html" id="iframe-auction" allow="autoplay"></iframe>
-  </div>
-
-  <!-- 온라인 팀짜기 iframe -->
-  <div class="page-frame" id="page-online">
-    <iframe data-src="auction-online.html" id="iframe-online" allow="autoplay; clipboard-write"></iframe>
-  </div>
-
-  <!-- Roulette iframe -->
-  <div class="page-frame" id="page-roulette">
-    <iframe data-src="roulette.html" id="iframe-roulette"></iframe>
-  </div>
-
-  <!-- Draw Quiz iframe -->
-  <div class="page-frame" id="page-drawquiz">
-    <iframe data-src="draw-quiz.html" id="iframe-drawquiz"></iframe>
-  </div>
-
-  <!-- 수박게임 iframe -->
-  <div class="page-frame" id="page-suika">
-    <iframe data-src="suika/index.html" id="iframe-suika"></iframe>
-  </div>
-
-  <!-- 수박게임 온라인 iframe -->
-  <div class="page-frame" id="page-zombie">
-    <iframe data-src="zombie.html" id="iframe-zombie" allow="fullscreen; autoplay"></iframe>
-  </div>
-
-  <div class="page-frame" id="page-puyo">
-    <iframe data-src="puyo.html" id="iframe-puyo" allow="fullscreen; autoplay; clipboard-write"></iframe>
-  </div>
-
-  <div class="page-frame" id="page-suikaonline">
-    <iframe data-src="suika-online.html" id="iframe-suikaonline" allow="fullscreen; autoplay"></iframe>
-  </div>
-
-  <!-- 다빈치 코드 iframe -->
-  <div class="page-frame" id="page-davinci">
-    <iframe data-src="davinci.html" id="iframe-davinci" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 라이어 게임 iframe -->
-  <div class="page-frame" id="page-liar">
-    <iframe data-src="liar.html" id="iframe-liar" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 코드네임 iframe -->
-  <div class="page-frame" id="page-codenames">
-    <iframe data-src="codenames.html" id="iframe-codenames" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 그림 전화기 iframe -->
-  <div class="page-frame" id="page-telephone">
-    <iframe data-src="telephone.html" id="iframe-telephone" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 쉘다이버 iframe -->
-  <div class="page-frame" id="page-shell">
-    <iframe data-src="shell.html" id="iframe-shell" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 킵 온 마이닝 iframe -->
-  <div class="page-frame" id="page-mine">
-    <iframe data-src="mine.html" id="iframe-mine" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 스페이스 록 브레이커 iframe -->
-  <div class="page-frame" id="page-rock">
-    <iframe data-src="rock.html" id="iframe-rock" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- 참치 타이쿤 iframe -->
-  <div class="page-frame" id="page-tuna">
-    <iframe data-src="tuna.html" id="iframe-tuna" allow="clipboard-write; fullscreen"></iframe>
-  </div>
-
-  <!-- 쿵짝항구 대소동 iframe -->
-  <div class="page-frame" id="page-rhythm">
-    <iframe data-src="rhythm.html" id="iframe-rhythm" allow="autoplay; clipboard-write"></iframe>
-  </div>
-  <div class="page-frame" id="page-o2jam">
-    <iframe data-src="o2jam.html" id="iframe-o2jam" allow="autoplay"></iframe>
-  </div>
-
-  <!-- 루미큐브 iframe -->
-  <div class="page-frame" id="page-rummikub">
-    <iframe data-src="rummikub.html" id="iframe-rummikub" allow="clipboard-write"></iframe>
-  </div>
-
-  <!-- PUBG Map iframe -->
-  <div class="page-frame" id="page-pubgmap">
-    <iframe data-src="pubg-map.html" id="iframe-pubgmap"></iframe>
-  </div>
-
-  <!-- PUBG Practice iframe -->
-  <div class="page-frame" id="page-pubgpractice">
-    <iframe data-src="pubg-practice.html" id="iframe-pubgpractice"></iframe>
-  </div>
-
-  <!-- Funnel Runners 한글패치 iframe -->
-  <div class="page-frame" id="page-funnelkr">
-    <iframe data-src="funnel-kr.html" id="iframe-funnelkr"></iframe>
-  </div>
-
-  <!-- Masters of Mayhem 한글패치 iframe -->
-  <div class="page-frame" id="page-momkr">
-    <iframe data-src="mom-kr.html" id="iframe-momkr"></iframe>
-  </div>
-
-  <!-- 백룸 탈출 공략 iframe -->
-  <div class="page-frame" id="page-backrooms">
-    <iframe data-src="backrooms.html" id="iframe-backrooms"></iframe>
-  </div>
 </div>
 
+<script>
+/* ═══════════ 게임 목록 — 새 게임은 여기 한 곳만 추가하면 됩니다 ═══════════
+   k: 주소(?game=k) · ic: 아이콘 · nm: 메뉴 이름 · tt: 카드 제목 · ds: 카드 설명
+   bd: 배지 · src: 파일 경로 · allow: iframe 권한 · g: 분류                      */
+const GROUPS = [
+ {
+  "key": "board",
+  "label": "🎲 보드 · 파티"
+ },
+ {
+  "key": "versus",
+  "label": "⚔️ 실시간 멀티"
+ },
+ {
+  "key": "solo",
+  "label": "🎮 혼자 하는 게임"
+ },
+ {
+  "key": "tool",
+  "label": "🛠️ 모임 도구"
+ },
+ {
+  "key": "pubg",
+  "label": "🎯 배그 도구"
+ },
+ {
+  "key": "kr",
+  "label": "🇰🇷 한글패치 · 공략"
+ }
+];
+const GAMES = [
+ {
+  "k": "davinci",
+  "ic": "🕵️",
+  "nm": "다빈치 코드",
+  "tt": "다빈치 코드",
+  "ds": "숫자 추리 보드게임<br>2~4명 · 링크로 바로 참가",
+  "bd": "NEW",
+  "src": "davinci.html",
+  "allow": "clipboard-write",
+  "g": "board"
+ },
+ {
+  "k": "liar",
+  "ic": "🤥",
+  "nm": "라이어 게임",
+  "tt": "라이어 게임",
+  "ds": "한 명만 제시어를 몰라요<br>3~10명 · 음성과 함께",
+  "bd": "NEW",
+  "src": "liar.html",
+  "allow": "clipboard-write",
+  "g": "board"
+ },
+ {
+  "k": "codenames",
+  "ic": "🟥",
+  "nm": "코드네임",
+  "tt": "코드네임",
+  "ds": "팀장 힌트로 단어 찾기<br>4~8명 · 두 팀 대결",
+  "bd": "NEW",
+  "src": "codenames.html",
+  "allow": "clipboard-write",
+  "g": "board"
+ },
+ {
+  "k": "telephone",
+  "ic": "✏️",
+  "nm": "그림 전화기",
+  "tt": "그림 전화기",
+  "ds": "그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개",
+  "bd": "NEW",
+  "src": "telephone.html",
+  "allow": "clipboard-write",
+  "g": "board"
+ },
+ {
+  "k": "rummikub",
+  "ic": "🔢",
+  "nm": "루미큐브",
+  "tt": "루미큐브",
+  "ds": "같은 숫자 · 연속 숫자 묶기<br>2~4명 · 첫 등록 30점",
+  "bd": "NEW",
+  "src": "rummikub.html",
+  "allow": "clipboard-write",
+  "g": "board"
+ },
+ {
+  "k": "drawquiz",
+  "ic": "🎨",
+  "nm": "그림퀴즈",
+  "tt": "그림퀴즈",
+  "ds": "그려서 맞추는<br>실시간 파티게임",
+  "bd": "NEW",
+  "src": "draw-quiz.html",
+  "allow": "",
+  "g": "board"
+ },
+ {
+  "k": "puyo",
+  "ic": "🫧",
+  "nm": "뿌요뿌요",
+  "tt": "뿌요뿌요",
+  "ds": "같은 색 4개로 연쇄!<br>최대 8인 온라인 대전",
+  "bd": "NEW",
+  "src": "puyo.html",
+  "allow": "fullscreen; autoplay; clipboard-write",
+  "g": "versus"
+ },
+ {
+  "k": "suikaonline",
+  "ic": "🏆",
+  "nm": "수박게임 온라인",
+  "tt": "수박게임 온라인",
+  "ds": "최대 7명 실시간 대결<br>먼저 수박 만들면 승리 · 주간 순위표",
+  "bd": "NEW",
+  "src": "suika-online.html",
+  "allow": "fullscreen; autoplay",
+  "g": "versus"
+ },
+ {
+  "k": "o2jam",
+  "ic": "🎹",
+  "nm": "오투잼",
+  "tt": "오투잼",
+  "ds": "7키 리듬게임 · 최대 8명 온라인<br>S D F Space J K L · PC 전용",
+  "bd": "NEW",
+  "src": "o2jam.html",
+  "allow": "autoplay",
+  "g": "versus"
+ },
+ {
+  "k": "zombie",
+  "ic": "🧟",
+  "nm": "좀비 디펜스",
+  "tt": "좀비 디펜스",
+  "ds": "1~8인 협동 웨이브 방어<br>상점 · 팀 특성 투표",
+  "bd": "NEW",
+  "src": "zombie.html",
+  "allow": "fullscreen; autoplay",
+  "g": "versus"
+ },
+ {
+  "k": "suika",
+  "ic": "🍉",
+  "nm": "수박게임",
+  "tt": "수박게임",
+  "ds": "오래 버티고 수박 많이 만들기<br>로그라이크: 유물 3택1 · 저주 누적",
+  "bd": "NEW",
+  "src": "suika/index.html",
+  "allow": "",
+  "g": "solo"
+ },
+ {
+  "k": "tuna",
+  "ic": "🐟",
+  "nm": "참치 타이쿤",
+  "tt": "참치 타이쿤",
+  "ds": "탭해서 잡고, 사서 불리고<br>숫자가 끝없이 커지는 방치형",
+  "bd": "NEW",
+  "src": "tuna.html",
+  "allow": "clipboard-write; fullscreen",
+  "g": "solo"
+ },
+ {
+  "k": "rock",
+  "ic": "🪐",
+  "nm": "스페이스 록",
+  "tt": "스페이스 록 브레이커",
+  "ds": "소행성 채굴 → 플링코 가공<br>기술 트리로 끝없이 성장",
+  "bd": "NEW",
+  "src": "rock.html",
+  "allow": "clipboard-write",
+  "g": "solo"
+ },
+ {
+  "k": "mine",
+  "ic": "⛏️",
+  "nm": "킵 온 마이닝",
+  "tt": "킵 온 마이닝",
+  "ds": "커서를 올리면 곡괭이가 알아서<br>제련·스킬트리·특성 카드",
+  "bd": "NEW",
+  "src": "mine.html",
+  "allow": "clipboard-write",
+  "g": "solo"
+ },
+ {
+  "k": "shell",
+  "ic": "🐢",
+  "nm": "쉘다이버",
+  "tt": "쉘다이버",
+  "ds": "산소 안에 해파리 잡아 팔기<br>버블건·상점·스킬 트리",
+  "bd": "NEW",
+  "src": "shell.html",
+  "allow": "clipboard-write",
+  "g": "solo"
+ },
+ {
+  "k": "rhythm",
+  "ic": "🥁",
+  "nm": "쿵짝항구 대소동",
+  "tt": "쿵짝항구 대소동",
+  "ds": "소리 듣고 박자에 딱!<br>한 버튼 리듬 미니게임 5곡",
+  "bd": "NEW",
+  "src": "rhythm.html",
+  "allow": "autoplay; clipboard-write",
+  "g": "solo"
+ },
+ {
+  "k": "auction",
+  "ic": "⚽",
+  "nm": "경매 시스템",
+  "tt": "경매 시스템",
+  "ds": "밸런스 랜덤, 드래프트 경매로<br>공정한 팀 구성",
+  "bd": "PRO",
+  "src": "auction.html",
+  "allow": "autoplay",
+  "g": "tool"
+ },
+ {
+  "k": "online",
+  "ic": "🌐",
+  "nm": "온라인 팀짜기",
+  "tt": "온라인 팀짜기",
+  "ds": "둘이 각자 기기로 접속해<br>경매 · 가위바위보 · 자동분배",
+  "bd": "NEW",
+  "src": "auction-online.html",
+  "allow": "autoplay; clipboard-write",
+  "g": "tool"
+ },
+ {
+  "k": "roulette",
+  "ic": "🎮",
+  "nm": "게임 투표 룰렛",
+  "tt": "게임 투표 룰렛",
+  "ds": "투표로 게임을 정하고<br>룰렛으로 결정!",
+  "bd": "NEW",
+  "src": "roulette.html",
+  "allow": "",
+  "g": "tool"
+ },
+ {
+  "k": "pubgmap",
+  "ic": "🗺️",
+  "nm": "배그 맵",
+  "tt": "배그 맵",
+  "ds": "맵별 비밀창고 위치<br>확대해서 보기",
+  "bd": "NEW",
+  "src": "pubg-map.html",
+  "allow": "",
+  "g": "pubg"
+ },
+ {
+  "k": "pubgpractice",
+  "ic": "🎯",
+  "nm": "배그 연습",
+  "tt": "배그 연습",
+  "ds": "TTK 계산기 · 탄도표<br>부착물 · 연습 루틴",
+  "bd": "NEW",
+  "src": "pubg-practice.html",
+  "allow": "",
+  "g": "pubg"
+ },
+ {
+  "k": "funnelkr",
+  "ic": "🌪️",
+  "nm": "퍼널러너스 한글패치",
+  "tt": "퍼널러너스 한글패치",
+  "ds": "다운로드 · 설치 가이드<br>문구 2,935개 번역",
+  "bd": "NEW",
+  "src": "funnel-kr.html",
+  "allow": "",
+  "g": "kr"
+ },
+ {
+  "k": "momkr",
+  "ic": "👾",
+  "nm": "메이헴 한글패치",
+  "tt": "메이헴 한글패치",
+  "ds": "다운로드 · 설치 가이드<br>문구 674개 번역",
+  "bd": "NEW",
+  "src": "mom-kr.html",
+  "allow": "",
+  "g": "kr"
+ },
+ {
+  "k": "backrooms",
+  "ic": "🚪",
+  "nm": "백룸 탈출 공략",
+  "tt": "백룸 탈출 공략",
+  "ds": "세션별 공략 · 엔티티 대응<br>엔딩 4종 + 트루엔딩",
+  "bd": "NEW",
+  "src": "backrooms.html",
+  "allow": "",
+  "g": "kr"
+ }
+];
+
+// 메뉴 · 카드 · iframe 을 전부 이 목록에서 만들어 둔다
+function cardOf(g, box) {
+  const card = document.createElement('div');
+  card.className = 'landing-card';
+  card.dataset.page = g.k;
+  card.onclick = () => navigate(g.k);
+  card.innerHTML = `<div class="landing-card-icon">${g.ic}</div>`
+    + `<div class="landing-card-title">${g.tt}</div>`
+    + `<div class="landing-card-desc">${g.ds}</div>`;
+  box.appendChild(card);
+  return card;
+}
+(function buildHub() {
+  const nav = document.querySelector('.lnb-nav');
+  const main = document.querySelector('.main');
+  const root = document.getElementById('landingCards');
+  // 분류마다 제목 + 카드 묶음
+  const boxOf = {};
+  for (const gr of GROUPS) {
+    const sec = document.createElement('div');
+    sec.className = 'landing-cards';
+    sec.innerHTML = `<div class="landing-sec">${gr.label}</div>`;
+    root.appendChild(sec);
+    boxOf[gr.key] = sec;
+  }
+  for (const g of GAMES) {
+    const item = document.createElement('div');
+    item.className = 'nav-item';
+    item.dataset.page = g.k;
+    item.dataset.find = (g.nm + ' ' + g.tt + ' ' + g.ds).toLowerCase();
+    item.onclick = () => navigate(g.k);
+    item.innerHTML = `<span class="nav-icon">${g.ic}</span><span>${g.nm}</span>`
+      + (g.bd ? `<span class="nav-badge">${g.bd}</span>` : '');
+    nav.appendChild(item);
+
+    cardOf(g, boxOf[g.g]);
+
+    const fr = document.createElement('div');
+    fr.className = 'page-frame';
+    fr.id = 'page-' + g.k;
+    const ifr = document.createElement('iframe');
+    ifr.id = 'iframe-' + g.k;
+    ifr.dataset.src = g.src;
+    if (g.allow) ifr.setAttribute('allow', g.allow);
+    fr.appendChild(ifr);
+    main.appendChild(fr);
+  }
+})();
+</script>
 <script>
 let currentPage = 'home';
 // 테스트용 배속: 게임은 iframe 안이라 허브 콘솔에선 tuna 가 안 보임 → 열린 게임으로 연결
@@ -853,12 +846,7 @@ function hubBase() { return location.pathname.replace(/index\.html$/, ''); }   /
 function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
 // ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
-const NAV_GROUPS = [
-  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie', 'o2jam', 'puyo'] },
-  { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rhythm', 'rock', 'mine', 'shell'] },
-  { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
-  { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },
-];
+const NAV_GROUPS = GROUPS.map(g => ({ key: g.key, label: g.label, pages: GAMES.filter(x => x.g === g.key).map(x => x.k) }));
 (function buildNavGroups() {
   const nav = document.querySelector('.lnb-nav');
   if (!nav) return;
@@ -927,12 +915,28 @@ function revealNavGroup(page) {
   document.querySelectorAll('.nav-group').forEach(b => b.classList.toggle('has-active', b === box));
   if (box && box.classList.contains('closed')) box.classList.remove('closed');
 }
+function setLnbHidden(on) {
+  document.body.classList.toggle('lnb-hidden', on);
+  try { localStorage.setItem('hub_lnb_hidden', on ? '1' : '0'); } catch (e) {}
+}
+// 접어둔 상태를 기억한다 (좁은 화면은 원래 오버레이 방식이라 제외)
+try { if (localStorage.getItem('hub_lnb_hidden') === '1' && innerWidth > 768) document.body.classList.add('lnb-hidden'); } catch (e) {}
+// \ 또는 Ctrl+B 로 메뉴 접기/펼치기
+addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
+  if (typing) return;
+  if (e.key === '\\' || (e.key.toLowerCase() === 'b' && (e.ctrlKey || e.metaKey))) {
+    e.preventDefault();
+    if (innerWidth <= 768) toggleLNB();
+    else setLnbHidden(!document.body.classList.contains('lnb-hidden'));
+  }
+});
 document.getElementById('lnbClose').onclick = () => {
   if (window.innerWidth <= 768) toggleLNB();
-  else document.body.classList.add('lnb-hidden');
+  else setLnbHidden(true);
 };
 document.getElementById('lnbOpen').onclick = () => {
-  document.body.classList.remove('lnb-hidden');
+  setLnbHidden(false);
   if (window.innerWidth <= 768) toggleLNB();
 };
 
@@ -971,6 +975,7 @@ function navigate(page, fromHistory) {
     n.classList.toggle('active', n.dataset.page === page);
   });
   revealNavGroup(page);
+  pushRecent(page);
 
   // Close mobile LNB
   if (window.innerWidth <= 768) {
@@ -989,6 +994,63 @@ addEventListener('popstate', e => {
   const page = (e.state && e.state.page) || new URLSearchParams(location.search).get('game') || 'home';
   if (document.getElementById('page-' + page) || page === 'home') navigate(page, true);
 });
+
+// ── 검색: 메뉴에서 이름·설명으로 바로 거르기 ──
+(function navSearchInit() {
+  const box = document.getElementById('navSearch');
+  const none = document.getElementById('navNoResult');
+  const apply = () => {
+    const q = box.value.trim().toLowerCase();
+    document.body.classList.toggle('searching', !!q);
+    let hit = 0;
+    document.querySelectorAll('.nav-item[data-find]').forEach(el => {
+      const ok = !q || el.dataset.find.includes(q);
+      el.classList.toggle('hide', !ok);
+      if (ok) hit++;
+    });
+    // 결과가 없는 분류는 통째로 숨긴다
+    document.querySelectorAll('.nav-group').forEach(g => {
+      const any = [...g.querySelectorAll('.nav-item')].some(el => !el.classList.contains('hide'));
+      g.style.display = (q && !any) ? 'none' : '';
+    });
+    none.hidden = !q || hit > 0;
+  };
+  box.addEventListener('input', apply);
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { box.value = ''; apply(); box.blur(); }
+    if (e.key === 'Enter') {
+      const first = [...document.querySelectorAll('.nav-item[data-find]')].find(el => !el.classList.contains('hide'));
+      if (first) { navigate(first.dataset.page); box.value = ''; apply(); box.blur(); }
+    }
+  });
+  // / 키로 검색창에 바로 포커스
+  addEventListener('keydown', e => {
+    if (e.key !== '/' || /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '')) return;
+    e.preventDefault();
+    if (innerWidth <= 768) document.getElementById('lnb').classList.add('open');
+    else document.body.classList.remove('lnb-hidden');
+    box.focus(); box.select();
+  });
+})();
+
+// ── 최근 플레이 (많아질수록 찾기 쉬우라고) ──
+const RECENT_MAX = 4;
+function recentList() { try { return JSON.parse(localStorage.getItem('hub_recent') || '[]'); } catch (e) { return []; } }
+function pushRecent(page) {
+  if (page === 'home' || !GAMES.some(g => g.k === page)) return;
+  const l = recentList().filter(k => k !== page);
+  l.unshift(page);
+  try { localStorage.setItem('hub_recent', JSON.stringify(l.slice(0, RECENT_MAX))); } catch (e) {}
+  renderRecent();
+}
+function renderRecent() {
+  const wrap = document.getElementById('recentWrap'), box = document.getElementById('recentCards');
+  const l = recentList().filter(k => GAMES.some(g => g.k === k));
+  wrap.hidden = l.length === 0;
+  box.querySelectorAll('.landing-card').forEach(e => e.remove());
+  l.forEach(k => cardOf(GAMES.find(g => g.k === k), box));
+}
+renderRecent();
 
 function toggleLNB() {
   const lnb = document.getElementById('lnb');
