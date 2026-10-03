@@ -673,7 +673,7 @@ function chartLevel(notes, len, keys = 7) {   // 1~8: 실제 연주 구간의 �
   const demand = (density * .65 + peak * .40 + chords / ns.length * 2 + repeats / ns.length * 2.5 + holdBurden / ns.length * 1.5) * complexity;
   return clamp(Math.ceil(demand / 1.05), 1, 8);
 }
-const levelLabel = level => { const n = clamp(Math.round(Number(level) || 1), 1, 8); return '★'.repeat(n) + '☆'.repeat(8 - n); };
+const levelLabel = level => { const n = Math.max(1, Math.min(8, Math.round(Number(level) || 1))); return '★'.repeat(n) + '☆'.repeat(8 - n); };
 
 // ═══════════ 연습곡 (합성) — 채보가 음과 정확히 일치 ═══════════
 function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
