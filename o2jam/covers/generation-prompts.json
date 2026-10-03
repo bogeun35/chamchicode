@@ -1,0 +1,32 @@
+[
+  {
+    "id": "drive-party",
+    "prompt": "Use case: stylized-concept. Asset type: square music rhythm-game album-cover thumbnail. Create a polished cinematic illustrated cover for the original Korean song '[lecode] 지구 끝까지 드라이브 파티' (Drive party to the end of the earth), an energetic bright approximately 117 BPM track. A single sleek unbranded sports car seen from behind racing along a sweeping coastal highway toward an immense sunset horizon, vivid coral-orange sunset and electric cyan light trails, exhilarating sense of speed and open freedom. Clear bold central silhouette that reads at 80px, layered depth, high-end rhythm-game album art, rich dark navy shadows, beautiful glow, painterly 3D illustration finish. Square edge-to-edge composition, no borders, no lettering, no numbers, no logos, no watermark. This is the actual artwork only, not a UI mockup.",
+    "tool": "built-in image_gen"
+  },
+  {
+    "id": "autumn-rain",
+    "prompt": "Use case: stylized-concept. Asset type: square music rhythm-game album-cover thumbnail. Polished cinematic illustrated album art with layered depth, a strong central composition readable at 80px, painterly 3D illustration finish, beautiful lighting, edge-to-edge square. Actual artwork only, no UI, no border, no lettering, no numbers, no logo, no watermark. For original '[lecode] 가을 빗소리' (Autumn rain), a gentler 81 BPM track. A rainy autumn path with copper-orange maple leaves and a quiet puddle reflecting a warm streetlamp, raindrops tracing delicate rings, dusky teal blue ambience balanced with warm amber light. Intimate nostalgic musical mood, coherent simple shapes and tactile wet surfaces, softly luminous atmosphere.",
+    "tool": "built-in image_gen"
+  },
+  {
+    "id": "practice",
+    "prompt": "Use case: stylized-concept. Asset type: square music rhythm-game album-cover thumbnail. Polished cinematic illustrated album art with layered depth, a strong central composition readable at 80px, painterly 3D illustration finish, beautiful lighting, edge-to-edge square. Actual artwork only, no UI, no border, no lettering, no numbers, no logo, no watermark. For '스타라이트 런' (Starlight Run), upbeat 128 BPM electronic practice music. A luminous star-shaped core suspended above a cosmic circuit road running into an indigo nebula, turquoise and violet streaks of light conveying rhythmic forward motion. Futuristic and optimistic, clean bold star silhouette, rich dark navy shadows.",
+    "tool": "built-in image_gen"
+  },
+  {
+    "id": "ghost",
+    "prompt": "Use case: stylized-concept. Asset type: square music rhythm-game album-cover thumbnail. Polished cinematic illustrated album art with layered depth, a strong central composition readable at 80px, painterly 3D illustration finish, beautiful lighting, edge-to-edge square. Actual artwork only, no UI, no border, no lettering, no numbers, no logo, no watermark. For '유령의 축제' (Festival of Ghost), lively whimsical 105 BPM music. A playful luminous little ghost spirit leading a glowing purple-and-turquoise midnight festival among lanterns and sweeping musical light ribbons, celebratory mischievous rather than horror, expressive strong central ghost silhouette, mysterious sparkling night with elegant dark violet shadows.",
+    "tool": "built-in image_gen"
+  },
+  {
+    "id": "xmas",
+    "prompt": "Use case: stylized-concept. Asset type: square music rhythm-game album-cover thumbnail. Polished cinematic illustrated album art with layered depth, a strong central composition readable at 80px, painterly 3D illustration finish, beautiful lighting, edge-to-edge square. Actual artwork only, no UI, no border, no lettering, no numbers, no logo, no watermark. For '크리스마스 메모리즈' (Christmas Memories), a fast 170 BPM festive music track. A bright crystal snowflake inside a glowing red-and-gold glass ornament hanging before a snowy evening Christmas scene, warm fairy lights, swirling snow conveying lively rhythmic movement. Nostalgic festive warmth, deep emerald and midnight navy background, simple strong central ornament and snowflake silhouette.",
+    "tool": "built-in image_gen"
+  },
+  {
+    "id": "chamchicode-anthem",
+    "prompt": "Use case: stylized-concept. Asset type: square album cover for an original Korean gaming-community anthem, working title '[lecode] 한 판 더 — 참치코드'. Artwork only, no text, no logo, no border, no watermark. Capture the exhilarating camaraderie of friends playing FPS and racing games together: three friends seen as stylish backlit silhouettes around a glowing shared gaming setup, graphic electric racing light trails sweeping through the scene and a crisp abstract targeting reticle reflected on a distant screen, strong bold composition with a joyous competitive party mood. 160 BPM drum-and-bass/electronic-rock energy, saturated electric cyan and hot orange, luminous navy shadows, dramatic cinematic illustrated 3D painterly finish consistent with polished rhythm-game album covers. No real game logos, no guns, no branded hardware. Readable thumbnail silhouette, square edge to edge, warmth of friendship beneath the adrenaline.",
+    "tool": "built-in image_gen"
+  }
+]

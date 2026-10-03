@@ -20,7 +20,14 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 .song:hover { border-color: #3a5bb0; }
 .song.on { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(127,233,255,.15); }
 .song.off { opacity: .55; cursor: default; }
-.song .jk { width: 58px; height: 58px; border-radius: 12px; display: grid; place-items: center; font-size: 30px; background: linear-gradient(135deg, #22306a, #10183a); flex: none; }
+.song .jk { width: 80px; height: 80px; border-radius: 12px; display: grid; place-items: center; font-size: 30px; background: linear-gradient(135deg, #22306a, #10183a); flex: none; }
+.jk { position: relative; overflow: hidden; }
+.jk img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.song.on .jk { box-shadow: 0 0 0 2px var(--cyan), 0 0 18px rgba(103,232,249,.22); }
+.song .song-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.msong .jk { width: 40px; height: 40px; flex: none; border-radius: 8px; display: grid; place-items: center; background: #16214a; }
+.msong .song-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.msong.on .jk { box-shadow: 0 0 0 2px var(--gold); }
 .song .t { font-size: 22px; }
 .song .t small { font-size: 14px; color: var(--dim); margin-left: 6px; }
 .song .a { color: var(--dim); font-size: 14px; margin-top: 2px; }
@@ -125,7 +132,7 @@ h1 { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 38px; font
 .hint { line-height: 1.8; color: #9baac0; }
 .key { font-weight: 700; border-radius: 6px; }
 button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-offset: 3px; }
-@media (max-width: 650px) { .box { padding: 18px; } h1 { font-size: 30px; } .song { gap: 10px; padding: 12px; } .song .t { font-size: 16px; } .song .best { display: none; } .diff { min-width: 75px; } }
+@media (max-width: 650px) { .box { padding: 18px; } h1 { font-size: 30px; } .song { gap: 10px; padding: 12px; flex-wrap: wrap; } .song .jk { width: 64px; height: 64px; } .song .song-info { flex-basis: calc(100% - 74px); } .song .t { font-size: 16px; } .song .t small { display: block; margin-left: 0; } .song .best { display: none; } .song > button { margin-left: 74px !important; max-width: calc(100% - 74px); } .msong { flex-wrap: wrap; } .msong .song-title { flex-basis: calc(100% - 48px); } .diff { min-width: 75px; } }
 </style>
 </head>
 <body>
@@ -396,12 +403,14 @@ function heardAt(p) {
 
 // ═══════════ 곡 ═══════════
 const SONGS = [
-  { id: 'drive-party', title: '[lecode] 지구 끝까지 드라이브 파티', sub: '오리지널', artist: 'lecode', icon: '🚗', chart: 'o2jam/drive-party.json', audioUrl: 'o2jam/drive-party.mp3' },
-  { id: 'autumn-rain', title: '[lecode] 가을 빗소리', sub: '오리지널', artist: 'lecode', icon: '🌧️', chart: 'o2jam/autumn-rain.json', audioUrl: 'o2jam/autumn-rain.mp3' },
-  { id: 'practice', title: '스타라이트 런', sub: '연습곡', artist: '참스코드 (합성)', icon: '⭐', synth: true },
-  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', chart: 'o2jam/ghost.json', audioUrl: 'o2jam/ghost.mp3' },
-  { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', chart: 'o2jam/xmas.json', audioUrl: 'o2jam/xmas.mp3' },
+  { id: 'drive-party', title: '[lecode] 지구 끝까지 드라이브 파티', sub: '오리지널', artist: 'lecode', icon: '🚗', cover: 'o2jam/covers/drive-party.png', chart: 'o2jam/drive-party.json', audioUrl: 'o2jam/drive-party.mp3' },
+  { id: 'autumn-rain', title: '[lecode] 가을 빗소리', sub: '오리지널', artist: 'lecode', icon: '🌧️', cover: 'o2jam/covers/autumn-rain.png', chart: 'o2jam/autumn-rain.json', audioUrl: 'o2jam/autumn-rain.mp3' },
+  { id: 'practice', title: '스타라이트 런', sub: '연습곡', artist: '참스코드 (합성)', icon: '⭐', cover: 'o2jam/covers/practice.png', synth: true },
+  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', cover: 'o2jam/covers/ghost.png', chart: 'o2jam/ghost.json', audioUrl: 'o2jam/ghost.mp3' },
+  { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', cover: 'o2jam/covers/xmas.png', chart: 'o2jam/xmas.json', audioUrl: 'o2jam/xmas.mp3' },
 ];
+function songCover(song) { return `<div class="jk" aria-hidden="true"><span>${escH(song.icon || '♪')}</span>${song.cover ? `<img data-song-cover src="${escH(song.cover)}" alt="" loading="lazy" decoding="async">` : ''}</div>`; }
+document.addEventListener('error', e => { if (e.target instanceof HTMLImageElement && e.target.hasAttribute('data-song-cover')) e.target.remove(); }, true);
 // 제공 음원은 명시된 주소에서 재생하고, 파일이 없으면 브라우저에 저장한 음원을 사용한다.
 const IDB = { db: null };
 function idb() { return new Promise((res, rej) => { if (IDB.db) return res(IDB.db); const q = indexedDB.open('o2jam', 1); q.onupgradeneeded = () => q.result.createObjectStore('audio'); q.onsuccess = () => { IDB.db = q.result; res(IDB.db); }; q.onerror = () => rej(q.error); }); }
@@ -1069,7 +1078,7 @@ function renderMenu() {
     const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 🎵 내장 음원') : '';
     const pick = s.synth ? '' : `<button class="btn ghost" data-pick="${s.id}" style="font-size:14px;padding:8px 12px;margin-left:auto">${s.ok ? '파일 바꾸기' : '🎵 음원 파일 선택'}</button>`;
     const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원을 불러오지 못했어요. 다시 열거나 파일을 선택해주세요.</div>' : '';
-    return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}"><div class="jk">${s.icon}</div><div><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
+    return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}">${songCover(s)}<div class="song-info"><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
   const mine = s ? myCharts().filter(c => c.song === s.id && c.keys === SET.mode) : [];
@@ -2209,7 +2218,7 @@ function renderRoom(r) {
       + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'}<br>${has ? '🎵 음원 있음' : '<span style="color:#ff8a70">🎵 음원 없음</span>'}</div></div>`;
   }
   $('rmSeats').innerHTML = html;
-  $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${x.icon} ${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
+  $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${songCover(x)}<span class="song-title">${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}</span>${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
   const data = song && (song.chartData || song.data), rk = validMode(r.keys);
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');

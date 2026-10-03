@@ -1,0 +1,107 @@
+[lecode] 한 판 더 — 참치코드
+오리지널 곡 제작안 · 실제 음원 생성 전
+
+제작 방향
+친구들이 모인 게임방의 온기와 FPS의 집중, 레이싱의 질주를 함께 담는다.
+160 BPM / 4분의 4박자 / E minor / 목표 약 2분 42초(108마디).
+장르: drum and bass + electronic rock. 또렷한 한국어 리드 보컬, 단체 후렴.
+시작부터 후렴의 짧은 동기를 들려주고, 마지막 후렴에서 가장 크게 터뜨린다.
+특정 가수나 기존 곡을 참조하지 않는 독창적인 멜로디와 편곡.
+
+Suno / Udio 스타일 입력용
+Original Korean gaming-community anthem, 160 BPM, E minor, energetic drum and bass fused with electronic rock, tight breakbeats, punchy snare, controlled deep sub bass, driving distorted guitar riffs, bright original synth hook, strong expressive Korean lead vocal, natural clear Korean diction, warm group vocals in the chorus, friendship and friendly competition, FPS focus and racing momentum, tense verses exploding into an uplifting sing-along chorus, melodic first and powerful rather than novelty, short 4-bar instrumental opening, halftime bridge, final chorus with wider harmonies and octave synth layer, clean impactful mix with drums and vocals upfront, approximately 2 minutes 42 seconds, no artist imitation.
+
+제외 스타일 입력용(별도 칸이 있을 때)
+Comedy vocals, childish nursery-rhyme melody, excessive sound effects, weapon samples, spoken game narration, long ambient intro, muddy bass, harsh piercing synths, excessive vocal distortion, abrupt ending.
+
+구조 안내
+0:00–0:06  Intro / 4마디: 드럼 필터가 열리고 후렴 신스 동기 등장.
+0:06–0:30  Verse 1 / 16마디: 촘촘한 브레이크비트, 낮은 기타, 보컬 중심.
+0:30–0:42  Pre-Chorus / 8마디: 베이스 상승, 후반 두 마디에 빌드업.
+0:42–1:06  Chorus / 16마디: 풀 드럼과 기타, 단체 보컬은 핵심 구절만.
+1:06–1:18  Instrumental / 8마디: 후렴 동기와 드럼 응답, 한 박자 짧은 컷.
+1:18–1:42  Verse 2 / 16마디: 레이싱 이미지, 리듬 보컬과 새 베이스 변주.
+1:42–1:54  Bridge / 8마디: 하프타임, 가까운 보컬과 따뜻한 화음.
+1:54–2:06  Build / 8마디: 보컬 상승, 끝 한 마디 숨을 비우고 진입.
+2:06–2:30  Final Chorus / 16마디: 가장 큰 편곡, 옥타브 신스·넓은 합창.
+2:30–2:42  Outro / 8마디: 마지막 구절 응답 후 리프와 코드로 완결.
+시간은 160 BPM 기준 편곡 목표이며 생성 서비스의 실제 결과는 달라질 수 있다.
+
+가사 입력용
+
+[Intro — short instrumental]
+
+[Verse 1]
+창밖의 하루가 꺼질 때
+익숙한 목소리가 불을 켜
+잠깐의 정적, 짧은 눈짓
+같은 화면 너머 숨을 맞춰
+
+모서리 끝에 걸린 긴장
+흔들린 순간을 네가 잡아
+한 발 앞서도 돌아보는
+그 작은 여유가 우릴 묶어
+
+[Pre-Chorus]
+오늘의 승부는 아직 남았어
+조금 더 가까이, 소리를 높여
+넘어진 박자도 다시 이어
+지금 이 순간을 끝까지 밀어
+
+[Chorus — powerful lead, group response]
+한 판 더, 이 밤이 끝나기 전에
+한 번 더, 우리의 속도로 달려
+갈라진 길도 함께라면 이어져
+참치코드, 같은 순간에 있어
+
+숨을 높여, 마지막 선을 넘어
+손을 맞춰, 다시 시작을 걸어
+승부가 끝나도 남아 있는 목소리
+한 판 더, 우리 여기 모여
+
+[Instrumental — synth hook and drum response]
+
+[Verse 2]
+빛의 궤적이 밤을 가르고
+다음 코너가 눈앞에 번져
+한계에 닿은 바퀴 소리
+서로의 웃음에 긴장이 풀려
+
+앞서간 등을 끝까지 따라
+좁혀진 간격에 숨을 멈춰
+결승선 뒤에 기다린 말
+“좋았어, 이번엔 내가 간다”
+
+[Bridge — halftime, intimate]
+잘 풀리지 않던 하루라도
+여기선 조금 가벼워져
+누가 먼저 닿았는지보다
+같이 온 길이 오래 남아
+
+[Build — rising intensity]
+다시 불을 켜, 아직 이른 밤
+서로의 이름을 부르는 순간
+하나로 모인 이 작은 방
+더 멀리 울려, 더 크게 울려
+
+[Final Chorus — full band, wider group harmonies]
+한 판 더, 이 밤이 끝나기 전에
+한 번 더, 우리의 속도로 달려
+갈라진 길도 함께라면 이어져
+참치코드, 같은 순간에 있어
+
+숨을 높여, 마지막 선을 넘어
+손을 맞춰, 다시 시작을 걸어
+승부가 끝나도 남아 있는 목소리
+한 판 더, 우리 여기 모여
+
+[Outro — group response, resolved ending]
+한 판 더 — 우리 여기 모여
+한 번 더 — 같은 밤을 달려
+참치코드, 마지막 불빛 아래
+오늘도 같은 편에 있어
+
+완성 후 납품 권장
+최종 스테레오 WAV + 게임 배포용 MP3, 보컬/드럼/베이스/기타/신스 스템.
+BPM과 첫 박자 시각 확인 후 게임 채보 제작. 가능하면 곡 길이·108마디 구조 유지.
+게임용 편곡에는 명확한 킥·스네어 강세와 읽기 쉬운 신스 멜로디를 남긴다.
