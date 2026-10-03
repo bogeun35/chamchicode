@@ -1892,20 +1892,20 @@ function drawImpactEffects(r, pn) {
     }
   }
   ctx.restore();
-  // Combo milestones belong in the spare solo HUD, away from falling notes.
+  // Milestones stay inside the player highway in every mode.
   const milestone = r.milestone, elapsed = milestone ? pn - milestone.t : 9999;
-  if (!r.mp && elapsed < 1100 && r.combo >= milestone.combo) {
+  if (elapsed < 1100 && r.combo >= milestone.combo) {
     ctx.save(); ctx.globalAlpha = Math.min(1, (1100 - elapsed) / 300);
     const pop = 1 + Math.max(0, 1 - elapsed / 200) * .12;
-    ctx.translate(630, 280); ctx.scale(pop, pop);
+    ctx.translate(FX + FW / 2, JY - 310); ctx.scale(pop, pop);
     ctx.shadowColor = '#ffcb66'; ctx.shadowBlur = 18;
     txt(milestone.combo + ' COMBO!', 0, 0, 28, '#ffe29b', 'center', 'Black Han Sans');
     ctx.restore();
   }
-  if (!r.mp && fever && !r.failed && (r.lastJ === 'cool' || r.lastJ === 'good')) {
+  if (fever && !r.failed && (r.lastJ === 'cool' || r.lastJ === 'good')) {
     ctx.save(); ctx.globalAlpha = .75 + Math.sin(pn / 160) * .2;
     ctx.shadowColor = '#ff9d36'; ctx.shadowBlur = 14;
-    txt('FEVER / ' + (r.combo >= 100 ? 'MAX FLOW' : 'ON FIRE'), 630, 490, 20, '#ffcb66', 'center', 'Black Han Sans');
+    txt('FEVER / ' + (r.combo >= 100 ? 'MAX FLOW' : 'ON FIRE'), FX + FW / 2, JY - 125, 16, '#ffcb66', 'center', 'Black Han Sans');
     ctx.restore();
   }
 }
@@ -1981,24 +1981,26 @@ function draw() {
     if (r.lastJ && dt < 700) {
       const pop = dt < 90 ? 1.25 - dt / 90 * .25 : 1, a = dt > 500 ? 1 - (dt - 500) / 200 : 1;
       const col = { cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[r.lastJ];
-      // Solo judgments stay beside the highway so they never hide incoming notes.
-      const judgeX = r.mp ? FX + FW / 2 : 630, judgeY = r.mp ? 480 : 340;
+      // Judgment and combo share the actual highway in every play mode.
+      const judgeX = FX + FW / 2, judgeY = JY - 175;
       ctx.save(); ctx.globalAlpha = a; ctx.translate(judgeX, judgeY); ctx.scale(pop, pop);
       ctx.shadowColor = col; ctx.shadowBlur = 10; txt(r.lastJ.toUpperCase(), 0, 0, 32, col, 'center', 'Black Han Sans'); ctx.restore();
     }
-    if (!r.mp) {
-      // Persistent current/best combo stays close to the highway in its own HUD.
-      const hitPop = r.lastHitAt ? 1 + Math.max(0, 1 - (pn2 - r.lastHitAt) / 140) * .08 : 1;
-      ctx.save(); ctx.translate(630, 412); ctx.scale(hitPop, hitPop);
+    {
+      // The combo responds to successful hits inside the highway.
+      const hitPop = r.lastHitAt ? 1 + Math.max(0, 1 - (pn2 - r.lastHitAt) / 110) * .16 : 1;
+      ctx.save(); ctx.translate(FX + FW / 2, JY - 235); ctx.scale(hitPop, hitPop);
       ctx.shadowColor = r.combo >= 50 ? '#ffb94a' : '#67e8f9'; ctx.shadowBlur = r.combo >= 50 ? 18 : 5;
-      txt(String(r.combo).padStart(3, '0'), 0, 0, 78, r.combo >= 50 ? '#ffe3a0' : '#ffffff', 'center', 'Black Han Sans'); ctx.restore();
-      txt('COMBO', 630, 455, 13, '#a7bbd1');
+      txt(String(r.combo).padStart(3, '0'), 0, 0, Math.min(68, FW * .23), r.combo >= 50 ? '#ffe3a0' : '#ffffff', 'center', 'Black Han Sans'); ctx.restore();
+      txt('COMBO', FX + FW / 2, JY - 203, 12, '#a7bbd1');
+    }
+    if (!r.mp) {
       txt('BEST ' + r.maxCombo, 630, 525, 18, '#9baac0');
       txt((accuracyOf(r, false) * 100).toFixed(2) + '%', 630, 573, 30, '#e5f4ff', 'center', 'Black Han Sans');
       const liveGoal = r.auto ? 'DEMO / 감상 모드' : 'GOAL ' + (r.goal ? r.goal.label : 'A / 90%');
       txt(liveGoal, 630, 607, 15, '#ffdb89');
       if (!r.auto) txt(!r.cnt.bad && !r.cnt.miss ? 'FULL COMBO 도전 중' : '다음 판은 FULL COMBO', 630, 632, 13, '#9baac0');
-      if (r.comboBreak && pn2 - r.comboBreak.t < 900 && r.combo === 0) txt('RESET / KEEP GOING', 630, 490, 14, '#ff8396');
+      if (r.comboBreak && pn2 - r.comboBreak.t < 900 && r.combo === 0) txt('RESET / KEEP GOING', FX + FW / 2, JY - 125, 13, '#ff8396');
     }
     // JAM
     const jx = FX, jy = 34;
