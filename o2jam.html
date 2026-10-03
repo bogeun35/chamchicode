@@ -632,6 +632,48 @@ function keysoundStop(r, when) {
   for (const source of r.keysound.sources) try { source.stop(when); } catch (e) {}
 }
 
+function playabilityRules(bpm, diff) {
+  const beat = 60 / bpm;
+  const settings = {
+    EX: { head: Math.max(.2, beat / 2), same: .18, hold: Math.max(.65, beat * 1.5), tail: .18 },
+    NX: { head: Math.max(.15, beat / 2), same: .14, hold: Math.max(.5, beat), tail: .14 },
+    HX: { head: Math.max(.1, beat / 4), same: .1, hold: Math.max(.35, beat * .75), tail: .1 }
+  };
+  return settings[diff] || settings.NX;
+}
+
+// Preserve musical timestamps and whole chords; only remove heads or simplify holds.
+function repairNotes(notes, bpm, diff, keys = 4) {
+  const rule = playabilityRules(bpm, diff), groups = new Map(), oldToNew = {};
+  notes.forEach((note, oldIndex) => {
+    if (!groups.has(note[0])) groups.set(note[0], []);
+    groups.get(note[0]).push({ note: note.slice(), oldIndex });
+  });
+  let lastTime = -Infinity;
+  const accepted = [], laneHead = new Map();
+  for (const [time, group] of [...groups].sort((a,b) => a[0] - b[0])) {
+    if (time - lastTime + 1e-6 < rule.head) continue;
+    if (group.some(({note}) => laneHead.has(note[1]) && time - laneHead.get(note[1]) + 1e-6 < rule.same)) continue;
+    group.sort((a,b) => a.note[1] - b.note[1]);
+    for (const item of group) {
+      if (item.note[1] < 0 || item.note[1] >= keys) continue;
+      accepted.push(item); laneHead.set(item.note[1], time);
+    }
+    lastTime = time;
+  }
+  const lanes = Array.from({length: keys}, () => []);
+  accepted.forEach(item => lanes[item.note[1]].push(item));
+  for (const lane of lanes) for (let i = 0; i < lane.length; i++) {
+    const note = lane[i].note;
+    if (note[2] <= 0) { note[2] = 0; continue; }
+    if (i + 1 < lane.length) note[2] = Math.min(note[2], Math.max(0, lane[i + 1].note[0] - note[0] - rule.tail));
+    note[2] = note[2] + 1e-6 < rule.hold ? 0 : +note[2].toFixed(4);
+  }
+  accepted.forEach(({oldIndex}, index) => { oldToNew[oldIndex] = index; });
+  return { notes: accepted.map(item => item.note), oldToNew, rule };
+}
+
+
 // ═══════════ 채보 공통 ═══════════
 function normalizeNotes(notes, bpm, nl = 7) {   // 같은 레인 겹침 제거, 롱노트가 다음 노트를 덮으면 자름
   const beat = 60 / bpm, out = [];
@@ -669,7 +711,7 @@ function chartFor(data, diff, n) {
   const base = data && data.charts && data.charts[diff]; if (!base) return null;
   if (n >= 7 || data.keys === n) { base.level = chartLevel(base.notes, data.length, n); return base; }
   const c = data._cache || (data._cache = {}), k = n + diff;
-  if (!c[k]) { const notes = reduceLanes(base.notes, n, data.bpm); c[k] = { notes }; }
+  if (!c[k]) { let notes = reduceLanes(base.notes, n, data.bpm); if (n === 4 && data.auto) notes = repairNotes(notes, data.bpm, diff, 4).notes; c[k] = { notes }; }
   c[k].level = chartLevel(c[k].notes, data.length, n);
   return c[k];
 }
@@ -2270,8 +2312,8 @@ function draw() {
     txt('SCORE', px, 180, 16, '#8e9cc4', 'left');
     txt(String(r.score).padStart(7, '0'), px, 220, 54, '#ffffff', 'left', 'Black Han Sans');
     if (r.mp && MP.room) {   // 멀티: 내 한 줄 + 상대 카드 (점수·콤보·JAM·정확도·체력·진행, 방금 판정 색으로 번쩍)
-      const all = Object.entries(MP.room.players || {}).filter(([, p]) => !p.spec).map(([k, p]) => ({ k, p, L: k === MP.key ? { s: r.score, c: r.combo, j: r.jam, l: r.life, failed: r.failed, done: r.ended, ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, p: prog } : (p.live || {}) }));
-      all.sort((a, b) => (b.L.s || 0) - (a.L.s || 0));
+      const all = Object.entries(MP.room.players || {}).filter(([, p]) => !p.spec).map(([k, p]) => ({ k, p, L: k === MP.key ? { diff: r.diff, mc: r.maxCombo, tot: r.total, s: r.score, c: r.combo, j: r.jam, l: r.life, failed: r.failed, done: r.ended, ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, p: prog } : (p.live || {}) }));
+      all.sort(mpComparePlayers);
       const myRank = all.findIndex(e2 => e2.k === MP.key) + 1;
       txt(`${myRank} / ${all.length}위`, px + 300, 222, 30, myRank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
       const tiers = [['excellent', 'EXCELLENT', '#ffe29b'], ['cool', 'COOL', '#7fe9ff'], ['good', 'GOOD', '#9cff7a'], ['bad', 'BAD', '#ffb347'], ['miss', 'MISS', '#ff5a6e']];
@@ -2303,9 +2345,9 @@ function draw() {
         ctx.fillStyle = L.failed || e2.p.left ? 'rgba(60,10,20,.75)' : 'rgba(13,20,48,.9)'; rr(cx0, cy0, CW, CH, 10); ctx.fill();
         ctx.strokeStyle = fk || (rank === 1 ? '#ffcb3d' : '#26345f'); ctx.lineWidth = fk ? 3 : 2; rr(cx0, cy0, CW, CH, 10); ctx.stroke();
         txt(`#${rank}`, cx0 + 12, cy0 + 20, 18, rank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
-        txt(String(e2.p.nick || '').slice(0, 10), cx0 + 52, cy0 + 20, 17, '#eef3ff', 'left');
+        txt(String(e2.p.nick || '').slice(0, 10) + ' · ' + ({EX:'쉬움',NX:'보통',HX:'어려움'}[L.diff || mpPlayerDiff(e2.p, MP.room)]), cx0 + 52, cy0 + 20, 14, '#eef3ff', 'left');
         txt((L.s || 0).toLocaleString(), cx0 + CW - 12, cy0 + 21, 24, '#ffffff', 'right', 'Black Han Sans');
-        const acc = L.co != null && ((L.ex || 0) + L.co + L.go + L.ba + L.mi) > 0 ? (((L.ex || 0) * 100 + L.co * 90 + L.go * 60 + L.ba * 20) / (((L.ex || 0) + L.co + L.go + L.ba + L.mi) * 100) * 100).toFixed(1) + '%' : '-';
+        const acc = L.co != null ? (mpLiveAccuracy(L) * 100).toFixed(1) + '%' : '-';
         const st = e2.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? '끝' : `${L.c || 0} 콤보  ·  JAM ×${L.j || 0}`;
         txt(st, cx0 + 12, cy0 + 47, 15, L.failed || e2.p.left ? '#ff5a6e' : '#ffcb3d', 'left');
         txt(`정확도 ${acc}`, cx0 + CW - 12, cy0 + 47, 14, '#8e9cc4', 'right');
@@ -2478,6 +2520,8 @@ function mpOnRoom(r) {
   }
 }
 function renderRoom(r) {
+  const focusedDiff = document.activeElement?.dataset?.mdiff;
+  for (const button of $('roomOv').querySelectorAll('[data-act^="spd"]')) button.disabled = r.status !== 'wait';
   const ps = Object.entries(r.players || {}).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
   $('rmCount').textContent = `${ps.length} / ${MAXP}명`;
   const readyCount = ps.filter(([k,p]) => k === r.host || p.ready).length;
@@ -2490,14 +2534,15 @@ function renderRoom(r) {
     const [k, p] = e, has = p.has && p.has[r.song], host = k === r.host;
     html += `<div class="seat full${k === MP.key ? ' me' : ''}${p.ready || host ? ' ready' : ''}">`
       + (MP.isHost && k !== MP.key ? `<button class="kick" data-kick="${esc(k)}" title="내보내기">✕</button>` : '')
-      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'}<br>${has ? '♪' : '<span style="color:#ff8a70">⚠ 음원 필요</span>'}</div></div>`;
+      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'} · ${{EX:'쉬움',NX:'보통',HX:'어려움'}[mpPlayerDiff(p,r)]}<br>${has ? '♪' : '<span style="color:#ff8a70">⚠ 음원 필요</span>'}</div></div>`;
   }
   $('rmSeats').innerHTML = html;
   $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${songCover(x)}<span class="song-title">${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}</span>${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
   const data = song && (song.chartData || song.data), rk = validMode(r.keys);
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
-  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('');
+  const personalDiff = mpPlayerDiff(r.players[MP.key], r);
+  $('rmDiffs').innerHTML = '<span class="sub">내 난이도</span>' + ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${personalDiff === d ? ' on' : ''}" data-mdiff="${d}" aria-pressed="${personalDiff === d}" ${r.status === 'wait' ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('');
   const me = r.players[MP.key] || {};
   $('rmReady').disabled = false;
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
@@ -2509,6 +2554,7 @@ function renderRoom(r) {
     ? (!(song && song.ok) ? '⚠ 음원 필요' : notReady ? `⌛ ${notReady}명 대기` : ps.length < 2 ? '✓ 시작 가능' : '✓ 준비 완료')
     : (song && song.ok ? (me.ready ? '⌛ 시작 대기' : '') : '⚠ 음원 필요');
   renderMenu();
+  if (focusedDiff) $('rmDiffs').querySelector('[data-mdiff="' + focusedDiff + '"]')?.focus();
 }
 function mpPickSong(id) {
   const r = MP.room; if (!r) return;
@@ -2518,7 +2564,10 @@ function mpPickSong(id) {
   const upd = { song: id }; for (const k of Object.keys(r.players || {})) upd[`players/${k}/ready`] = false;
   roomRef().update(upd);
 }
-function mpPickDiff(d) { if (MP.isHost && MP.room && MP.room.status === 'wait') roomRef().update({ diff: d }); }
+function mpPlayerDiff(player, room) { return ['EX','NX','HX'].includes(player && player.diff) ? player.diff : ['EX','NX','HX'].includes(room.diff) ? room.diff : 'NX'; }
+function mpPickDiff(d) { if (MP.room && MP.room.status === 'wait' && ['EX','NX','HX'].includes(d)) meRef().update({ diff: d, ready: false }); }
+function mpLiveAccuracy(live) { const count = (live.ex || 0) + (live.co || 0) + (live.go || 0) + (live.ba || 0) + (live.mi || 0); return ((live.ex || 0) + (live.co || 0) * .9 + (live.go || 0) * .6 + (live.ba || 0) * .2) / Math.max(1, live.done || live.failed ? live.tot || count : count); }
+function mpComparePlayers(a, b) { const aFailed = !!(a.p.left || a.L.failed), bFailed = !!(b.p.left || b.L.failed); return Number(aFailed) - Number(bFailed) || mpLiveAccuracy(b.L) - mpLiveAccuracy(a.L) || a.k.localeCompare(b.k); }
 function mpKick(k) {
   const p = MP.room && MP.room.players && MP.room.players[k]; if (!MP.isHost || !p) return;
   if (!confirm(`${p.nick} 님을 내보낼까요?`)) return;
@@ -2591,7 +2640,7 @@ async function mpBeginRound(r) {
   if (!MP.room || MP.room.status !== 'playing' || (MP.room.round || 0) !== r.round) return;
   const data = x.chartData || x.data;   // 멀티는 모두 같은 공식 채보
   if (x.chartData && Math.abs((x.chartData.length || 0) - x.buffer.duration) > 1.5) toast('⚠️ 내 음원 길이가 채보와 달라서 싱크가 안 맞을 수 있어요', 4000);
-  const diff = data.charts[r.diff] ? r.diff : 'NX';
+  const selectedDiff = mpPlayerDiff(me, r), diff = data.charts[selectedDiff] ? selectedDiff : 'NX';
   const delay = (r.startAt - srvNow()) / 1000;
   if (delay < -.15) { toast('시작 준비가 늦어 이번 곡은 관전합니다.'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
   startRun(x, diff, { mp: true, delay, data, mode: +(r.keys || 4) });
@@ -2599,7 +2648,7 @@ async function mpBeginRound(r) {
 }
 function mpPushLive() {
   const r = run; if (!r || !r.mp || !MP.code) return;
-  meRef().update({ t: Date.now(), live: { s: r.score, c: r.combo, mc: r.maxCombo, j: r.jam, l: Math.round(r.life), ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, tot: r.total,
+  meRef().update({ t: Date.now(), live: { diff: r.diff, s: r.score, c: r.combo, mc: r.maxCombo, j: r.jam, l: Math.round(r.life), ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, tot: r.total,
     p: +clamp(songNow() / r.end, 0, 1).toFixed(3), done: !!r.ended, failed: !!r.failed, rank: r.ended ? rankOf(r) : '', lj: r.lastJ || '', jn: r.judged } });
   if (r.ended) { clearInterval(MP.liveT); MP.liveT = null; }
 }
@@ -2614,14 +2663,13 @@ function mpCheckEnd(r) {
 function mpShowBoard(r, mode) {
   const x = songById(r.song), d = x && (x.chartData || x.data);
   const all = Object.entries(r.players || {}).map(([k, p]) => ({ k, p, L: p.live || {} }));
-  const pl = all.filter(e => !e.p.spec).sort((a, b) => (b.L.s || 0) - (a.L.s || 0)), specs = all.filter(e => e.p.spec);
+  const pl = all.filter(e => !e.p.spec).sort(mpComparePlayers), specs = all.filter(e => e.p.spec);
   $('mrTitle').textContent = mode === 'result' ? '🏆 결과' : mode === 'done' ? '⏳ 다른 사람들이 연주 중…' : '👀 관전 중';
-  const ch2 = d && chartFor(d, r.diff, +(r.keys || 4));
-  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${{EX:'쉬움',NX:'보통',HX:'어려움'}[r.diff] || '커스텀'}${ch2 ? ' ' + levelLabel(ch2.level) : ''}`;
+  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 · 개인 난이도 · 정확도 순위`;
   const rows = pl.map((e, i) => {
-    const L = e.L, acc = L.tot ? (((L.ex || 0) * 100 + L.co * 90 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
+    const L = e.L, acc = L.tot ? (mpLiveAccuracy(L) * 100).toFixed(1) + '%' : '-';
     const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';
-    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}</td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#ffe7a0">${L.ex || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
+    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}<small style="display:block;color:#8e9cc4">${{EX:'쉬움',NX:'보통',HX:'어려움'}[L.diff || mpPlayerDiff(e.p,r)]}</small></td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#ffe7a0">${L.ex || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
   }).join('');
   $('mrTable').innerHTML = '<tr><th>#</th><th>닉네임</th><th>점수</th><th>최대 콤보</th><th>EXCELLENT</th><th>COOL</th><th>GOOD</th><th>BAD</th><th>MISS</th><th>정확도</th><th>상태</th></tr>' + rows
     + (specs.length ? `<tr><td colspan="11" style="text-align:left;color:#8e9cc4">👀 관전: ${specs.map(e => esc(e.p.nick)).join(', ')}</td></tr>` : '');
@@ -2752,6 +2800,8 @@ function openProduction() {
 }
 function shellKeydown(e) {
   if ($('helpDialog').open) return;
+  const speedOption = e.target.closest && e.target.closest('.opt');
+  if (!(run && !run.ended) && speedOption && speedOption.querySelector('[data-act^="spd"]') && ['ArrowLeft','ArrowRight'].includes(e.code) && waitKey < 0) { e.preventDefault(); e.stopImmediatePropagation(); speedOption.querySelector('[data-act="spd' + (e.code === 'ArrowRight' ? '+' : '-') + '"]').click(); return; }
   const settings = $('settingsDialog'), production = $('productionDialog');
   if (settings.open || production.open) {
     if (settings.open && waitKey >= 0) {
@@ -2780,8 +2830,8 @@ function shellKeydown(e) {
   if (!$('menu').hidden && e.code === 'Backspace' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { e.preventDefault(); e.stopImmediatePropagation(); showTitle(); }
 }
 function initializeShell() {
-  for (const id of ['spdV','offV','hitSnd','noFail','keyBoxes','recordPlay','recordQuality']) { const option = $(id).closest('.opt'); if (option) $('settingsSolo').appendChild(option); }
-  for (const option of [...$('roomOv').querySelectorAll('.opt')]) $('settingsRoom').appendChild(option);
+  for (const id of ['offV','hitSnd','noFail','keyBoxes','recordPlay','recordQuality']) { const option = $(id).closest('.opt'); if (option) $('settingsSolo').appendChild(option); }
+  for (const option of [...$('roomOv').querySelectorAll('.opt')]) if (!option.querySelector('[data-act^="spd"]')) $('settingsRoom').appendChild(option);
   $('settingsRoom').hidden = true;
   document.addEventListener('click', e => {
     const button = e.target.closest('[data-shell]');
