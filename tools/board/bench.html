@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>보드게임 테스트 벤치</title>
+<style>
+  body { margin: 0; background: #1b1f2a; color: #eee; font: 13px 'Malgun Gothic', sans-serif; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px 10px; background: #11141c; border-bottom: 1px solid #333; }
+  .bar button, .bar select, .bar input { font: inherit; padding: 5px 10px; border-radius: 8px; border: 1px solid #444; background: #2a3040; color: #eee; cursor: pointer; }
+  .bar input { width: 52px; }
+  .bar .st { margin-left: auto; opacity: .8; }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px; align-items: flex-start; }
+  .phone { position: relative; border-radius: 18px; background: #000; box-shadow: 0 0 0 3px #3a4256; overflow: hidden; }
+  .phone .lb { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; text-align: center; font-size: 12px; padding: 2px; background: rgba(0,0,0,.65); }
+  .phone iframe { border: 0; transform-origin: 0 0; background: #fff; display: block; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <select id="game"></select>
+  인원 <input id="n" type="number" min="1" max="10">
+  폭 <input id="w" type="number"> 높이 <input id="h" type="number"> 배율 <input id="s" type="number" step=".05">
+  <button id="reload">다시 띄우기</button>
+  <button id="join">▶ 자동 입장</button>
+  <button id="clean">🧹 방 삭제·나가기</button>
+  <span class="st" id="st">개발용 — 여러 명을 한 화면에서 (소리 꺼짐)</span>
+</div>
+<div class="grid" id="grid"></div>
+<script>
+// 참스코드 보드게임 멀티 테스트 벤치: 폰 크기 iframe 여러 개 + 자동 방 만들기/참가.
+// 주소: tools/board/bench.html?game=codenames&n=4&w=390&h=844&s=.6
+const GAMES = ['codenames', 'davinci', 'rummikub', 'liar', 'telephone', 'avalon', 'wavelength'];
+const NICKS = ['방장', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째'];
+const q = new URLSearchParams(location.search);
+const cfg = { game: q.get('game') || 'codenames', n: +(q.get('n') || 4), w: +(q.get('w') || 390), h: +(q.get('h') || 844), s: +(q.get('s') || .6) };
+const $ = id => document.getElementById(id);
+$('game').innerHTML = GAMES.map(g => `<option ${g === cfg.game ? 'selected' : ''}>${g}</option>`).join('');
+$('n').value = cfg.n; $('w').value = cfg.w; $('h').value = cfg.h; $('s').value = cfg.s;
+const st = m => { $('st').textContent = m; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frames = [];
+function mute(W) { try { const S = W.Sound; if (!S) return; S.setBgmVolume && S.setBgmVolume(0); S.setSfxVolume && S.setSfxVolume(0); S.play = () => {}; S.theme = () => {}; S.scene = () => {}; } catch (e) {} }
+function build() {
+  $('grid').innerHTML = ''; frames.length = 0;
+  for (let i = 0; i < cfg.n; i++) {
+    const box = document.createElement('div'); box.className = 'phone';
+    box.style.width = cfg.w * cfg.s + 'px'; box.style.height = cfg.h * cfg.s + 'px';
+    const fr = document.createElement('iframe');
+    fr.style.width = cfg.w + 'px'; fr.style.height = cfg.h + 'px'; fr.style.transform = `scale(${cfg.s})`;
+    fr.setAttribute('allow', 'fullscreen; clipboard-write; autoplay');
+    fr.src = `../../${cfg.game}.html?bench=${i}`;
+    fr.onload = () => mute(fr.contentWindow);
+    const lb = document.createElement('div'); lb.className = 'lb'; lb.textContent = `${i + 1}. ${NICKS[i]}`;
+    box.append(fr, lb); $('grid').append(box); frames.push(fr);
+  }
+}
+async function waitFor(fn, ms = 8000) { const t = Date.now(); while (Date.now() - t < ms) { try { const v = fn(); if (v) return v; } catch (e) {} await sleep(80); } return null; }
+async function autoJoin() {
+  const docs = frames.map(f => f.contentDocument);
+  if (!docs.every(d => d && d.getElementById('btnCreate'))) { st('아직 로딩 중'); return; }
+  frames.forEach(f => mute(f.contentWindow));
+  const d0 = docs[0];
+  d0.getElementById('nick').value = NICKS[0];
+  d0.getElementById('btnCreate').click();
+  const code = await waitFor(() => { const c = d0.getElementById('lobbyCode').textContent.trim(); return /^[A-Z0-9]{6}$/.test(c) && c; });
+  if (!code) { st('방 코드가 안 나왔어요'); return; }
+  for (let i = 1; i < frames.length; i++) {
+    const d = docs[i];
+    d.getElementById('nick').value = NICKS[i];
+    d.getElementById('joinCode').value = code;
+    d.getElementById('btnJoin').click();
+    await sleep(350);
+  }
+  st(`방 ${code} · ${frames.length}명 입장`);
+  return code;
+}
+async function cleanup() {
+  for (let i = frames.length - 1; i >= 0; i--) {
+    const W = frames[i].contentWindow; if (!W) continue;
+    const ok = W.confirm; W.confirm = () => true;
+    for (const id of ['btnLeaveGame', 'btnLeaveLobby', 'btnLeaveEnd']) { const b = W.document.getElementById(id); if (b && b.offsetParent) { b.click(); break; } }
+    W.confirm = ok; await sleep(120);
+  }
+  st('정리 완료');
+}
+$('reload').onclick = () => { const p = new URLSearchParams({ game: $('game').value, n: $('n').value, w: $('w').value, h: $('h').value, s: $('s').value }); location.search = p.toString(); };
+$('join').onclick = autoJoin; $('clean').onclick = cleanup;
+build();
+window.bench = { frames, autoJoin, cleanup, cfg, NICKS, win: i => frames[i].contentWindow, doc: i => frames[i].contentDocument, waitFor, sleep };
+</script>
+</body>
+</html>

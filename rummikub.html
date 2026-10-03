@@ -105,6 +105,24 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 45; }
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
 
+/* 폰: 한 화면에 테이블(스크롤)+랙(고정) — 위쪽 묶음까지 손가락으로 끌 수 있게 */
+@media (max-width: 700px) {
+  #game.screen.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; padding: 10px 8px 52px; }
+  #game .top, #game .banner, #game .players, #game .log { flex: none; }
+  #game .banner { font-size: 15px; padding: 7px 10px; margin: 2px 0 6px; }
+  #game .players { margin-bottom: 6px; }
+  #game .log { margin-bottom: 6px; padding: 4px 10px; }
+  #game .log div:nth-child(n+2) { display: none; }
+  #table { flex: 1 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; margin-bottom: 6px; padding: 6px; }
+  #game .rack { flex: none; max-height: 48%; overflow-y: auto; overscroll-behavior: contain; padding: 8px; }
+  .set { flex-wrap: wrap; max-width: 100%; margin: 3px; padding: 5px; }
+  .tile { width: 33px; height: 46px; font-size: 20px; }
+  .rack .tiles { gap: 4px; min-height: 50px; }
+  .rack .hdr { margin-bottom: 6px; }
+  .rack .hdr .btn { padding: 7px 11px; font-size: 13px; }
+  .actions { margin-top: 8px; }
+  .hint { margin-top: 6px; font-size: 12.5px; }
+}
 #joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
 #joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
 </style>
@@ -433,6 +451,7 @@ function startDrag(e, el) {
   e.preventDefault();
   const ids = selected.has(t) ? [...selected] : [t];
   drag = { ids, startX: e.clientX, startY: e.clientY, el, active: false, ghost: null, pid: e.pointerId };
+  if (edgeScroll._raf) { cancelAnimationFrame(edgeScroll._raf); edgeScroll._raf = 0; }
   try { el.setPointerCapture(e.pointerId); } catch (err) {}
   el.onpointermove = onDragMove; el.onpointerup = el.onpointercancel = onDragEnd;
 }
@@ -447,6 +466,7 @@ function onDragMove(e) {
     drag.ids.forEach(t => document.querySelectorAll(`.tile[data-t="${t}"]`).forEach(x => x.classList.add('dragging')));
   }
   drag.ghost.style.left = e.clientX + 'px'; drag.ghost.style.top = e.clientY + 'px';
+  drag.x = e.clientX; drag.y = e.clientY; edgeScroll();
   const tgt = dropTargetAt(e.clientX, e.clientY);
   document.querySelectorAll('.drop, .rack.no').forEach(x => x.classList.remove('drop', 'no'));
   if (tgt) {
@@ -455,9 +475,27 @@ function onDragMove(e) {
     else document.querySelector(`.set[data-set="${tgt.idx}"]`).classList.add('drop');
   }
 }
+// 테이블이 화면보다 길 때: 끄는 손가락이 테이블 위·아래 끝 근처면 그쪽으로 계속 스크롤
+function edgeScroll() {
+  if (edgeScroll._raf) return;
+  const step = () => {
+    edgeScroll._raf = 0;
+    if (!drag || !drag.active) return;
+    const tb = $('table'), r = tb.getBoundingClientRect(), zone = 48;
+    if (tb.scrollHeight <= tb.clientHeight + 1 || drag.x < r.left || drag.x > r.right) return;
+    let v = 0;
+    if (drag.y < r.top + zone && drag.y > r.top - 80) v = -Math.ceil((r.top + zone - drag.y) / 4);
+    else if (drag.y > r.bottom - zone && drag.y < r.bottom + 24) v = Math.ceil((drag.y - (r.bottom - zone)) / 4);
+    if (!v) return;
+    tb.scrollTop += v;
+    edgeScroll._raf = requestAnimationFrame(step);
+  };
+  edgeScroll._raf = requestAnimationFrame(step);
+}
 function onDragEnd(e) {
   if (!drag) return;
   const d = drag; drag = null;
+  if (edgeScroll._raf) { cancelAnimationFrame(edgeScroll._raf); edgeScroll._raf = 0; }
   d.el.onpointermove = d.el.onpointerup = d.el.onpointercancel = null;
   try { d.el.releasePointerCapture(d.pid); } catch (err) {}
   document.querySelectorAll('.drop, .rack.no').forEach(x => x.classList.remove('drop', 'no'));

@@ -87,6 +87,27 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 .modal.show { display: flex; }
 .modal .card { width: 100%; max-width: 460px; margin: 0; max-height: 88vh; overflow-y: auto; }
 
+/* 폰: 그리는 동안 받은 제시어·캔버스·도구·제출이 스크롤 없이 한 화면에 */
+@media (max-width: 480px) {
+  #game.screen { padding: 10px 8px 52px; }
+  #game .top .timer { font-size: 26px; }
+  #game .banner { font-size: 15px; padding: 7px 10px; margin: 2px 0 8px; }
+  #stage .card { padding: 10px; margin-bottom: 8px; border-width: 3px; }
+  #stage .bubble { font-size: 21px; padding: 10px 12px; }
+  #stage.drawing > .card:first-child { padding: 8px 10px; }
+  #stage.drawing > .card:first-child .who { margin-bottom: 4px; font-size: 13px; }
+  #stage.drawing > .card:first-child .bubble { font-size: 19px; padding: 6px 10px; box-shadow: inset 0 0 0 2px #e6c58f; }
+  #stage.drawing > .card:first-child .bubble::after { display: none; }
+  #stage.drawing .card h3 { display: none; }
+  #stage.drawing .cwrap { max-width: min(100%, calc(100vh - 390px)); max-width: min(100%, calc(100dvh - 390px)); }
+  .tools { gap: 5px; margin-top: 8px; }
+  .sw { width: 28px; height: 28px; border-width: 2px; }
+  #colors { gap: 4px; }
+  .sz { width: 38px; height: 36px; }
+  #sizes .btn { padding: 6px 13px; font-size: 16px; min-height: 36px; }
+  .tl { display: none; }
+  .status { margin-top: 6px; }
+}
 #joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
 #joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
 </style>
@@ -319,6 +340,7 @@ function renderGame() {
   if (mine) {
     const preview = mine.type === 'draw' ? `<img class="art" style="max-width:200px;margin-top:8px" src="${mine.img}">` : `<div class="bubble" style="font-size:20px;margin-top:8px">${esc(mine.text)}</div>`;
     const nextType = s + 1 < g.N ? (stepType(s + 1) === 'draw' ? '🎨 다음은 그림 그리기' : '🤔 다음은 그림 보고 맞히기') : '📖 다음은 발표!';
+    $('stage').classList.remove('drawing');
     $('stage').innerHTML = `<div class="card" style="text-align:center"><div style="font-size:22px">✅ 제출 완료!</div>${preview}<div style="color:#8a5a2a;font-size:14px;margin-top:8px">다른 사람들을 기다리는 중… ${nextType}</div>${statusHtml}</div>`;
     return;
   }
@@ -336,8 +358,9 @@ function renderGame() {
   else if (type === 'text') action = `<input class="input" id="txt" placeholder="그림을 보고 한 줄로" maxlength="30"><div class="row"><button class="btn green wide" id="btnSubmit">제출</button></div>`;
   else action = `<div class="cwrap"><canvas id="pad" width="320" height="320"></canvas></div>
     <div class="tools" id="colors"></div>
-    <div class="tools" id="sizes"><button class="btn light" id="btnUndo">↩ 되돌리기</button><button class="btn light" id="btnClear">🗑 지우기</button></div>
+    <div class="tools" id="sizes"><button class="btn light" id="btnUndo" title="되돌리기">↩<span class="tl"> 되돌리기</span></button><button class="btn light" id="btnClear" title="지우기">🗑<span class="tl"> 지우기</span></button></div>
     <div class="row"><button class="btn green wide" id="btnSubmit">🎨 제출</button></div>`;
+  $('stage').classList.toggle('drawing', type === 'draw');
   $('stage').innerHTML = `${recv ? `<div class="card">${recv}</div>` : ''}<div class="card note spiral"><h3>${type === 'word' ? '내 책의 첫 제시어' : type === 'draw' ? '그림으로 표현하기' : '뭘 그린 걸까?'}</h3>${action}${statusHtml}</div>`;
   if (type === 'draw') initPad();
   else { $('txt').addEventListener('keydown', e => { if (e.key === 'Enter') submitCurrent(); }); if ($('btnRand')) $('btnRand').onclick = () => { $('txt').value = PROMPTS[Math.floor(Math.random() * PROMPTS.length)]; }; }
@@ -417,6 +440,7 @@ function renderReveal() {
   const ctrl = isHost
     ? `<div class="row"><button class="btn light" id="btnPrev" ${first ? 'disabled' : ''}>◀ 이전</button>${last ? `<button class="btn green" style="flex:1" id="btnAgain">🔁 한 판 더</button><button class="btn ghost" id="btnLobby">대기실로</button>` : `<button class="btn teal" style="flex:1" id="btnNext">다음 ▶</button>`}</div>`
     : `<div style="text-align:center;opacity:.9;font-size:14px;margin-top:6px">방장이 넘겨요 · 😂 눌러서 반응!</div>`;
+  $('stage').classList.remove('drawing');
   $('stage').innerHTML = items.reverse().join('') + ctrl;
   lastRenderKey = '';
   $('stage').querySelectorAll('[data-r]').forEach(b => b.onclick = () => {

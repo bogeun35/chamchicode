@@ -374,6 +374,7 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
   display: none;
   width: 100%;
   height: 100vh;
+  height: 100dvh;   /* 폰 주소창을 뺀 실제 높이 — 100vh 면 아래가 잘림 */
 }
 .page-frame.active {
   display: block;
@@ -494,7 +495,7 @@ const GAMES = [
   "ds": "숫자 추리 보드게임<br>2~4명 · 링크로 바로 참가",
   "bd": "NEW",
   "src": "davinci.html",
-  "allow": "clipboard-write",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
   "g": "board"
  },
  {
@@ -505,7 +506,7 @@ const GAMES = [
   "ds": "한 명만 제시어를 몰라요<br>3~10명 · 음성과 함께",
   "bd": "NEW",
   "src": "liar.html",
-  "allow": "clipboard-write",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
   "g": "board"
  },
  {
@@ -516,7 +517,7 @@ const GAMES = [
   "ds": "팀장 힌트로 단어 찾기<br>4~8명 · 두 팀 대결",
   "bd": "NEW",
   "src": "codenames.html",
-  "allow": "clipboard-write",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
   "g": "board"
  },
  {
@@ -527,7 +528,7 @@ const GAMES = [
   "ds": "그리고 맞히고 또 그리고<br>4~8명 · 마지막에 공개",
   "bd": "NEW",
   "src": "telephone.html",
-  "allow": "clipboard-write",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
   "g": "board"
  },
  {
@@ -538,7 +539,29 @@ const GAMES = [
   "ds": "같은 숫자 · 연속 숫자 묶기<br>2~4명 · 첫 등록 30점",
   "bd": "NEW",
   "src": "rummikub.html",
-  "allow": "clipboard-write",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
+  "g": "board"
+ },
+ {
+  "k": "avalon",
+  "ic": "🏰",
+  "nm": "아발론",
+  "tt": "아발론",
+  "ds": "숨은 악당을 찾는 원정대 추리<br>5~10명 · 원정대장 · 찬반 투표",
+  "bd": "NEW",
+  "src": "avalon.html",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
+  "g": "board"
+ },
+ {
+  "k": "wavelength",
+  "ic": "📡",
+  "nm": "웨이브렝스",
+  "tt": "웨이브렝스",
+  "ds": "단서 하나로 다이얼 맞히기<br>4~12명 · 두 팀 대결 · 사이킥",
+  "bd": "NEW",
+  "src": "wavelength.html",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
   "g": "board"
  },
  {

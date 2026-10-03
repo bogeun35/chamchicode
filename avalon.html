@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>참스코드 아발론</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --cream: #fff3d6; --ink: #2a2118; --wood: #8a5a2b; --wood-dark: #4a2f6b; --gold: #ffd36b; --good: #3b82f6; --good-dark: #1f4fa8; --evil: #e5484d; --evil-dark: #9c2329; --night: #1b1440; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: #fff; -webkit-user-select: none; user-select: none; min-height: 100vh; overflow-x: hidden;
+  background: radial-gradient(ellipse at 50% 0%, #4b3a8c 0%, #2a1f5c 45%, var(--night) 100%) fixed; }
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; background:
+  radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,.55), transparent), radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,.45), transparent),
+  radial-gradient(2px 2px at 64% 38%, rgba(255,255,255,.35), transparent), radial-gradient(1.5px 1.5px at 30% 62%, rgba(255,255,255,.3), transparent),
+  radial-gradient(2px 2px at 88% 70%, rgba(255,255,255,.35), transparent); }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px); z-index: 95; background: var(--cream); color: var(--ink); padding: 10px 22px; border-radius: 999px; font-size: 15px; box-shadow: 0 6px 0 var(--wood-dark), 0 10px 20px rgba(0,0,0,.3); opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.screen { display: none; max-width: 560px; margin: 0 auto; padding: 14px 12px 60px; position: relative; }
+.screen.active { display: block; }
+.title { text-align: center; margin: 24px 0 4px; font-size: 38px; text-shadow: 3px 3px 0 #120b30; }
+.sub { text-align: center; opacity: .9; font-size: 15px; margin-bottom: 18px; }
+.card { background: var(--cream); color: var(--ink); border-radius: 20px; padding: 16px; margin-bottom: 12px; border: 4px solid #fff; box-shadow: 0 6px 0 var(--wood-dark), 0 12px 24px rgba(0,0,0,.3); }
+.card h3 { font-size: 15px; color: #6a4a8a; margin-bottom: 10px; }
+.input { width: 100%; padding: 12px 14px; border: 3px solid #e6c58f; border-radius: 12px; font-size: 18px; font-family: inherit; color: var(--ink); background: #fff; outline: none; }
+.input:focus { border-color: #8a6ab8; }
+.row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn { padding: 11px 18px; border: 3px solid #fff; border-radius: 999px; font-family: inherit; font-size: 16px; cursor: pointer; background: #ff7b5e; color: #fff; box-shadow: 0 4px 0 #c9502e; transition: transform .08s; white-space: nowrap; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9502e; }
+.btn.green { background: #5cb85c; box-shadow: 0 4px 0 #3a7f3a; } .btn.green:active { box-shadow: 0 1px 0 #3a7f3a; }
+.btn.blue { background: #4a8fdf; box-shadow: 0 4px 0 #2b5f9e; } .btn.blue:active { box-shadow: 0 1px 0 #2b5f9e; }
+.btn.purple { background: #8a6ab8; box-shadow: 0 4px 0 #5a3f85; } .btn.purple:active { box-shadow: 0 1px 0 #5a3f85; }
+.btn.red { background: var(--evil); box-shadow: 0 4px 0 var(--evil-dark); } .btn.red:active { box-shadow: 0 1px 0 var(--evil-dark); }
+.btn.ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 14px; padding: 8px 14px; } .btn.ghost:active { box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.btn.light { background: #fff; color: #6a4a8a; box-shadow: 0 4px 0 #b8a0d8; font-size: 14px; padding: 8px 14px; } .btn.light:active { box-shadow: 0 1px 0 #b8a0d8; }
+.btn.wide { width: 100%; } .btn:disabled { opacity: .45; cursor: default; transform: none; }
+.code-big { font-family: monospace; font-size: 34px; letter-spacing: .25em; text-align: center; color: #4a2f6b; margin: 6px 0; font-weight: bold; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 7px 12px; border-radius: 999px; background: #fff; border: 2px solid #e6c58f; font-size: 14px; cursor: pointer; color: var(--ink); min-height: 36px; display: inline-flex; align-items: center; gap: 4px; }
+.chip.on { background: #6a4a8a; color: #fff; border-color: #fff; }
+.chip.lock { cursor: default; }
+.setnote { font-size: 13px; color: #6a4a8a; margin-top: 8px; line-height: 1.5; }
+
+/* 게임 */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+.pill { background: rgba(0,0,0,.3); border-radius: 999px; padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+.tracks { display: flex; align-items: center; gap: 6px; justify-content: center; margin: 4px 0 8px; }
+.qd { position: relative; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; background: rgba(255,255,255,.12); border: 3px solid rgba(255,255,255,.35); }
+.qd small { position: absolute; bottom: -6px; right: -6px; background: var(--gold); color: var(--ink); border-radius: 999px; font-size: 10px; padding: 1px 5px; border: 2px solid #fff; }
+.qd.now { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(255,211,107,.35); animation: pulse 1.4s ease-in-out infinite alternate; }
+@keyframes pulse { to { box-shadow: 0 0 0 8px rgba(255,211,107,.12); } }
+.qd.s { background: var(--good); border-color: #cfe0fb; } .qd.f { background: var(--evil); border-color: #f6c7c9; }
+.rej { display: flex; gap: 4px; justify-content: center; align-items: center; font-size: 12.5px; opacity: .9; margin-bottom: 6px; }
+.rej i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.2); display: inline-block; }
+.rej i.on { background: var(--evil); box-shadow: 0 0 0 2px rgba(255,255,255,.6); }
+.banner { text-align: center; font-size: 16px; padding: 9px 12px; border-radius: 14px; margin: 2px 0 8px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.15); }
+.banner.hot { background: var(--gold); color: var(--ink); border-color: #fff; animation: glow 1.2s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 0 3px rgba(255,211,107,.25); } to { box-shadow: 0 0 0 8px rgba(255,211,107,.5); } }
+.round { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / .86; margin: 0 auto 6px; }
+.round::before { content: ''; position: absolute; left: 14%; right: 14%; top: 15%; bottom: 15%; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #6b4a2b, #3e2a18); box-shadow: inset 0 0 0 6px #8a6238, 0 10px 30px rgba(0,0,0,.4); }
+.center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 52%; pointer-events: none; }
+.center b { display: block; font-size: 22px; color: var(--gold); text-shadow: 2px 2px 0 #2a1808; }
+.center span { font-size: 13px; opacity: .9; }
+.seat { position: absolute; width: 70px; transform: translate(-50%, -50%); text-align: center; cursor: default; }
+.seat .av { position: relative; width: 48px; height: 48px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: #ffe6bf; border: 3px solid #fff; box-shadow: 0 3px 0 rgba(0,0,0,.3); transition: transform .12s; }
+.seat .nm { font-size: 12px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 0 rgba(0,0,0,.5); }
+.seat.me .nm { color: var(--gold); }
+.seat.pickable { cursor: pointer; }
+.seat.pickable .av { box-shadow: 0 0 0 3px rgba(255,211,107,.55), 0 3px 0 rgba(0,0,0,.3); }
+.seat.picked .av { background: #fff3a8; border-color: var(--gold); transform: scale(1.08); }
+.seat .crown { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 17px; filter: drop-shadow(0 1px 0 #fff); }
+.seat .sword { position: absolute; bottom: -6px; right: -8px; font-size: 16px; background: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.seat .done { position: absolute; top: -4px; right: -6px; font-size: 11px; background: #5cb85c; color: #fff; border-radius: 999px; padding: 1px 5px; border: 2px solid #fff; }
+.seat .vt { position: absolute; top: -4px; left: -8px; font-size: 16px; }
+.seat .know { position: absolute; bottom: -4px; left: -10px; font-size: 10.5px; border-radius: 999px; padding: 1px 5px; border: 2px solid #fff; color: #fff; background: var(--evil); white-space: nowrap; }
+.seat .know.mer { background: #8a6ab8; }
+.seat.off .av { filter: grayscale(.7); opacity: .6; }
+.panel { background: var(--cream); color: var(--ink); border-radius: 20px; padding: 14px; border: 4px solid #fff; box-shadow: 0 6px 0 var(--wood-dark), 0 12px 24px rgba(0,0,0,.3); margin-bottom: 10px; }
+.panel h3 { font-size: 16px; color: #4a2f6b; margin-bottom: 8px; text-align: center; }
+.panel p { font-size: 14px; line-height: 1.5; color: #5a4a3a; text-align: center; }
+.panel .row { justify-content: center; }
+.panel .names { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 8px 0; }
+.panel .names span { background: #fff; border: 2px solid #e6c58f; border-radius: 999px; padding: 4px 10px; font-size: 14px; }
+.big2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.big2 .btn { font-size: 20px; padding: 16px 8px; border-radius: 18px; }
+.big2 .btn.sel { outline: 4px solid var(--gold); outline-offset: 2px; }
+.qcard { font-size: 20px; padding: 18px 8px; }
+.log { background: rgba(0,0,0,.28); border-radius: 12px; padding: 6px 12px; font-size: 13px; line-height: 1.5; opacity: .95; }
+.log div:first-child { color: var(--gold); }
+.mybar { display: flex; justify-content: center; margin: 4px 0 10px; }
+.peek { border: 3px dashed rgba(255,255,255,.5); border-radius: 999px; padding: 9px 18px; background: rgba(0,0,0,.25); color: #fff; font-family: inherit; font-size: 15px; cursor: pointer; touch-action: none; }
+
+/* 역할 카드 */
+.rolecard { position: relative; border-radius: 18px; padding: 16px 14px; text-align: center; min-height: 170px; overflow: hidden; }
+.rolecard.good { background: linear-gradient(180deg, #e8f0ff, #cfe0fb); border: 3px solid var(--good); }
+.rolecard.evil { background: linear-gradient(180deg, #ffe8e8, #f6c7c9); border: 3px solid var(--evil); }
+.rolecard .ic { font-size: 54px; line-height: 1.1; }
+.rolecard .rn { font-size: 24px; margin: 4px 0 2px; }
+.rolecard .side { font-size: 14px; margin-bottom: 6px; }
+.rolecard.good .side { color: var(--good-dark); } .rolecard.evil .side { color: var(--evil-dark); }
+.rolecard .ds { font-size: 13.5px; color: #5a4a3a; line-height: 1.5; }
+.rolecard .kn { margin-top: 8px; font-size: 14px; background: rgba(255,255,255,.7); border-radius: 12px; padding: 8px; line-height: 1.6; }
+.veil { position: absolute; inset: 0; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; font-size: 19px; cursor: pointer; touch-action: none;
+  background: repeating-linear-gradient(45deg, #5a3f85, #5a3f85 14px, #6a4a95 14px, #6a4a95 28px); }
+.veil small { font-size: 12.5px; opacity: .85; }
+.peekov { position: fixed; inset: 0; z-index: 85; pointer-events: none; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(10,6,30,.75); }
+.peekov.show { display: flex; }
+.peekov .rolecard { width: 100%; max-width: 360px; }
+
+/* 결과 연출 */
+.ov { position: fixed; inset: 0; z-index: 88; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(10,6,30,.82); }
+.ov.show { display: flex; }
+.ov .box { width: 100%; max-width: 420px; background: var(--cream); color: var(--ink); border-radius: 22px; border: 4px solid #fff; padding: 18px 14px; text-align: center; box-shadow: 0 8px 0 var(--wood-dark); animation: pop .25s ease; }
+@keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+.ov h2 { font-size: 26px; margin-bottom: 10px; }
+.ov .vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+.ov .vgrid div { background: #fff; border-radius: 12px; padding: 6px 4px; font-size: 13px; border: 2px solid #eadcc0; }
+.ov .vgrid div.y { border-color: #5cb85c; } .ov .vgrid div.n { border-color: var(--evil); }
+.ov .vgrid b { display: block; font-size: 20px; }
+.ov .cards { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 6px 0 10px; perspective: 600px; }
+.ov .qc { width: 62px; height: 86px; border-radius: 12px; display: grid; place-items: center; font-size: 30px; background: repeating-linear-gradient(45deg, #5a3f85, #5a3f85 8px, #6a4a95 8px, #6a4a95 16px); border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); transition: transform .35s; }
+.ov .qc.s { background: linear-gradient(180deg, #e8f0ff, #9cc3ff); } .ov .qc.f { background: linear-gradient(180deg, #ffe8e8, #ff9a9d); }
+.ov .qc.flip { animation: flipc .45s ease; }
+@keyframes flipc { 0% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+.ov .tap { font-size: 12.5px; color: #8a6ab8; margin-top: 10px; }
+
+/* 결과 화면 */
+.winbox { text-align: center; padding: 22px 10px; }
+.winbox h1 { font-size: 34px; margin-bottom: 8px; }
+.winbox .reason { font-size: 16px; color: #5a4a3a; line-height: 1.5; }
+.rolelist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.rolelist div { display: flex; align-items: center; gap: 6px; background: #fff; border-radius: 12px; padding: 7px 8px; font-size: 14px; border: 2px solid #cfe0fb; min-width: 0; }
+.rolelist div.evil { border-color: #f6c7c9; background: #fff6f6; }
+.rolelist div span:last-child { margin-left: auto; font-size: 12.5px; white-space: nowrap; }
+.rolelist .av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #ffe6bf; flex: none; }
+.rolelist .n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 규칙 */
+.howto { display: flex; flex-direction: column; gap: 12px; }
+.step { background: #fff; border-radius: 16px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+.step .no { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #4a2f6b; color: #fff; display: grid; place-items: center; font-size: 16px; }
+.step h4 { font-size: 16px; color: #4a2f6b; margin-bottom: 4px; }
+.step p { font-size: 13.5px; line-height: 1.55; color: #5a4a3a; } .step p b { color: #c0392b; } .step p b.g { color: var(--good-dark); }
+.rtab { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; color: #5a4a3a; }
+.rtab td, .rtab th { border: 1px solid #eadcc0; padding: 4px; text-align: center; }
+.rtab th { background: #f4ecdc; font-weight: normal; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 80; padding: 14px; }
+.modal.show { display: flex; }
+.modal .card { width: 100%; max-width: 460px; margin: 0; max-height: 88vh; overflow-y: auto; }
+.confetti { position: fixed; top: -20px; font-size: 22px; animation: fall linear forwards; pointer-events: none; z-index: 89; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+
+#joinCode::placeholder, #nick::placeholder { font-family: 'Jua', 'Malgun Gothic', sans-serif; letter-spacing: normal; text-transform: none; color: #b8a58a; }
+#joinCode { font-family: monospace; letter-spacing: .2em; text-transform: uppercase; }
+@media (max-width: 480px) {
+  .title { font-size: 32px; }
+  .qd { width: 40px; height: 40px; font-size: 16px; }
+  .seat { width: 62px; }
+  .seat .av { width: 42px; height: 42px; font-size: 22px; }
+  .seat .nm { font-size: 11.5px; }
+  .center b { font-size: 19px; }
+  .big2 .btn { font-size: 18px; padding: 14px 6px; }
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- 홈 -->
+<section class="screen active" id="home">
+  <div class="title">🏰 아발론</div>
+  <div class="sub">숨은 악당을 찾아라 · 5~10명 · 원정대 정체 추리</div>
+  <div class="card"><h3>닉네임</h3><input class="input" id="nick" placeholder="닉네임 (2~8자)" maxlength="8"><div class="row"><button class="btn green wide" id="btnCreate">방 만들기</button></div></div>
+  <div class="card"><h3>코드로 참가</h3><input class="input" id="joinCode" placeholder="6자리 코드" maxlength="6"><div class="row"><button class="btn blue wide" id="btnJoin">참가하기</button></div></div>
+  <div class="card"><h3>❓ 어떻게 하나요? — 5분이면 배워요</h3><div class="howto" id="howtoHome"></div></div>
+</section>
+
+<!-- 대기실 -->
+<section class="screen" id="lobby">
+  <div class="title" style="font-size:28px;margin-top:10px">대기실</div>
+  <div class="card" style="text-align:center"><h3>방 코드 — 친구에게 알려주세요</h3><div class="code-big" id="lobbyCode">------</div>
+    <div class="row" style="justify-content:center"><button class="btn blue" id="btnCopyLink">🔗 링크 복사</button><button class="btn light" id="btnCopyCode">코드 복사</button></div></div>
+  <div class="card"><h3>🎭 역할 설정 <span style="opacity:.6;font-size:12px" id="setWho"></span></h3><div class="chips" id="roleChips"></div><div class="setnote" id="setNote"></div></div>
+  <div id="lobbyBox"></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveLobby">나가기</button></div>
+</section>
+
+<!-- 게임 -->
+<section class="screen" id="game">
+  <div class="top">
+    <div class="pill">방 <b id="gameCode"></b></div>
+    <div class="pill" id="qPill">원정 1</div>
+    <button class="btn ghost" id="btnRules">❓ 규칙</button>
+    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+  </div>
+  <div class="tracks" id="tracks"></div>
+  <div class="rej" id="rej"></div>
+  <div class="banner" id="banner"></div>
+  <div class="round" id="round"></div>
+  <div class="mybar"><button class="peek" id="btnPeek">🎭 내 역할 — 꾹 누르기</button></div>
+  <div class="panel" id="panel"></div>
+  <div class="log" id="log"></div>
+</section>
+
+<!-- 결과 -->
+<section class="screen" id="end">
+  <div class="card winbox"><h1 id="winTitle">🏆</h1><p class="reason" id="winText"></p></div>
+  <div class="card"><h3>🎭 모두의 정체</h3><div class="rolelist" id="roleList"></div></div>
+  <div class="row" id="endHost"><button class="btn green wide" id="btnAgain">🔁 같은 멤버로 다시</button><button class="btn purple wide" id="btnToLobby">🪑 대기실로</button></div>
+  <div style="text-align:center;font-size:14px;margin-top:10px;opacity:.9" id="endHint"></div>
+  <div class="row"><button class="btn ghost wide" id="btnLeaveEnd">나가기</button></div>
+</section>
+
+<div class="modal" id="rulesModal"><div class="card"><h3>❓ 어떻게 하나요?</h3><div class="howto" id="howtoModal"></div><button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button></div></div>
+<div class="peekov" id="peekov"><div class="rolecard" id="peekCard"></div></div>
+<div class="ov" id="ov"><div class="box" id="ovBox"></div></div>
+
+<script src="party-ux.js"></script>
+<script src="party-lobby.js"></script>
+<script src="party-sound.js"></script><script>Sound.theme('mystery')</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const rpath = c => `games/av_${c}`;   // 규칙상 열린 경로(games/) 아래 av_ 접두
+
+// ── 유틸 ──
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); if (show._last !== id) window.scrollTo(0, 0); show._last = id; Sound.scene(id); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const avatarOf = k => Lobby.avatarOf(k);
+function confetti(n = 24) { const em = ['✨', '🛡️', '⭐', '🎉', '👑']; for (let i = 0; i < n; i++) { const e = document.createElement('div'); e.className = 'confetti'; e.textContent = em[i % em.length]; e.style.left = Math.random() * 100 + 'vw'; e.style.animationDuration = 2 + Math.random() * 2 + 's'; document.body.appendChild(e); setTimeout(() => e.remove(), 4200); } }
+
+// ── 규칙 데이터 (레지스탕스: 아발론 공식 인원표) ──
+const EVIL_N = { 5: 2, 6: 2, 7: 3, 8: 3, 9: 3, 10: 4 };
+const QSIZE = { 5: [2, 3, 2, 3, 3], 6: [2, 3, 4, 3, 4], 7: [2, 3, 3, 4, 4], 8: [3, 4, 4, 5, 5], 9: [3, 4, 4, 5, 5], 10: [3, 4, 4, 5, 5] };
+const needFails = (n, q) => (n >= 7 && q === 3) ? 2 : 1;   // 7명 이상이면 4번째 원정은 실패 카드 2장이 있어야 실패
+const ROLES = {
+  merlin:   { n: '멀린', ic: '🧙', side: 'good', d: '악의 세력이 누군지 알아요 (모드레드만 빼고). 하지만 티 내면 마지막에 암살자에게 당해요!' },
+  percival: { n: '퍼시벌', ic: '🛡️', side: 'good', d: '멀린 후보 두 명이 보여요 — 진짜 멀린과, 멀린인 척하는 모르가나. 진짜를 지켜 주세요.' },
+  loyal:    { n: '아서왕의 충신', ic: '⚔️', side: 'good', d: '아무 정보도 없어요. 투표와 대화로 악당을 찾아내세요!' },
+  assassin: { n: '암살자', ic: '🗡️', side: 'evil', d: '선이 원정 3번을 성공해도, 끝에 멀린을 정확히 찍으면 역전승!' },
+  morgana:  { n: '모르가나', ic: '🔮', side: 'evil', d: '퍼시벌 눈에 멀린처럼 보여요. 멀린인 척 퍼시벌을 속이세요.' },
+  mordred:  { n: '모드레드', ic: '👿', side: 'evil', d: '멀린조차 당신을 못 봐요. 마음껏 착한 척하세요.' },
+  oberon:   { n: '오베론', ic: '🌑', side: 'evil', d: '외톨이 악당 — 동료 악당은 당신을 모르고, 당신도 동료를 몰라요. (멀린에겐 보여요)' },
+  minion:   { n: '모드레드의 하수인', ic: '😈', side: 'evil', d: '동료 악당이 누군지 알아요. 원정대에 끼어 몰래 실패 카드를 내세요!' },
+};
+const OPTS = [
+  { k: 'merlin', t: '🧙 멀린 · 🗡️ 암살자', d: '기본 — 끄면 정보 없이 하는 단순판' },
+  { k: 'percival', t: '🛡️ 퍼시벌', d: '선' },
+  { k: 'morgana', t: '🔮 모르가나', d: '악' },
+  { k: 'mordred', t: '👿 모드레드', d: '악' },
+  { k: 'oberon', t: '🌑 오베론', d: '악' },
+];
+const DEF_SET = { merlin: true, percival: false, morgana: false, mordred: false, oberon: false };
+const sideOf = r => ROLES[r] ? ROLES[r].side : 'good';
+function specialEvil(set) { return (set.merlin ? 1 : 0) + (set.morgana ? 1 : 0) + (set.mordred ? 1 : 0) + (set.oberon ? 1 : 0); }
+function specialGood(set) { return (set.merlin ? 1 : 0) + (set.percival ? 1 : 0); }
+// 내가 아는 것: [{ k, t, cls }]
+function knowledge(g, me) {
+  const r = g.roles[me], out = []; if (!r) return out;
+  for (const k of g.order) {
+    if (k === me) continue; const x = g.roles[k];
+    if (r === 'merlin' && sideOf(x) === 'evil' && x !== 'mordred') out.push({ k, t: '악', cls: '' });
+    else if (r === 'percival' && (x === 'merlin' || x === 'morgana')) out.push({ k, t: '멀린?', cls: 'mer' });
+    else if (sideOf(r) === 'evil' && r !== 'oberon' && sideOf(x) === 'evil' && x !== 'oberon') out.push({ k, t: ROLES[x].n.length <= 4 ? ROLES[x].n : '동료', cls: '' });
+  }
+  return out;
+}
+function knowText(g, me) {
+  const r = g.roles[me], kn = knowledge(g, me), nm = k => esc(nickOf(k));
+  if (r === 'merlin') return kn.length ? `👁 악의 세력: <b>${kn.map(x => nm(x.k)).join(', ')}</b>${g.set && g.set.mordred ? '<br><small>(모드레드는 안 보여요)</small>' : ''}` : '👁 보이는 악당이 없어요';
+  if (r === 'percival') return kn.length ? `👁 멀린 후보: <b>${kn.map(x => nm(x.k)).join(', ')}</b>${kn.length > 1 ? '<br><small>둘 중 하나는 모르가나예요</small>' : ''}` : '👁 멀린이 없는 판이에요';
+  if (sideOf(r) === 'evil' && r !== 'oberon') return kn.length ? `🤝 동료 악당: <b>${kn.map(x => `${nm(x.k)}(${ROLES[g.roles[x.k]].n})`).join(', ')}</b>${g.set && g.set.oberon ? '<br><small>오베론은 따로 숨어 있어요</small>' : ''}` : '🤝 보이는 동료가 없어요';
+  if (r === 'oberon') return '🤫 아무도 모르고, 아무도 당신을 몰라요';
+  return '🤔 아무것도 몰라요 — 대화로 찾아내세요!';
+}
+function roleCardHtml(g, me, veiled) {
+  const r = g.roles[me], R = ROLES[r]; if (!R) return '';
+  return `<div class="ic">${R.ic}</div><div class="rn">${R.n}</div><div class="side">${R.side === 'good' ? '🛡️ 선의 세력 — 원정을 성공시키세요' : '🗡️ 악의 세력 — 원정을 망치세요'}</div><div class="ds">${R.d}</div><div class="kn">${knowText(g, me)}</div>${veiled ? '<div class="veil" id="veil">👆 꾹 누르고 있으면 보여요<small>손 떼면 바로 가려져요 · 옆 사람 조심!</small></div>' : ''}`;
+}
+
+// ── 상태 ──
+let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [], discoSet = false;
+let lastVoteSeen = null, lastQuestSeen = null, assassinPick = null;
+const G = () => room && room.game;
+const nickOf = k => (room && room.players && room.players[k] && room.players[k].nick) || '(나감)';
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+function roomRef() { return db.ref(rpath(code)); }
+
+// ── 홈 ──
+(function init() {
+  const saved = localStorage.getItem('av_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+  $('howtoHome').innerHTML = $('howtoModal').innerHTML = howtoHtml();
+})();
+UX.nick('nick', 'joinCode', 'btnCreate', 'btnJoin');
+UX.emphasizeJoin(document.getElementById('joinCode').closest('.card'), 'home');
+UX.resumeCard('av', 'home', c => db.ref(rpath(c)).once('value').then(sn => { const r = sn.val(); return !!r && !(r.expiresAt && Date.now() > r.expiresAt); }), v => { $('nick').value = v.nick; $('joinCode').value = v.code; $('btnJoin').click(); });
+function getNick() {
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = UX.randomNick(); $('nick').value = n; toast('닉네임을 자동으로 정했어요: ' + n); }
+  localStorage.setItem('av_nick', n); return n;
+}
+$('btnCreate').onclick = async () => {
+  const n = getNick(); myNick = n; myKey = sanitizeKey(n); code = genCode(); isHost = true;
+  await roomRef().set({ host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 3 * 3600e3, status: 'lobby', settings: DEF_SET,
+    players: { [myKey]: { nick: n, joinedAt: Date.now(), ready: false } } });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  const n = getNick(); const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const r = (await db.ref(rpath(c)).once('value')).val();
+  if (!r) return toast('방을 찾을 수 없어요');
+  if (r.expiresAt && Date.now() > r.expiresAt) { db.ref(rpath(c)).remove(); return toast('만료된 방이에요'); }
+  const k = sanitizeKey(n), already = r.players && r.players[k];
+  if (r.status !== 'lobby' && !already) return toast('이미 시작된 방이에요 (같은 닉네임이면 다시 들어갈 수 있어요)');
+  if (!already && Object.keys(r.players || {}).length >= 10) return toast('정원(10명)이 찼어요');
+  myNick = n; myKey = k; code = c; isHost = r.host === k;
+  if (!already) await db.ref(`${rpath(c)}/players/${k}`).set({ nick: n, joinedAt: Date.now(), ready: false });
+  enterRoom();
+};
+
+// ── 방 구독 ──
+function enterRoom() {
+  offAll(); Sound.resetState(); discoSet = false; lastVoteSeen = lastQuestSeen = null; assassinPick = null;
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); leave(false); return; }
+    isHost = room.host === myKey;
+    if (room.status === 'lobby') { setDisco(true); renderLobby(); }
+    else { setDisco(false); const g = G(); if (g && g.winner) renderEnd(); else if (g) renderGame(); }
+  });
+  listeners.push(() => ref.off('value', cb));
+  UX.remember('av', code, myNick);
+  listeners.push(() => setDisco(false));
+}
+function setDisco(on) {
+  if (on === discoSet) return; discoSet = on;
+  const me = db.ref(`${rpath(code)}/players/${myKey}`);
+  if (on) { if (!isHost) me.onDisconnect().remove(); }
+  else { roomRef().onDisconnect().cancel(); me.onDisconnect().cancel(); }
+}
+function leave(ask = true) {
+  if (ask && !confirm('방을 나갈까요?')) return;
+  UX.forget('av'); LB.stop(); offAll();
+  if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
+  room = null; code = ''; isHost = false; hideOv(); show('home');
+}
+$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave(); $('btnLeaveEnd').onclick = () => leave();
+
+// ── 대기실 ──
+const LB = Lobby.mount({
+  el: $('lobbyBox'), ref: () => roomRef(), me: () => myKey, host: () => isHost, toast,
+  leader: { field: 'lead', name: '첫 원정대장', icon: '👑', perTeam: false, required: false, selfPick: false },
+  min: 5, max: 10,
+  check: ps => { const n = ps.length, set = Object.assign({}, DEF_SET, room.settings); if (EVIL_N[n] && specialEvil(set) > EVIL_N[n]) return `${n}명이면 악당이 ${EVIL_N[n]}명뿐 — 악역을 줄여 주세요`; return null; },
+  tip: h => h ? '👑 첫 원정대장을 정할 수 있어요 (안 정하면 랜덤) · 원정대장은 자리 순서대로 넘어가요' : '원정대장은 자리 순서대로 돌아가요 — 방장이 자리를 섞을 수 있어요',
+  startLabel: '⚔️ 게임 시작',
+  onStart: () => startGame(),
+  onKicked: () => { if (room && room.status === 'lobby') { toast('방장이 방에서 내보냈어요'); leave(false); } },
+});
+function renderLobby() {
+  show('lobby'); hideOv();
+  $('lobbyCode').textContent = code;
+  const set = Object.assign({}, DEF_SET, room.settings), n = Object.keys(room.players || {}).length;
+  $('setWho').textContent = isHost ? '(방장이 고를 수 있어요)' : '(방장이 정해요)';
+  $('roleChips').innerHTML = OPTS.map(o => `<div class="chip ${set[o.k] ? 'on' : ''} ${isHost ? '' : 'lock'}" data-k="${o.k}">${o.t}</div>`).join('');
+  if (isHost) $('roleChips').querySelectorAll('.chip').forEach(el => el.onclick = () => { Sound.play('tap'); roomRef().child('settings/' + el.dataset.k).set(!set[el.dataset.k]); });
+  const ne = EVIL_N[Math.min(10, Math.max(5, n))], ng = Math.min(10, Math.max(5, n)) - ne;
+  const roster = [set.merlin ? '🧙멀린' : '', set.percival ? '🛡️퍼시벌' : ''].filter(Boolean), evil = [set.merlin ? '🗡️암살자' : '', set.morgana ? '🔮모르가나' : '', set.mordred ? '👿모드레드' : '', set.oberon ? '🌑오베론' : ''].filter(Boolean);
+  $('setNote').innerHTML = n >= 5 ? `${n}명 → <b style="color:#1f4fa8">선 ${ng}명</b>${roster.length ? ` (${roster.join(' ')} + 충신 ${ng - roster.length})` : ''} · <b style="color:#9c2329">악 ${ne}명</b>${evil.length ? ` (${evil.join(' ')}${ne - evil.length > 0 ? ` + 하수인 ${ne - evil.length}` : ''})` : ''}<br>원정 인원: ${QSIZE[n].join(' → ')}${n >= 7 ? ' (4번째는 실패 2장이어야 실패)' : ''}`
+    : `5명부터 할 수 있어요 — 친구를 더 불러 주세요 (지금 ${n}명)`;
+  LB.render(room);
+}
+$('btnCopyLink').onclick = () => UX.share(location.href.split('?')[0] + '?room=' + code, '아발론 방 ' + code, toast);
+$('btnCopyCode').onclick = () => navigator.clipboard.writeText(code).then(() => toast('코드를 복사했어요')).catch(() => prompt('복사해 주세요', code));
+
+// ── 게임 시작 ──
+// 자리 순서 (대기실과 같은 기준: 자리 섞기 번호 → 들어온 순서). 대기실을 안 거쳐도 쓸 수 있게 방 데이터에서 직접
+function seatList() { return Object.entries(room.players || {}).map(([k, p]) => Object.assign({ k }, p)).sort((a, b) => ((a.seat == null ? 1e15 : a.seat) - (b.seat == null ? 1e15 : b.seat)) || ((a.joinedAt || 0) - (b.joinedAt || 0))); }
+function startGame() {
+  const ps = seatList(), n = ps.length;
+  if (n < 5 || n > 10) return toast('5~10명이 필요해요');
+  const set = Object.assign({}, DEF_SET, room.settings), ne = EVIL_N[n], ng = n - ne;
+  if (specialEvil(set) > ne) return toast(`악당이 ${ne}명뿐이라 악역을 줄여 주세요`);
+  const evil = [], good = [];
+  if (set.merlin) { evil.push('assassin'); good.push('merlin'); }
+  if (set.morgana) evil.push('morgana'); if (set.mordred) evil.push('mordred'); if (set.oberon) evil.push('oberon');
+  if (set.percival) good.push('percival');
+  while (evil.length < ne) evil.push('minion');
+  while (good.length < ng) good.push('loyal');
+  const order = ps.map(p => p.k), deck = shuffle([...evil, ...good]), roles = {};
+  order.forEach((k, i) => roles[k] = deck[i]);
+  const li = order.findIndex(k => room.players[k] && room.players[k].lead);
+  const game = { round: ((G() && G().round) || 0) + 1, order, roles, set, seen: {}, phase: 'roles', quest: 0, results: [], leader: li >= 0 ? li : Math.floor(Math.random() * n),
+    rejects: 0, pick: [], votes: {}, qcards: {}, winner: null, log: [`🏰 ${n}명 · 선 ${ng} vs 악 ${ne} — 역할을 확인하세요`] };
+  roomRef().update({ status: 'playing', game, expiresAt: Date.now() + 3 * 3600e3 });
+}
+$('btnAgain').onclick = () => { if (!isHost) return toast('방장만 다시 시작할 수 있어요'); startGame(); };
+$('btnToLobby').onclick = () => {
+  if (!isHost) return;
+  const up = { status: 'lobby', game: null };
+  Object.keys(room.players || {}).forEach(k => { up[`players/${k}/ready`] = false; });
+  roomRef().update(up);
+};
+
+// ── 진행 (모든 전환은 트랜잭션: 마지막으로 행동한 사람이 다음 단계로 넘김 — 방장이 없어도 굴러감) ──
+function norm(g) { g.pick = g.pick || []; g.votes = g.votes || {}; g.qcards = g.qcards || {}; g.results = g.results || []; g.seen = g.seen || {}; g.log = g.log || []; return g; }
+function addLog(g, t) { g.log = [t, ...(g.log || [])].slice(0, 12); }
+const leaderKey = g => g.order[g.leader % g.order.length];
+const qsize = g => QSIZE[g.order.length][g.quest];
+function act(fn) { return roomRef().child('game').transaction(g => { if (!g) return g; norm(g); if (g.winner) return; const r = fn(g); if (r === false) return; if (g.winner) g.phase = 'done'; return g; }); }   // 승패가 나면 더는 아무것도 못 바꿈
+function nextLeader(g) { g.leader = (g.leader + 1) % g.order.length; g.pick = []; g.votes = {}; g.phase = 'propose'; }
+function confirmRole() { act(g => { if (g.phase !== 'roles') return false; g.seen[myKey] = true; if (g.order.every(k => g.seen[k])) { g.phase = 'propose'; addLog(g, `👑 ${nickOf(leaderKey(g))} 님이 첫 원정대장이에요`); } }); Sound.play('correct'); }
+function forceStart() { act(g => { if (g.phase !== 'roles') return false; g.phase = 'propose'; addLog(g, `👑 ${nickOf(leaderKey(g))} 님이 첫 원정대장이에요`); }); }
+function togglePick(k) {
+  const g = G(); if (!g || g.phase !== 'propose' || leaderKey(g) !== myKey) return;
+  const pick = [...(g.pick || [])], i = pick.indexOf(k);
+  if (i >= 0) pick.splice(i, 1); else { if (pick.length >= qsize(g)) return toast(`이번 원정은 ${qsize(g)}명이에요 — 먼저 한 명을 빼 주세요`); pick.push(k); }
+  roomRef().child('game/pick').set(pick); Sound.play('tap');
+}
+function propose() {
+  act(g => { if (g.phase !== 'propose' || leaderKey(g) !== myKey || g.pick.length !== qsize(g)) return false; g.phase = 'vote'; g.votes = {}; addLog(g, `⚔️ ${nickOf(myKey)}: ${g.pick.map(nickOf).join(', ')} 원정대 제안`); });
+  Sound.play('submit');
+}
+function vote(yes) {
+  const g = G(); if (!g || g.phase !== 'vote') return;
+  roomRef().child('game/votes/' + myKey).set(!!yes).then(resolveVote); Sound.play('vote');
+}
+function resolveVote() {
+  act(g => {
+    if (g.phase !== 'vote' || !g.order.every(k => k in g.votes)) return false;
+    const yes = g.order.filter(k => g.votes[k]).length, ok = yes * 2 > g.order.length;
+    g.lastVote = { id: Date.now() + '' + Math.random().toString(36).slice(2, 6), votes: g.votes, ok, pick: g.pick, leader: leaderKey(g), yes, no: g.order.length - yes, rejects: ok ? g.rejects : g.rejects + 1 };
+    if (ok) { g.phase = 'quest'; g.qcards = {}; g.rejects = 0; addLog(g, `✅ 가결 (${yes}:${g.order.length - yes}) — 원정 출발!`); }
+    else {
+      g.rejects++; addLog(g, `❌ 부결 (${yes}:${g.order.length - yes}) — 부결 ${g.rejects}/5`);
+      if (g.rejects >= 5) { g.winner = 'evil'; g.reason = '원정대 제안이 5번 연속 부결됐어요 — 혼란 속에 악의 승리!'; }
+      else nextLeader(g);
+    }
+  });
+}
+function playCard(c) {
+  const g = G(); if (!g || g.phase !== 'quest' || !g.pick.includes(myKey)) return;
+  if (c === 'f' && sideOf(g.roles[myKey]) === 'good') return toast('선의 세력은 성공 카드만 낼 수 있어요');
+  roomRef().child('game/qcards/' + myKey).set(c).then(resolveQuest); Sound.play('flip');
+}
+function resolveQuest() {
+  act(g => {
+    if (g.phase !== 'quest' || !g.pick.every(k => g.qcards[k])) return false;
+    const n = g.order.length, fails = g.pick.filter(k => g.qcards[k] === 'f').length, need = needFails(n, g.quest), ok = fails < need;
+    g.results.push(ok ? 's' : 'f');
+    g.lastQuest = { id: Date.now() + '' + Math.random().toString(36).slice(2, 6), q: g.quest, fails, size: g.pick.length, ok, need, cards: shuffle(g.pick.map(k => g.qcards[k])) };
+    addLog(g, `${ok ? '🛡️ 원정 성공' : '💀 원정 실패'} (실패 카드 ${fails}장)`);
+    const S = g.results.filter(x => x === 's').length, F = g.results.length - S;
+    if (F >= 3) { g.winner = 'evil'; g.reason = '원정이 3번 실패했어요 — 악의 승리!'; return; }
+    if (S >= 3) {
+      if (g.set && g.set.merlin) { g.phase = 'assassin'; addLog(g, '🗡️ 원정 3번 성공! 하지만 암살자가 멀린을 노려요…'); return; }
+      g.winner = 'good'; g.reason = '원정 3번 성공 — 선의 승리!'; return;
+    }
+    g.quest++; g.qcards = {}; nextLeader(g);
+  });
+}
+function assassinate(k) {
+  act(g => {
+    if (g.phase !== 'assassin' || g.roles[myKey] !== 'assassin' || k === myKey || !g.roles[k]) return false;
+    g.target = k;
+    if (g.roles[k] === 'merlin') { g.winner = 'evil'; g.reason = `🗡️ 암살자가 멀린(${nickOf(k)})을 찾아냈어요 — 악의 역전승!`; }
+    else { g.winner = 'good'; g.reason = `🗡️ 암살자가 ${nickOf(k)} 님을 찍었지만 멀린이 아니었어요 — 선의 승리!`; }
+  });
+  Sound.play('boom');
+}
+
+// ── 그리기 ──
+function renderGame() {
+  show('game');
+  const g = norm(G()), n = g.order.length, me = myKey, lead = leaderKey(g), myRole = g.roles[me];
+  $('gameCode').textContent = code;
+  $('qPill').textContent = g.phase === 'roles' ? '역할 확인' : g.phase === 'assassin' ? '암살 시간' : `원정 ${g.quest + 1} · ${qsize(g)}명`;
+  // 원정 트랙
+  $('tracks').innerHTML = QSIZE[n].map((sz, i) => { const r = g.results[i]; return `<div class="qd ${r || ''} ${i === g.quest && !r && g.phase !== 'assassin' ? 'now' : ''}">${r === 's' ? '🛡️' : r === 'f' ? '💀' : sz}${needFails(n, i) > 1 ? '<small>실패2</small>' : ''}</div>`; }).join('');
+  $('rej').innerHTML = `부결 ${[0, 1, 2, 3, 4].map(i => `<i class="${i < g.rejects ? 'on' : ''}"></i>`).join('')} <span style="margin-left:4px;opacity:.75">5번 연속이면 악 승리</span>`;
+  // 배너
+  const b = $('banner'); let hot = false, text = '';
+  if (g.phase === 'roles') text = '🎭 내 역할을 확인하세요 (옆 사람에게 안 보이게!)';
+  else if (g.phase === 'propose') { hot = lead === me; text = hot ? `👑 내가 원정대장! 원정대 ${qsize(g)}명을 고르세요` : `👑 ${nickOf(lead)} 님이 원정대를 고르는 중 — 토론하세요`; }
+  else if (g.phase === 'vote') { hot = !(me in g.votes); text = hot ? '🗳️ 이 원정대로 갈까요? 투표해 주세요' : `🗳️ 투표 중… (${Object.keys(g.votes).length}/${n})`; }
+  else if (g.phase === 'quest') { hot = g.pick.includes(me) && !g.qcards[me]; text = g.pick.includes(me) ? (g.qcards[me] ? '⏳ 다른 원정대원을 기다리는 중' : '⚔️ 원정 카드를 몰래 내세요') : `⚔️ 원정 중… (${Object.keys(g.qcards).length}/${g.pick.length})`; }
+  else if (g.phase === 'assassin') { hot = myRole === 'assassin'; text = hot ? '🗡️ 멀린이라고 생각하는 사람을 찍으세요!' : sideOf(myRole) === 'evil' ? '🗡️ 암살자와 함께 멀린을 찾으세요' : '🙏 악당들이 멀린을 찾는 중… 들키지 마세요!'; }
+  b.className = 'banner' + (hot ? ' hot' : ''); b.textContent = text;
+  if (hot && renderGame._hot !== g.phase + g.quest + g.leader + g.rejects) UX.notify('turn');
+  renderGame._hot = hot ? g.phase + g.quest + g.leader + g.rejects : null;
+  // 원탁
+  const kn = Object.fromEntries(knowledge(g, me).map(x => [x.k, x]));
+  const pickable = (g.phase === 'propose' && lead === me) || (g.phase === 'assassin' && myRole === 'assassin');
+  const rx = 41, ry = 40;
+  $('round').innerHTML = `<div class="center"><b>${g.phase === 'assassin' ? '🗡️ 암살' : g.phase === 'roles' ? '🏰' : `원정 ${g.quest + 1}`}</b><span>${g.phase === 'roles' ? `확인 ${Object.keys(g.seen).length}/${n}` : g.phase === 'assassin' ? '멀린을 찾아라' : `${qsize(g)}명 출발${needFails(n, g.quest) > 1 ? ' · 실패 2장 필요' : ''}`}</span></div>` +
+    g.order.map((k, i) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / n, x = 50 + rx * Math.cos(a), y = 50 + ry * Math.sin(a);
+      const inPick = g.pick.includes(k), mark = [];
+      if (k === lead && g.phase !== 'roles' && g.phase !== 'assassin') mark.push('<span class="crown">👑</span>');
+      if (inPick && (g.phase === 'propose' || g.phase === 'vote' || g.phase === 'quest')) mark.push('<span class="sword">⚔️</span>');
+      if (g.phase === 'vote' && k in g.votes) mark.push('<span class="done">✓</span>');
+      if (g.phase === 'quest' && inPick && g.qcards[k]) mark.push('<span class="done">✓</span>');
+      if (g.phase === 'roles' && g.seen[k]) mark.push('<span class="done">✓</span>');
+      if (g.phase === 'assassin' && assassinPick === k) mark.push('<span class="sword">🗡️</span>');
+      const can = pickable && (g.phase === 'propose' || (k !== me && !kn[k]));
+      return `<div class="seat ${k === me ? 'me' : ''} ${can ? 'pickable' : ''} ${(inPick && g.phase === 'propose') || (g.phase === 'assassin' && assassinPick === k) ? 'picked' : ''} ${room.players[k] ? '' : 'off'}" data-k="${esc(k)}" style="left:${x}%;top:${y}%">
+        <div class="av">${avatarOf(k)}${mark.join('')}</div><div class="nm">${esc(nickOf(k))}${k === me ? ' (나)' : ''}</div></div>`;
+    }).join('');
+  $('round').querySelectorAll('.seat.pickable').forEach(el => el.onclick = () => {
+    if (g.phase === 'propose') togglePick(el.dataset.k);
+    else { assassinPick = assassinPick === el.dataset.k ? null : el.dataset.k; Sound.play('tap'); renderGame(); }
+  });
+  renderPanel(g);
+  if (g.phase === 'vote' && g.order.every(k => k in g.votes)) resolveVote();
+  if (g.phase === 'quest' && g.pick.length && g.pick.every(k => g.qcards[k])) resolveQuest();
+  hostAssist(g);
+  $('log').innerHTML = g.log.slice(0, 3).map(l => `<div>${esc(l)}</div>`).join('');
+  Sound.log(g.log[0]);
+  revealCheck(g);
+}
+function renderPanel(g) {
+  const P = $('panel'), me = myKey, n = g.order.length, lead = leaderKey(g), myRole = g.roles[me];
+  if (g.phase === 'roles') {
+    const seen = !!g.seen[me];
+    P.innerHTML = `<h3>🎭 내 역할</h3><div class="rolecard ${sideOf(myRole)}" id="roleCard">${roleCardHtml(g, me, true)}</div>
+      <div class="row"><button class="btn ${seen ? 'light' : 'green'} wide" id="btnSeen" ${seen ? 'disabled' : ''}>${seen ? `✅ 확인 완료 — 기다리는 중 (${Object.keys(g.seen).length}/${n})` : '✅ 확인했어요'}</button></div>
+      ${isHost ? `<div class="row"><button class="btn light" id="btnForce" style="font-size:13px">⏩ 기다리지 않고 시작</button></div>` : ''}`;
+    UX.holdToPeek($('roleCard'), $('veil'));
+    $('btnSeen').onclick = confirmRole; if ($('btnForce')) $('btnForce').onclick = () => confirm('모두 확인하지 않았어도 시작할까요?') && forceStart();
+    return;
+  }
+  if (g.phase === 'propose') {
+    const sz = qsize(g);
+    if (lead === me) {
+      P.innerHTML = `<h3>👑 원정대 ${sz}명 고르기 (${g.pick.length}/${sz})</h3><p>원탁의 자리를 눌러 넣고 빼세요. 나를 넣어도 돼요.</p>
+        <div class="names">${g.pick.map(k => `<span>${avatarOf(k)} ${esc(nickOf(k))}</span>`).join('') || '<span style="opacity:.6">아직 아무도</span>'}</div>
+        <div class="row"><button class="btn green wide" id="btnPropose" ${g.pick.length === sz ? '' : 'disabled'}>⚔️ 이 원정대로 제안</button></div>`;
+      $('btnPropose').onclick = propose;
+    } else P.innerHTML = `<h3>👑 ${esc(nickOf(lead))} 님이 고르는 중 (${g.pick.length}/${sz})</h3><p>누구를 데려가야 할지 같이 이야기해요.<br>제안이 나오면 모두 찬반 투표를 해요.</p>${g.pick.length ? `<div class="names">${g.pick.map(k => `<span>${avatarOf(k)} ${esc(nickOf(k))}</span>`).join('')}</div>` : ''}`;
+    return;
+  }
+  if (g.phase === 'vote') {
+    const my = g.votes[me];
+    P.innerHTML = `<h3>🗳️ 원정대 투표 (${Object.keys(g.votes).length}/${n})</h3><div class="names">${g.pick.map(k => `<span>${avatarOf(k)} ${esc(nickOf(k))}</span>`).join('')}</div>
+      <p>과반이 찬성해야 출발해요. 부결되면 원정대장이 다음 사람에게 넘어가요.${g.rejects === 4 ? '<br><b style="color:#c0392b">⚠️ 이번에도 부결되면 악의 승리!</b>' : ''}</p>
+      <div class="big2"><button class="btn green ${my === true ? 'sel' : ''}" id="vYes">👍 찬성</button><button class="btn red ${my === false ? 'sel' : ''}" id="vNo">👎 반대</button></div>
+      <p style="margin-top:8px;font-size:12.5px;opacity:.8">${me in g.votes ? '다른 사람이 다 낼 때까지 바꿀 수 있어요' : '투표는 모두 낸 뒤 한꺼번에 공개돼요'}</p>`;
+    $('vYes').onclick = () => vote(true); $('vNo').onclick = () => vote(false);
+    return;
+  }
+  if (g.phase === 'quest') {
+    if (g.pick.includes(me)) {
+      const my = g.qcards[me], good = sideOf(myRole) === 'good';
+      P.innerHTML = `<h3>⚔️ 원정 카드 — 몰래 내세요</h3><p>${good ? '선의 세력은 <b>성공</b>만 낼 수 있어요.' : '악당은 성공·실패 아무거나 낼 수 있어요. 들키지 않게!'}</p>
+        <div class="big2"><button class="btn blue qcard ${my === 's' ? 'sel' : ''}" id="cS" ${my ? 'disabled' : ''}>✨ 성공</button><button class="btn red qcard ${my === 'f' ? 'sel' : ''}" id="cF" ${my || good ? 'disabled' : ''}>💀 실패</button></div>
+        ${my ? '<p style="margin-top:8px">제출했어요 — 결과는 섞어서 공개돼요</p>' : ''}`;
+      $('cS').onclick = () => playCard('s'); $('cF').onclick = () => playCard('f');
+    } else P.innerHTML = `<h3>⚔️ 원정 중 (${Object.keys(g.qcards).length}/${g.pick.length})</h3><div class="names">${g.pick.map(k => `<span>${avatarOf(k)} ${esc(nickOf(k))}${g.qcards[k] ? ' ✓' : ''}</span>`).join('')}</div><p>원정대가 몰래 카드를 고르고 있어요.${needFails(n, g.quest) > 1 ? '<br>이번엔 실패 카드가 <b>2장</b> 나와야 실패해요.' : ''}</p>`;
+    return;
+  }
+  if (g.phase === 'assassin') {
+    if (myRole === 'assassin') {
+      P.innerHTML = `<h3>🗡️ 마지막 기회 — 멀린을 찍으세요</h3><p>원탁에서 멀린 같은 사람을 누르고 확정하세요.<br>맞히면 악의 역전승!</p>
+        <div class="names">${assassinPick ? `<span>${avatarOf(assassinPick)} ${esc(nickOf(assassinPick))}</span>` : '<span style="opacity:.6">아직 안 골랐어요</span>'}</div>
+        <div class="row"><button class="btn red wide" id="btnKill" ${assassinPick ? '' : 'disabled'}>🗡️ 이 사람이 멀린!</button></div>`;
+      $('btnKill').onclick = () => { if (assassinPick && confirm(`${nickOf(assassinPick)} 님을 멀린으로 찍을까요?`)) assassinate(assassinPick); };
+    } else {
+      const ak = g.order.find(k => g.roles[k] === 'assassin');
+      P.innerHTML = `<h3>🗡️ 암살 시간</h3><p>${sideOf(myRole) === 'evil' ? `암살자 <b>${esc(nickOf(ak))}</b> 님과 상의해서 멀린을 찾으세요!` : '선의 세력은 조용히… 멀린이 누군지 티 내지 마세요!'}</p>`;
+    }
+  }
+}
+
+// 방장 도움: 자리를 비운 사람 때문에 판이 멈췄을 때
+function hostAssist(g) {
+  if (!isHost || g.phase === 'roles' || g.phase === 'assassin') return;
+  const P = $('panel'), lead = leaderKey(g); let btn = '';
+  if (g.phase === 'propose' && lead !== myKey) btn = `<button class="btn light" id="hAssist" style="font-size:13px">⏩ 원정대장 다음 사람에게 넘기기</button>`;
+  if (g.phase === 'vote') { const miss = g.order.filter(k => !(k in g.votes)); if (miss.length && miss.length < g.order.length) btn = `<button class="btn light" id="hAssist" style="font-size:13px">⏩ 안 낸 ${miss.length}명은 찬성으로</button>`; }
+  if (g.phase === 'quest') { const miss = g.pick.filter(k => !g.qcards[k]); if (miss.length && miss.length < g.pick.length) btn = `<button class="btn light" id="hAssist" style="font-size:13px">⏩ 안 낸 ${miss.length}명은 성공으로</button>`; }
+  if (!btn) return;
+  P.insertAdjacentHTML('beforeend', `<div class="row" style="margin-top:12px;border-top:2px dashed #e6c58f;padding-top:10px">${btn}<span style="font-size:12px;color:#8a6ab8;width:100%;text-align:center">방장 전용 · 누가 자리를 비웠을 때만 쓰세요</span></div>`);
+  $('hAssist').onclick = () => {
+    if (!confirm('정말 대신 넘길까요?')) return;
+    if (g.phase === 'propose') act(x => { if (x.phase !== 'propose') return false; addLog(x, `⏩ 방장이 원정대장을 ${nickOf(leaderKey(x))} 님에서 다음으로 넘겼어요`); nextLeader(x); });
+    else if (g.phase === 'vote') act(x => { if (x.phase !== 'vote') return false; x.order.forEach(k => { if (!(k in x.votes)) x.votes[k] = true; }); }).then(resolveVote);
+    else if (g.phase === 'quest') act(x => { if (x.phase !== 'quest') return false; x.pick.forEach(k => { if (!x.qcards[k]) x.qcards[k] = 's'; }); }).then(resolveQuest);
+  };
+}
+
+// ── 결과 연출 (투표 공개 · 원정 카드 뒤집기) ──
+function hideOv() { $('ov').classList.remove('show'); clearTimeout(hideOv._t); }
+$('ov').onclick = hideOv;
+function revealCheck(g) {
+  if (g.lastVote && g.lastVote.id !== lastVoteSeen) {
+    const first = lastVoteSeen === null; lastVoteSeen = g.lastVote.id;
+    if (!first) showVote(g.lastVote, g);
+  }
+  if (g.lastQuest && g.lastQuest.id !== lastQuestSeen) {
+    const first = lastQuestSeen === null; lastQuestSeen = g.lastQuest.id;
+    if (!first) showQuest(g.lastQuest);
+  }
+}
+function showVote(v, g) {
+  $('ovBox').innerHTML = `<h2>${v.ok ? '✅ 가결 — 원정 출발!' : `❌ 부결 (${v.rejects}/5)`}</h2><div style="font-size:14px;margin-bottom:8px">찬성 ${v.yes} · 반대 ${v.no}</div>
+    <div class="vgrid">${g.order.map(k => `<div class="${v.votes[k] ? 'y' : 'n'}"><b>${v.votes[k] ? '👍' : '👎'}</b>${avatarOf(k)} ${esc(nickOf(k))}</div>`).join('')}</div><div class="tap">눌러서 닫기</div>`;
+  $('ov').classList.add('show'); Sound.play(v.ok ? 'correct' : 'wrong');
+  clearTimeout(hideOv._t); hideOv._t = setTimeout(hideOv, 4200);
+}
+function showQuest(q) {
+  $('ovBox').innerHTML = `<h2>원정 ${q.q + 1} 결과</h2><div class="cards">${q.cards.map(() => '<div class="qc"></div>').join('')}</div><div id="qRes" style="font-size:22px;min-height:30px"></div><div class="tap">눌러서 닫기</div>`;
+  $('ov').classList.add('show'); Sound.play('reveal'); clearTimeout(hideOv._t);
+  const els = [...$('ovBox').querySelectorAll('.qc')];
+  q.cards.forEach((c, i) => setTimeout(() => { const e = els[i]; if (!e) return; e.className = 'qc flip ' + c; e.textContent = c === 's' ? '✨' : '💀'; Sound.play(c === 's' ? 'flip' : 'boom'); }, 700 + i * 650));
+  setTimeout(() => { const r = $('qRes'); if (r) r.innerHTML = q.ok ? '🛡️ 원정 성공!' : `💀 원정 실패… (실패 ${q.fails}장)`; Sound.play(q.ok ? 'win' : 'lose'); }, 900 + q.cards.length * 650);
+  hideOv._t = setTimeout(hideOv, 2600 + q.cards.length * 650);
+}
+
+// ── 결과 화면 ──
+function renderEnd() {
+  const g = norm(G());
+  const was = show._last; show('end');
+  const goodWin = g.winner === 'good', mine = sideOf(g.roles[myKey]);
+  $('winTitle').textContent = goodWin ? '🛡️ 선의 승리!' : '🗡️ 악의 승리!';
+  $('winText').textContent = g.reason || '';
+  $('roleList').innerHTML = g.order.map(k => { const r = ROLES[g.roles[k]]; return `<div class="${r.side}"><span class="av">${avatarOf(k)}</span><span class="n">${esc(nickOf(k))}${k === myKey ? ' (나)' : ''}</span><span>${r.ic} ${r.n}${g.target === k ? ' 🎯' : ''}</span></div>`; }).join('');
+  $('endHost').style.display = isHost ? '' : 'none';
+  $('endHint').textContent = isHost ? '' : '방장이 다시 시작하거나 대기실로 돌아가면 같이 넘어가요';
+  if (was !== 'end') { hideOv(); if ((goodWin && mine === 'good') || (!goodWin && mine === 'evil')) { confetti(); Sound.play('win'); } else Sound.play('lose'); }
+}
+
+// ── 내 역할 엿보기 (꾹 누르는 동안만) ──
+(function peek() {
+  const b = $('btnPeek'), ov = $('peekov');
+  const on = e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (x) {} const g = G(); if (!g || !g.roles || !g.roles[myKey]) return; $('peekCard').className = 'rolecard ' + sideOf(g.roles[myKey]); $('peekCard').innerHTML = roleCardHtml(g, myKey, false); ov.classList.add('show'); Sound.play('peek'); };
+  const off = () => ov.classList.remove('show');
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+})();
+
+// ── 규칙 ──
+function howtoHtml() {
+  return `
+  <div class="step"><div class="no">1</div><div><h4>몰래 받는 역할</h4><p><b class="g">선의 세력</b>과 <b>악의 세력</b>으로 나뉘어요. 악당끼리는 서로 알아요. 선 중 <b class="g">멀린</b>🧙은 악당을 알지만 들키면 안 돼요.</p></div></div>
+  <div class="step"><div class="no">2</div><div><h4>원정대장이 원정대를 제안</h4><p>👑 원정대장이 정해진 인원을 골라요. 모두 <b>찬성/반대</b> 투표 → 과반 찬성이면 출발, 부결이면 원정대장이 다음 사람에게. <b>5번 연속 부결</b>되면 악의 승리.</p></div></div>
+  <div class="step"><div class="no">3</div><div><h4>원정 — 카드를 몰래</h4><p>원정대만 <b class="g">✨ 성공</b> / <b>💀 실패</b> 카드를 내요. 선은 성공만 낼 수 있어요. 실패가 1장이라도 섞이면 원정 실패! (7명 이상의 4번째 원정은 2장)</p></div></div>
+  <div class="step"><div class="no">4</div><div><h4>먼저 3번</h4><p>원정 3번 성공 → <b class="g">선 승리</b>… 단, 마지막에 <b>🗡️ 암살자</b>가 멀린을 찍어 맞히면 악의 역전승! 원정 3번 실패 → <b>악 승리</b>.</p></div></div>
+  <div class="step"><div class="no">🎭</div><div><h4>추가 역할 (대기실에서 켜기)</h4><p>🛡️ <b class="g">퍼시벌</b>: 멀린 후보 둘이 보임 · 🔮 <b>모르가나</b>: 퍼시벌에게 멀린처럼 보임 · 👿 <b>모드레드</b>: 멀린에게 안 보임 · 🌑 <b>오베론</b>: 악끼리도 모름</p></div></div>
+  <div class="step"><div class="no">👥</div><div style="flex:1"><h4>인원표</h4><table class="rtab"><tr><th>인원</th><th>선:악</th><th>원정 인원</th></tr>${[5, 6, 7, 8, 9, 10].map(n => `<tr><td>${n}</td><td>${n - EVIL_N[n]}:${EVIL_N[n]}</td><td>${QSIZE[n].join('·')}</td></tr>`).join('')}</table></div></div>`;
+}
+$('btnRules').onclick = () => $('rulesModal').classList.add('show');
+$('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
+$('rulesModal').onclick = e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); };
+window.avalon = { get room() { return room; }, get me() { return myKey; }, roomRef: () => roomRef(), ROLES, QSIZE, EVIL_N, knowledge };
+</script>
+</body>
+</html>
