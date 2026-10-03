@@ -551,11 +551,26 @@ async function probeSongs() {   // 제공 음원 → 이 브라우저에 저장�
   renderMenu();
 }
 async function loadSong(s, opt = {}) {
+  if (!s._audioLoad) s._audioLoad = loadSongAudio(s).finally(() => { s._audioLoad = null; });
+  await s._audioLoad;
+  if (!opt.mp) await loadKeysounds(s);
+  return s;
+}
+async function fetchOriginalAudio(url) {
+  const target = new URL(url, location.href);
+  const cacheEligible = target.origin === location.origin && /\.(mp3|ogg|wav|m4a)$/i.test(target.pathname);
+  let cache;
+  if (cacheEligible && typeof caches !== 'undefined') try { cache = await caches.open('pulse-original-audio-v1'); const hit = await cache.match(target.href); if (hit && hit.ok) return hit; } catch (e) {}
+  const response = await fetch(target.href);
+  if (response.ok && cache) try { await cache.put(target.href, response.clone()); } catch (e) {}
+  return response;
+}
+async function loadSongAudio(s) {
   const ac = audioInit();
-  if (s.buffer && s.data) { if (!opt.mp) await loadKeysounds(s); return s; }
+  if (s.buffer && s.data) return s;
   if (s.synth) { const r = await renderPractice(ac.sampleRate); s.buffer = r.buffer; s.data = r.data; return s; }
   let ab = null;
-  if (s.src === 'url') { const res = await fetch(s.url); if (!res.ok) throw new Error('음원을 못 불러왔어요'); ab = await res.arrayBuffer(); }
+  if (s.src === 'url') { const res = await fetchOriginalAudio(s.url); if (!res.ok) throw new Error('음원을 못 불러왔어요'); ab = await res.arrayBuffer(); }
   else { const v = await idbGet(s.id); if (!v || !v.buf) throw new Error('음원 파일을 다시 골라주세요'); ab = v.buf.slice(0); }
   s.buffer = await ac.decodeAudioData(ab);
   if (s.data && !s.data.auto && Math.abs((s.data.length || 0) - s.buffer.duration) > 1.5) {   // 채보를 만든 파일과 길이가 다르면 → 이 파일로 새로 분석
@@ -563,7 +578,6 @@ async function loadSong(s, opt = {}) {
     s.data = null;
   }
   if (!s.data) s.data = await analyzeAudio(s.buffer, s.title);   // 채보 파일이 없으면 음원을 분석해서 즉석 생성
-  if (!opt.mp) await loadKeysounds(s);
   return s;
 }
 async function loadKeysounds(song) {
@@ -1284,7 +1298,7 @@ document.addEventListener('click', e => {
   if (pk) { e.stopPropagation(); pickFor = pk.dataset.pick; picker.click(); return; }
   const km = e.target.closest('[data-kmode],[data-mmode]');
   if (km) {
-    if (km.dataset.mmode) { if (MP.isHost && MP.room) roomRef().update({ keys: validMode(km.dataset.mmode) }); else toast('키 모드는 방장이 골라요'); return; }
+    if (km.dataset.mmode) { if (MP.isHost && MP.room && MP.room.status === 'wait') roomRef().update({ keys: validMode(km.dataset.mmode) }); else toast('대기 중 방장이 키 모드를 골라요'); return; }
     SET.mode = validMode(km.dataset.kmode); setMode(SET.mode); waitKey = -1; saveSet(); renderMenu(); return;
   }
   const mt = e.target.closest('[data-tab],[data-room],[data-msong],[data-mdiff],[data-kick]');
@@ -2308,7 +2322,7 @@ function draw() {
       rows.forEach(([k, v, c], i2) => { const y = 280 + i2 * 34; txt(k, 900, y, 18, c, 'left'); txt(String(v), 1200, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
       txt(r.fromEditor ? '↑↓ 속도  ·  Esc 편집기로 돌아가기' : '↑↓ 속도  ·  ` 일시정지', px, 690, 15, r.fromEditor ? '#b58cff' : '#71849b', 'left');
     }
-    if (now < (r.from || 0)) txt('READY', FX + FW / 2, 250, 34, '#ffffff', 'center', 'Black Han Sans');
+    if (now < (r.from || 0)) txt(String(Math.min(r.mp ? 4 : 9, Math.ceil((r.from || 0) - now))), FX + FW / 2, 250, 64, '#ffffff', 'center', 'Black Han Sans');
     if (r.failed) { ctx.fillStyle = 'rgba(40,0,10,.55)'; ctx.fillRect(FX, 0, FW, JY); txt('FAILED', FX + FW / 2, 300, 48, '#ff5a6e', 'center', 'Black Han Sans'); }
     if (r.ended && !r.mp && !r.fromEditor) {
       const achievement = r.achievement || achievementOf(r);
@@ -2410,7 +2424,7 @@ function mpBeat() {
   if (!MP.room || !MP.code) return;
   meRef().update({ t: Date.now() });
   mpMaybeMigrateHost(MP.room);
-  if (MP.isHost) { mpPublish(MP.room, true); if (MP.room.status === 'playing') mpCheckEnd(MP.room); }
+  if (MP.isHost) { mpPublish(MP.room, true); if (MP.room.status === 'playing') mpCheckEnd(MP.room); else if (MP.room.status === 'loading') mpCheckLoading(MP.room); }
 }
 function mpPublish(r, force) {
   if (!r || !r.players) return;
@@ -2438,11 +2452,22 @@ function mpOnRoom(r) {
   mpSetDisco(r.status === 'wait' ? 'wait' : 'play');
   if (r.status === 'wait') {
     if (run && run.mp) mpStopRun();
-    $('mpResult').hidden = true; $('loading').hidden = true; $('roomOv').hidden = false;
+    MP.loading = false; $('mpResult').hidden = true; $('loading').hidden = true; $('loading').textContent = '불러오는 중…'; $('roomOv').hidden = false;
     renderRoom(r); mpPreload(r.song);
+    if (r.loadFailure) $('rmMsg').textContent = r.loadFailure + ' · 다시 준비하고 시작하세요.';
     if (JSON.stringify(me.has || {}) !== JSON.stringify(myHas())) meRef().update({ has: myHas() });
+  } else if (r.status === 'loading') {
+    $('roomOv').hidden = false; $('mpResult').hidden = true; renderRoom(r);
+    const members = mpLoadingMembers(r), loaded = members.filter(([,p]) => p.loadedRound === r.round).length;
+    $('roomStatus').textContent = `음원 준비 ${loaded} / ${members.length}`;
+    $('rmMsg').textContent = members.map(([,p]) => (p.loadError ? '⚠ ' : p.loadedRound === r.round ? '✓ ' : '⌛ ') + p.nick).join(' · ');
+    $('rmStart').disabled = true; $('rmReady').disabled = true;
+    for (const button of $('roomOv').querySelectorAll('[data-msong],[data-mmode],[data-mdiff]')) { button.setAttribute('aria-disabled','true'); if (button.tagName === 'BUTTON') button.disabled = true; }
+    $('loading').hidden = false; $('loading').textContent = `음원 준비 ${loaded} / ${members.length} · 방 나가기로 취소`;
+    mpPrepareRound(r); if (MP.isHost) mpCheckLoading(r);
   } else if (r.status === 'playing') {
     $('roomOv').hidden = true;
+    $('loading').hidden = true; $('loading').textContent = '불러오는 중…';
     if ((r.round || 0) > MP.lastRound) { MP.lastRound = r.round || 0; mpBeginRound(r); }
     else if (!(run && run.mp && !run.ended) && !MP.loading) mpShowBoard(r, run && run.mp ? 'done' : 'watch');
     if (MP.isHost) mpCheckEnd(r);
@@ -2474,6 +2499,7 @@ function renderRoom(r) {
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
   $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('');
   const me = r.players[MP.key] || {};
+  $('rmReady').disabled = false;
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
   $('rmReady').textContent = me.ready ? '준비 취소' : '✅ 준비';
   const notReady = ps.filter(([k, p]) => k !== r.host && !p.ready).length;
@@ -2486,12 +2512,13 @@ function renderRoom(r) {
 }
 function mpPickSong(id) {
   const r = MP.room; if (!r) return;
+  if (r.status !== 'wait') return;
   if (!MP.isHost) return toast('곡은 방장이 골라요');
   const x = songById(id); if (!x || !x.ok) return toast('방장도 음원이 있는 곡만 고를 수 있어요');
   const upd = { song: id }; for (const k of Object.keys(r.players || {})) upd[`players/${k}/ready`] = false;
   roomRef().update(upd);
 }
-function mpPickDiff(d) { if (MP.isHost && MP.room) roomRef().update({ diff: d }); }
+function mpPickDiff(d) { if (MP.isHost && MP.room && MP.room.status === 'wait') roomRef().update({ diff: d }); }
 function mpKick(k) {
   const p = MP.room && MP.room.players && MP.room.players[k]; if (!MP.isHost || !p) return;
   if (!confirm(`${p.nick} 님을 내보낼까요?`)) return;
@@ -2500,7 +2527,7 @@ function mpKick(k) {
 }
 function mpToggleReady() {
   audioInit();
-  const r = MP.room, me = r && r.players[MP.key]; if (!me) return;
+  const r = MP.room, me = r && r.players[MP.key]; if (!me || r.status !== 'wait') return;
   const x = songById(r.song);
   if (!me.ready && !(x && x.ok)) return toast('이 곡 음원 파일을 먼저 선택해 주세요');
   meRef().update({ ready: !me.ready, has: myHas() });
@@ -2512,9 +2539,46 @@ function mpStart() {
   const ps = Object.entries(r.players || {});
   const notReady = ps.filter(([k, p]) => k !== MP.key && !p.ready);
   if (notReady.length) return toast(`준비 안 된 사람: ${notReady.map(([, p]) => p.nick).join(', ')}`);
-  const upd = { status: 'playing', round: (r.round || 0) + 1, startAt: srvNow() + 4500 };
-  for (const [k, p] of ps) { upd[`players/${k}/live`] = null; upd[`players/${k}/left`] = null; upd[`players/${k}/spec`] = !(k === MP.key || (p.has && p.has[r.song])); }
+  const members = ps.filter(([k,p]) => !p.left && (k === MP.key || (p.has && p.has[r.song]))).map(([k]) => k);
+  const upd = { status: 'loading', round: (r.round || 0) + 1, startAt: null, loadingAt: srvNow(), loadingMembers: members, loadFailure: null };
+  for (const [k, p] of ps) { upd[`players/${k}/live`] = null; upd[`players/${k}/spec`] = !members.includes(k); upd[`players/${k}/loadedRound`] = null; upd[`players/${k}/loadError`] = null; }
   roomRef().update(upd);
+}
+function mpLoadingMembers(r) { return (r.loadingMembers || []).filter(k => r.players[k] && !r.players[k].left && !r.players[k].kicked).map(k => [k,r.players[k]]); }
+function mpLoadingDecision(r, now) {
+  const members = mpLoadingMembers(r);
+  if (!members.length) return { error: '참가자가 없어 로딩을 취소했어요.' };
+  const failed = members.find(([,p]) => p.loadError);
+  if (failed) return { error: failed[1].nick + ' 님의 음원 준비 실패: ' + failed[1].loadError };
+  if (now - r.loadingAt > 60000) return { error: '음원 준비가 60초를 넘겨 취소했어요.' };
+  return { ready: members.every(([,p]) => p.loadedRound === r.round) };
+}
+async function mpPrepareRound(r) {
+  if (!(r.loadingMembers || []).includes(MP.key) || r.players[MP.key].loadedRound === r.round) return;
+  const token = MP.code + ':' + r.round + ':' + r.song;
+  if (MP.prepareToken === token) return;
+  MP.prepareToken = token; MP.loading = true;
+  const code = MP.code, round = r.round;
+  try {
+    await meRef().update({ loadToken: token, loadError: null });
+    const song = songById(r.song); if (!song || !song.ok) throw new Error('음원 파일이 없습니다');
+    await loadSong(song, { mp: true }); await audioInit().resume();
+    if (AU.ctx.state !== 'running') throw new Error('오디오를 켠 뒤 다시 준비하세요');
+    if (MP.code === code && MP.room && MP.room.status === 'loading' && MP.room.round === round) await meRef().update({ loadedRound: round, loadError: null });
+  } catch (e) { if (MP.code === code && MP.room && MP.room.status === 'loading' && MP.room.round === round) await meRef().update({ loadError: String(e.message || '음원 로딩 오류').slice(0,120) }); }
+  finally { if (MP.prepareToken === token) MP.loading = false; }
+}
+function mpCheckLoading(r) {
+  if (!MP.isHost || !MP.code || r.status !== 'loading') return;
+  const decision = mpLoadingDecision(r, srvNow()); if (!decision.ready && !decision.error) return;
+  const round = r.round, key = MP.key;
+  roomRef().transaction(current => {
+    if (!current || current.status !== 'loading' || current.round !== round || current.host !== key) return;
+    const state = mpLoadingDecision(current, srvNow());
+    if (state.error) { current.status = 'wait'; current.loadFailure = state.error; current.startAt = null; for (const p of Object.values(current.players || {})) { p.ready = false; p.loadedRound = null; p.loadError = null; } return current; }
+    if (!state.ready) return;
+    current.status = 'playing'; current.startAt = srvNow() + 4000; current.loadFailure = null; return current;
+  }).catch(() => toast('준비 상태를 갱신하지 못했어요. 연결을 확인하세요.'));
 }
 function mpPreload(id) { const x = songById(id); if (!x || !x.ok || (x.buffer && x.data) || x._pre) return; x._pre = loadSong(x, { mp: true }).catch(() => {}).then(() => { x._pre = null; if (MP.room && MP.room.status === 'wait') renderRoom(MP.room); }); }   // 불러온 뒤 레벨 표시 갱신
 async function mpBeginRound(r) {
