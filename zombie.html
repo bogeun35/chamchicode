@@ -83,7 +83,7 @@
   .hbar.crit i { background: linear-gradient(#ff6b6b, #b81d1d); animation: critp .6s infinite; }
   @keyframes critp { 50% { opacity: .45; } }
   #roster {
-    position: fixed; right: 6px; top: 38px; display: flex; flex-direction: column; gap: 3px;
+    position: fixed; right: 6px; top: 190px; display: flex; flex-direction: column; gap: 3px;
     pointer-events: none; max-height: calc(100vh - 150px); overflow: hidden; z-index: 2;
   }
   #roster .rhead { font-size: 10px; color: #6b7c94; text-align: right; padding-right: 2px; }
@@ -114,6 +114,7 @@
     #hudBL { bottom: 92px; width: 52vw; }
     #hudBR { bottom: 56px; }
     .rcard { min-width: 78px; font-size: 10px; }
+    #roster { top: 150px; }
   }
   #btnBar { position: fixed; left: 8px; bottom: 8px; z-index: 5; display: flex; gap: 6px; }
   #btnBar button {
@@ -121,7 +122,8 @@
     background: #141c2ae0; color: #cfe0f5; font-family: inherit; font-size: 13px; cursor: pointer; min-height: 38px;
   }
   #btnBar button:active { transform: translateY(1px); }
-  #btnAim.on { background: #14321fe0; color: #9ef08a; border-color: #4ade8055; }
+  #btnAim.on, #btnMap.on, #btnRepair.on { background: #14321fe0; color: #9ef08a; border-color: #4ade8055; }
+  #btnNade.cool { opacity: .4; }
   .stick { position: fixed; display: none; width: 120px; height: 120px; border-radius: 50%; border: 2px solid #ffffff22; pointer-events: none; z-index: 4; }
   .stick i { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: #ffffff33; }
   #hud .ammo { color: #ffe08a; }
@@ -315,6 +317,9 @@
     <button id="btnMenu">메뉴</button>
     <button id="btnAim" class="on">🎯 조준</button>
     <button id="btnMan">📖</button>
+    <button id="btnNade">💣</button>
+    <button id="btnRepair">🔧</button>
+    <button id="btnMap">🗺️</button>
     <button id="btnSnd">🔊</button>
     <button id="btnFs">⛶</button>
   </div>
@@ -553,6 +558,12 @@ let status = 'lobby', wave = 0, diff = 'normal';
 let zs = [], bullets = [], zshots = [], turrets = [], mines = [], barriers = [], fx = [], decals = [];
 let walls = [];
 let crates = [], evt = null;          // 보급 상자 · 이번 웨이브 사건
+let nades = [];                       // 날아가는 수류탄
+const BLEED_S = 26, BLEED_SOLO_S = 7; // 쓰러진 뒤 버티는 시간 (동료가 없으면 빨리 끝난다)
+const REVIVE_S = 4;                   // 일으키는 데 걸리는 시간
+const NADE_CD = 12, NADE_R = 118, NADE_DMG = 150;
+const REPAIR_RATE = 0.28;             // 초당 최대체력의 몇 %를 수리하는지
+let repairing = false, nadeCd = 0;
 const EVENTS = [
   { key: 'supply',  ic: '📦', nm: '보급 낙하', ds: '성벽 밖에 보급 상자가 떨어졌다' },
   { key: 'blackout',ic: '🔌', nm: '정전',      ds: '조명이 나갔다 — 시야가 좁아진다' },
@@ -573,6 +584,7 @@ const moveStick = { id: null, bx: 0, by: 0, x: 0, y: 0 };
 const aimStick = { id: null, bx: 0, by: 0, x: 0, y: 0, on: false };
 const mouse = { x: 0, y: 0, down: false, has: false };
 let pendingShots = [];
+let pendingNades = [];
 let hostMoney = {};
 
 const cv = $('cv'), ctx = cv.getContext('2d');
@@ -977,6 +989,45 @@ function bloodAt(x, y, n, ang) {
     fx.push({ t: 'blood', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(0.25, 0.5), r: rnd(1.5, 3.5) });
   }
 }
+function throwNade(fx0, fy0, tx, ty, owner) {
+  nades.push({ x: fx0, y: fy0, sx: fx0, sy: fy0, tx, ty, t: 0, dur: 0.75, owner });
+}
+// 호스트: 수류탄 비행 · 폭발
+function stepNades(dt) {
+  for (const g of nades) {
+    g.t += dt;
+    const p = Math.min(1, g.t / g.dur);
+    g.x = g.sx + (g.tx - g.sx) * p;
+    g.y = g.sy + (g.ty - g.sy) * p;
+    if (p >= 1) {
+      const dmgMul = 1 + 0.15 * ((players[g.owner] || {}).buy_dmg || 0) + 0.2 * perkCount('dmgUp');
+      explode(g.x, g.y, NADE_R, NADE_DMG * dmgMul, g.owner);
+      g.done = true;
+    }
+  }
+  nades = nades.filter(g => !g.done);
+}
+// 호스트: 수리 (플레이어 근처의 성벽·터렛·바리케이드)
+function stepRepair(dt, key, on) {
+  const u = units[key];
+  if (!u || u.dead || !on) return;
+  // 가장 가까운 손상된 구조물
+  let best = null, bd = 64 * 64, kind = '';
+  const si = segOf(u.x, u.y);
+  const wl = walls[si];
+  if (wl && !wl.gate && wl.hp < wl.maxHp) {
+    const a = segAngle(si);
+    const wx = BASE.x + Math.cos(a) * WALL_R, wy = BASE.y + Math.sin(a) * WALL_R;
+    const d = dist2(u, { x: wx, y: wy });
+    if (d < bd) { bd = d; best = wl; kind = 'wall'; }
+  }
+  for (const t of turrets) { if (t.hp < t.maxHp) { const d = dist2(u, t); if (d < bd) { bd = d; best = t; kind = 'turret'; } } }
+  for (const b of barriers) { if (b.hp < b.maxHp) { const d = dist2(u, b); if (d < bd) { bd = d; best = b; kind = 'bar'; } } }
+  if (!best) return;
+  best.hp = Math.min(best.maxHp, best.hp + best.maxHp * REPAIR_RATE * dt);
+  u.repairing = nowMs();
+  if (Math.random() < dt * 8) fx.push({ t: 'spark', x: u.x + rnd(-14, 14), y: u.y + rnd(-14, 14), life: 0.18, c: '#7dd3fc' });
+}
 function nearestZombie(from, range) {
   let best = null, bd = range * range;
   for (const z of zs) { const d = dist2(from, z); if (d < bd) { bd = d; best = z; } }
@@ -1042,15 +1093,18 @@ function hurtUnit(u, dmg) {
   u.hp -= dmg; u.lastHit = nowMs(); u.flash = nowMs();
   bloodAt(u.x, u.y, 4);
   if (u.key === myKey) { hurtFlash = 1; shake(1.6); Snd.play('hurt', 0.7); }
-  if (u.hp <= 0) {
-    u.hp = 0; u.dead = true; u.deadAt = nowMs();
+  if (u.hp <= 0 && !u.dead) {
+    // 바로 죽는 게 아니라 쓰러진다 — 동료가 와서 일으켜줄 수 있다
+    u.hp = 0; u.dead = true; u.down = true; u.bleed = 1; u.rev = 0; u.deadAt = 0;
     decals.push({ x: u.x, y: u.y, r: 26, a: 0.35 });
-    if (u.key === myKey) shake(3.5);
+    if (u.key === myKey) { shake(3.5); banner('쓰러졌다 — 동료가 일으켜줄 수 있다', '#f87171'); }
+    else banner(u.nick + ' 님이 쓰러졌다!', '#fbbf24');
+    Snd.play('lose', 0.35);
   }
 }
 function respawn(o) {
   const a = Math.random() * Math.PI * 2;
-  o.dead = false;
+  o.dead = false; o.down = false; o.bleed = 0; o.rev = 0;
   o.hp = o.maxHp * (perkHas('revive') ? 1 : 0.5);
   o.x = BASE.x + Math.cos(a) * 90; o.y = BASE.y + Math.sin(a) * 90;
   o.lastHit = nowMs();
@@ -1090,7 +1144,8 @@ function startWave(n) {
     }, 3200);
   }
   if (spec.boss) setTimeout(() => { if (status === 'playing' && wave === n) { spawnZombie('boss', spec); Snd.play('roar'); shake(5); } }, 2500);
-  for (const k in units) { units[k].dead = false; units[k].hp = units[k].maxHp; units[k].reloadEnd = 0; units[k].ammo = baseStats(players[k] || {}).mag; }
+  for (const k in units) { const o = units[k]; o.dead = false; o.down = false; o.bleed = 0; o.rev = 0; o.hp = o.maxHp; o.reloadEnd = 0; o.ammo = baseStats(players[k] || {}).mag; }
+  nades = []; nadeCd = 0;
   status = 'playing';
   Snd.play('wave');
   roomRef().child('players').once('value').then(sn => {      // 상점에서 쓴 금액을 반영
@@ -1139,16 +1194,17 @@ function encodeState() {
   const z = zs.map(o => `${ZTYPES[o.t].ic},${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
   const b = bullets.map(o => `${o.x | 0},${o.y | 0},${o.px | 0},${o.py | 0}`).join(';');
   const u = Object.entries(units).map(([k, o]) =>
-    `${k},${o.x | 0},${o.y | 0},${o.hp | 0},${o.dead ? 1 : 0},${o.kills},${n - o.swing < 160 ? 1 : 0}`).join(';');
+    `${k},${o.x | 0},${o.y | 0},${o.hp | 0},${o.dead ? 1 : 0},${o.kills},${n - o.swing < 160 ? 1 : 0},${o.down ? 1 : 0},${Math.round((o.bleed || 0) * 99)},${Math.round((o.rev || 0) * 99)},${n - (o.repairing || 0) < 300 ? 1 : 0}`).join(';');
   const t = turrets.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
   const m = mines.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const br = barriers.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)},${o.seg}`).join(';');
   const wl = walls.map(o => (o.gate ? 'g' : Math.ceil(o.hp / o.maxHp * 9))).join('');
   const cr = crates.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const ev = evt ? evt.key : '';
+  const gn = nades.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const sp = zshots.map(o => `${o.x | 0},${o.y | 0}`).join(';');
   const kf = killFeed.join(';'); killFeed = [];
-  return { z, b, u, t, m, br, sp, kf, wl, cr, ev, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
+  return { z, b, u, t, m, br, sp, kf, wl, cr, ev, gn, hp: Math.round(baseHp), mx: Math.round(baseMax), w: wave, ts: n };
 }
 function applyState(s) {
   if (!s || isHost) return;
@@ -1189,6 +1245,10 @@ function applyState(s) {
     seen[k] = true;
     const u = units[k] || (units[k] = { key: k, nick: (players[k] || {}).nick || k, color: colorOf(k), kills: 0, aim: 0 });
     if (+p[6]) u.swing = n;
+    u.down = p[7] === '1';
+    u.bleed = (+p[8] || 0) / 99;
+    u.rev = (+p[9] || 0) / 99;
+    if (p[10] === '1') u.repairing = n;
     if (k === myKey) {
       if (u.x === undefined) { u.x = +p[1]; u.y = +p[2]; }
       const wasDead = u.dead, wasHp = u.hp;
@@ -1211,6 +1271,7 @@ function applyState(s) {
     killFx(x, y, r, ZTYPES[type].color, money, type);
   });
   crates = (s.cr || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
+  nades = (s.gn || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
   const pe = evt && evt.key;
   evt = s.ev ? { key: s.ev } : null;
   if (s.ev && s.ev !== pe) {
@@ -1227,6 +1288,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   if (e.code === 'KeyR') manualReload();
+  if (e.code === 'KeyM') { mapOn = !mapOn; localStorage.setItem('zd_map', mapOn ? '1' : '0'); }
   if (e.code === 'Tab') { e.preventDefault(); setAimMode(!aimMode); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1341,6 +1403,13 @@ function step(dt) {
   const n = nowMs();
   if (step._w !== wave) { step._w = wave; const u0 = units[myKey]; if (u0) { u0.ammo = baseStats(players[myKey] || {}).mag; u0.reloadEnd = 0; } }
   const u = units[myKey];
+  if (u && u.down && status === 'playing') {          // 쓰러진 채로 기어간다
+    const st0 = baseStats(players[myKey] || {});
+    const v0 = inputVec();
+    u.x = clamp(u.x + v0.x * st0.speed * 0.28 * dt, 14, W - 14);
+    u.y = clamp(u.y + v0.y * st0.speed * 0.28 * dt, 14, H - 14);
+    blockWall(u);
+  }
   if (u && !u.dead && status === 'playing') {
     const st = baseStats(players[myKey] || {});
     const v = inputVec();
@@ -1368,9 +1437,24 @@ function step(dt) {
       const z = nearestZombie(u, st.rng);
       if (z) { u.aim = Math.atan2(z.y - u.y, z.x - u.x); aimAt = z; firing = true; }
     }
+    // 수류탄
+    nadeCd = Math.max(0, nadeCd - dt);
+    if (keys.KeyG && nadeCd <= 0 && aimAt) {
+      nadeCd = NADE_CD;
+      const tx = aimAt.x, ty = aimAt.y;
+      const dd = Math.min(320, Math.hypot(tx - u.x, ty - u.y) || 1);
+      const ang = Math.atan2(ty - u.y, tx - u.x);
+      const gx = u.x + Math.cos(ang) * dd, gy = u.y + Math.sin(ang) * dd;
+      if (isHost) throwNade(u.x, u.y, gx, gy, myKey);
+      else pendingNades.push({ x: u.x | 0, y: u.y | 0, tx: gx | 0, ty: gy | 0 });
+      Snd.play('swing', 0.8);
+    }
+    // 현장 수리
+    const wantRepair = !!keys.KeyE;
+    if (wantRepair !== repairing) repairing = wantRepair;
     // 사격
     u.cd = (u.cd || 0) - dt;
-    if (firing && aimAt && !u.reloadEnd && u.ammo > 0 && u.cd <= 0) {
+    if (firing && !repairing && aimAt && !u.reloadEnd && u.ammo > 0 && u.cd <= 0) {
       u.cd = 1 / st.rate;
       u.ammo--;
       const shotSt = { ...st, dmg: st.dmg * (aimMode ? 1.25 : 1) };   // 조준 보너스
@@ -1387,14 +1471,34 @@ function step(dt) {
     o.x += (o.tx - o.x) * Math.min(1, dt * 12);
     o.y += (o.ty - o.y) * Math.min(1, dt * 12);
   }
-  // 부활
+  // 쓰러진 사람 · 부활
   if (isHost) for (const k in units) {
     const o = units[k];
+    if (o.down) {
+      // 근처에 서 있는 멀쩡한 동료가 일으킨다
+      let helper = null;
+      for (const j in units) {
+        const h = units[j];
+        if (j === k || h.dead || h.down) continue;
+        if (dist2(h, o) < 46 * 46) { helper = h; break; }
+      }
+      const fast = perkHas('revive') ? 1.6 : 1;
+      if (helper) {
+        o.rev = (o.rev || 0) + dt * fast / REVIVE_S;
+        if (o.rev >= 1) { respawn(o); o.x = helper.x + rnd(-14, 14); o.y = helper.y + rnd(-14, 14); banner(o.nick + ' 님을 일으켰다!', '#9ef08a'); Snd.play('ready', 0.9); }
+      } else {
+        o.rev = Math.max(0, (o.rev || 0) - dt * 0.4);
+        const alone = !Object.values(units).some(h => h !== o && !h.dead && !h.down);
+        o.bleed -= dt / (alone ? BLEED_SOLO_S : BLEED_S) / fast;
+        if (o.bleed <= 0) { o.down = false; o.bleed = 0; o.deadAt = nowMs(); }   // 여기서부터 사망 대기
+      }
+      continue;
+    }
     if (!o.dead) continue;
     const wait = perkHas('revive') ? 4000 : 10000;
-    if (nowMs() - o.deadAt > wait) respawn(o);
+    if (o.deadAt && nowMs() - o.deadAt > wait) respawn(o);
   }
-  if (isHost && status === 'playing') hostStep(dt);
+  if (isHost && status === 'playing') { hostStep(dt); stepNades(dt); stepRepair(dt, myKey, repairing); }
   // 이펙트
   for (const f of fx) {
     f.life -= dt;
@@ -1423,7 +1527,7 @@ function net() {
   } else if (now - lastInput > 90) {
     lastInput = now;
     const u = units[myKey];
-    if (u) db.ref(`${rpath(code)}/in/${myKey}`).set({ x: u.x | 0, y: u.y | 0, sh: pendingShots.splice(0, 8), t: now });
+    if (u) db.ref(`${rpath(code)}/in/${myKey}`).set({ x: u.x | 0, y: u.y | 0, sh: pendingShots.splice(0, 8), gn: pendingNades.splice(0, 2), rp: repairing ? 1 : 0, t: now });
   }
 }
 // 호스트: 게스트 입력 반영
@@ -1437,6 +1541,8 @@ function bindInputs() {
       const u = units[k];
       if (!u) continue;
       u.x = v[k].x; u.y = v[k].y;
+      stepRepair(1 / 30, k, !!v[k].rp);
+      (v[k].gn || []).forEach(g => throwNade(g.x, g.y, g.tx, g.ty, k));
       (v[k].sh || []).forEach(s => {
         const st = baseStats(players[k] || {});
         u.aim = Math.atan2(s.ty - s.y, s.tx - s.x);
@@ -1752,6 +1858,13 @@ function render(dt) {
   drawBase(t);
   for (const b of barriers) if (vis(b.x, b.y, 40)) drawBarrier(b);
   for (const m of mines) if (vis(m.x, m.y, 30)) { ctx.font = '17px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('💣', m.x, m.y); }
+  for (const g of nades) {                       // 날아가는 수류탄 + 착탄 예고
+    ctx.strokeStyle = 'rgba(255,120,80,.5)'; ctx.lineWidth = 2; ctx.setLineDash([4, 5]);
+    if (g.tx !== undefined) { ctx.beginPath(); ctx.arc(g.tx, g.ty, NADE_R, 0, 6.283); ctx.stroke(); }
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#4b5320'; ctx.beginPath(); ctx.arc(g.x, g.y, 6, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#ff6b3a'; ctx.beginPath(); ctx.arc(g.x, g.y - 4, 2.4, 0, 6.283); ctx.fill();
+  }
   for (const c of crates) {                      // 보급 상자 — 멀리서도 보이게 빛기둥
     const pulse = 0.55 + 0.45 * Math.sin(t * 4);
     ctx.globalAlpha = 0.25 * pulse; ctx.fillStyle = '#fbbf24';
@@ -2243,6 +2356,26 @@ function drawPlayer(o, t) {
   ctx.rotate(o.aim || 0);
   drawSoldier(ctx, o, gunKey, hit, dead, gait, me);
   ctx.restore();
+  // 쓰러짐 / 일으키는 중 / 수리 중
+  if (o.down) {
+    const bl = clamp(o.bleed || 0, 0, 1);
+    ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(o.x, o.y, 24, 0, 6.283); ctx.stroke();
+    ctx.strokeStyle = '#f87171'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(o.x, o.y, 24, -Math.PI / 2, -Math.PI / 2 + 6.283 * bl); ctx.stroke();
+    if (o.rev > 0.01) {
+      ctx.strokeStyle = '#9ef08a'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(o.x, o.y, 30, -Math.PI / 2, -Math.PI / 2 + 6.283 * clamp(o.rev, 0, 1)); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+    ctx.font = 'bold 12px Jua, sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    ctx.strokeText('쓰러짐', o.x, o.y - 34); ctx.fillStyle = '#f87171'; ctx.fillText('쓰러짐', o.x, o.y - 34);
+  } else if (nowMs() - (o.repairing || 0) < 300) {
+    ctx.font = 'bold 12px Jua, sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    ctx.strokeText('🔧 수리 중', o.x, o.y - 32); ctx.fillStyle = '#7dd3fc'; ctx.fillText('🔧 수리 중', o.x, o.y - 32);
+  }
   // 이름 · 체력
   ctx.font = '11px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = dead ? '#94a3b8' : '#d7e3f2';
@@ -2448,6 +2581,7 @@ function drawOverlay(t) {
     ctx.stroke();
     ctx.restore();
   }
+  drawMinimap();
   // 보스 체력바
   const boss = zs.find(z => z.t === 'boss');
   if (boss) {
@@ -2486,11 +2620,59 @@ function drawOverlay(t) {
   if (u && u.dead && status === 'playing') {
     ctx.font = 'bold 26px Jua, sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = '#f87171'; ctx.fillText('쓰러졌다…', viewW / 2, viewH / 2 - 10);
-    const wait = perkHas('revive') ? 4000 : 10000;
-    const left = Math.max(0, Math.ceil((wait - (nowMs() - u.deadAt)) / 1000));
     ctx.font = '16px Jua, sans-serif'; ctx.fillStyle = '#cfe0f5';
-    ctx.fillText(`${left}초 뒤 기지에서 부활`, viewW / 2, viewH / 2 + 18);
+    if (u.down) {
+      ctx.fillText(u.rev > 0.01 ? '동료가 일으키는 중…' : '동료가 오면 일어날 수 있다 (기어서 이동 가능)', viewW / 2, viewH / 2 + 18);
+    } else {
+      const wait = perkHas('revive') ? 4000 : 10000;
+      const left = Math.max(0, Math.ceil((wait - (nowMs() - u.deadAt)) / 1000));
+      ctx.fillText(`${left}초 뒤 기지에서 부활`, viewW / 2, viewH / 2 + 18);
+    }
   }
+}
+let mapOn = localStorage.getItem('zd_map') !== '0';
+function drawMinimap() {
+  if (!mapOn || status !== 'playing') return;
+  const S = Math.max(84, Math.min(136, viewW * 0.16));      // 지도 크기
+  const pad = 8;
+  const x0 = viewW - S - pad, y0 = 38;
+  const sc = S / Math.max(W, H);
+  const mx = x0 + S / 2 - BASE.x * sc, my = y0 + S / 2 - BASE.y * sc;   // 기지를 중앙에
+  const P = (wx, wy) => [mx + wx * sc, my + wy * sc];
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x0, y0, S, S, 10); ctx.clip();
+  ctx.fillStyle = 'rgba(8,12,20,.82)'; ctx.fillRect(x0, y0, S, S);
+  // 성벽
+  for (let i = 0; i < SEG_N; i++) {
+    const wl = walls[i]; if (!wl) continue;
+    const a0 = i * SEG_A + 0.03, a1 = (i + 1) * SEG_A - 0.03;
+    const r = wl.gate ? 1 : clamp(wl.hp / (wl.maxHp || 1), 0, 1);
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = wl.gate ? (barAt(i) ? '#fbbf24' : 'rgba(251,191,36,.55)')
+      : r <= 0 ? 'rgba(120,130,150,.25)' : r > 0.5 ? '#6ee7a0' : r > 0.25 ? '#fbbf24' : '#f87171';
+    const c = P(BASE.x, BASE.y);
+    ctx.beginPath(); ctx.arc(c[0], c[1], WALL_R * sc, a0, a1); ctx.stroke();
+  }
+  // 코어
+  const c = P(BASE.x, BASE.y);
+  ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.arc(c[0], c[1], 3.2, 0, 6.283); ctx.fill();
+  // 좀비
+  ctx.fillStyle = 'rgba(240,90,90,.85)';
+  for (const z of zs) { const q = P(z.x, z.y); ctx.fillRect(q[0] - 1, q[1] - 1, 2.2, 2.2); }
+  // 보급 상자
+  ctx.fillStyle = '#fbbf24';
+  for (const cr of crates) { const q = P(cr.x, cr.y); ctx.fillRect(q[0] - 2, q[1] - 2, 4, 4); }
+  // 사람
+  for (const k in units) {
+    const o = units[k]; if (o.x === undefined) continue;
+    const q = P(o.x, o.y);
+    ctx.fillStyle = o.down ? '#f87171' : (k === myKey ? '#ffffff' : o.color);
+    ctx.beginPath(); ctx.arc(q[0], q[1], k === myKey ? 3.4 : 2.8, 0, 6.283); ctx.fill();
+    if (o.down) { ctx.strokeStyle = '#f87171'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(q[0], q[1], 6, 0, 6.283); ctx.stroke(); }
+  }
+  ctx.restore();
+  ctx.strokeStyle = '#2c3850'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(x0, y0, S, S, 10); ctx.stroke();
 }
 function renderHud() {
   const u = units[myKey];
@@ -2523,7 +2705,8 @@ function renderHud() {
     set('hAmmo', `${st.gun.ic} ${u ? (u.ammo ?? st.mag) : st.mag}<small> / ${st.mag}</small>`);
     css('hAmmo', 'rl', false);
   }
-  set('hMelee', `${st.melee.ic} ${st.melee.nm}`);
+  set('hMelee', `${st.melee.ic} ${st.melee.nm}   💣 ${nadeCd > 0 ? Math.ceil(nadeCd) + 's' : '준비'}`);
+  $('btnNade').classList.toggle('cool', nadeCd > 0);
 
   const mates = Object.entries(units).filter(([k]) => k !== myKey);
   const rs = (mates.length ? '<div class="rhead">동료</div>' : '') + mates.map(([k, o]) => {
@@ -2671,7 +2854,9 @@ function buildManual() {
       <b>🎯 조준모드</b> — 마우스로 조준하고 <b>누르고 있으면 발사</b>. 직접 겨누는 대신 <b>피해 +25%</b>.
       모바일은 <b>화면 오른쪽</b>을 끌면 그 방향으로 쏴요.<br>
       <b>🤖 자동모드</b> — 가장 가까운 좀비를 알아서 쏴요. <span class="man-key">Tab</span> 또는 왼쪽 아래 버튼으로 전환<br>
-      재장전 <span class="man-key">R</span> · 근접 무기는 <b>붙으면 자동</b>으로 휘둘러요
+      재장전 <span class="man-key">R</span> · 근접 무기는 <b>붙으면 자동</b>으로 휘둘러요<br>
+      <span class="man-key">G</span> 수류탄 (쿨다운 ${NADE_CD}초) · <span class="man-key">E</span> 꾹 눌러 <b>현장 수리</b> ·
+      <span class="man-key">M</span>/🗺️ 미니맵
     </div>
     <div class="man-h">🔫 총 — 탄창을 다 쓰면 자동 재장전</div>
     <div class="man-p" style="margin-bottom:6px">장전하는 동안은 못 쏩니다. 물러서거나 근접으로 버티세요.</div>
@@ -2700,7 +2885,9 @@ function buildManual() {
       웨이브 <b>1 → ${MAX_WAVE}</b>, <b>5웨이브마다 보스</b>. 전부 막아내면 방어 성공.<br>
       웨이브가 끝나면 <b>상점 + 특성 투표</b> (${SHOP_MS / 1000}초, 전원 준비하면 바로 시작).<br>
       좀비를 잡으면 돈이 들어오고, 웨이브를 넘길 때마다 보너스가 붙어요.<br>
-      쓰러져도 <b>10초 뒤 기지에서 부활</b>합니다 (응급 처치 특성이면 4초).<br>
+      체력이 0이 되면 <b>바로 죽지 않고 쓰러집니다</b>. 기어다닐 수 있고,
+      <b>동료가 옆에 ${REVIVE_S}초 서 있으면 일으켜 줘요</b>. 아무도 안 오면 버티다 쓰러져
+      기지에서 부활합니다(10초). 응급 처치 특성이 있으면 전부 빨라져요.<br>
       <b>기지 체력이 0이 되면 실패</b> — 좀비가 기지에 붙지 않게 막는 게 핵심이에요.
     </div>`;
   // 도감 아이콘은 실제 게임과 같은 그림으로
@@ -2727,6 +2914,16 @@ function openManual() { buildManual(); $('manOv').hidden = false; }
 function closeManual() { clearInterval(buildManual._iv); $('manOv').hidden = true; }
 $('btnManHome').onclick = openManual;
 $('btnMan').onclick = openManual;
+// 모바일용 — 버튼으로도 수류탄/수리
+$('btnNade').onclick = () => { keys.KeyG = true; setTimeout(() => { keys.KeyG = false; }, 60); };
+const rpBtn = $('btnRepair');
+const rpOn = e => { e.preventDefault(); keys.KeyE = true; rpBtn.classList.add('on'); };
+const rpOff = () => { keys.KeyE = false; rpBtn.classList.remove('on'); };
+rpBtn.addEventListener('pointerdown', rpOn);
+rpBtn.addEventListener('pointerup', rpOff);
+rpBtn.addEventListener('pointerleave', rpOff);
+rpBtn.addEventListener('pointercancel', rpOff);
+$('btnMap').onclick = () => { mapOn = !mapOn; localStorage.setItem('zd_map', mapOn ? '1' : '0'); $('btnMap').classList.toggle('on', mapOn); };
 $('btnManClose').onclick = closeManual;
 
 /* ═══════════ 방 ═══════════ */
@@ -2737,6 +2934,7 @@ function offAll() { listeners.forEach(f => f()); listeners = []; }
   resize(); loadRooms(); requestAnimationFrame(frame);
   $('btnAim').textContent = aimMode ? '🎯 조준' : '🤖 자동';
   $('btnAim').classList.toggle('on', aimMode);
+  $('btnMap').classList.toggle('on', mapOn);
   $('btnSnd').textContent = Snd.muted ? '🔇' : '🔊';
 })();
 function getNick() {
