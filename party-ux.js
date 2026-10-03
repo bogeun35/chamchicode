@@ -136,9 +136,9 @@ html.hub-m #game .top { padding-left: 52px; min-height: 44px; }
   function hubCheck() {
     let m = false;
     try {
-      if (window.top !== window.self && !fsOn()) {
-        const t = window.parent.document.getElementById('mobileToggle');
-        m = !!t && window.parent.getComputedStyle(t).display !== 'none';
+      if (window.top !== window.self && !fsOn() && window.innerWidth < 700) {   // 넓으면 게임 칸이 가운데라 안 겹침
+        const vis = id => { const t = window.parent.document.getElementById(id); return !!t && window.parent.getComputedStyle(t).display !== 'none'; };
+        m = vis('mobileToggle') || vis('lnbOpen');   // 폰의 ☰ 또는 데스크톱에서 메뉴를 접었을 때의 ☰
       }
     } catch (e) {}
     root.classList.toggle('hub-m', m);
@@ -161,7 +161,7 @@ html.hub-m #game .top { padding-left: 52px; min-height: 44px; }
     ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => d.addEventListener(ev, sync));
     d.addEventListener('fullscreenerror', () => { blocked = true; sync(); });
     window.addEventListener('resize', hubCheck);
-    try { if (window.top !== window.self) window.parent.addEventListener('resize', hubCheck); } catch (e) {}
+    try { if (window.top !== window.self) { window.parent.addEventListener('resize', hubCheck); new MutationObserver(hubCheck).observe(window.parent.document.body, { attributes: true, attributeFilter: ['class'] }); } } catch (e) {}
     new MutationObserver(wake).observe(d.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
     d.addEventListener('visibilitychange', wake);
     sync(); wake();
