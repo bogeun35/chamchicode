@@ -471,6 +471,12 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
       <span class="nav-badge">NEW</span>
     </div>
 
+    <div class="nav-item" data-page="puyo" onclick="navigate('puyo')">
+      <span class="nav-icon">🫧</span>
+      <span>뿌요뿌요</span>
+      <span class="nav-badge">NEW</span>
+    </div>
+
     <div class="nav-item" data-page="suikaonline" onclick="navigate('suikaonline')">
       <span class="nav-icon">🏆</span>
       <span>수박게임 온라인</span>
@@ -641,6 +647,11 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
           <div class="landing-card-title">다빈치 코드</div>
           <div class="landing-card-desc">숫자 추리 보드게임<br>2~4명 · 링크로 바로 참가</div>
         </div>
+        <div class="landing-card" onclick="navigate('puyo')">
+          <div class="landing-card-icon">🫧</div>
+          <div class="landing-card-title">뿌요뿌요</div>
+          <div class="landing-card-desc">같은 색 4개로 연쇄!<br>최대 8인 온라인 대전</div>
+        </div>
         <div class="landing-card" onclick="navigate('suikaonline')">
           <div class="landing-card-icon">🏆</div>
           <div class="landing-card-title">수박게임 온라인</div>
@@ -708,6 +719,10 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
   <!-- 수박게임 온라인 iframe -->
   <div class="page-frame" id="page-zombie">
     <iframe data-src="zombie.html" id="iframe-zombie" allow="fullscreen; autoplay"></iframe>
+  </div>
+
+  <div class="page-frame" id="page-puyo">
+    <iframe data-src="puyo.html" id="iframe-puyo" allow="fullscreen; autoplay; clipboard-write"></iframe>
   </div>
 
   <div class="page-frame" id="page-suikaonline">
@@ -839,7 +854,7 @@ function gameUrl(page) { return location.origin + hubBase() + '?game=' + page; }
 
 // ── LNB: 대분류 아코디언 + 드래그 스크롤 + 접기 ──
 const NAV_GROUPS = [
-  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie', 'o2jam'] },
+  { key: 'party',  label: '👥 같이 하는 게임', pages: ['auction', 'online', 'roulette', 'drawquiz', 'davinci', 'liar', 'codenames', 'telephone', 'rummikub', 'suikaonline', 'zombie', 'o2jam', 'puyo'] },
   { key: 'solo',   label: '🎮 혼자 하는 게임', pages: ['suika', 'tuna', 'rhythm', 'rock', 'mine', 'shell'] },
   { key: 'pubg',   label: '🎯 배그 도구',      pages: ['pubgmap', 'pubgpractice'] },
   { key: 'etc',    label: '🇰🇷 한글패치 · 공략', pages: ['funnelkr', 'momkr', 'backrooms'] },

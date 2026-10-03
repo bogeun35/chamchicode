@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>뿌요뿌요 — 온라인 대전</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #fdf3e3; color: #5b4636;
+    font-family: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    min-height: 100vh; user-select: none; -webkit-user-select: none;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  h1 { font-size: 34px; text-align: center; color: #e8546b; }
+  .sub { text-align: center; color: #a8804f; font-size: 14px; margin: 6px 0 18px; }
+  .card { background: #fff; border: 3px solid #ffe0b8; border-radius: 20px; padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 0 #f0d5ae; }
+  .card h3 { font-size: 16px; color: #e8546b; margin-bottom: 10px; }
+  label { display: block; font-size: 12px; color: #a8804f; margin-bottom: 4px; }
+  input {
+    width: 100%; padding: 11px 12px; border: 3px solid #ffe0b8; border-radius: 14px;
+    background: #fffdf8; font-family: inherit; font-size: 16px; color: #5b4636; margin-bottom: 10px;
+  }
+  input:focus { outline: none; border-color: #ffb36b; }
+  .btn {
+    display: block; width: 100%; padding: 12px; border: 3px solid #fff; border-radius: 16px;
+    background: #6fbf73; color: #fff; font-size: 17px; font-family: inherit; cursor: pointer;
+    box-shadow: 0 4px 0 #3e8a42;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #3e8a42; }
+  .btn.alt { background: #5aa9e6; box-shadow: 0 4px 0 #2d6f9e; }
+  .btn.alt:active { box-shadow: 0 1px 0 #2d6f9e; }
+  .btn.ghost { background: #f6c177; box-shadow: 0 4px 0 #c9872b; }
+  .btn.ghost:active { box-shadow: 0 1px 0 #c9872b; }
+  .btn[disabled] { opacity: .5; }
+  .row { display: flex; gap: 8px; }
+  .row .btn { margin: 0; }
+  .hint { font-size: 12.5px; color: #a8804f; line-height: 1.7; }
+  .codebox { text-align: center; font-size: 32px; letter-spacing: 6px; color: #e8546b; padding: 4px 0 8px; }
+  .plist { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pchip { background: #fff8e8; border: 2px solid #ffe0b8; border-radius: 999px; padding: 5px 12px; font-size: 14px; }
+  .pchip.me { border-color: #6fbf73; }
+  .pchip .host { font-size: 10px; color: #e8546b; }
+  .pchip .kick { border: 0; background: #ffd9d0; color: #c9502e; border-radius: 999px; width: 20px; height: 20px; font-size: 12px; cursor: pointer; margin-left: 4px; font-family: inherit; }
+  .rk-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .lnk { background: none; border: 0; color: #c9822b; font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+  .rm-row { display: flex; align-items: center; gap: 8px; padding: 8px 6px; border-radius: 12px; font-size: 14px; }
+  .rm-row:nth-child(odd) { background: #fff8e8; }
+  .rm-code { font-size: 15px; letter-spacing: 1px; color: #e8546b; width: 72px; }
+  .rm-info { flex: 1; color: #8a5a2a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-join {
+    flex: none; border: 3px solid #fff; border-radius: 999px; background: #6fbf73; color: #fff;
+    font-family: inherit; font-size: 13px; padding: 5px 12px; cursor: pointer; box-shadow: 0 3px 0 #3e8a42;
+  }
+  .rm-join.watch { background: #ffa552; box-shadow: 0 3px 0 #c9752e; }
+  .empty { font-size: 14px; color: #a8804f; text-align: center; padding: 10px 0; }
+
+  /* ── 게임 ── */
+  #game { position: relative; height: 100vh; overflow: hidden; background: #fdf3e3; }
+  #arena { display: flex; align-items: center; justify-content: center; gap: 10px; height: 100%; padding: 46px 6px 92px; }
+  #mainCol { display: flex; gap: 8px; align-items: flex-start; height: 100%; }
+  #cv { border-radius: 14px; background: #2b2438; box-shadow: 0 6px 0 #1a1524; height: 100%; width: auto; }
+  #side { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+  .panel { background: #fff; border: 3px solid #ffe0b8; border-radius: 14px; padding: 6px 8px; font-size: 12px; text-align: center; }
+  .panel b { display: block; font-size: 16px; color: #e8546b; }
+  #nextCv { background: #2b2438; border-radius: 10px; display: block; }
+  #peers { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; max-width: 42vw; max-height: 100%; overflow: hidden; }
+  .peer { background: #fff; border: 3px solid #ffe0b8; border-radius: 12px; padding: 4px; text-align: center; }
+  .peer.dead { opacity: .45; }
+  .peer.win { border-color: #6fbf73; }
+  .peer canvas { display: block; background: #2b2438; border-radius: 7px; }
+  .peer .nm { font-size: 11px; color: #8a5a2a; max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .peer .st { font-size: 10.5px; color: #c9822b; }
+
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 40px; display: flex; align-items: center;
+    gap: 8px; padding: 0 10px; font-size: 13px; color: #8a5a2a; background: #fdf3e3ee;
+  }
+  #topbar .chip { background: #fff; border: 2px solid #ffe0b8; border-radius: 999px; padding: 3px 10px; }
+  #topbar .warn { background: #ffd9d0; border-color: #ffb3a0; color: #c9502e; }
+  #pad {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 86px; display: flex; gap: 6px;
+    padding: 6px 8px; background: #fdf3e3ee;
+  }
+  #pad button {
+    flex: 1; border: 3px solid #fff; border-radius: 14px; background: #f6c177; color: #fff;
+    font-size: 20px; font-family: inherit; cursor: pointer; box-shadow: 0 4px 0 #c9872b; touch-action: none;
+  }
+  #pad button:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9872b; }
+  #pad .rot { background: #5aa9e6; box-shadow: 0 4px 0 #2d6f9e; }
+  #pad .rot:active { box-shadow: 0 1px 0 #2d6f9e; }
+  #pad .drop { background: #e8546b; box-shadow: 0 4px 0 #a32f44; }
+  #pad .drop:active { box-shadow: 0 1px 0 #a32f44; }
+  @media (min-width: 820px) { #pad { display: none; } #arena { padding-bottom: 14px; } }
+
+  .ov {
+    position: fixed; inset: 0; background: #fdf3e3f5; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; text-align: center;
+  }
+  .ov[hidden] { display: none; }
+  .ov h2 { font-size: 28px; color: #e8546b; }
+  .ov.scrolly { justify-content: flex-start; overflow-y: auto; padding: 18px 12px 40px; }
+  .ovbox { width: 100%; max-width: 560px; margin: auto; }
+  .man-h { font-size: 17px; color: #e8546b; margin: 16px 0 6px; text-align: left; border-bottom: 2px solid #ffe0b8; padding-bottom: 4px; }
+  .man-p { font-size: 13.5px; color: #8a5a2a; line-height: 1.8; text-align: left; }
+  .man-key { display: inline-block; background: #fff8e8; border: 2px solid #ffe0b8; border-radius: 6px; padding: 0 6px; font-size: 12px; }
+  #toast {
+    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(14px);
+    background: #5b4636; color: #fff; padding: 8px 16px; border-radius: 999px;
+    font-size: 14px; opacity: 0; transition: .2s; pointer-events: none; z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+
+<!-- ══ 홈 ══ -->
+<div class="screen active" id="home">
+  <div class="wrap">
+    <h1>🫧 뿌요뿌요</h1>
+    <div class="sub">같은 색 4개를 붙여 터뜨리고, 연쇄로 상대를 묻어버리세요</div>
+    <div class="card">
+      <label>닉네임</label>
+      <input id="nick" maxlength="8" placeholder="2~8자">
+      <button class="btn" id="btnCreate">방 만들기</button>
+    </div>
+    <div class="card">
+      <div class="rk-head"><h3 style="margin:0">🚪 열린 방</h3><button class="lnk" id="btnRefresh">새로고침</button></div>
+      <div id="roomList"><div class="empty">불러오는 중…</div></div>
+    </div>
+    <div class="card">
+      <label>초대 코드로 참가</label>
+      <input id="joinCode" maxlength="6" placeholder="6자리 코드" style="text-transform:uppercase">
+      <button class="btn alt" id="btnJoin">참가하기</button>
+    </div>
+    <button class="btn ghost" id="btnManHome" style="margin-bottom:12px">📖 규칙 설명서</button>
+    <div class="card">
+      <h3>혼자 연습</h3>
+      <button class="btn ghost" id="btnSolo">🫧 혼자 하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 대기실 ══ -->
+<div class="screen" id="lobby">
+  <div class="wrap">
+    <h1>대기실</h1>
+    <div class="card">
+      <h3>초대 코드</h3>
+      <div class="codebox" id="roomCode">------</div>
+      <div class="row">
+        <button class="btn ghost" id="btnCopy">코드 복사</button>
+        <button class="btn ghost" id="btnCopyLink">링크 복사</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>색 개수</h3>
+      <div class="row">
+        <button class="btn ghost" id="col4">4색 (쉬움)</button>
+        <button class="btn ghost" id="col5">5색 (어려움)</button>
+      </div>
+      <div class="hint" id="colHint" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3>참가자 <span id="pcount"></span></h3>
+      <div class="plist" id="plist"></div>
+    </div>
+    <button class="btn" id="btnStart">게임 시작</button>
+    <div class="hint" id="startHint" style="text-align:center;margin:8px 0 12px"></div>
+    <button class="btn ghost" id="btnLeave">나가기</button>
+  </div>
+</div>
+
+<!-- ══ 게임 ══ -->
+<div class="screen" id="game">
+  <div id="topbar">
+    <span class="chip" id="tScore">0점</span>
+    <span class="chip" id="tChain"></span>
+    <span class="chip" id="tWarn" style="display:none"></span>
+    <span style="margin-left:auto"></span>
+    <button class="lnk" id="btnMan2">📖</button>
+    <button class="lnk" id="btnQuitGame">나가기</button>
+  </div>
+  <div id="arena">
+    <div id="mainCol">
+      <canvas id="cv"></canvas>
+      <div id="side">
+        <div class="panel">다음<canvas id="nextCv" width="56" height="112"></canvas></div>
+        <div class="panel">연쇄<b id="pChain">0</b></div>
+        <div class="panel">점수<b id="pScore">0</b></div>
+      </div>
+    </div>
+    <div id="peers"></div>
+  </div>
+  <div id="pad">
+    <button id="padL">◀</button>
+    <button class="rot" id="padCCW">↺</button>
+    <button class="rot" id="padCW">↻</button>
+    <button id="padR">▶</button>
+    <button class="drop" id="padDrop">▼</button>
+  </div>
+
+  <div class="ov" id="resultOv" hidden>
+    <h2 id="resTitle">게임 종료</h2>
+    <div id="resText" class="hint"></div>
+    <div id="resRank" style="width:min(420px,92vw);max-height:44vh;overflow-y:auto"></div>
+    <button class="btn" id="btnAgain" style="width:220px">대기실로</button>
+    <button class="btn ghost" id="btnQuit" style="width:220px">나가기</button>
+  </div>
+</div>
+
+<div class="ov scrolly" id="manOv" hidden>
+  <div class="ovbox" id="manBody"></div>
+  <button class="btn" id="btnManClose" style="width:200px;margin:14px auto 0">닫기</button>
+</div>
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
+const db = firebase.database();
+const rpath = c => `games/pp_${c}`;          // 규칙상 games/ 아래 · pp_ 접두
+const idxRef = c => db.ref('games/pp_rooms/' + c);
+const MAX_PLAYERS = 8;
+
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const sanitizeKey = s => s.replace(/[.#$/\[\]]/g, '_');
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+function toast(m, ms) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2000); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ═══════════ 규칙 상수 ═══════════ */
+const COLS = 6, ROWS = 14, HIDDEN = 2;        // 위 2줄은 숨은 줄, 보이는 건 12줄
+const VIS = ROWS - HIDDEN;
+const SPAWN_C = 2;                            // 생성 열 (여기가 막히면 패배)
+const EMPTY = 0, GARBAGE = 9;
+// 색: 사용자가 좋아하는 파스텔 + 콩눈
+const PUYO = {
+  1: { fill: '#FF8A9B', line: '#D94E66', nm: '빨강' },
+  2: { fill: '#8ADE9B', line: '#4FA863', nm: '초록' },
+  3: { fill: '#86C2F7', line: '#4A86C9', nm: '파랑' },
+  4: { fill: '#FFD97A', line: '#D9A62E', nm: '노랑' },
+  5: { fill: '#C9A0F0', line: '#8B5FC0', nm: '보라' },
+  9: { fill: '#C3CBD8', line: '#8A95A6', nm: '방해' },
+};
+// 연쇄 보너스 (표준 뿌요뿌요 통)
+const CHAIN_POWER = [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512];
+const COLOR_BONUS = [0, 3, 6, 12, 24];        // 동시에 터진 색 수 1~5
+const GROUP_BONUS = [0, 2, 3, 4, 5, 6, 7, 10];// 한 덩어리 크기 4~11+
+const GARBAGE_RATE = 70;                      // 이 점수마다 방해뿌요 1개
+const ALL_CLEAR_BONUS = 30;                   // 전체 지우기 보너스 (방해뿌요 개수)
+const MAX_GARBAGE_WAVE = 30;                  // 한 번에 떨어지는 최대 개수 (5줄)
+
+const DROP_MS = 820;                          // 자연 낙하 간격
+const SOFT_MS = 45;
+const LOCK_MS = 420;                          // 바닥에 닿고 고정까지
+
+/* ═══════════ 상태 ═══════════ */
+let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [];
+let players = {}, status = 'lobby', colors = 4, soloMode = false;
+let board = [], cur = null, nextQ = [], bag = [];
+let score = 0, chainNow = 0, bestChain = 0, leftover = 0;
+let pending = 0;                              // 내려올 방해뿌요
+let incSeen = 0;                              // 내가 받은 공격 누적(중복 방지)
+let alive = true, playing = false, allClear = false;
+let dropTimer = 0, lockTimer = 0, animQ = [];
+let popFx = [];
+let lastSync = 0;
+
+const cv = $('cv'), ctx = cv.getContext('2d');
+const nextCv = $('nextCv'), nctx = nextCv.getContext('2d');
+let CELL = 30;
+
+/* ═══════════ 보드 ═══════════ */
+function newBoard() { return Array.from({ length: ROWS }, () => new Array(COLS).fill(EMPTY)); }
+const at = (r, c) => (r >= 0 && r < ROWS && c >= 0 && c < COLS) ? board[r][c] : -1;
+
+function refillBag() {
+  // 색이 고르게 나오도록 가방에서 뽑는다
+  const b = [];
+  for (let i = 0; i < 4; i++) for (let c = 1; c <= colors; c++) b.push(c);
+  for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+  bag.push(...b);
+}
+function drawPair() { if (bag.length < 2) refillBag(); return [bag.shift(), bag.shift()]; }
+
+function spawnPiece() {
+  while (nextQ.length < 3) nextQ.push(drawPair());
+  const p = nextQ.shift();
+  nextQ.push(drawPair());
+  cur = { c: SPAWN_C, r: HIDDEN - 1, rot: 0, a: p[0], b: p[1] };   // a=축, b=자식
+  dropTimer = 0; lockTimer = 0;
+  if (at(HIDDEN, SPAWN_C) !== EMPTY) { die(); return false; }
+  return true;
+}
+// 자식 뿌요의 위치
+function childPos(p) {
+  const d = [[-1, 0], [0, 1], [1, 0], [0, -1]][p.rot];   // 위 오 아 왼
+  return { r: p.r + d[0], c: p.c + d[1] };
+}
+function canPlace(p) {
+  const ch = childPos(p);
+  for (const [r, c] of [[p.r, p.c], [ch.r, ch.c]]) {
+    if (c < 0 || c >= COLS || r >= ROWS) return false;
+    if (r >= 0 && board[r][c] !== EMPTY) return false;
+  }
+  return true;
+}
+function move(dc) {
+  if (!cur) return;
+  const t = { ...cur, c: cur.c + dc };
+  if (canPlace(t)) { cur = t; lockTimer = 0; }
+}
+function rotate(dir) {
+  if (!cur) return;
+  const t = { ...cur, rot: (cur.rot + dir + 4) % 4 };
+  if (canPlace(t)) { cur = t; lockTimer = 0; return; }
+  // 벽 차기: 좌우로 한 칸 밀어본다
+  for (const dc of [-1, 1, -2, 2]) {
+    const k = { ...t, c: t.c + dc };
+    if (canPlace(k)) { cur = k; lockTimer = 0; return; }
+  }
+  // 바닥에 걸리면 한 칸 올려본다
+  const up = { ...t, r: t.r - 1 };
+  if (canPlace(up)) { cur = up; lockTimer = 0; }
+}
+function softDrop() { if (!cur) return; const t = { ...cur, r: cur.r + 1 }; if (canPlace(t)) { cur = t; dropTimer = 0; } else lockTimer = LOCK_MS; }
+function hardDrop() {
+  if (!cur) return;
+  while (true) { const t = { ...cur, r: cur.r + 1 }; if (canPlace(t)) cur = t; else break; }
+  lockPiece();
+}
+function lockPiece() {
+  if (!cur) return;
+  const ch = childPos(cur);
+  if (cur.r >= 0) board[cur.r][cur.c] = cur.a;
+  if (ch.r >= 0) board[ch.r][ch.c] = cur.b;
+  cur = null;
+  animQ.push({ t: 'resolve' });
+}
+
+/* ═══════════ 중력 · 연쇄 ═══════════ */
+function applyGravity() {
+  let moved = false;
+  for (let c = 0; c < COLS; c++) {
+    let w = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (board[r][c] !== EMPTY) {
+        if (w !== r) { board[w][c] = board[r][c]; board[r][c] = EMPTY; moved = true; }
+        w--;
+      }
+    }
+  }
+  return moved;
+}
+function findGroups() {
+  const seen = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+  const groups = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const v = board[r][c];
+    if (v === EMPTY || v === GARBAGE || seen[r][c]) continue;
+    const cells = [], st = [[r, c]];
+    seen[r][c] = true;
+    while (st.length) {
+      const [y, x] = st.pop();
+      cells.push([y, x]);
+      for (const [dy, dx] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const ny = y + dy, nx = x + dx;
+        if (ny < 0 || ny >= ROWS || nx < 0 || nx >= COLS || seen[ny][nx]) continue;
+        if (board[ny][nx] !== v) continue;
+        seen[ny][nx] = true; st.push([ny, nx]);
+      }
+    }
+    // 숨은 줄에만 있는 덩어리는 터지지 않는다
+    if (cells.length >= 4 && cells.some(([y]) => y >= HIDDEN)) groups.push({ color: v, cells });
+  }
+  return groups;
+}
+// 한 단계 터뜨리기. 터질 게 없으면 null
+function popStep(chain) {
+  const groups = findGroups();
+  if (!groups.length) return null;
+  let cleared = 0, groupBonus = 0;
+  const colorSet = new Set();
+  const cells = [];
+  const garbageHit = new Set();
+  for (const g of groups) {
+    cleared += g.cells.length;
+    colorSet.add(g.color);
+    groupBonus += GROUP_BONUS[Math.min(g.cells.length - 4, GROUP_BONUS.length - 1)];
+    for (const [r, c] of g.cells) {
+      cells.push([r, c, g.color]);
+      for (const [dy, dx] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const ny = r + dy, nx = c + dx;
+        if (at(ny, nx) === GARBAGE) garbageHit.add(ny * COLS + nx);
+      }
+    }
+  }
+  for (const [r, c] of cells.map(x => [x[0], x[1]])) board[r][c] = EMPTY;
+  for (const k of garbageHit) { board[Math.floor(k / COLS)][k % COLS] = EMPTY; cells.push([Math.floor(k / COLS), k % COLS, GARBAGE]); }
+  const cp = CHAIN_POWER[Math.min(chain - 1, CHAIN_POWER.length - 1)];
+  const cb = COLOR_BONUS[Math.min(colorSet.size - 1, COLOR_BONUS.length - 1)];
+  let mult = cp + cb + groupBonus;
+  if (mult < 1) mult = 1;
+  if (mult > 999) mult = 999;
+  return { gain: 10 * cleared * mult, cells, chain };
+}
+function boardEmpty() {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (board[r][c] !== EMPTY) return false;
+  return true;
+}
+
+/* ═══════════ 방해뿌요 ═══════════ */
+function dropGarbage(n) {
+  n = Math.min(n, MAX_GARBAGE_WAVE);
+  // 열마다 고르게, 남는 건 랜덤 열에
+  const per = Math.floor(n / COLS), extra = n % COLS;
+  const cols = [...Array(COLS).keys()];
+  for (let i = cols.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cols[i], cols[j]] = [cols[j], cols[i]]; }
+  for (let i = 0; i < COLS; i++) {
+    const c = cols[i];
+    const cnt = per + (i < extra ? 1 : 0);
+    for (let k = 0; k < cnt; k++) {
+      // 그 열 맨 위 빈 칸에 쌓는다
+      let placed = false;
+      for (let r = 0; r < ROWS; r++) { if (board[r][c] === EMPTY) { continue; } placed = true; if (r > 0) board[r - 1][c] = GARBAGE; break; }
+      if (!placed) board[ROWS - 1][c] = GARBAGE;
+    }
+  }
+  applyGravity();
+}
+// 공격 보내기 — 살아있는 상대에게 고르게 나눈다
+function sendGarbage(n) {
+  if (n <= 0) return;
+  const targets = Object.keys(players).filter(k => k !== myKey && players[k] && players[k].alive !== false);
+  if (!targets.length) return;
+  const per = Math.floor(n / targets.length), extra = n % targets.length;
+  targets.forEach((k, i) => {
+    const amt = per + (i < extra ? 1 : 0);
+    if (amt > 0) db.ref(`${rpath(code)}/players/${k}/inc`).transaction(v => (v || 0) + amt);
+  });
+}
+
+/* ═══════════ 진행 ═══════════ */
+function resolveChain() {
+  // 연쇄를 한 단계씩 애니메이션으로
+  let chain = 0, total = 0;
+  const steps = [];
+  while (true) {
+    applyGravity();
+    const st = popStep(chain + 1);
+    if (!st) break;
+    chain++; total += st.gain;
+    steps.push(st);
+  }
+  bestChain = Math.max(bestChain, chain);
+  if (chain > 0) {
+    score += total;
+    chainNow = chain;
+    // 상쇄 후 공격
+    const raw = total + leftover;
+    let n = Math.floor(raw / GARBAGE_RATE);
+    leftover = raw % GARBAGE_RATE;
+    if (allClear) { n += ALL_CLEAR_BONUS; allClear = false; toast('✨ 전체 지우기! +' + ALL_CLEAR_BONUS); }
+    const cancel = Math.min(pending, n);
+    pending -= cancel; n -= cancel;
+    if (n > 0) sendGarbage(n);
+    if (boardEmpty()) allClear = true;
+    if (chain >= 3) toast(chain + '연쇄!', 1100);
+  } else { chainNow = 0; }
+  // 받은 방해뿌요 내려오기
+  if (pending > 0) {
+    const n = Math.min(pending, MAX_GARBAGE_WAVE);
+    pending -= n;
+    dropGarbage(n);
+    // 방해뿌요로 연쇄가 터질 수도 있다
+    if (findGroups().length) { animQ.push({ t: 'resolve' }); return; }
+  }
+  if (!spawnPiece()) return;
+}
+
+function die() {
+  if (!alive) return;
+  alive = false; playing = false; cur = null;
+  if (soloMode) { showResult(); return; }
+  meRef().update({ alive: false, score, best: bestChain, b: encodeBoard() });
+  checkEnd();
+}
+
+/* ═══════════ 루프 ═══════════ */
+let lastT = performance.now();
+function frame() {
+  const now = performance.now();
+  const dt = Math.min(120, now - lastT); lastT = now;
+  if (playing) step(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+function step(dt) {
+  // 받은 공격 반영
+  if (!soloMode) {
+    const me = players[myKey];
+    if (me && typeof me.inc === 'number' && me.inc > incSeen) { pending += me.inc - incSeen; incSeen = me.inc; }
+  }
+  if (animQ.length) { const a = animQ.shift(); if (a.t === 'resolve') resolveChain(); return; }
+  if (!cur) { if (!spawnPiece()) return; }
+  const soft = keys.ArrowDown || padDown;
+  dropTimer += dt;
+  const iv = soft ? SOFT_MS : DROP_MS;
+  if (dropTimer >= iv) {
+    dropTimer = 0;
+    const t = { ...cur, r: cur.r + 1 };
+    if (canPlace(t)) { cur = t; lockTimer = 0; if (soft) score += 1; }
+    else {
+      lockTimer += iv;
+      if (lockTimer >= LOCK_MS || soft) lockPiece();
+    }
+  }
+  if (!soloMode) sync();
+}
+function sync() {
+  const now = Date.now();
+  if (now - lastSync < 220) return;
+  lastSync = now;
+  meRef().update({ b: encodeBoard(), score, best: bestChain, pend: pending, alive, t: now });
+}
+
+/* ═══════════ 보드 직렬화 ═══════════ */
+function encodeBoard() {
+  let s = '';
+  for (let r = HIDDEN; r < ROWS; r++) for (let c = 0; c < COLS; c++) s += board[r][c];
+  return s;
+}
+function decodeBoard(s) {
+  const g = Array.from({ length: VIS }, () => new Array(COLS).fill(0));
+  if (!s) return g;
+  for (let i = 0; i < Math.min(s.length, VIS * COLS); i++) g[Math.floor(i / COLS)][i % COLS] = +s[i];
+  return g;
+}
+
+/* ═══════════ 그리기 ═══════════ */
+function fitCanvas() {
+  const h = $('arena').clientHeight - 4;
+  CELL = Math.max(16, Math.floor(Math.min(h / VIS, (innerWidth * 0.42) / COLS)));
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = COLS * CELL * dpr; cv.height = VIS * CELL * dpr;
+  cv.style.width = (COLS * CELL) + 'px'; cv.style.height = (VIS * CELL) + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', () => { fitCanvas(); });
+
+// 콩눈 뿌요 — 같은 색끼리 붙으면 이어진 것처럼
+function drawPuyo(c, x, y, size, v, grid, gr, gc) {
+  const P = PUYO[v]; if (!P) return;
+  const r = size * 0.46, cx = x + size / 2, cy = y + size / 2;
+  if (v !== GARBAGE && grid) {        // 이음새
+    c.fillStyle = P.fill;
+    for (const [dy, dx] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const ny = gr + dy, nx = gc + dx;
+      if (ny < 0 || ny >= grid.length || nx < 0 || nx >= COLS) continue;
+      if (grid[ny][nx] !== v) continue;
+      c.fillRect(cx - r * 0.55 + dx * size * 0.4, cy - r * 0.55 + dy * size * 0.4, r * 1.1, r * 1.1);
+    }
+  }
+  c.fillStyle = P.fill;
+  c.beginPath(); c.arc(cx, cy, r, 0, 6.283); c.fill();
+  c.lineWidth = Math.max(1.4, size * 0.055); c.strokeStyle = P.line; c.stroke();
+  if (v === GARBAGE) {                // 방해뿌요는 찌그러진 표정
+    c.strokeStyle = P.line; c.lineWidth = Math.max(1.2, size * 0.05);
+    c.beginPath(); c.moveTo(cx - r * 0.4, cy - r * 0.1); c.lineTo(cx - r * 0.05, cy - r * 0.1);
+    c.moveTo(cx + r * 0.05, cy - r * 0.1); c.lineTo(cx + r * 0.4, cy - r * 0.1); c.stroke();
+    return;
+  }
+  // 콩눈
+  const er = r * 0.30, ex = r * 0.33, ey = -r * 0.10;
+  c.fillStyle = '#fff';
+  c.beginPath(); c.ellipse(cx - ex, cy + ey, er, er * 1.12, 0, 0, 6.283); c.fill();
+  c.beginPath(); c.ellipse(cx + ex, cy + ey, er, er * 1.12, 0, 0, 6.283); c.fill();
+  c.fillStyle = '#3b2a22';
+  c.beginPath(); c.arc(cx - ex, cy + ey + er * 0.12, er * 0.52, 0, 6.283); c.fill();
+  c.beginPath(); c.arc(cx + ex, cy + ey + er * 0.12, er * 0.52, 0, 6.283); c.fill();
+}
+
+function render() {
+  if (!$('game').classList.contains('active')) return;
+  const W = COLS * CELL, H = VIS * CELL;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#2b2438'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#3a3049'; ctx.lineWidth = 1;
+  for (let c = 1; c < COLS; c++) { ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, H); ctx.stroke(); }
+  for (let r = 1; r < VIS; r++) { ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(W, r * CELL); ctx.stroke(); }
+  // 패배 지점 표시
+  ctx.strokeStyle = '#6b5a7a'; ctx.setLineDash([4, 4]);
+  ctx.strokeRect(SPAWN_C * CELL + 2, 2, CELL - 4, CELL - 4); ctx.setLineDash([]);
+  // 보드
+  const grid = [];
+  for (let r = HIDDEN; r < ROWS; r++) grid.push(board[r]);
+  for (let r = 0; r < VIS; r++) for (let c = 0; c < COLS; c++) {
+    const v = grid[r][c];
+    if (v) drawPuyo(ctx, c * CELL, r * CELL, CELL, v, grid, r, c);
+  }
+  // 조작 중인 뿌요 (+ 착지 안내)
+  if (cur) {
+    let gh = { ...cur };
+    while (true) { const t = { ...gh, r: gh.r + 1 }; if (canPlace(t)) gh = t; else break; }
+    const gch = childPos(gh);
+    ctx.globalAlpha = 0.22;
+    for (const [r, c] of [[gh.r, gh.c], [gch.r, gch.c]]) {
+      if (r < HIDDEN) continue;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(c * CELL + CELL * 0.12, (r - HIDDEN) * CELL + CELL * 0.12, CELL * 0.76, CELL * 0.76);
+    }
+    ctx.globalAlpha = 1;
+    const ch = childPos(cur);
+    for (const [r, c, v] of [[cur.r, cur.c, cur.a], [ch.r, ch.c, cur.b]]) {
+      if (r < HIDDEN) continue;
+      drawPuyo(ctx, c * CELL, (r - HIDDEN) * CELL, CELL, v, null);
+    }
+  }
+  // 다음
+  nctx.clearRect(0, 0, 56, 112);
+  nctx.fillStyle = '#2b2438'; nctx.fillRect(0, 0, 56, 112);
+  for (let i = 0; i < Math.min(2, nextQ.length); i++) {
+    const [a, b] = nextQ[i];
+    const y = 6 + i * 54, s = 24;
+    drawPuyo(nctx, 16, y, s, b, null);
+    drawPuyo(nctx, 16, y + s, s, a, null);
+  }
+  $('pChain').textContent = chainNow || 0;
+  $('pScore').textContent = score.toLocaleString();
+  $('tScore').textContent = score.toLocaleString() + '점';
+  $('tChain').textContent = '최고 ' + bestChain + '연쇄';
+  const w = $('tWarn');
+  if (pending > 0) { w.style.display = ''; w.textContent = '⚠️ 방해뿌요 ' + pending + '개'; } else w.style.display = 'none';
+  if (!soloMode) renderPeers();
+}
+
+function renderPeers() {
+  const box = $('peers');
+  const ks = Object.keys(players).filter(k => k !== myKey).sort();
+  if (box._sig !== ks.join(',')) {
+    box._sig = ks.join(',');
+    box.innerHTML = '';
+    box._els = {};
+    for (const k of ks) {
+      const d = document.createElement('div');
+      d.className = 'peer';
+      d.innerHTML = `<canvas width="60" height="120"></canvas><div class="nm"></div><div class="st"></div>`;
+      box.appendChild(d);
+      box._els[k] = { wrap: d, cv: d.querySelector('canvas'), nm: d.querySelector('.nm'), st: d.querySelector('.st') };
+    }
+  }
+  for (const k of ks) {
+    const el = box._els[k], p = players[k] || {};
+    el.nm.textContent = p.nick || k;
+    el.st.textContent = (p.alive === false ? '💀 ' : '') + (p.score || 0).toLocaleString() + (p.pend ? ' ⚠️' + p.pend : '');
+    el.wrap.classList.toggle('dead', p.alive === false);
+    const sig = (p.b || '') + '|' + p.alive;
+    if (el._sig === sig) continue;
+    el._sig = sig;
+    const c = el.cv.getContext('2d');
+    const cw = el.cv.width, chh = el.cv.height, cs = Math.floor(Math.min(cw / COLS, chh / VIS));
+    c.clearRect(0, 0, cw, chh); c.fillStyle = '#2b2438'; c.fillRect(0, 0, cw, chh);
+    const g = decodeBoard(p.b);
+    for (let r = 0; r < VIS; r++) for (let cc = 0; cc < COLS; cc++) if (g[r][cc]) drawPuyo(c, cc * cs, r * cs, cs, g[r][cc], g, r, cc);
+  }
+}
+
+/* ═══════════ 입력 ═══════════ */
+const keys = {};
+let padDown = false;
+addEventListener('keydown', e => {
+  if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) e.preventDefault();
+  if (keys[e.code]) return;
+  keys[e.code] = true;
+  if (!playing) return;
+  if (e.code === 'ArrowLeft') move(-1);
+  if (e.code === 'ArrowRight') move(1);
+  if (e.code === 'ArrowUp' || e.code === 'KeyX') rotate(1);
+  if (e.code === 'KeyZ' || e.code === 'ControlLeft') rotate(-1);
+  if (e.code === 'Space') hardDrop();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; padDown = false; });
+// 자동 반복 (좌우)
+let repT = 0;
+setInterval(() => {
+  if (!playing) return;
+  if (keys.ArrowLeft || keys.ArrowRight) { repT++; if (repT > 3 && repT % 2 === 0) move(keys.ArrowLeft ? -1 : 1); }
+  else repT = 0;
+}, 50);
+// 모바일 패드
+function hold(el, fn, rep) {
+  let iv = null, t0 = null;
+  const on = e => { e.preventDefault(); if (!playing) return; fn(); if (rep) { t0 = setTimeout(() => { iv = setInterval(fn, 90); }, 220); } };
+  const off = () => { clearTimeout(t0); clearInterval(iv); iv = null; };
+  el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off);
+  el.addEventListener('pointerleave', off); el.addEventListener('pointercancel', off);
+}
+hold($('padL'), () => move(-1), true);
+hold($('padR'), () => move(1), true);
+hold($('padCW'), () => rotate(1), false);
+hold($('padCCW'), () => rotate(-1), false);
+$('padDrop').addEventListener('pointerdown', e => { e.preventDefault(); if (playing) padDown = true; });
+$('padDrop').addEventListener('pointerup', () => { padDown = false; });
+$('padDrop').addEventListener('pointerleave', () => { padDown = false; });
+// 캔버스 스와이프
+let sw = null;
+cv.addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY, t: Date.now(), moved: 0 }; });
+cv.addEventListener('pointermove', e => {
+  if (!sw || !playing) return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+  if (Math.abs(dx) > CELL * 0.8 && Math.abs(dx) > Math.abs(dy)) {
+    move(dx > 0 ? 1 : -1); sw.x = e.clientX; sw.moved++;
+  } else if (dy > CELL * 1.6) { padDown = true; sw.moved++; }
+});
+cv.addEventListener('pointerup', () => {
+  if (sw && playing && !sw.moved && Date.now() - sw.t < 260) rotate(1);
+  sw = null; padDown = false;
+});
+
+/* ═══════════ 판 시작 ═══════════ */
+function startGame() {
+  board = newBoard(); bag = []; nextQ = [];
+  score = 0; chainNow = 0; bestChain = 0; leftover = 0; pending = 0; allClear = false;
+  alive = true; animQ = []; cur = null;
+  incSeen = (players[myKey] || {}).inc || 0;
+  fitCanvas();
+  spawnPiece();
+  playing = true;
+  if (!soloMode) meRef().update({ alive: true, score: 0, best: 0, pend: 0, b: encodeBoard(), t: Date.now() });
+}
+
+/* ═══════════ 방 ═══════════ */
+function roomRef() { return db.ref(rpath(code)); }
+function meRef() { return db.ref(`${rpath(code)}/players/${myKey}`); }
+function offAll() { listeners.forEach(f => f()); listeners = []; }
+
+function checkEnd() {
+  if (!isHost || !room || room.status !== 'playing') return;
+  const ps = Object.entries(players);
+  const liveN = ps.filter(([, p]) => p.alive !== false).length;
+  if (ps.length >= 2 && liveN <= 1) {
+    const winner = ps.find(([, p]) => p.alive !== false);
+    roomRef().update({ status: 'ended', winner: winner ? winner[0] : null });
+  } else if (ps.length === 1 && liveN === 0) {
+    roomRef().update({ status: 'ended', winner: null });
+  }
+}
+function showResult() {
+  $('resultOv').hidden = false;
+  if (soloMode) {
+    $('resTitle').textContent = '게임 종료';
+    $('resText').innerHTML = `점수 <b>${score.toLocaleString()}</b> · 최고 <b>${bestChain}연쇄</b>`;
+    $('resRank').innerHTML = '';
+    $('btnAgain').textContent = '다시 하기';
+    return;
+  }
+  const win = room && room.winner === myKey;
+  $('resTitle').textContent = win ? '🎉 승리!' : (room && room.winner) ? `${(players[room.winner] || {}).nick || ''} 님 승리` : '게임 종료';
+  $('resText').innerHTML = `내 점수 <b>${score.toLocaleString()}</b> · 최고 <b>${bestChain}연쇄</b>`;
+  const rank = Object.entries(players).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+  const medal = ['🥇', '🥈', '🥉'];
+  $('resRank').innerHTML = rank.map(([k, p], i) =>
+    `<div class="rm-row"><span>${medal[i] || (i + 1)}</span><span class="rm-info">${esc(p.nick || k)}${k === myKey ? ' (나)' : ''}${k === (room || {}).winner ? ' 👑' : ''}</span><span>${(p.score || 0).toLocaleString()}점 · ${p.best || 0}연쇄</span></div>`).join('');
+  $('btnAgain').textContent = isHost ? '대기실로 (모두 이동)' : '대기실 기다리기';
+}
+
+(function init() {
+  const saved = localStorage.getItem('pp_nick'); if (saved) $('nick').value = saved;
+  const p = new URLSearchParams(location.search); if (p.get('room')) $('joinCode').value = p.get('room').toUpperCase();
+  loadRooms(); requestAnimationFrame(frame);
+})();
+function getNick() {
+  let n = $('nick').value.trim();
+  if (n.length < 2) { n = '뿌요' + Math.floor(Math.random() * 900 + 100); $('nick').value = n; }
+  localStorage.setItem('pp_nick', n);
+  return n;
+}
+function loadRooms() {
+  const el = $('roomList');
+  db.ref('games/pp_rooms').orderByChild('at').limitToLast(12).once('value').then(sn => {
+    const rows = [];
+    sn.forEach(c => { const v = c.val(); if (v && Date.now() - (v.at || 0) < 2 * 3600e3) rows.push({ code: c.key, ...v }); });
+    rows.sort((a, b) => b.at - a.at);
+    if (!rows.length) { el.innerHTML = '<div class="empty">지금 열린 방이 없어요 — 방을 만들어 보세요!</div>'; return; }
+    el.innerHTML = '';
+    rows.forEach(r => {
+      const d = document.createElement('div');
+      d.className = 'rm-row';
+      d.innerHTML = `<span class="rm-code">${r.code}</span><span class="rm-info">${esc(r.host || '')} · ${r.colors || 4}색 · ${r.n || 1}명${r.status === 'lobby' ? '' : ' · 진행 중'}</span>`;
+      const b = document.createElement('button');
+      b.className = 'rm-join' + (r.status === 'lobby' ? '' : ' watch');
+      b.textContent = r.status === 'lobby' ? '참가' : '난입';
+      b.onclick = () => { $('joinCode').value = r.code; $('btnJoin').click(); };
+      d.appendChild(b); el.appendChild(d);
+    });
+  }).catch(() => { el.innerHTML = '<div class="empty">방 목록을 불러오지 못했어요</div>'; });
+}
+$('btnRefresh').onclick = loadRooms;
+$('btnSolo').onclick = () => {
+  soloMode = true; myNick = getNick(); colors = 4;
+  show('game'); $('resultOv').hidden = true; $('peers').style.display = 'none';
+  startGame();
+};
+$('btnCreate').onclick = async () => {
+  soloMode = false; $('peers').style.display = '';
+  myNick = getNick(); myKey = sanitizeKey(myNick); code = genCode(); isHost = true;
+  await roomRef().set({
+    host: myKey, createdAt: Date.now(), expiresAt: Date.now() + 3 * 3600e3, status: 'lobby', colors: 4,
+    players: { [myKey]: { nick: myNick, joinedAt: Date.now(), score: 0, best: 0, alive: true, inc: 0 } }
+  });
+  enterRoom();
+};
+$('btnJoin').onclick = async () => {
+  soloMode = false; $('peers').style.display = '';
+  myNick = getNick();
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 6) return toast('6자리 코드를 입력해 주세요');
+  const snap = await db.ref(rpath(c)).once('value');
+  const r = snap.val();
+  if (!r) { idxRef(c).remove().catch(() => {}); loadRooms(); return toast('방을 찾을 수 없어요'); }
+  const k = sanitizeKey(myNick);
+  if (!r.players || !r.players[k]) {
+    if (Object.keys(r.players || {}).length >= MAX_PLAYERS) return toast(`정원(${MAX_PLAYERS}명)이 찼어요`);
+    await db.ref(`${rpath(c)}/players/${k}`).set({ nick: myNick, joinedAt: Date.now(), score: 0, best: 0, alive: true, inc: 0 });
+  }
+  myKey = k; code = c; isHost = r.host === k;
+  enterRoom();
+};
+function publishRoom() {
+  if (!isHost || !room) return;
+  idxRef(code).set({ host: myNick, colors: room.colors || 4, status: room.status, n: Object.keys(room.players || {}).length, at: Date.now() }).catch(() => {});
+}
+function enterRoom() {
+  offAll();
+  history.replaceState(null, '', location.pathname + '?room=' + code);
+  $('roomCode').textContent = code;
+  const ref = roomRef();
+  const cb = ref.on('value', snap => {
+    const prev = status;
+    room = snap.val();
+    if (!room) { toast('방이 종료되었어요'); goHome(); return; }
+    players = room.players || {};
+    if (!players[myKey]) { toast('방에서 나갔어요'); goHome(); return; }
+    if (!players[room.host]) {
+      const first = Object.entries(players).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0))[0];
+      if (first && first[0] === myKey) { roomRef().update({ host: myKey }); toast('방장을 이어받았어요'); }
+    }
+    isHost = room.host === myKey;
+    colors = room.colors || 4;
+    status = room.status;
+    if (isHost) { const sig = `${status}|${Object.keys(players).length}|${colors}`; if (publishRoom._s !== sig) { publishRoom._s = sig; publishRoom(); } }
+
+    if (status === 'lobby') { show('lobby'); renderLobby(); playing = false; $('resultOv').hidden = true; return; }
+    show('game');
+    if (prev !== 'playing' && status === 'playing') { $('resultOv').hidden = true; startGame(); }
+    if (status === 'ended') { playing = false; showResult(); }
+    if (isHost && status === 'playing') checkEnd();
+  });
+  listeners.push(() => ref.off('value', cb));
+  const pref = meRef();
+  pref.onDisconnect().remove();
+  listeners.push(() => { pref.onDisconnect().cancel(); });
+}
+function goHome() { offAll(); playing = false; soloMode = false; history.replaceState(null, '', location.pathname); show('home'); loadRooms(); }
+function renderLobby() {
+  const ps = Object.entries(players).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+  $('pcount').textContent = `${ps.length} / ${MAX_PLAYERS}`;
+  $('plist').innerHTML = ps.map(([k, p]) =>
+    `<div class="pchip ${k === myKey ? 'me' : ''}">${esc(p.nick)}${k === room.host ? ' <span class="host">방장</span>' : ''}`
+    + (isHost && k !== myKey ? ` <button class="kick" data-k="${esc(k)}">✕</button>` : '') + '</div>').join('');
+  $('plist').querySelectorAll('.kick').forEach(b => b.onclick = () => db.ref(`${rpath(code)}/players/${b.dataset.k}`).remove());
+  $('col4').style.outline = colors === 4 ? '3px solid #6fbf73' : 'none';
+  $('col5').style.outline = colors === 5 ? '3px solid #6fbf73' : 'none';
+  $('colHint').textContent = colors === 4 ? '4색 — 연쇄를 쌓기 쉬워요' : '5색 — 색이 많아 훨씬 까다로워요';
+  $('btnStart').disabled = !isHost;
+  $('startHint').textContent = isHost ? (ps.length < 2 ? '혼자서도 시작할 수 있어요 (연습)' : '모두 모였으면 시작!') : '방장이 시작하기를 기다리는 중…';
+}
+$('col4').onclick = () => { if (!isHost) return toast('방장만 바꿀 수 있어요'); roomRef().update({ colors: 4 }); };
+$('col5').onclick = () => { if (!isHost) return toast('방장만 바꿀 수 있어요'); roomRef().update({ colors: 5 }); };
+$('btnCopy').onclick = () => { navigator.clipboard.writeText(code); toast('코드를 복사했어요'); };
+$('btnCopyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '?room=' + code); toast('링크를 복사했어요'); };
+const leave = () => { if (isHost) { roomRef().remove(); idxRef(code).remove(); } else if (code) meRef().remove(); goHome(); };
+$('btnLeave').onclick = () => { if (confirm('방을 나갈까요?')) leave(); };
+$('btnQuit').onclick = leave;
+$('btnQuitGame').onclick = () => { if (soloMode) { goHome(); return; } if (confirm('방을 나갈까요?')) leave(); };
+$('btnStart').onclick = () => {
+  if (!isHost) return;
+  const upd = { status: 'playing', winner: null, startedAt: Date.now() };
+  Object.keys(players).forEach(k => {
+    upd[`players/${k}/alive`] = true; upd[`players/${k}/score`] = 0;
+    upd[`players/${k}/best`] = 0; upd[`players/${k}/pend`] = 0; upd[`players/${k}/b`] = '';
+    upd[`players/${k}/inc`] = 0;
+  });
+  roomRef().update(upd);
+};
+$('btnAgain').onclick = () => {
+  if (soloMode) { $('resultOv').hidden = true; startGame(); return; }
+  if (isHost) roomRef().update({ status: 'lobby', winner: null });
+  else toast('방장이 대기실로 옮기기를 기다려요');
+};
+
+/* ═══════════ 설명서 ═══════════ */
+function buildManual() {
+  $('manBody').innerHTML = `
+    <h2>📖 뿌요뿌요 규칙</h2>
+    <div class="man-h">🎮 조작</div>
+    <div class="man-p">
+      <span class="man-key">← →</span> 좌우 이동 · <span class="man-key">↓</span> 빨리 내리기 ·
+      <span class="man-key">↑</span>/<span class="man-key">X</span> 오른쪽 회전 · <span class="man-key">Z</span> 왼쪽 회전 ·
+      <span class="man-key">Space</span> 즉시 낙하<br>
+      모바일은 아래 버튼, 또는 화면을 <b>좌우로 쓸기</b>(이동) · <b>탭</b>(회전) · <b>아래로 쓸기</b>(빨리 내리기)
+    </div>
+    <div class="man-h">🫧 기본</div>
+    <div class="man-p">
+      같은 색 <b>4개 이상</b>이 상하좌우로 붙으면 터져요. 터진 자리로 위의 뿌요가 떨어지면서
+      또 4개가 붙으면 <b>연쇄</b>가 됩니다. 연쇄가 길수록 점수가 폭발적으로 커져요.<br>
+      붙어 있는 <b>방해뿌요</b>는 옆에서 뿌요가 터질 때 같이 사라집니다.
+    </div>
+    <div class="man-h">⚔️ 대전</div>
+    <div class="man-p">
+      연쇄로 얻은 점수 <b>${GARBAGE_RATE}점마다 방해뿌요 1개</b>를 상대에게 보냅니다 (살아있는 상대에게 고르게 나눠서).<br>
+      내가 공격받고 있을 때 연쇄를 터뜨리면 <b>서로 상쇄</b>돼요 — 맞고 바로 되받아치는 게 핵심입니다.<br>
+      한 번에 떨어지는 방해뿌요는 최대 ${MAX_GARBAGE_WAVE}개(5줄)이고, 남은 건 다음에 떨어져요.<br>
+      필드를 <b>전부 비우면</b> 다음 공격에 <b>+${ALL_CLEAR_BONUS}개</b>가 붙습니다.
+    </div>
+    <div class="man-h">💀 패배</div>
+    <div class="man-p">
+      위쪽에 점선으로 표시된 <b>생성 칸</b>이 막히면 패배합니다. 그 열은 너무 높이 쌓지 마세요.<br>
+      마지막 한 명이 남으면 승리예요.
+    </div>
+    <div class="man-h">📊 점수</div>
+    <div class="man-p">
+      터진 수 × 10 × (연쇄 보너스 + 색 보너스 + 덩어리 보너스).<br>
+      표준 뿌요뿌요 통 수치를 그대로 씁니다 — 1연쇄 0 / 2연쇄 8 / 3연쇄 16 / 4연쇄 32 / 5연쇄 64 …
+    </div>`;
+}
+function openManual() { buildManual(); $('manOv').hidden = false; }
+$('btnManHome').onclick = openManual;
+$('btnMan2').onclick = openManual;
+$('btnManClose').onclick = () => { $('manOv').hidden = true; };
+
+window.pp = {
+  get state() { return { code, myKey, isHost, status, soloMode, score, bestChain, pending, alive, playing, players }; },
+  board: () => board, startGame, resolveChain, dropGarbage, roomRef, die, findGroups, encodeBoard,
+};
+</script>
+</body>
+</html>
