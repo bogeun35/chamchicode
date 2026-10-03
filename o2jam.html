@@ -174,12 +174,19 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 </dialog>
 <button class="btn ghost" id="screenBtn" title="전체화면 · F8" aria-label="전체화면 전환">⛶</button>
 
-<div id="menu" class="ov">
+<style>
+#titleScreen {z-index:10;} #titleScreen .box {width:min(620px,92vw);text-align:center;padding:48px 30px;} .title-actions {display:grid;gap:12px;margin:30px auto;max-width:320px;} .title-actions button {width:100%;} #settingsDialog,#productionDialog {margin:auto;width:min(760px,94vw);max-height:88vh;overflow:auto;background:#0d1729;color:#eef3ff;border:1px solid #31516a;border-radius:18px;padding:24px;} dialog::backdrop {background:#030814cf;} .setting-group {display:flex;gap:12px;flex-wrap:wrap;margin:20px 0;} .setting-group .opt {flex-wrap:wrap;} #songList [data-pick],#diffRow > [data-act] {display:none;} #settingsDialog .keys {flex-wrap:wrap;} #productionEntries {display:grid;gap:12px;margin-top:20px;}
+</style>
+<div id="titleScreen" class="ov"><div class="box"><div class="brand-line">참치코드 · RHYTHM</div><h1>PULSE</h1><div class="title-actions"><button class="btn" data-shell="solo">혼자 하기</button><button class="btn" data-shell="online">온라인 하기</button><button class="btn ghost" data-shell="settings">설정</button><button class="btn ghost" data-shell="production">제작</button></div><div class="hint">↑↓ 선택 · Enter 확인 · Backspace 돌아가기</div></div></div>
+<style>.setting-group[hidden] {display:none;}</style>
+<dialog id="settingsDialog" aria-labelledby="settingsHeading"><div class="row"><h2 id="settingsHeading">플레이 설정</h2><button class="btn ghost" data-shell="close-settings" style="margin-left:auto">닫기</button></div><div id="settingsSolo" class="setting-group"></div><div id="settingsRoom" class="setting-group" hidden></div><div class="hint">Tab 이동 · Enter 선택 · ←→ 속도/싱크 조절 · Backspace 닫기</div></dialog>
+<dialog id="productionDialog" aria-labelledby="productionHeading"><div class="row"><h2 id="productionHeading">제작</h2><button class="btn ghost" data-shell="close-production" style="margin-left:auto">닫기</button></div><p class="hint" id="productionSong"></p><div id="productionEntries"></div></dialog>
+<div id="menu" class="ov" hidden>
   <div class="box">
     <div class="brand-line">참치코드 · RHYTHM</div>
     <h1>PULSE</h1>
     
-    <div class="tabs"><button class="tab on" data-tab="solo">🎮 혼자 하기</button><button class="tab" data-tab="online">🌐 온라인 (최대 8명)</button></div>
+    <div class="row"><button class="btn ghost" data-shell="title">← 타이틀</button><button class="btn ghost" data-shell="settings">⚙ 설정</button><button class="btn ghost" data-shell="production">제작</button></div>
     <div id="soloPane">
     <div class="song-browser"><div class="songs" id="songList"></div><aside class="song-preview" id="songPreview" aria-label="선택한 곡"></aside></div>
     <div class="row" id="modeRow"></div>
@@ -220,6 +227,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
       <button class="btn ghost" id="rmCopy" style="font-size:14px;padding:8px 12px">코드 복사</button>
       <span class="sub" id="rmCount"></span>
       <button class="btn ghost" id="rmLeave" style="margin-left:auto">나가기</button>
+      <button class="btn ghost" data-shell="settings">⚙ 설정</button>
     </div>
     <div class="room-layout"><section class="room-section"><div class="section-label">참가자</div><div class="seats" id="rmSeats"></div><div id="roomStatus" role="status"></div></section><section class="room-section"><div class="section-label">선택곡</div>
     <div class="sub" id="rmSongLabel">곡 선택</div>
@@ -1032,7 +1040,7 @@ function startRun(song, diff, opt = {}) {
   run.bestBefore = BEST[run.recordKey] ? Object.assign({}, BEST[run.recordKey]) : null;
   run.goal = goalForRecord(run.bestBefore);
   clk.off = null;
-  $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
+  $('titleScreen').hidden = true; $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
   if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   recordingStart(run);
 }
@@ -1205,8 +1213,8 @@ let waitKey = -1;
 addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
   if (e.defaultPrevented || $('helpDialog').open) return;
-  if (!(run && !run.ended && !run.paused) && (e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
   if (waitKey >= 0) { e.preventDefault(); if (e.code !== 'Escape') { const km = SET.keymap[SET.mode], i = km.indexOf(e.code); if (i >= 0) km[i] = km[waitKey]; km[waitKey] = e.code; saveSet(); } waitKey = -1; renderKeys(); return; }
+  if (!(run && !run.ended && !run.paused) && (e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
   if (ED && !run) { edKey(e); return; }
   const lane = run && !run.ended ? keysNow().indexOf(e.code) : -1;
   if (run && !run.ended && !run.paused) {
@@ -2609,6 +2617,7 @@ window.o2jam = {
 
 // Keyboard shell shortcuts; capture prevents duplicate native and game actions.
 addEventListener('keydown', e => {
+  if (!$('titleScreen').hidden || $('settingsDialog').open || $('productionDialog').open) return;
   if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || waitKey >= 0 || e.repeat || (ED && !run)) return;
   const act = action => { e.preventDefault(); e.stopImmediatePropagation(); action(); };
   if (!$('helpDialog').open && e.code === 'KeyH' && !(run && !run.ended)) return act(() => $('helpBtn').click());
@@ -2649,7 +2658,90 @@ $('songList').addEventListener('keydown', e => { if (e.target.matches('[data-son
 const optionTips = {'속도':'노트가 내려오는 빠르기', '싱크':'음악과 노트의 시간 보정', '타격음':'성공 판정의 입력 효과음', '노페일':'체력이 없어져도 계속 플레이', '녹화':'화면·음악·타격음을 영상으로 저장'};
 for (const el of document.querySelectorAll('.opt')) { for (const [word,tip] of Object.entries(optionTips)) if (el.textContent.includes(word)) { el.title = tip; break; } }
 
-renderMenu(); probeSongs();
+let shellReturnFocus = null;
+function showTitle() {
+  $('menu').hidden = true; $('titleScreen').hidden = false;
+  $('titleScreen').querySelector('[data-shell="solo"]').focus();
+}
+function openShellPage(page) {
+  $('titleScreen').hidden = true; $('menu').hidden = false; setTab(page);
+  if (page === 'solo') { renderMenu(); document.querySelector('.song.on')?.focus(); }
+  else $('nick').focus();
+}
+function openSettings() {
+  shellReturnFocus = document.activeElement;
+  const room = !$('roomOv').hidden;
+  $('settingsSolo').hidden = room; $('settingsRoom').hidden = !room;
+  renderMenu(); $('settingsDialog').showModal();
+}
+function closeShellDialog(dialog) { waitKey = -1; dialog.close(); renderKeys(); shellReturnFocus?.focus(); }
+function openProduction() {
+  shellReturnFocus = document.activeElement;
+  const song = songById(SET.song); $('productionSong').textContent = song ? song.title + ' · ' + SET.mode + '키' : '곡을 먼저 선택하세요.';
+  const charts = myCharts().filter(c => c.song === SET.song && c.keys === SET.mode);
+  $('productionEntries').innerHTML = `<button class="btn" data-act="ed-new" ${song && song.ok ? '' : 'disabled'}>채보 만들기</button>`
+    + charts.map(c => `<button class="btn ghost" data-production-chart="${escH(c.id)}">내 채보 편집 · ${escH(c.name)}</button>`).join('')
+    + (!charts.length ? '<div class="hint">저장된 내 채보가 없습니다.</div>' : '')
+    + (song && !song.synth ? `<button class="btn ghost" data-pick="${escH(song.id)}">곡 음원 교체</button>` : '');
+  $('productionDialog').showModal();
+}
+function shellKeydown(e) {
+  if ($('helpDialog').open) return;
+  const settings = $('settingsDialog'), production = $('productionDialog');
+  if (settings.open || production.open) {
+    if (settings.open && waitKey >= 0) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (e.code !== 'Escape') { const km = SET.keymap[SET.mode], i = km.indexOf(e.code); if (i >= 0) km[i] = km[waitKey]; km[waitKey] = e.code; saveSet(); }
+      waitKey = -1; renderKeys(); return;
+    }
+    e.stopImmediatePropagation();
+    const editing = /INPUT|TEXTAREA/.test(e.target.tagName);
+    if ((e.code === 'Backspace' && !editing) || e.code === 'Escape') { e.preventDefault(); closeShellDialog(settings.open ? settings : production); return; }
+    const option = e.target.closest && e.target.closest('.opt');
+    if (settings.open && option && ['ArrowLeft','ArrowRight'].includes(e.code) && e.target.tagName !== 'SELECT') {
+      const prefix = option.querySelector('[data-act^="spd"]') ? 'spd' : option.querySelector('[data-act^="off"]') ? 'off' : null;
+      if (prefix) { e.preventDefault(); option.querySelector('[data-act="' + prefix + (e.code === 'ArrowRight' ? '+' : '-') + '"]').click(); }
+    }
+    return;
+  }
+  if (e.code === 'F8') { e.preventDefault(); e.stopImmediatePropagation(); $('screenBtn').click(); return; }
+  if (!$('titleScreen').hidden) {
+    e.stopImmediatePropagation();
+    const buttons = [...$('titleScreen').querySelectorAll('.title-actions button')];
+    if (['ArrowUp','ArrowDown'].includes(e.code)) { e.preventDefault(); const current = Math.max(0, buttons.indexOf(document.activeElement)); buttons[(current + (e.code === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length].focus(); }
+    else if (e.code === 'Enter' && !buttons.includes(e.target)) { e.preventDefault(); buttons[0].click(); }
+    return;
+  }
+  if (!$('menu').hidden && e.code === 'Backspace' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { e.preventDefault(); e.stopImmediatePropagation(); showTitle(); }
+}
+function initializeShell() {
+  for (const id of ['spdV','offV','hitSnd','noFail','keyBoxes','recordPlay','recordQuality']) { const option = $(id).closest('.opt'); if (option) $('settingsSolo').appendChild(option); }
+  for (const option of [...$('roomOv').querySelectorAll('.opt')]) $('settingsRoom').appendChild(option);
+  $('settingsRoom').hidden = true;
+  document.addEventListener('click', e => {
+    const button = e.target.closest('[data-shell]');
+    if (button) {
+      const action = button.dataset.shell;
+      if (action === 'solo' || action === 'online') openShellPage(action);
+      else if (action === 'title') showTitle();
+      else if (action === 'settings') openSettings();
+      else if (action === 'production') openProduction();
+      else if (action === 'close-settings') closeShellDialog($('settingsDialog'));
+      else if (action === 'close-production') closeShellDialog($('productionDialog'));
+      return;
+    }
+    if ($('productionDialog').open && e.target.closest('[data-act="ed-new"],[data-pick],[data-production-chart]')) {
+      $('productionDialog').close();
+      const chart = e.target.closest('[data-production-chart]');
+      if (chart) { e.stopImmediatePropagation(); SET.diff = 'MY:' + chart.dataset.productionChart; saveSet(); $('titleScreen').hidden = true; edOpen(chart.dataset.productionChart); }
+      else if (e.target.closest('[data-act="ed-new"]')) $('titleScreen').hidden = true;
+    }
+  }, true);
+  for (const dialog of [$('settingsDialog'), $('productionDialog')]) dialog.addEventListener('cancel', () => { waitKey = -1; renderKeys(); });
+  addEventListener('keydown', shellKeydown, true);
+  showTitle();
+}
+initializeShell(); renderMenu(); probeSongs();
 </script>
 </body>
 </html>
