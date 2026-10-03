@@ -185,7 +185,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <button class="btn ghost" id="autoBtn" title="자동 연주로 음악과 타격 효과 감상 · 기록 저장 안 함">자동 연주</button>
     </div>
     <div class="msg" id="menuMsg"></div>
-    <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>Esc</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
+    <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>Esc</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>EXCELLENT·COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
     </div>
     <div id="onlinePane" hidden>
       <div class="row" style="margin-top:16px">
@@ -352,8 +352,8 @@ const validMode = n => MODE_KEYS.includes(+n) ? +n : 4;
 let NL = 4, LW = 66, FW = 264, KIND = MODES[4].kind;
 function setMode(n) { n = validMode(n); NL = n; LW = MODES[n].lw; FW = NL * LW; KIND = MODES[n].kind; }
 const LCOL = { w: '#eef3ff', b: '#4a93ff', y: '#ffcb3d' };
-const JW = { cool: .055, good: .10, bad: .15 };                      // 판정 창(초, ±) — 너무 어렵다고 해서 ±45/90/135 → ±55/100/150
-const JUDGE_W = { cool: 100, good: 60, bad: 20, miss: 0 };
+const JW = { excellent: .025, cool: .055, good: .120, bad: .160 }; // 판정 창(초, ±): 25 / 55 / 120 / 160ms
+const JUDGE_W = { excellent: 100, cool: 90, good: 60, bad: 20, miss: 0 };
 const LIFE = { EX: [4, 3, -5, -18], NX: [3, 2, -6, -24], HX: [2, 1, -8, -30] };     // COOL GOOD BAD MISS (MISS 감소를 줄여 완화)
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
@@ -863,9 +863,9 @@ async function analyzeAudio(buffer, title) {
 
 // ═══════════ 플레이 ═══════════
 let run = null;
-function recordKey(song, diff, mode) { return song.id + ':' + diff + (mode === 7 ? '' : ':' + mode); }
+function recordKey(song, diff, mode) { return 'v2:' + song.id + ':' + diff + ':' + mode; }
 function accuracyOf(r, completed = true) {
-  return (r.cnt.cool + r.cnt.good * .6 + r.cnt.bad * .2) / Math.max(1, completed ? r.total : r.judged);
+  return ((r.cnt.excellent || 0) + r.cnt.cool * .9 + r.cnt.good * .6 + r.cnt.bad * .2) / Math.max(1, completed ? r.total : r.judged);
 }
 function goalForRecord(best) {
   const legacyThreshold = { SS: .98, S: .95, A: .9, B: .8, C: .7 }[(best || {}).rank] || 0;
@@ -876,7 +876,7 @@ function achievementOf(r) {
   if (r.auto) return 'DEMO';
   if (r.failed) return 'FAILED';
   if (r.total <= 0 || r.judged < r.total) return 'FINISHED';
-  if (r.cnt.cool === r.total) return 'MAX';
+  if (r.cnt.excellent === r.total) return 'MAX';
   if (!r.cnt.bad && !r.cnt.miss && r.maxCombo === r.total) return 'FULL COMBO';
   return 'CLEAR';
 }
@@ -892,7 +892,7 @@ function startRun(song, diff, opt = {}) {
   const src = ac.createBufferSource(); src.buffer = song.buffer; src.connect(AU.music);
   if (lead >= .05) src.start(t0, from); else src.start(ac.currentTime + .05, from + .05 - lead);
   run = { song, diff, mode, notes, lanes, ptr: new Array(NL).fill(0), hold: new Array(NL).fill(null), down: new Array(NL).fill(false), beam: new Array(NL).fill(0), fx: [],
-    t0: t0 - from, src, total, score: 0, combo: 0, maxCombo: 0, jam: 0, jamG: 0, maxJam: 0, life: 1000, cnt: { cool: 0, good: 0, bad: 0, miss: 0 }, judged: 0,
+    t0: t0 - from, src, total, score: 0, combo: 0, maxCombo: 0, jam: 0, jamG: 0, maxJam: 0, life: 1000, cnt: { excellent: 0, cool: 0, good: 0, bad: 0, miss: 0 }, judged: 0,
     lastJ: null, lastJAt: -9, lastHitAt: 0, lastHitLane: null, lastHitKind: null, milestone: null, comboBreak: null, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, mp: !!opt.mp, end: song.buffer.duration, bpm: data.bpm, offset: data.offset || 0, level: ch.level,
     data, from, fromEditor: !!opt.fromEditor, label: opt.label || '' };
   run.recordKey = recordKey(song, diff, mode);
@@ -909,15 +909,15 @@ function songNow() {
 function addJudge(kind, lane) {
   const r = run; r.cnt[kind]++; r.judged++;
   const now = performance.now(), previousCombo = r.combo;
-  const lv = LIFE[r.diff] || LIFE.NX, dl = { cool: lv[0], good: lv[1], bad: lv[2], miss: lv[3] }[kind];
+  const lv = LIFE[r.diff] || LIFE.NX, dl = { excellent: lv[0], cool: lv[0], good: lv[1], bad: lv[2], miss: lv[3] }[kind];
   r.life = clamp(r.life + dl, 0, 1000);
-  if (kind === 'cool' || kind === 'good') {
+  if (kind === 'excellent' || kind === 'cool' || kind === 'good') {
     r.combo++; r.maxCombo = Math.max(r.maxCombo, r.combo);
     if (r.combo === 25 || r.combo === 50 || r.combo % 100 === 0) r.milestone = { combo: r.combo, t: now };
     if (lane != null) { hitSfx(KIND[lane]); r.lastHitAt = now; r.lastHitLane = lane; r.lastHitKind = kind; }
-    r.jamG += kind === 'cool' ? 4 : 2;
+    r.jamG += kind === 'excellent' ? 5 : kind === 'cool' ? 4 : 2;
     if (r.jamG >= 100) { r.jamG -= 100; r.jam++; r.maxJam = Math.max(r.maxJam, r.jam); r.jamAt = performance.now(); }
-    r.score += kind === 'cool' ? 200 + 10 * r.jam : 100 + 5 * r.jam;
+    r.score += kind === 'excellent' ? 300 + 15 * r.jam : kind === 'cool' ? 200 + 10 * r.jam : 100 + 5 * r.jam;
   } else {
     if (kind === 'bad') r.score += 4;
     if (previousCombo >= 10) r.comboBreak = { combo: previousCombo, t: now };
@@ -928,7 +928,7 @@ function addJudge(kind, lane) {
   if (lane != null && kind !== 'miss') r.fx.push({ lane, t: performance.now(), kind, strength: 1 + Math.min(1.5, r.combo / 120), fever: r.combo >= 50 });
   if (r.life <= 0 && !(SET.noFail && !r.mp) && !r.auto && !r.failed && !r.fromEditor) { r.failed = true; finish(); }   // 멀티는 노페일 없음
 }
-function judgeOf(err) { const a = Math.abs(err); return a <= JW.cool ? 'cool' : a <= JW.good ? 'good' : a <= JW.bad ? 'bad' : null; }
+function judgeOf(err) { const a = Math.abs(err); return a <= JW.excellent ? 'excellent' : a <= JW.cool ? 'cool' : a <= JW.good ? 'good' : a <= JW.bad ? 'bad' : null; }
 function press(lane, ts) {
   const r = run; if (!r || r.paused || r.ended) return;
   r.down[lane] = true; r.beam[lane] = 1;
@@ -949,7 +949,7 @@ function release(lane, ts) {
   const n = r.hold[lane]; if (!n || r.paused || r.ended) return;
   const t = (ts != null ? heardAt(ts) : heardAt(performance.now())) - r.t0 - SET.offset / 1000, te = n.t + n.len;
   r.hold[lane] = null; n.tail = 2;
-  const k = t < te - JW.bad ? 'miss' : (judgeOf(t - te) || 'cool');
+  const k = t < te - JW.bad ? 'miss' : (judgeOf(t - te) || 'excellent');
   addJudge(k, k === 'miss' ? null : lane);
 }
 function update() {
@@ -959,13 +959,13 @@ function update() {
     const L = r.lanes[l];
     while (r.ptr[l] < L.length) {
       const n = L[r.ptr[l]];
-      if (r.auto && !n.state && now >= n.t) { n.state = 1; n.err = 0; addJudge('cool', l); r.beam[l] = 1; if (n.len > 0) { n.tail = 1; r.hold[l] = n; } else { r.ptr[l]++; } continue; }
+      if (r.auto && !n.state && now >= n.t) { n.state = 1; n.err = 0; addJudge('excellent', l); r.beam[l] = 1; if (n.len > 0) { n.tail = 1; r.hold[l] = n; } else { r.ptr[l]++; } continue; }
       if (n.state) { if (n.tail === 2 || n.len === 0) { r.ptr[l]++; continue; } break; }
       if (now - n.t > JW.bad) { n.state = 1; n.missed = true; addJudge('miss', null); if (n.len > 0) { n.tail = 2; addJudge('miss', null); } r.ptr[l]++; continue; }
       break;
     }
     const h = r.hold[l];
-    if (h && now >= h.t + h.len) { r.hold[l] = null; h.tail = 2; addJudge('cool', l); r.beam[l] = 1; }   // 끝까지 누르고 있으면 끝 판정 COOL
+    if (h && now >= h.t + h.len) { r.hold[l] = null; h.tail = 2; addJudge('excellent', l); r.beam[l] = 1; }   // 끝까지 누르고 있으면 끝 판정 EXCELLENT
     if (!r.down[l] && !(r.auto && r.hold[l])) r.beam[l] = Math.max(0, r.beam[l] - .08);
   }
   if (r.ended) return;
@@ -973,7 +973,7 @@ function update() {
 }
 function rankOf(r) {
   if (r.failed) return 'F';
-  const acc = (r.cnt.cool * 100 + r.cnt.good * 60 + r.cnt.bad * 20) / Math.max(1, r.total * 100);
+  const acc = accuracyOf(r);
   return acc >= .98 ? 'SS' : acc >= .95 ? 'S' : acc >= .9 ? 'A' : acc >= .8 ? 'B' : acc >= .7 ? 'C' : 'D';
 }
 function finish() {
@@ -1020,14 +1020,14 @@ function showResult(r) {
   $('resScore').textContent = String(r.score).padStart(7, '0');
   $('resBest').textContent = nb || (old ? `최고 ${old.score.toLocaleString()} (${old.rank})` : '');
   const achievement = r.achievement || achievementOf(r);
-  $('resAchievement').textContent = achievement === 'MAX' ? 'MAX / ALL COOL' : achievement;
+  $('resAchievement').textContent = achievement === 'MAX' ? 'MAX / ALL EXCELLENT' : achievement;
   $('resAchievement').style.color = achievement === 'FAILED' ? '#ff8396' : achievement === 'MAX' || achievement === 'FULL COMBO' ? '#ffe29b' : '#67e8f9';
   $('resProgress').textContent = progress.join(' / ');
   const nextGoal = goalForRecord(eligible ? BEST[key] : old);
   const accuracyGoal = r.goal || nextGoal;
   const goalReached = eligible && acc >= accuracyGoal.accuracy;
   $('resGoal').textContent = r.auto ? '직접 연주해서 기록에 도전하세요.' : (goalReached ? '목표 달성! ' : '') + '다음 도전: ' + (eligible && acc === 1 ? '다른 곡에서도 MAX!' : nextGoal.label) + (achievement === 'FULL COMBO' || achievement === 'MAX' ? '' : ' · FULL COMBO');
-  $('resStats').innerHTML = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#fff'], ['MAX JAM', r.maxJam, '#ffcb3d'], ['정확도', (acc * 100).toFixed(2) + '%', '#fff'], ['노트', r.total, '#8e9cc4']]
+  $('resStats').innerHTML = [['EXCELLENT', r.cnt.excellent, '#ffe7a0'], ['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#fff'], ['MAX JAM', r.maxJam, '#ffcb3d'], ['정확도', (acc * 100).toFixed(2) + '%', '#fff'], ['노트', r.total, '#8e9cc4']]
     .map(([k, v, c]) => `<div><span style="color:${c}">${k}</span><b>${v}</b></div>`).join('');
   $('result').hidden = false;
 }
@@ -1096,7 +1096,7 @@ function renderKeys() {
 }
 function renderMenu() {
   $('songList').innerHTML = SONGS.map(s => {
-    const bests = ['EX', 'NX', 'HX'].map(d => BEST[s.id + ':' + d + (SET.mode === 7 ? '' : ':' + SET.mode)]).filter(Boolean);
+    const bests = ['EX', 'NX', 'HX'].map(d => BEST[recordKey(s, d, SET.mode)]).filter(Boolean);
     const top = bests.sort((a, b) => b.score - a.score)[0];
     const len = s.data ? `${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}` : '';
     const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}${s.data.auto ? ' · 자동 채보' : ''}` : '';
@@ -1110,10 +1110,10 @@ function renderMenu() {
   const mine = s ? myCharts().filter(c => c.song === s.id && c.keys === SET.mode) : [];
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
-    const ch = s && s.data && chartFor(s.data, d, SET.mode), b = s && BEST[s.id + ':' + d + (SET.mode === 7 ? '' : ':' + SET.mode)];
+    const ch = s && s.data && chartFor(s.data, d, SET.mode), b = s && BEST[recordKey(s, d, SET.mode)];
     return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? ' ' + levelLabel(ch.level) : ''}<small>${d}${ch ? ' · ' + ch.notes.length + ' 노트' : ''}${b ? ' · ' + b.rank : ''}</small></button>`;
   }).join('') + mine.map(c => {
-    const b = BEST[s.id + ':MY:' + c.id + (SET.mode === 7 ? '' : ':' + SET.mode)];
+    const b = BEST[recordKey(s, 'MY:' + c.id, SET.mode)];
     return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
   }).join('') + `<button class="btn ghost" data-act="ed-new" style="font-size:14px;padding:8px 14px" ${s && s.ok ? '' : 'disabled'} title="곡을 들으며 녹화하거나 마우스로 찍어서 ${SET.mode}키 채보 만들기">＋ 채보 만들기</button>`
     + (/^MY:/.test(SET.diff) ? '<button class="btn ghost" data-act="ed-edit" style="font-size:14px;padding:8px 14px">✏️ 이 채보 편집</button>' : '');
@@ -1593,7 +1593,7 @@ function edBackFromTest(r) {
   run = null; $('pause').hidden = true; $('result').hidden = true; $('menu').hidden = true;
   setMode(ED.keys); if (ED.testFrom != null) ED.pos = ED.testFrom;
   ED.down.fill(false); edPanelShow(true);
-  if (done) toast(`테스트 — COOL ${c.cool} · GOOD ${c.good} · BAD ${c.bad} · MISS ${c.miss}`, 3200);
+  if (done) toast(`테스트 — EXCELLENT ${c.excellent} · COOL ${c.cool} · GOOD ${c.good} · BAD ${c.bad} · MISS ${c.miss}`, 3200);
 }
 function edSave() {
   if (!ED) return;
@@ -1884,11 +1884,11 @@ function drawImpactEffects(r, pn) {
   ctx.globalCompositeOperation = 'lighter';
   for (const f of r.fx) {
     // BAD gets only subdued feedback; MISS can never produce a burst.
-    if (f.kind !== 'cool' && f.kind !== 'good') continue;
+    if (f.kind !== 'excellent' && f.kind !== 'cool' && f.kind !== 'good') continue;
     const age = pn - f.t, k = age / 460, fade = Math.pow(1 - k, 2);
     const strength = f.strength || 1, fever = !!f.fever;
     const cx = FX + f.lane * LW + LW / 2;
-    const color = fever ? '#ffcb66' : f.kind === 'cool' ? '#80edff' : '#b9ff87';
+    const color = fever ? '#ffcb66' : f.kind === 'excellent' ? '#fff0ad' : f.kind === 'cool' ? '#80edff' : '#b9ff87';
     ctx.globalAlpha = fade;
     const glow = ctx.createRadialGradient(cx, JY, 0, cx, JY, 44 * strength);
     glow.addColorStop(0, '#ffffff'); glow.addColorStop(.22, color); glow.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1899,7 +1899,7 @@ function drawImpactEffects(r, pn) {
     // Short white hit core creates crisp physical contact at the judgment line.
     if (age < 85) { ctx.globalAlpha = (1 - age / 85) * .9; ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - LW * .42, JY - 3, LW * .84, 6); }
     ctx.globalAlpha = fade;
-    const count = f.kind === 'cool' ? 12 : 8;
+    const count = f.kind === 'excellent' ? 16 : f.kind === 'cool' ? 12 : 8;
     for (let i = 0; i < count; i++) {
       const angle = -Math.PI * .9 + (i / (count - 1)) * Math.PI * .8;
       const speed = (30 + ((i * 17 + f.lane * 11) % 45)) * strength;
@@ -1930,7 +1930,7 @@ function drawImpactEffects(r, pn) {
     txt(milestone.combo + ' COMBO!', 0, 0, 22, '#ffe29b', 'center', 'Black Han Sans');
     ctx.restore();
   }
-  if (fever && !r.failed && (r.lastJ === 'cool' || r.lastJ === 'good')) {
+  if (fever && !r.failed && (r.lastJ === 'excellent' || r.lastJ === 'cool' || r.lastJ === 'good')) {
     ctx.save(); ctx.globalAlpha = .75 + Math.sin(pn / 160) * .2;
     ctx.shadowColor = '#ff9d36'; ctx.shadowBlur = 14;
     ctx.strokeStyle = '#ffcb66'; ctx.lineWidth = r.combo >= 100 ? 3 : 2;
@@ -2012,7 +2012,7 @@ function draw() {
     const pn2 = performance.now(), dt = pn2 - r.lastJAt;
     if (r.lastJ && dt < 380) {
       const pop = dt < 90 ? 1.25 - dt / 90 * .25 : 1, a = dt > 200 ? 1 - (dt - 200) / 180 : 1;
-      const col = { cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[r.lastJ];
+      const col = { excellent: '#ffe7a0', cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[r.lastJ];
       // Judgment and combo share the actual highway in every play mode.
       const judgeX = FX + FW / 2, judgeY = JY - 175;
       ctx.save(); ctx.globalAlpha = a; ctx.translate(judgeX, judgeY); ctx.scale(pop, pop);
@@ -2063,24 +2063,24 @@ function draw() {
     txt('SCORE', px, 180, 16, '#8e9cc4', 'left');
     txt(String(r.score).padStart(7, '0'), px, 220, 54, '#ffffff', 'left', 'Black Han Sans');
     if (r.mp && MP.room) {   // 멀티: 내 한 줄 + 상대 카드 (점수·콤보·JAM·정확도·체력·진행, 방금 판정 색으로 번쩍)
-      const all = Object.entries(MP.room.players || {}).filter(([, p]) => !p.spec).map(([k, p]) => ({ k, p, L: k === MP.key ? { s: r.score, c: r.combo, j: r.jam, l: r.life, failed: r.failed, done: r.ended, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, p: prog } : (p.live || {}) }));
+      const all = Object.entries(MP.room.players || {}).filter(([, p]) => !p.spec).map(([k, p]) => ({ k, p, L: k === MP.key ? { s: r.score, c: r.combo, j: r.jam, l: r.life, failed: r.failed, done: r.ended, ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, p: prog } : (p.live || {}) }));
       all.sort((a, b) => (b.L.s || 0) - (a.L.s || 0));
       const myRank = all.findIndex(e2 => e2.k === MP.key) + 1;
       txt(`${myRank} / ${all.length}위`, px + 300, 222, 30, myRank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
-      txt(`COOL ${r.cnt.cool}  GOOD ${r.cnt.good}  BAD ${r.cnt.bad}  MISS ${r.cnt.miss}  ·  콤보 ${r.combo} (최대 ${r.maxCombo})`, px, 262, 15, '#8e9cc4', 'left');
+      txt(`EXCELLENT ${r.cnt.excellent}  COOL ${r.cnt.cool}  GOOD ${r.cnt.good}  BAD ${r.cnt.bad}  MISS ${r.cnt.miss}  ·  콤보 ${r.combo} (최대 ${r.maxCombo})`, px, 262, 15, '#8e9cc4', 'left');
       const others = all.filter(e2 => e2.k !== MP.key), pn3 = performance.now(), CW = 364, CH = 84;
       MP.flash = MP.flash || {};
       others.slice(0, 7).forEach((e2, i2) => {
         const L = e2.L, cx0 = px + (i2 % 2) * (CW + 12), cy0 = 286 + Math.floor(i2 / 2) * (CH + 10), rank = all.indexOf(e2) + 1;
         const f = MP.flash[e2.k] || (MP.flash[e2.k] = { jn: 0, at: 0, kind: '' });
         if ((L.jn || 0) !== f.jn) { f.jn = L.jn || 0; f.at = pn3; f.kind = L.lj || ''; }
-        const fk = pn3 - f.at < 350 ? { cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[f.kind] : null;
+        const fk = pn3 - f.at < 350 ? { excellent: '#ffe7a0', cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[f.kind] : null;
         ctx.fillStyle = L.failed || e2.p.left ? 'rgba(60,10,20,.75)' : 'rgba(13,20,48,.9)'; rr(cx0, cy0, CW, CH, 10); ctx.fill();
         ctx.strokeStyle = fk || (rank === 1 ? '#ffcb3d' : '#26345f'); ctx.lineWidth = fk ? 3 : 2; rr(cx0, cy0, CW, CH, 10); ctx.stroke();
         txt(`#${rank}`, cx0 + 12, cy0 + 20, 18, rank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
         txt(String(e2.p.nick || '').slice(0, 10), cx0 + 52, cy0 + 20, 17, '#eef3ff', 'left');
         txt((L.s || 0).toLocaleString(), cx0 + CW - 12, cy0 + 21, 24, '#ffffff', 'right', 'Black Han Sans');
-        const acc = L.co != null && (L.co + L.go + L.ba + L.mi) > 0 ? ((L.co * 100 + L.go * 60 + L.ba * 20) / ((L.co + L.go + L.ba + L.mi) * 100) * 100).toFixed(1) + '%' : '-';
+        const acc = L.co != null && ((L.ex || 0) + L.co + L.go + L.ba + L.mi) > 0 ? (((L.ex || 0) * 100 + L.co * 90 + L.go * 60 + L.ba * 20) / (((L.ex || 0) + L.co + L.go + L.ba + L.mi) * 100) * 100).toFixed(1) + '%' : '-';
         const st = e2.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? '끝' : `${L.c || 0} 콤보  ·  JAM ×${L.j || 0}`;
         txt(st, cx0 + 12, cy0 + 47, 15, L.failed || e2.p.left ? '#ff5a6e' : '#ffcb3d', 'left');
         txt(`정확도 ${acc}`, cx0 + CW - 12, cy0 + 47, 14, '#8e9cc4', 'right');
@@ -2093,7 +2093,7 @@ function draw() {
       if (!others.length) txt('상대가 들어오면 여기에 현황이 보여요', px, 320, 16, '#56648c', 'left');
       txt('↑↓ 속도  ·  Esc 포기', px, 700, 14, '#56648c', 'left');
     } else {
-      const rows = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
+      const rows = [['EXCELLENT', r.cnt.excellent, '#ffe7a0'], ['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
       rows.forEach(([k, v, c], i2) => { const y = 280 + i2 * 34; txt(k, 900, y, 18, c, 'left'); txt(String(v), 1200, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
       txt(r.fromEditor ? '↑↓ 속도  ·  Esc 편집기로 돌아가기' : '↑↓ 속도  ·  Esc 일시정지', px, 690, 15, r.fromEditor ? '#b58cff' : '#71849b', 'left');
     }
@@ -2106,7 +2106,7 @@ function draw() {
       ctx.strokeStyle = achievementColor; ctx.lineWidth = 2; rr(470, 265, 760, 390, 18); ctx.stroke();
       txt('TRACK COMPLETE', 850, 325, 15, '#9baac0');
       ctx.shadowColor = achievementColor; ctx.shadowBlur = 22;
-      txt(achievement === 'MAX' ? 'MAX / ALL COOL' : achievement, 850, 407, 48, achievementColor, 'center', 'Black Han Sans');
+      txt(achievement === 'MAX' ? 'MAX / ALL EXCELLENT' : achievement, 850, 407, 48, achievementColor, 'center', 'Black Han Sans');
       ctx.shadowBlur = 0;
       txt((accuracyOf(r) * 100).toFixed(2) + '%  /  ' + r.maxCombo + ' MAX COMBO', 850, 485, 25, '#f1f6ff');
       txt(r.auto ? '감상 모드' : '결과를 확인하고 다음 기록에 도전하세요', 850, 555, 17, '#9baac0');
@@ -2323,7 +2323,7 @@ async function mpBeginRound(r) {
 }
 function mpPushLive() {
   const r = run; if (!r || !r.mp || !MP.code) return;
-  meRef().update({ t: Date.now(), live: { s: r.score, c: r.combo, mc: r.maxCombo, j: r.jam, l: Math.round(r.life), co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, tot: r.total,
+  meRef().update({ t: Date.now(), live: { s: r.score, c: r.combo, mc: r.maxCombo, j: r.jam, l: Math.round(r.life), ex: r.cnt.excellent, co: r.cnt.cool, go: r.cnt.good, ba: r.cnt.bad, mi: r.cnt.miss, tot: r.total,
     p: +clamp(songNow() / r.end, 0, 1).toFixed(3), done: !!r.ended, failed: !!r.failed, rank: r.ended ? rankOf(r) : '', lj: r.lastJ || '', jn: r.judged } });
   if (r.ended) { clearInterval(MP.liveT); MP.liveT = null; }
 }
@@ -2343,12 +2343,12 @@ function mpShowBoard(r, mode) {
   const ch2 = d && chartFor(d, r.diff, +(r.keys || 4));
   $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${r.diff}${ch2 ? ' ' + levelLabel(ch2.level) : ''}`;
   const rows = pl.map((e, i) => {
-    const L = e.L, acc = L.tot ? ((L.co * 100 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
+    const L = e.L, acc = L.tot ? (((L.ex || 0) * 100 + L.co * 90 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
     const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';
-    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}</td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
+    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}</td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#ffe7a0">${L.ex || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
   }).join('');
-  $('mrTable').innerHTML = '<tr><th>#</th><th>닉네임</th><th>점수</th><th>최대 콤보</th><th>COOL</th><th>GOOD</th><th>BAD</th><th>MISS</th><th>정확도</th><th>상태</th></tr>' + rows
-    + (specs.length ? `<tr><td colspan="10" style="text-align:left;color:#8e9cc4">👀 관전: ${specs.map(e => esc(e.p.nick)).join(', ')}</td></tr>` : '');
+  $('mrTable').innerHTML = '<tr><th>#</th><th>닉네임</th><th>점수</th><th>최대 콤보</th><th>EXCELLENT</th><th>COOL</th><th>GOOD</th><th>BAD</th><th>MISS</th><th>정확도</th><th>상태</th></tr>' + rows
+    + (specs.length ? `<tr><td colspan="11" style="text-align:left;color:#8e9cc4">👀 관전: ${specs.map(e => esc(e.p.nick)).join(', ')}</td></tr>` : '');
   $('mrBack').hidden = !(mode === 'result' && MP.isHost);
   $('mrMsg').textContent = mode === 'result' ? (MP.isHost ? '' : '방장이 방으로 돌아가면 다음 곡을 골라요') : '';
   $('mpResult').hidden = false;
