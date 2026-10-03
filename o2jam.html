@@ -1003,6 +1003,7 @@ function release(lane, ts) {
   r.hold[lane] = null; n.tail = 2;
   const k = t < te - JW.bad ? 'miss' : (judgeOf(t - te) || 'excellent');
   addJudge(k, k === 'miss' ? null : lane);
+  if (['excellent', 'cool', 'good'].includes(k) && r.fx.length) r.fx[r.fx.length - 1].holdComplete = true;
 }
 function update() {
   const r = run; if (!r || r.paused || r.ended) return;
@@ -1017,7 +1018,7 @@ function update() {
       break;
     }
     const h = r.hold[l];
-    if (h && now >= h.t + h.len) { r.hold[l] = null; h.tail = 2; addJudge('excellent', l); r.beam[l] = 1; }   // 끝까지 누르고 있으면 끝 판정 EXCELLENT
+    if (h && now >= h.t + h.len) { r.hold[l] = null; h.tail = 2; addJudge('excellent', l); if (r.fx.length) r.fx[r.fx.length - 1].holdComplete = true; r.beam[l] = 1; }   // 끝까지 누르고 있으면 끝 판정 EXCELLENT
     if (!r.down[l] && !(r.auto && r.hold[l])) r.beam[l] = Math.max(0, r.beam[l] - .08);
   }
   if (r.ended) return;
@@ -1951,6 +1952,15 @@ function drawImpactEffects(r, pn) {
     ctx.fillStyle = glow; ctx.fillRect(cx - radius, JY - radius, radius * 2, radius * 2);
     ctx.strokeStyle = color; ctx.lineWidth = 3 * fade + 1;
     ctx.beginPath(); ctx.ellipse(cx, JY, 10 + k * 48 * strength, 5 + k * 23, 0, 0, Math.PI * 2); ctx.stroke();
+    if (f.holdComplete) {
+      // A finished hold contracts into a bright core, then releases two rings.
+      ctx.globalAlpha = fade; ctx.strokeStyle = '#fff2bd'; ctx.lineWidth = 3 * fade;
+      for (let ring = 0; ring < 2; ring++) {
+        const radius = 16 + k * (62 + ring * 22);
+        ctx.beginPath(); ctx.ellipse(cx, JY, radius, radius * .38, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      if (age < 180) { ctx.globalAlpha = (1 - age / 180) * .9; ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 3, JY - 32 * (1 - age / 180), 6, 64 * (1 - age / 180)); }
+    }
     // Short white hit core creates crisp physical contact at the judgment line.
     if (age < 85) { ctx.globalAlpha = (1 - age / 85) * .9; ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - LW * .42, JY - 3, LW * .84, 6); }
     ctx.globalAlpha = fade;
@@ -1965,12 +1975,18 @@ function drawImpactEffects(r, pn) {
     }
   }
   for (let l = 0; l < NL; l++) {
-    if (!r.hold[l] || !r.down[l] || r.hold[l].missed) continue;
+    if (!r.hold[l] || (!r.down[l] && !r.auto) || r.hold[l].missed) continue;
     const cx = FX + l * LW + LW / 2, pulse = .7 + .3 * Math.sin(pn / 45 + l);
+    const charge = clamp((songNow() - r.hold[l].t) / r.hold[l].len, 0, 1);
+    const energy = ctx.createLinearGradient(0, JY - 100, 0, JY);
+    energy.addColorStop(0, 'rgba(103,232,249,0)'); energy.addColorStop(1, fever ? '#ffd380' : noteColor(l));
+    ctx.globalAlpha = .2 + pulse * .2; ctx.fillStyle = energy; ctx.fillRect(FX + l * LW + 5, JY - 100, LW - 10, 100);
+    ctx.globalAlpha = .85; ctx.strokeStyle = '#f0fbff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(cx, JY, 22, 12, -Math.PI / 2, 0, Math.PI * 2 * charge); ctx.stroke();
     ctx.globalAlpha = .7 * pulse; ctx.strokeStyle = fever ? '#ffcb66' : noteColor(l); ctx.lineWidth = 2;
     ctx.beginPath(); ctx.ellipse(cx, JY, 16 + pulse * 8, 9 + pulse * 4, 0, 0, Math.PI * 2); ctx.stroke();
-    for (let i = 0; i < 5; i++) {
-      const p = ((pn / 420 + i / 5) % 1), x = cx + Math.sin(i * 2.4 + pn / 150) * 12;
+    for (let i = 0; i < 8; i++) {
+      const p = ((pn / 360 + i / 8) % 1), x = cx + Math.sin(i * 2.4 + pn / 150) * 12;
       ctx.globalAlpha = (1 - p) * .75; ctx.fillStyle = noteColor(l); ctx.fillRect(x, JY - p * 80, 3, 7);
     }
   }
@@ -2010,6 +2026,12 @@ function drawFallingNotes(r, now, pxs) {
           ctx.globalAlpha = n.missed ? .25 : holding ? .9 : .7;
           const gr = ctx.createLinearGradient(x, 0, x + w, 0); const c = noteColor(l); gr.addColorStop(0, c); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, c);
           ctx.fillStyle = gr; ctx.fillRect(x, Math.max(0, yT), w, Math.min(JY, yB) - Math.max(0, yT));
+          if (holding && !n.missed) {
+            ctx.globalAlpha = .6; ctx.fillStyle = '#ffffff';
+            const top = Math.max(0, yT), bottom = Math.min(JY, yB);
+            ctx.fillRect(x + w / 2 - 1.5, top, 3, Math.max(0, bottom - top));
+            for (let sy = top + ((performance.now() / 5) % 38); sy < bottom; sy += 38) ctx.fillRect(x + 3, sy, w - 6, 2);
+          }
           ctx.globalAlpha = 1;
           drawNote(l, yT + 6, 6, n.missed ? .3 : 1);
           if (!holding && yH <= JY + 12) drawNote(l, yH, 12, n.missed ? .3 : 1);
