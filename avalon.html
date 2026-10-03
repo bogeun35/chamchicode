@@ -191,7 +191,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; bac
     <div class="pill">방 <b id="gameCode"></b></div>
     <div class="pill" id="qPill">원정 1</div>
     <button class="btn ghost" id="btnRules">❓ 규칙</button>
-    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+    <button class="btn ghost" id="btnLeaveGame">⏸ 메뉴</button>
   </div>
   <div class="tracks" id="tracks"></div>
   <div class="rej" id="rej"></div>
@@ -354,7 +354,7 @@ function leave(ask = true) {
   if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
   room = null; code = ''; isHost = false; hideOv(); show('home');
 }
-$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave(); $('btnLeaveEnd').onclick = () => leave();
+$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => LB.menu({ onLeave: () => leave() }); $('btnLeaveEnd').onclick = () => leave();
 
 // ── 대기실 ──
 const LB = Lobby.mount({
@@ -405,12 +405,7 @@ function startGame() {
   roomRef().update({ status: 'playing', game, expiresAt: Date.now() + 3 * 3600e3 });
 }
 $('btnAgain').onclick = () => { if (!isHost) return toast('방장만 다시 시작할 수 있어요'); startGame(); };
-$('btnToLobby').onclick = () => {
-  if (!isHost) return;
-  const up = { status: 'lobby', game: null };
-  Object.keys(room.players || {}).forEach(k => { up[`players/${k}/ready`] = false; });
-  roomRef().update(up);
-};
+$('btnToLobby').onclick = () => LB.toLobby();
 
 // ── 진행 (모든 전환은 트랜잭션: 마지막으로 행동한 사람이 다음 단계로 넘김 — 방장이 없어도 굴러감) ──
 function norm(g) { g.pick = g.pick || []; g.votes = g.votes || {}; g.qcards = g.qcards || {}; g.results = g.results || []; g.seen = g.seen || {}; g.log = g.log || []; return g; }

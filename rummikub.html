@@ -142,10 +142,9 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
   <div class="title" style="font-size:28px;margin-top:10px">대기실</div>
   <div class="card" style="text-align:center"><h3>방 코드 — 친구에게 알려주세요</h3><div class="code-big" id="lobbyCode">------</div>
     <div class="row" style="justify-content:center"><button class="btn blue" id="btnCopyLink">🔗 링크 복사</button><button class="btn light" id="btnCopyCode">코드 복사</button></div></div>
-  <div class="card"><h3>참가자 <span id="lobbyCount"></span></h3><div class="plist" id="lobbyList"></div></div>
   <div class="card" id="settingsCard"><h3>설정 <span style="opacity:.6;font-size:12px" id="settingsWho"></span></h3>
     <div style="font-size:13px;color:#8a5a2a;margin-bottom:6px">턴 제한 시간</div><div class="chips" id="timerChips"></div></div>
-  <div class="row"><button class="btn green wide" id="btnStart" disabled>게임 시작 (2~4명)</button></div>
+  <div id="lobbyBox"></div>
   <div class="row"><button class="btn ghost wide" id="btnLeaveLobby">나가기</button></div>
 </section>
 
@@ -155,7 +154,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
     <div class="pill">더미 <b id="poolCnt">0</b></div>
     <div class="timer" id="timer"></div>
     <button class="btn ghost" id="btnRules">❓</button>
-    <button class="btn ghost" id="btnLeaveGame">나가기</button>
+    <button class="btn ghost" id="btnLeaveGame">⏸ 메뉴</button>
   </div>
   <div class="banner" id="banner"></div>
   <div class="players" id="players"></div>
@@ -171,13 +170,14 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 
 <section class="screen" id="end">
   <div class="card winbox"><h1 id="winTitle">🏆</h1><p id="winText" style="font-size:18px;color:#5a4a3a"></p><div class="score" id="endScore"></div></div>
-  <div class="row"><button class="btn green wide" id="btnAgain">다시 하기</button></div>
+  <div class="row"><button class="btn green wide" id="btnAgain">🔁 같은 멤버로 다시</button><button class="btn blue wide" id="btnToLobby">🪑 대기실로</button></div>
   <div class="row"><button class="btn ghost wide" id="btnLeaveEnd">나가기</button></div>
 </section>
 
 <div class="modal" id="rulesModal"><div class="card"><h3>❓ 어떻게 하나요?</h3><div class="howto" id="howtoModal"></div><button class="btn green wide" style="margin-top:12px" id="rulesClose">알겠어요!</button></div></div>
 
 <script src="party-ux.js"></script>
+<script src="party-lobby.js"></script>
 <script src="party-sound.js"></script><script>Sound.theme('lounge')</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -298,12 +298,12 @@ function enterRoom() {
 }
 function leave(confirmIt = true) {
   if (confirmIt && !confirm('방을 나갈까요?')) return;
-  UX.forget('rk');
+  UX.forget('rk'); LB.stop();
   offAll(); clearInterval(tick);
   if (room) { if (isHost) roomRef().remove(); else if (room.status === 'lobby') db.ref(`${rpath(code)}/players/${myKey}`).remove(); }
   room = null; code = ''; isHost = false; work = null; workTurnId = ''; selected.clear(); show('home');
 }
-$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => leave(); $('btnLeaveEnd').onclick = () => leave();
+$('btnLeaveLobby').onclick = () => leave(); $('btnLeaveGame').onclick = () => LB.menu({ onLeave: () => leave() });   // 게임 중: 방장은 대기실로 · 모두 나가기 $('btnLeaveEnd').onclick = () => leave();
 $('btnCopyLink').onclick = () => UX.share(location.href.split('?')[0] + '?room=' + code, document.title.replace('참스코드 ', '') + ' 방 ' + code, toast);
 $('btnCopyCode').onclick = () => copyText(code, '코드를 복사했어요');
 function copyText(t, msg) { navigator.clipboard.writeText(t).then(() => toast(msg)).catch(() => prompt('복사해 주세요', t)); }
@@ -311,23 +311,20 @@ $('btnRules').onclick = () => $('rulesModal').classList.add('show');
 $('rulesClose').onclick = () => $('rulesModal').classList.remove('show');
 $('rulesModal').addEventListener('click', e => { if (e.target === $('rulesModal')) $('rulesModal').classList.remove('show'); });
 
-// ── 대기실 ──
+// ── 대기실 (공용: party-lobby.js — 자리 · 준비 · 채팅 · 방장 메뉴) ──
+const LB = Lobby.mount({ el: $('lobbyBox'), ref: () => roomRef(), me: () => myKey, host: () => isHost, toast, min: 2, max: 4, seatTool: false, startLabel: '🔢 게임 시작',
+  tip: h => h ? '턴 시간은 위에서 · 자리를 누르면 방장 넘기기 · 내보내기' : '위 설정은 방장이 정해요 · 준비 완료를 누르면 방장이 시작해요',
+  onStart: () => startGame(1), onKicked: () => { if (room && room.status === 'lobby') { toast('방장이 방에서 내보냈어요'); leave(false); } }, });
 function renderLobby() {
   show('lobby');
   $('lobbyCode').textContent = code;
-  const ps = Object.entries(room.players || {}).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
-  Sound.diff('lobby', ps.length, 'join', 'leave');
-  $('lobbyCount').textContent = `${ps.length}/4`;
-  $('lobbyList').innerHTML = ps.map(([k, p]) => `<div class="pitem"><span class="av">${avatarOf(k)}</span>${esc(p.nick)}${k === room.host ? '<span class="tag">방장</span>' : ''}${k === myKey ? ' <span style="opacity:.5;font-size:13px">(나)</span>' : ''}</div>`).join('');
   const st = room.settings || { timer: 90 };
   $('settingsWho').textContent = isHost ? '' : '(방장만 바꿀 수 있어요)';
   $('timerChips').innerHTML = TIMER_OPTS.map(o => `<span class="chip ${st.timer === o.v ? 'on' : ''}" data-t="${o.v}">${o.l}</span>`).join('');
   if (isHost) $('timerChips').querySelectorAll('.chip').forEach(el => el.onclick = () => roomRef().update({ 'settings/timer': +el.dataset.t }));
-  $('btnStart').style.display = isHost ? '' : 'none';
-  $('btnStart').disabled = ps.length < 2;
-  if (!isHost) $('lobbyList').insertAdjacentHTML('beforeend', '<div style="font-size:13px;color:#8a5a2a;text-align:center;margin-top:6px">방장이 시작하면 자동으로 넘어가요</div>');
+  LB.render(room);
 }
-$('btnStart').onclick = () => startGame(1);
+$('btnToLobby').onclick = () => LB.toLobby();
 $('btnAgain').onclick = () => { if (isHost) startGame(((room.game && room.game.round) || 0) + 1); else toast('방장만 다시 시작할 수 있어요'); };
 function startGame(round) {
   const keys = Object.entries(room.players).sort((a, b) => a[1].joinedAt - b[1].joinedAt).map(e => e[0]);
@@ -577,7 +574,7 @@ function renderEnd() {
   $('winText').textContent = win ? `${nickOf(win)} 님이 타일을 모두 내려놓았어요!` : '';
   const sc = g.order.map(k => { const r = g.racks[k] || []; const pts = r.reduce((a, t) => a + (isJ(t) ? 30 : num(t)), 0); return `<span class="s">${avatarOf(k)} ${esc(nickOf(k))} 남은 ${r.length}장 (−${pts})</span>`; });
   $('endScore').innerHTML = sc.join('');
-  $('btnAgain').style.display = isHost ? '' : 'none';
+  $('btnAgain').style.display = $('btnToLobby').style.display = isHost ? '' : 'none';
   if (!isHost) $('winText').textContent += ' 방장이 다시 시작하면 이어져요.';
   if (win === myKey && !renderEnd._c) { renderEnd._c = true; confetti(); setTimeout(() => renderEnd._c = false, 3000); }
 }

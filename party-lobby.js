@@ -2,6 +2,8 @@
 // 사용: const LB = Lobby.mount({ el, ref, me, host, teams, leader, min, max, ... }); 방 스냅샷마다 LB.render(room)
 //   teams : [{ id, name, icon, color }] | null        — 팀 게임이면 팀 열로, 아니면 자리 격자로
 //   leader: { field, name, icon, perTeam, required, selfPick } | null — 팀장/원정대장 같은 '리더' 표시
+//   seatTool: false 면 '자리 섞기' 숨김 (시작할 때 순서를 어차피 섞는 게임)
+// 흐름: 대기실(준비·옵션 확인) → 시작 → 게임 중 '⏸ 메뉴'(LB.menu)에서 방장이 대기실로 → 끝나면 다시/대기실로(LB.toLobby)
 (function () {
   const AV = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦁', '🐙', '🐨', '🐯', '🐰', '🐻'];
   const avatarOf = k => AV[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length];
@@ -13,6 +15,9 @@
   const css = document.createElement('style');
   css.textContent = `
 .lb-h { display: flex; align-items: center; gap: 6px; }
+/* 게임에 .btn.light 가 없을 때만 쓰이는 기본 모양 (:where 로 우선순위를 낮춰 게임 자체 색이 있으면 그걸 따름) */
+:where(.lb-card, .lb-sheet) .btn:where(.light) { background: #fff; color: #8a5a2a; box-shadow: 0 4px 0 #b8834a; }
+:where(.lb-card, .lb-sheet) .btn:where(.light):active { box-shadow: 0 1px 0 #b8834a; }
 .lb-h .lb-cnt { margin-left: auto; font-size: 12px; opacity: .75; }
 .lb-teams { display: grid; grid-template-columns: repeat(var(--lb-cols, 2), minmax(0, 1fr)); gap: 8px; }
 .lb-team { border-radius: 14px; padding: 7px; border: 3px solid var(--lb-c); background: #fff; background: color-mix(in srgb, var(--lb-c) 9%, #fff); min-width: 0; }
@@ -150,7 +155,7 @@
       const tools = [];
       if (isHost()) {
         if (teams) tools.push(['shuffle', '🔀 팀 섞기'], ['balance', '⚖️ 인원 맞추기']);
-        else tools.push(['seats', '🪑 자리 섞기']);
+        else if (o.seatTool !== false) tools.push(['seats', '🪑 자리 섞기']);
         if (leader) tools.push(['randlead', `🎲 ${leader.name} 랜덤`]);
       }
       q('.lb-tools').innerHTML = tools.map(([a, t]) => `<button class="btn light" data-a="${a}">${t}</button>`).join('');
@@ -263,14 +268,40 @@
     }
     function stopChat() { if (st.chatRef && st.chatCb) st.chatRef.off('value', st.chatCb); st.chatRef = st.chatCb = null; st.path = ''; st.chatSeen = 0; }
     function say(t, sys) {
-      t = String(t || '').trim().slice(0, 60); if (!t || !st.room) return;
-      const p = st.room.players && st.room.players[me()];
+      t = String(t || '').trim().slice(0, 60); if (!t || (!st.room && !sys)) return;
+      const p = st.room && st.room.players && st.room.players[me()];
       ref().child('chat').push(sys ? { sys: 1, t, at: Date.now() } : { k: me(), n: p ? p.nick : '?', t, at: Date.now() });
     }
     q('.lb-say').onsubmit = e => { e.preventDefault(); const i = q('.lb-in'); say(i.value); i.value = ''; };
     q('.lb-quick').querySelectorAll('button').forEach(b => b.onclick = () => say(b.textContent));
 
-    return { render, reason, stop: () => { stopChat(); sheet.hidden = true; st.lastCount = -1; st.room = null; }, say, list };
+    // 판만 끝내고 방·사람은 그대로 대기실로 (준비는 다시)
+    function toLobby() {
+      if (!isHost()) return toast('방장만 대기실로 돌릴 수 있어요');
+      return ref().child('players').once('value').then(sn => {
+        const up = { status: 'lobby', game: null };
+        Object.keys(sn.val() || {}).forEach(k => { up[`players/${k}/ready`] = false; });
+        return ref().update(up);
+      }).then(() => say('🪑 방장이 게임을 끝내고 대기실로 돌아왔어요', true));
+    }
+    // 게임 중 ⏸ 메뉴: 방장은 '대기실로', 모두 '방 나가기'
+    function menu(opt = {}) {
+      const host = isHost(), acts = [];
+      if (host) acts.push(['lobby', '🪑 게임 그만하고 대기실로', 'green']);
+      (opt.extra || []).forEach(x => acts.push(x));
+      acts.push(['leave', host ? '🚪 방 나가기 (방이 사라져요)' : '🚪 방 나가기', '']);
+      sheet.dataset.k = '';
+      sheet.querySelector('.lb-sheet-t').innerHTML = `⏸ 메뉴${host ? '' : '<small style="font-size:12.5px;color:#8a5a2a;margin-left:auto">게임 중단은 방장이 해요</small>'}`;
+      sheet.querySelector('.lb-sheet-b').innerHTML = acts.map(([a, t, c]) => `<button class="btn ${c}" data-s="${a}">${t}</button>`).join('');
+      sheet.querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+        sheet.hidden = true; const a = b.dataset.s;
+        if (a === 'lobby') { if (confirm('지금 판을 그만두고 모두 대기실로 갈까요?')) toLobby(); }
+        else if (a === 'leave') opt.onLeave && opt.onLeave();
+        else { const x = (opt.extra || []).find(e => e[0] === a); x && x[3] && x[3](); }
+      });
+      sheet.hidden = false;
+    }
+    return { render, reason, toLobby, menu, stop: () => { stopChat(); sheet.hidden = true; st.lastCount = -1; st.room = null; }, say, list, setRoom: r => { st.room = r; } };
   }
   window.Lobby = { mount, avatarOf };
 })();
