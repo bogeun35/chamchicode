@@ -1165,7 +1165,7 @@ function renderMenu() {
     return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}">${songCover(s)}<div class="song-info"><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
-  if (s) $('songPreview').innerHTML = `<img src="${esc(s.cover)}" alt="" onerror="this.remove()"><div class="preview-copy"><div class="preview-label">SELECTED TRACK · ${SET.mode} KEY</div><h2>${esc(s.title)}</h2><p>${esc(s.artist)} · ${s.synth ? '연습곡' : s.ok ? '바로 플레이 가능' : '음원 확인 필요'}<br>↑↓ 곡 · ←→ 난이도 · 4~7 키 모드<br>Enter 시작 · F8 전체화면 · F9 녹화</p></div>`;
+  if (s) $('songPreview').innerHTML = `<img src="${esc(s.cover)}" alt="" onerror="this.remove()"><div class="preview-copy"><div class="preview-label">SELECTED TRACK · ${SET.mode} KEY</div><h2>${esc(s.title)}</h2><p>${esc(s.artist)} · ${s.synth ? '연습곡' : s.ok ? '바로 플레이 가능' : '음원 확인 필요'}<br>↑↓ 곡 · ←→ 난이도 · 4~7 키 모드<br>Enter 시작 · F7 혼자/온라인 · F8 전체화면 · F9 녹화</p></div>`;
   const mine = s ? myCharts().filter(c => c.song === s.id && c.keys === SET.mode) : [];
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
@@ -2535,7 +2535,7 @@ addEventListener('keydown', e => {
     if (MP.isHost && ['ArrowUp','ArrowDown'].includes(e.code)) return act(() => { const list = [...$('rmSongs').querySelectorAll('[data-msong]')]; const i = list.findIndex(x => x.classList.contains('on')); const next = list[clamp(i + (e.code === 'ArrowDown' ? 1 : -1),0,list.length-1)]; if(next) { next.click(); next.scrollIntoView({block:'nearest'}); } });
   }
   if (!$('menu').hidden) {
-    if (e.code === 'Tab' && e.ctrlKey) return act(() => setTab(MP.tab === 'solo' ? 'online' : 'solo'));
+    if (e.code === 'F7') return act(() => setTab(MP.tab === 'solo' ? 'online' : 'solo'));
     if (MP.tab === 'solo' && /^Digit[4-7]$/.test(e.code)) return act(() => { SET.mode = Number(e.code.slice(-1)); saveSet(); renderMenu(); });
   }
 }, true);
