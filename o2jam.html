@@ -158,17 +158,26 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
 #soloPane > .row:has(#startBtn) {position:sticky;bottom:0;z-index:2;padding:12px 0;background:linear-gradient(transparent,#080f1cf5 20%);}
 #roomOv > .box > .row:has(#rmStart) {position:sticky;bottom:0;z-index:2;background:#0b1426;padding-bottom:12px;}
 :focus-visible { outline:3px solid #67e8f9; outline-offset:3px; }
+dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
-<button class="btn ghost" id="screenBtn" aria-label="전체화면 전환">⛶ 전체화면</button>
+<button class="btn ghost" id="helpBtn" aria-label="도움말" title="도움말 · H" style="position:fixed;right:72px;top:16px;z-index:12;padding:8px 14px;font-size:13px">?</button>
+<dialog id="helpDialog" style="margin:auto;width:min(620px,92vw);max-height:85vh;overflow:auto;background:#0d1729;color:#eef3ff;border:1px solid #31516a;border-radius:18px;padding:26px">
+<div class="row" style="margin:0;justify-content:space-between"><h2>플레이 가이드</h2><button class="btn ghost" id="helpClose" aria-label="도움말 닫기">✕</button></div>
+<p class="hint">떨어지는 노트를 판정선에 맞춰 누르세요. 긴 노트는 끝까지 누릅니다.</p>
+<div class="stats" style="margin:18px 0;font-size:14px"><div>↑↓ / ←→ <b>곡 / 난이도</b></div><div>4~7 <b>키 모드</b></div><div>Enter <b>시작 / 준비</b></div><div>백틱(1 왼쪽) <b>일시정지</b></div><div>F7 / F8 <b>온라인 / 전체화면</b></div><div>F9 <b>녹화 켜기</b></div><div>R / Backspace <b>재시도 / 돌아가기</b></div><div>Tab / Enter <b>버튼 이동 / 선택</b></div></div>
+<details><summary>판정과 설정</summary><p class="hint">EXCELLENT → COOL → GOOD → BAD → MISS 순입니다. 쉬움·보통·어려움은 같은 곡의 서로 다른 노트 배치이며 별은 1~8단계입니다.<br>속도는 노트가 떨어지는 빠르기, 싱크는 음악과 노트의 시간 보정입니다. 노페일을 켜면 체력이 없어져도 끝까지 연습할 수 있습니다.</p></details>
+<details style="margin-top:14px"><summary>온라인과 녹화</summary><p class="hint">방장이 곡과 난이도를 고르고 모두 준비하면 시작합니다. 전체화면에서 Esc는 브라우저가 창 모드로 전환합니다. 플레이 중에는 백틱으로 일시정지하세요.<br>녹화는 게임 화면과 소리를 저장합니다. 압축은 최대 720p, 원본 화질은 화면 해상도를 유지합니다. 저장 형식은 브라우저 지원에 따라 MP4 또는 WebM입니다.</p></details>
+</dialog>
+<button class="btn ghost" id="screenBtn" title="전체화면 · F8" aria-label="전체화면 전환">⛶</button>
 
 <div id="menu" class="ov">
   <div class="box">
-    <div class="brand-line">MUSIC · RHYTHM · YOUR NEXT BEST</div>
+    <div class="brand-line">참치코드 · RHYTHM</div>
     <h1>PULSE</h1>
-    <div class="sub">4 · 5 · 6 · 7 KEY / 음악을 고르고, 판정선에 맞춰 연주하세요. 처음에는 4키 EASY를 추천해요.</div>
+    
     <div class="tabs"><button class="tab on" data-tab="solo">🎮 혼자 하기</button><button class="tab" data-tab="online">🌐 온라인 (최대 8명)</button></div>
     <div id="soloPane">
     <div class="song-browser"><div class="songs" id="songList"></div><aside class="song-preview" id="songPreview" aria-label="선택한 곡"></aside></div>
@@ -181,13 +190,13 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <div class="opt"><label><input type="checkbox" id="noFail"> 노페일</label></div>
     </div>
     <div class="row">
-      <div class="opt">키 설정 <span class="sub" style="font-size:12px">(눌러서 바꾸기)</span> <div class="keys" id="keyBoxes"></div><button data-act="keys-reset" title="기본 키로" style="width:auto;padding:0 8px">기본</button></div>
+      <div class="opt">⌨ <div class="keys" id="keyBoxes"></div><button data-act="keys-reset" title="기본 키로" style="width:auto;padding:0 8px">기본</button></div>
       <button class="btn" id="startBtn" style="margin-left:auto">▶ 시작 (Enter)</button>
       <button class="btn ghost" id="autoBtn" title="자동 연주로 음악과 타격 효과 감상 · 기록 저장 안 함">자동 연주</button>
       <label class="opt"><input type="checkbox" id="recordPlay"> 플레이 녹화</label><label class="opt">영상 <select id="recordQuality" class="inp" style="padding:3px;font-size:12px"><option value="compressed">압축 · 최대 720p</option><option value="original">원본 화질 · 화면 해상도</option></select></label>
     </div>
     <div class="msg" id="menuMsg"></div>
-    <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>`</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>EXCELLENT·COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
+
     </div>
     <div id="onlinePane" hidden>
       <div class="row" style="margin-top:16px">
@@ -198,7 +207,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
         <button class="btn ghost" id="mpRefresh" style="margin-left:auto" title="방 목록 새로고침">↻</button>
       </div>
       <div class="rooms" id="roomList"><div class="hint">불러오는 중…</div></div>
-      <div class="hint">최대 8명이 같은 곡·같은 채보를 동시에 연주해요. 제공된 곡은 바로 플레이할 수 있어요. 같은 곡·키 모드·난이도를 고르고 모두 준비하면 방장이 시작합니다. 파일을 바꿨다면 서로 같은 음원인지 확인해주세요.<br>연주 중 <b>`</b> = 포기 · 체력이 0이 되면 그 곡은 탈락이에요.</div>
+
     </div>
   </div>
 </div>
@@ -211,7 +220,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <span class="sub" id="rmCount"></span>
       <button class="btn ghost" id="rmLeave" style="margin-left:auto">나가기</button>
     </div>
-    <div class="room-layout"><section class="room-section"><div class="section-label">PLAYERS · 함께 플레이</div><div class="seats" id="rmSeats"></div><div id="roomStatus" role="status"></div></section><section class="room-section"><div class="section-label">SETLIST · 이번 라운드</div>
+    <div class="room-layout"><section class="room-section"><div class="section-label">참가자</div><div class="seats" id="rmSeats"></div><div id="roomStatus" role="status"></div></section><section class="room-section"><div class="section-label">선택곡</div>
     <div class="sub" id="rmSongLabel">곡 선택</div>
     <div class="row" id="rmSongs"></div>
     <div class="row" id="rmModes"></div>
@@ -1084,7 +1093,7 @@ function showResult(r) {
     } else progress.push('다음 판부터 이번 기록과 비교해요.');
   } else progress.push(r.auto ? '감상 모드 / 최고 기록에 저장하지 않아요.' : '기록은 곡을 끝까지 연주하면 저장돼요.');
   const col = { SS: '#ffe066', S: '#ffcb3d', A: '#7fe9ff', B: '#9cff7a', C: '#b58cff', D: '#8e9cc4', F: '#ff5a6e' }[rank];
-  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : r.diff} ${levelLabel(r.level)}${r.auto ? ' · 자동 연주' : ''}`;
+  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : ({EX:'쉬움',NX:'보통',HX:'어려움'}[r.diff] || '커스텀')} ${levelLabel(r.level)}${r.auto ? ' · 자동 연주' : ''}`;
   $('resRank').textContent = rank; $('resRank').style.color = col; $('resRank').style.textShadow = `0 0 30px ${col}88`;
   $('resScore').textContent = String(r.score).padStart(7, '0');
   $('resBest').textContent = nb || (old ? `최고 ${old.score.toLocaleString()} (${old.rank})` : '');
@@ -1133,7 +1142,7 @@ async function startSelected(opt) {
 let waitKey = -1;
 addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
-  if (e.defaultPrevented) return;
+  if (e.defaultPrevented || $('helpDialog').open) return;
   if ((e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
   if (waitKey >= 0) { e.preventDefault(); if (e.code !== 'Escape') { const km = SET.keymap[SET.mode], i = km.indexOf(e.code); if (i >= 0) km[i] = km[waitKey]; km[waitKey] = e.code; saveSet(); } waitKey = -1; renderKeys(); return; }
   if (ED && !run) { edKey(e); return; }
@@ -1172,19 +1181,19 @@ function renderMenu() {
     const bests = ['EX', 'NX', 'HX'].map(d => BEST[recordKey(s, d, SET.mode)]).filter(Boolean);
     const top = bests.sort((a, b) => b.score - a.score)[0];
     const len = s.data ? `${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}` : '';
-    const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}${s.data.auto ? ' · 자동 채보' : ''}` : '';
-    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 바로 플레이 가능') : '';
+    const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}` : '';
+    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : '') : '';
     const pick = s.synth ? '' : `<button class="btn ghost" data-pick="${s.id}" style="font-size:14px;padding:8px 12px;margin-left:auto">${s.ok ? '파일 바꾸기' : '🎵 음원 파일 선택'}</button>`;
     const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원을 불러오지 못했어요. 다시 열거나 파일을 선택해주세요.</div>' : '';
-    return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}">${songCover(s)}<div class="song-info"><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
+    return `<div role="button" tabindex="0" aria-pressed="${s.id === SET.song}" class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}">${songCover(s)}<div class="song-info"><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
-  if (s) $('songPreview').innerHTML = `<img src="${esc(s.cover)}" alt="" onerror="this.remove()"><div class="preview-copy"><div class="preview-label">SELECTED TRACK · ${SET.mode} KEY</div><h2>${esc(s.title)}</h2><p>${esc(s.artist)} · ${s.synth ? '연습곡' : s.ok ? '바로 플레이 가능' : '음원 확인 필요'}<br>↑↓ 곡 · ←→ 난이도 · 4~7 키 모드<br>Enter 시작 · F7 혼자/온라인 · F8 전체화면 · F9 녹화</p></div>`;
+  if (s) $('songPreview').innerHTML = `<img src="${esc(s.cover)}" alt="" onerror="this.remove()"><div class="preview-copy"><div class="preview-label">${SET.mode} KEY</div><h2>${esc(s.title)}</h2><p>${esc(s.artist)} · ${s.synth ? '연습곡' : s.ok ? '♪' : '⚠ 음원 필요'}</p></div>`;
   const mine = s ? myCharts().filter(c => c.song === s.id && c.keys === SET.mode) : [];
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
     const ch = s && s.data && chartFor(s.data, d, SET.mode), b = s && BEST[recordKey(s, d, SET.mode)];
-    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? ' ' + levelLabel(ch.level) : ''}<small>${d}${ch ? ' · ' + ch.notes.length + ' 노트' : ''}${b ? ' · ' + b.rank : ''}</small></button>`;
+    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? ' ' + levelLabel(ch.level) : ''}<small>${b ? '최고 ' + b.rank : ''}</small></button>`;
   }).join('') + mine.map(c => {
     const b = BEST[recordKey(s, 'MY:' + c.id, SET.mode)];
     return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
@@ -2170,7 +2179,7 @@ function draw() {
     txt(s.title, px, 58, 36, '#ffffff', 'left', 'Black Han Sans');
     txt(`${r.label ? '✏️ ' + r.label + (r.fromEditor ? ' (테스트)' : '') + '  ·  ' : ''}${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 92, 17, '#8e9cc4', 'left');
     const dc = { EX: '#6cf09a', NX: '#ffcb3d', HX: '#ff5a6e' }[r.diff] || '#b58cff';
-    ctx.fillStyle = dc; rr(px, 110, 124, 28, 8); ctx.fill(); txt(`${r.mode}K ${/^MY:/.test(r.diff) ? 'MY' : r.diff} ${levelLabel(r.level)}`, px + 62, 124, 15, '#0b1230', 'center', 'Black Han Sans');
+    ctx.fillStyle = dc; rr(px, 110, 124, 28, 8); ctx.fill(); txt(`${r.mode}키 ${levelLabel(r.level)}`, px + 62, 124, 15, '#0b1230', 'center', 'Black Han Sans');
     txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 138, 124, 15, '#8e9cc4', 'left');
     const prog = clamp(now / r.end, 0, 1);
     ctx.fillStyle = '#141c3a'; rr(px, 150, 740, 6, 3); ctx.fill(); ctx.fillStyle = '#7fe9ff'; rr(px, 150, 740 * prog, 6, 3); ctx.fill();
@@ -2377,7 +2386,7 @@ function renderRoom(r) {
   const ps = Object.entries(r.players || {}).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
   $('rmCount').textContent = `${ps.length} / ${MAXP}명`;
   const readyCount = ps.filter(([k,p]) => k === r.host || p.ready).length;
-  $('roomStatus').textContent = `${readyCount} / ${ps.length}명 준비 · ${MP.isHost ? '모두 준비되면 시작하세요' : '곡을 확인하고 준비 버튼을 누르세요'}`;
+  $('roomStatus').textContent = `✓ ${readyCount} / ${ps.length}`;
   const song = songById(r.song);
   let html = '';
   for (let i = 0; i < MAXP; i++) {
@@ -2386,23 +2395,23 @@ function renderRoom(r) {
     const [k, p] = e, has = p.has && p.has[r.song], host = k === r.host;
     html += `<div class="seat full${k === MP.key ? ' me' : ''}${p.ready || host ? ' ready' : ''}">`
       + (MP.isHost && k !== MP.key ? `<button class="kick" data-kick="${esc(k)}" title="내보내기">✕</button>` : '')
-      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'}<br>${has ? '🎵 음원 있음' : '<span style="color:#ff8a70">🎵 음원 없음</span>'}</div></div>`;
+      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'}<br>${has ? '♪' : '<span style="color:#ff8a70">⚠ 음원 필요</span>'}</div></div>`;
   }
   $('rmSeats').innerHTML = html;
   $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${songCover(x)}<span class="song-title">${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}</span>${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
   const data = song && (song.chartData || song.data), rk = validMode(r.keys);
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
-  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${d}${ch ? ' ' + levelLabel(ch.level) : ''}</button>`; }).join('');
+  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? ' ' + levelLabel(ch.level) : ''}</button>`; }).join('');
   const me = r.players[MP.key] || {};
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
   $('rmReady').textContent = me.ready ? '준비 취소' : '✅ 준비';
   const notReady = ps.filter(([k, p]) => k !== r.host && !p.ready).length;
   $('rmStart').disabled = !(song && song.ok) || notReady > 0;
-  $('rmSongLabel').textContent = MP.isHost ? '곡 선택 (방장)' : '곡 — 방장이 골라요';
+  $('rmSongLabel').textContent = MP.isHost ? '👑' : '🔒';
   $('rmMsg').textContent = MP.isHost
-    ? (!(song && song.ok) ? '방장도 이 곡 음원이 있어야 시작할 수 있어요' : notReady ? `준비를 기다리는 중… (${notReady}명)` : ps.length < 2 ? '혼자서도 시작할 수 있어요' : '모두 준비 완료! 시작하세요')
-    : (song && song.ok ? (me.ready ? '방장이 시작하기를 기다리는 중…' : '준비를 눌러 주세요') : '이 곡 음원 파일을 먼저 선택해 주세요 (곡 옆 🎵 파일 선택)');
+    ? (!(song && song.ok) ? '⚠ 음원 필요' : notReady ? `⌛ ${notReady}명 대기` : ps.length < 2 ? '✓ 시작 가능' : '✓ 준비 완료')
+    : (song && song.ok ? (me.ready ? '⌛ 시작 대기' : '') : '⚠ 음원 필요');
   renderMenu();
 }
 function mpPickSong(id) {
@@ -2540,6 +2549,8 @@ window.o2jam = {
 addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || waitKey >= 0 || e.repeat || (ED && !run)) return;
   const act = action => { e.preventDefault(); e.stopImmediatePropagation(); action(); };
+  if (!$('helpDialog').open && e.code === 'KeyH' && !(run && !run.ended)) return act(() => $('helpBtn').click());
+  if ($('helpDialog').open) { if (e.code === 'Backspace' || e.code === 'KeyH') return act(() => $('helpDialog').close()); return; }
   if (e.code === 'F8') return act(() => $('screenBtn').click());
   if (!(run && !run.ended) && e.code === 'F9') return act(() => { $('recordPlay').checked = !$('recordPlay').checked; $('recordRoom').checked = $('recordPlay').checked; toast($('recordPlay').checked ? '다음 플레이 녹화 켜짐' : '녹화 꺼짐'); });
   if (!$('mpResult').hidden && e.code === 'Enter' && e.target.tagName !== 'BUTTON') return act(() => $('mrBack').click());
@@ -2564,10 +2575,17 @@ screenBtn.onclick = async () => {
   } catch (e) { toast('전체화면을 열지 못했어요. 브라우저의 F11을 이용해주세요.'); }
 };
 addEventListener('fullscreenchange', () => {
-  screenBtn.textContent = document.fullscreenElement ? '⛶ 창 모드' : '⛶ 전체화면';
+  screenBtn.textContent = document.fullscreenElement ? '⛶ ↙' : '⛶';
   resize();
   if (!document.fullscreenElement && run && !run.mp && !run.ended && !run.paused) pauseGame(true);
 });
+
+
+$('helpBtn').onclick = () => { if (run && !run.ended && !run.mp && !run.paused) pauseGame(true); $('helpDialog').showModal(); };
+$('helpClose').onclick = () => $('helpDialog').close();
+$('songList').addEventListener('keydown', e => { if (e.target.matches('[data-song]') && ['Enter', 'Space'].includes(e.code)) { e.preventDefault(); e.stopPropagation(); e.target.click(); } });
+const optionTips = {'속도':'노트가 내려오는 빠르기', '싱크':'음악과 노트의 시간 보정', '타격음':'성공 판정의 입력 효과음', '노페일':'체력이 없어져도 계속 플레이', '녹화':'화면·음악·타격음을 영상으로 저장'};
+for (const el of document.querySelectorAll('.opt')) { for (const [word,tip] of Object.entries(optionTips)) if (el.textContent.includes(word)) { el.title = tip; break; } }
 
 renderMenu(); probeSongs();
 </script>
