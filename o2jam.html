@@ -550,9 +550,9 @@ async function probeSongs() {   // 제공 음원 → 이 브라우저에 저장�
   }
   renderMenu();
 }
-async function loadSong(s) {
+async function loadSong(s, opt = {}) {
   const ac = audioInit();
-  if (s.buffer && s.data) return s;
+  if (s.buffer && s.data) { if (!opt.mp) await loadKeysounds(s); return s; }
   if (s.synth) { const r = await renderPractice(ac.sampleRate); s.buffer = r.buffer; s.data = r.data; return s; }
   let ab = null;
   if (s.src === 'url') { const res = await fetch(s.url); if (!res.ok) throw new Error('음원을 못 불러왔어요'); ab = await res.arrayBuffer(); }
@@ -563,7 +563,7 @@ async function loadSong(s) {
     s.data = null;
   }
   if (!s.data) s.data = await analyzeAudio(s.buffer, s.title);   // 채보 파일이 없으면 음원을 분석해서 즉석 생성
-  await loadKeysounds(s);
+  if (!opt.mp) await loadKeysounds(s);
   return s;
 }
 async function loadKeysounds(song) {
@@ -585,7 +585,7 @@ async function loadKeysounds(song) {
   } catch (e) { song.keysounds = null; console.warn('Keysounds unavailable, using original mix:', song.id); }
 }
 function keysoundPlan(song, data, diff, mode, notes, opt) {
-  if (!song.keysounds || song.src !== 'url' || data !== song.chartData || opt.fromEditor) return null;
+  if (!song.keysounds || song.src !== 'url' || data !== song.chartData || opt.fromEditor || opt.mp) return null;
   const entries = song.keysounds.manifest.assignments[mode + ':' + diff];
   if (!Array.isArray(entries)) return null;
   const assignments = new Map(), assigned = new Set();
@@ -2516,12 +2516,12 @@ function mpStart() {
   for (const [k, p] of ps) { upd[`players/${k}/live`] = null; upd[`players/${k}/left`] = null; upd[`players/${k}/spec`] = !(k === MP.key || (p.has && p.has[r.song])); }
   roomRef().update(upd);
 }
-function mpPreload(id) { const x = songById(id); if (!x || !x.ok || (x.buffer && x.data) || x._pre) return; x._pre = loadSong(x).catch(() => {}).then(() => { x._pre = null; if (MP.room && MP.room.status === 'wait') renderRoom(MP.room); }); }   // 불러온 뒤 레벨 표시 갱신
+function mpPreload(id) { const x = songById(id); if (!x || !x.ok || (x.buffer && x.data) || x._pre) return; x._pre = loadSong(x, { mp: true }).catch(() => {}).then(() => { x._pre = null; if (MP.room && MP.room.status === 'wait') renderRoom(MP.room); }); }   // 불러온 뒤 레벨 표시 갱신
 async function mpBeginRound(r) {
   const me = r.players[MP.key], x = songById(r.song);
   if (me.spec || !x || !x.ok) { mpShowBoard(r, 'watch'); return; }
   $('mpResult').hidden = true; $('loading').hidden = false; MP.loading = true;
-  try { if (x._pre) await x._pre; await loadSong(x); }
+  try { if (x._pre) await x._pre; await loadSong(x, { mp: true }); await audioInit().resume(); }
   catch (e) { MP.loading = false; $('loading').hidden = true; toast('음원을 불러오지 못해 이번 곡은 관전해요'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
   MP.loading = false; $('loading').hidden = true;
   if (!MP.room || MP.room.status !== 'playing' || (MP.room.round || 0) !== r.round) return;
@@ -2529,6 +2529,7 @@ async function mpBeginRound(r) {
   if (x.chartData && Math.abs((x.chartData.length || 0) - x.buffer.duration) > 1.5) toast('⚠️ 내 음원 길이가 채보와 달라서 싱크가 안 맞을 수 있어요', 4000);
   const diff = data.charts[r.diff] ? r.diff : 'NX';
   const delay = (r.startAt - srvNow()) / 1000;
+  if (delay < -.15) { toast('시작 준비가 늦어 이번 곡은 관전합니다.'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
   startRun(x, diff, { mp: true, delay, data, mode: +(r.keys || 4) });
   clearInterval(MP.liveT); MP.liveT = setInterval(mpPushLive, 250); mpPushLive();
 }
@@ -2599,8 +2600,8 @@ $('mpRefresh').onclick = () => { $('roomList').innerHTML = '<div class="hint">�
 $('rmCopy').onclick = () => { try { navigator.clipboard.writeText(MP.code); toast('방 코드를 복사했어요: ' + MP.code); } catch (e) { toast('방 코드: ' + MP.code); } };
 $('rmLeave').onclick = () => { if (confirm('방을 나갈까요?')) mpLeave(false); };
 $('mrLeave').onclick = () => { if (confirm('방을 나갈까요?')) mpLeave(false); };
-$('rmReady').onclick = mpToggleReady;
-$('rmStart').onclick = mpStart;
+$('rmReady').onclick = () => { audioInit().resume(); mpToggleReady(); };
+$('rmStart').onclick = () => { audioInit().resume(); mpStart(); };
 $('mrBack').onclick = mpBackToRoom;
 addEventListener('pagehide', () => { if (MP.code && MP.key) { try { meRef().update(MP.room && MP.room.status === 'wait' ? { left: true, t: 0 } : { left: true }); } catch (e) {} } });
 try { $('nick').value = localStorage.getItem('oj_nick') || ''; } catch (e) {}
