@@ -1589,7 +1589,7 @@ function edBackFromTest(r) {
   r.ended = true; try { r.src.stop(); } catch (e) {}
   if (AU.ctx.state === 'suspended') AU.ctx.resume();
   applyVol();
-  const c = r.cnt, done = c.cool + c.good + c.bad + c.miss;
+  const c = r.cnt, done = c.excellent + c.cool + c.good + c.bad + c.miss;
   run = null; $('pause').hidden = true; $('result').hidden = true; $('menu').hidden = true;
   setMode(ED.keys); if (ED.testFrom != null) ED.pos = ED.testFrom;
   ED.down.fill(false); edPanelShow(true);
