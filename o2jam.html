@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>참스코드 오투잼</title>
+<title>PULSE / 4 · 5 · 6 · 7 KEY</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Black+Han+Sans&display=swap" rel="stylesheet">
 <style>
 :root { --bg: #070a16; --panel: rgba(14,20,42,.92); --line: #26345f; --ink: #eef3ff; --dim: #8e9cc4; --cyan: #7fe9ff; --gold: #ffcb3d; --blue: #4a93ff; --pink: #ff6fa8; --green: #9cff7a; --red: #ff5a6e; }
@@ -103,6 +103,29 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 .edhelp b { color: var(--ink); font-weight: normal; }
 .diff.my { border-style: dashed; }
 .diff.on[data-d^="MY"] { border-color: #b58cff; border-style: solid; box-shadow: 0 0 0 3px rgba(181,140,255,.2); }
+/* PULSE skin: keep the note highway quiet and let music selection lead. */
+:root { --bg: #060912; --panel: rgba(10,16,30,.97); --line: #25334a; --ink: #f1f6ff; --dim: #9baac0; --cyan: #67e8f9; }
+html, body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; }
+.ov { background: radial-gradient(ellipse at 20% 0%, rgba(32,110,130,.23), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(84,57,150,.18), #060912 70%); }
+.box { border-width: 1px; border-radius: 20px; padding: 28px 32px; box-shadow: 0 24px 90px #0009; }
+h1 { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 38px; font-weight: 850; letter-spacing: 5px; background: none; color: #f1f6ff; }
+.brand-line { color: var(--cyan); letter-spacing: 4px; font-size: 11px; font-weight: 700; margin-bottom: 8px; }
+.sub { line-height: 1.6; }
+.songs { gap: 8px; margin-top: 20px; }
+.song { border-width: 1px; background: linear-gradient(115deg, #111d31, #0a1221); border-radius: 12px; }
+.song.on { border-color: var(--cyan); background: linear-gradient(115deg, #173747, #0e1b2c); box-shadow: inset 4px 0 var(--cyan); }
+.song:hover { transform: translateX(3px); }
+.song .jk { border-radius: 10px; background: linear-gradient(135deg, #225163, #19223e); }
+.song .t { font-size: 20px; font-weight: 700; }
+.diff { font-size: 17px; border-width: 1px; border-radius: 9px; background: #101c2e; }
+.opt { background: #0a1221; padding: 8px 10px; border-radius: 8px; }
+.btn { font-family: inherit; font-weight: 700; background: linear-gradient(110deg, #148caa, #6350cc); box-shadow: 0 3px 0 #12354b; border-radius: 9px; }
+.btn.ghost { box-shadow: none; border: 1px solid #2b3c54; }
+.tab { border-width: 1px; border-radius: 8px; }
+.hint { line-height: 1.8; color: #9baac0; }
+.key { font-weight: 700; border-radius: 6px; }
+button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-offset: 3px; }
+@media (max-width: 650px) { .box { padding: 18px; } h1 { font-size: 30px; } .song { gap: 10px; padding: 12px; } .song .t { font-size: 16px; } .song .best { display: none; } .diff { min-width: 75px; } }
 </style>
 </head>
 <body>
@@ -110,8 +133,9 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 
 <div id="menu" class="ov">
   <div class="box">
-    <h1>O2JAM · 오투잼</h1>
-    <div class="sub">7키 리듬게임 — S D F <b>Space</b> J K L · 떨어지는 노트가 판정선에 닿을 때 누르세요</div>
+    <div class="brand-line">MUSIC · RHYTHM · YOUR NEXT BEST</div>
+    <h1>PULSE</h1>
+    <div class="sub">4 · 5 · 6 · 7 KEY / 음악을 고르고, 판정선에 맞춰 연주하세요. 처음에는 4키 EASY를 추천해요.</div>
     <div class="tabs"><button class="tab on" data-tab="solo">🎮 혼자 하기</button><button class="tab" data-tab="online">🌐 온라인 (최대 8명)</button></div>
     <div id="soloPane">
     <div class="songs" id="songList"></div>
@@ -126,6 +150,7 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
     <div class="row">
       <div class="opt">키 설정 <span class="sub" style="font-size:12px">(눌러서 바꾸기)</span> <div class="keys" id="keyBoxes"></div><button data-act="keys-reset" title="기본 키로" style="width:auto;padding:0 8px">기본</button></div>
       <button class="btn" id="startBtn" style="margin-left:auto">▶ 시작 (Enter)</button>
+      <button class="btn ghost" id="autoBtn" title="자동 연주로 음악과 타격 효과 감상 · 기록 저장 안 함">자동 연주</button>
     </div>
     <div class="msg" id="menuMsg"></div>
     <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>Esc</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
@@ -196,16 +221,19 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 <div id="result" class="ov" hidden>
   <div class="box">
     <div class="sub" id="resSong"></div>
+    <div id="resAchievement" style="font-size:30px;font-weight:850;letter-spacing:2px;margin:10px 0;color:var(--cyan)"></div>
     <div class="res" style="margin-top:10px">
       <div><div class="rank" id="resRank">A</div><div class="newbest" id="resBest" style="text-align:center"></div></div>
       <div>
         <div style="font-size:16px;color:var(--dim)">SCORE</div>
         <div style="font-family:'Black Han Sans',sans-serif;font-size:54px;letter-spacing:2px" id="resScore">0000000</div>
         <div class="stats" id="resStats"></div>
+        <div id="resProgress" class="hint" style="color:#b7d6e5"></div>
+        <div id="resGoal" style="margin-top:8px;color:var(--gold);font-weight:700"></div>
       </div>
     </div>
     <div class="row" style="justify-content:center;margin-top:18px">
-      <button class="btn" data-act="retry">다시 (R)</button>
+      <button class="btn" data-act="retry">다시 도전 (Enter / R)</button>
       <button class="btn ghost" data-act="quit">곡 선택 (Esc)</button>
     </div>
   </div>
@@ -283,22 +311,25 @@ const FX = 90, JY = 606;   // 필드 왼쪽 x, 판정선 y
 // 키 모드: 레인 색(흰·파랑·노랑)·레인 폭·기본 키. 필드 폭은 오투잼처럼 화면의 약 1/4 (7키 322px / 1280)
 const MODES = {
   4: { kind: ['w', 'b', 'b', 'w'], lw: 66, keys: ['KeyD', 'KeyF', 'KeyJ', 'KeyK'] },
+  5: { kind: ['w', 'b', 'y', 'b', 'w'], lw: 62, keys: ['KeyD', 'KeyF', 'Space', 'KeyJ', 'KeyK'] },
   6: { kind: ['w', 'b', 'w', 'w', 'b', 'w'], lw: 54, keys: ['KeyS', 'KeyD', 'KeyF', 'KeyJ', 'KeyK', 'KeyL'] },
   7: { kind: ['w', 'b', 'w', 'y', 'w', 'b', 'w'], lw: 46, keys: ['KeyS', 'KeyD', 'KeyF', 'Space', 'KeyJ', 'KeyK', 'KeyL'] },
 };
+const MODE_KEYS = Object.keys(MODES).map(Number);
+const validMode = n => MODE_KEYS.includes(+n) ? +n : 4;
 let NL = 4, LW = 66, FW = 264, KIND = MODES[4].kind;
-function setMode(n) { n = MODES[n] ? +n : 4; NL = n; LW = MODES[n].lw; FW = NL * LW; KIND = MODES[n].kind; }
+function setMode(n) { n = validMode(n); NL = n; LW = MODES[n].lw; FW = NL * LW; KIND = MODES[n].kind; }
 const LCOL = { w: '#eef3ff', b: '#4a93ff', y: '#ffcb3d' };
 const JW = { cool: .055, good: .10, bad: .15 };                      // 판정 창(초, ±) — 너무 어렵다고 해서 ±45/90/135 → ±55/100/150
 const JUDGE_W = { cool: 100, good: 60, bad: 20, miss: 0 };
 const LIFE = { EX: [4, 3, -5, -18], NX: [3, 2, -6, -24], HX: [2, 1, -8, -30] };     // COOL GOOD BAD MISS (MISS 감소를 줄여 완화)
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-const SET = Object.assign({ speed: 3, offset: 0, hitSound: true, noFail: false, mode: 4, keymap: null, song: 'practice', diff: 'NX' }, load('o2jam_set', {}));
+const SET = Object.assign({ speed: 3, offset: 0, hitSound: true, noFail: true, mode: 4, keymap: null, song: 'practice', diff: 'EX' }, load('o2jam_set', {}));
 if (!SET.keymap || typeof SET.keymap !== 'object') SET.keymap = {};
-for (const n of [4, 6, 7]) if (!Array.isArray(SET.keymap[n]) || SET.keymap[n].length !== n) SET.keymap[n] = (n === 7 && Array.isArray(SET.keys) && SET.keys.length === 7) ? SET.keys.slice() : MODES[n].keys.slice();
+for (const n of MODE_KEYS) if (!Array.isArray(SET.keymap[n]) || SET.keymap[n].length !== n || SET.keymap[n].some(k => typeof k !== 'string') || new Set(SET.keymap[n]).size !== n) SET.keymap[n] = (n === 7 && Array.isArray(SET.keys) && SET.keys.length === 7) ? SET.keys.slice() : MODES[n].keys.slice();
 delete SET.keys;
-if (!MODES[SET.mode]) SET.mode = 4;
+SET.mode = validMode(SET.mode);
 setMode(SET.mode);
 const keysNow = () => SET.keymap[NL];
 const saveSet = () => save('o2jam_set', SET);
@@ -318,17 +349,31 @@ function audioInit() {
   return AU.ctx;
 }
 function vol(k, d) { try { const v = parseFloat(localStorage.getItem(k)); return isNaN(v) ? d : clamp(v, 0, 1); } catch (e) { return d; } }
-function applyVol() { if (!AU.ctx) return; AU.music.gain.value = vol('party_bgmvol', .8); AU.sfx.gain.value = vol('party_sfxvol', .7) * .45; }
+function applyVol() { if (!AU.ctx) return; AU.music.gain.value = vol('party_bgmvol', .8); AU.sfx.gain.value = vol('party_sfxvol', .7) * .24; }
 addEventListener('storage', applyVol);
 function hitSfx(kind) { if (SET.hitSound) sfxHit(kind); }
 function sfxHit(kind, when) {   // when = 오디오 시각 (편집기가 음악에 맞춰 미리 예약할 때), 없으면 지금
   if (!AU.ctx || AU.ctx.state !== 'running') return;
-  const c = AU.ctx, t = Math.max(c.currentTime, when || 0) + .002;
-  const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
-  o.type = 'triangle'; o.frequency.setValueAtTime(kind === 'y' ? 520 : kind === 'b' ? 880 : 1180, t); o.frequency.exponentialRampToValueAtTime(260, t + .05);
-  f.type = 'highpass'; f.frequency.value = 300;
-  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .003); g.gain.exponentialRampToValueAtTime(.0001, t + .07);
-  o.connect(f); f.connect(g); g.connect(AU.sfx); o.start(t); o.stop(t + .08);
+  const c = AU.ctx, t = Math.max(c.currentTime, when || 0);
+  // Pitchless, short mechanical impact: every lane shares the same timbre.
+  if (!AU.hitBuffer || AU.hitBuffer.sampleRate !== c.sampleRate) {
+    const size = Math.ceil(c.sampleRate * .024);
+    AU.hitBuffer = c.createBuffer(1, size, c.sampleRate);
+    const samples = AU.hitBuffer.getChannelData(0);
+    let seed = 173;
+    for (let i = 0; i < size; i++) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      const attack = Math.min(1, i / (c.sampleRate * .0006));
+      samples[i] = (seed / 2147483648 - 1) * attack * Math.exp(-i / (c.sampleRate * .004));
+    }
+  }
+  const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+  src.buffer = AU.hitBuffer;
+  f.type = 'bandpass'; f.frequency.value = 1850; f.Q.value = .65;
+  g.gain.setValueAtTime(.5, t);
+  src.connect(f); f.connect(g); g.connect(AU.sfx);
+  src.onended = () => { src.disconnect(); f.disconnect(); g.disconnect(); };
+  src.start(t);
 }
 // 들리는 시각 (쿵짝항구와 같은 방식)
 const clk = { off: null, rej: 0 };
@@ -351,12 +396,13 @@ function heardAt(p) {
 
 // ═══════════ 곡 ═══════════
 const SONGS = [
+  { id: 'drive-party', title: '[lecode] 지구 끝까지 드라이브 파티', sub: '오리지널', artist: 'lecode', icon: '🚗', chart: 'o2jam/drive-party.json', audioUrl: 'o2jam/drive-party.mp3' },
+  { id: 'autumn-rain', title: '[lecode] 가을 빗소리', sub: '오리지널', artist: 'lecode', icon: '🌧️', chart: 'o2jam/autumn-rain.json', audioUrl: 'o2jam/autumn-rain.mp3' },
   { id: 'practice', title: '스타라이트 런', sub: '연습곡', artist: '참스코드 (합성)', icon: '⭐', synth: true },
-  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', chart: 'o2jam/ghost.json' },
-  { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', chart: 'o2jam/xmas.json' },
+  { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', chart: 'o2jam/ghost.json', audioUrl: 'o2jam/ghost.mp3' },
+  { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', chart: 'o2jam/xmas.json', audioUrl: 'o2jam/xmas.mp3' },
 ];
-// 음원 파일은 공개 저장소에 올리지 않는다 — 개발 PC 의 로컬 파일, 아니면 플레이어가 한 번 고른 파일(이 브라우저 IndexedDB)을 쓴다
-const localUrls = id => ['mp3', 'ogg', 'm4a', 'wav'].flatMap(e => [`o2jam/${id}.${e}`, `o2jam/audio/${id}.${e}`]);
+// 제공 음원은 명시된 주소에서 재생하고, 파일이 없으면 브라우저에 저장한 음원을 사용한다.
 const IDB = { db: null };
 function idb() { return new Promise((res, rej) => { if (IDB.db) return res(IDB.db); const q = indexedDB.open('o2jam', 1); q.onupgradeneeded = () => q.result.createObjectStore('audio'); q.onsuccess = () => { IDB.db = q.result; res(IDB.db); }; q.onerror = () => rej(q.error); }); }
 async function idbGet(k) { try { const db = await idb(); return await new Promise(res => { const q = db.transaction('audio').objectStore('audio').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } }
@@ -375,13 +421,12 @@ picker.onchange = async () => {
   if (MP.code) { meRef().update({ has: myHas() }); if (MP.room) renderRoom(MP.room); toast(`🎵 ${s.title} 음원을 저장했어요`); }
 };
 const songById = id => SONGS.find(s => s.id === id);
-async function probeSongs() {   // 음원이 있는지: 로컬 파일(개발 PC) → 이 브라우저에 저장된 파일 → 없으면 '파일 선택'
+async function probeSongs() {   // 제공 음원 → 이 브라우저에 저장된 파일 → 없으면 '파일 선택'
   for (const s of SONGS) {
     if (s.synth) { s.ok = true; continue; }
     s.ok = false;
     try { const r = await fetch(s.chart, { cache: 'no-store' }); if (r.ok) { s.chartData = await r.json(); s.data = s.chartData; } } catch (e) {}
-    const isLocalHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-    if (isLocalHost) for (const u of localUrls(s.id)) { try { const r = await fetch(u, { method: 'HEAD', cache: 'no-store' }); if (r.ok) { s.ok = true; s.src = 'url'; s.url = u; break; } } catch (e) {} }
+    if (s.audioUrl) { try { const r = await fetch(s.audioUrl, { method: 'HEAD', cache: 'no-store' }); if (r.ok) { s.ok = true; s.src = 'url'; s.url = s.audioUrl; } } catch (e) {} }
     if (!s.ok) { const v = await idbGet(s.id); if (v && v.buf) { s.ok = true; s.src = 'idb'; s.fileName = v.name; } }
   }
   renderMenu();
@@ -434,19 +479,38 @@ function reduceLanes(notes, n, bpm) {
   return normalizeNotes(out, bpm, n);
 }
 function chartFor(data, diff, n) {
+  n = validMode(n);
+  if (data && data.modeCharts && data.modeCharts[n] && data.modeCharts[n][diff]) { const ch = data.modeCharts[n][diff]; ch.level = chartLevel(ch.notes, data.length, n); return ch; }
   const base = data && data.charts && data.charts[diff]; if (!base) return null;
-  if (!n || n >= 7 || data.keys === n) return base;   // 내 채보(keys 있음)는 만든 키 모드 그대로
+  if (n >= 7 || data.keys === n) { base.level = chartLevel(base.notes, data.length, n); return base; }
   const c = data._cache || (data._cache = {}), k = n + diff;
-  if (!c[k]) { const notes = reduceLanes(base.notes, n, data.bpm); c[k] = { level: chartLevel(notes, data.length || 120), notes }; }
+  if (!c[k]) { const notes = reduceLanes(base.notes, n, data.bpm); c[k] = { notes }; }
+  c[k].level = chartLevel(c[k].notes, data.length, n);
   return c[k];
 }
-function chartLevel(notes, len) {   // 밀도로 난이도 숫자 (1~20)
-  if (!notes.length) return 1;
-  const tot = notes.reduce((a, n) => a + (n[2] > 0 ? 2 : 1), 0), dur = Math.max(20, len), nps = tot / dur;
-  let peak = 0, j = 0;
-  for (let i = 0; i < notes.length; i++) { while (notes[i][0] - notes[j][0] > 4) j++; peak = Math.max(peak, (i - j + 1) / 4); }
-  return clamp(Math.round(nps * 1.35 + peak * .55), 1, 20);
+function chartLevel(notes, len, keys = 7) {   // 1~8: 실제 연주 구간의 밀도·순간 밀집·화음·연타·롱노트 부담
+  const ns = (notes || []).filter(n => Number.isFinite(n[0]) && Number.isFinite(n[1])).slice().sort((a, b) => a[0] - b[0]);
+  if (!ns.length) return 1;
+  const end = Math.max(...ns.map(n => n[0] + Math.max(0, n[2] || 0)));
+  const active = Math.max(4, end - ns[0][0] + 1), density = ns.length / active;
+  let peak = 0, left = 0, chords = 0, repeats = 0, holdBurden = 0;
+  const last = new Map(), holds = [];
+  for (let i = 0; i < ns.length; i++) {
+    const [t, lane, length = 0] = ns[i];
+    while (t - ns[left][0] > 2) left++;
+    peak = Math.max(peak, (i - left + 1) / 2);
+    if (i && t - ns[i - 1][0] < .035) chords++;
+    if (last.has(lane) && t - last.get(lane) < .22) repeats++;
+    last.set(lane, t);
+    while (holds.length && holds[0] <= t) holds.shift();
+    if (holds.length) holdBurden += Math.min(3, holds.length);
+    if (length > .12) { holds.push(t + length); holds.sort((a,b) => a-b); }
+  }
+  const complexity = 1 + Math.max(0, validMode(keys) - 4) * .035;
+  const demand = (density * .65 + peak * .40 + chords / ns.length * 2 + repeats / ns.length * 2.5 + holdBurden / ns.length * 1.5) * complexity;
+  return clamp(Math.ceil(demand / 1.05), 1, 8);
 }
+const levelLabel = level => '★' + level + '/8';
 
 // ═══════════ 연습곡 (합성) — 채보가 음과 정확히 일치 ═══════════
 function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
@@ -477,28 +541,29 @@ async function renderPractice(sr) {
   const ev = { kick: [], snare: [], hat: [], bass: [], lead: [], chord: [] };
   for (let bar = 0; bar < BARS; bar++) {
     const t0 = LEAD_IN + bar * BAR, ci = bar % 4;
-    const sec = bar < 4 ? 'intro' : bar < 12 ? 'A' : bar < 20 ? 'B' : bar < 30 ? 'C' : 'out';
+    const sec = bar < 4 ? 'intro' : bar < 8 ? 'A' : bar < 16 ? 'B' : bar < 20 ? 'break' : bar < 30 ? 'C' : 'out';
     if (sec === 'out' && bar === BARS - 1) { kick(t0); crash(t0); ev.kick.push(t0); break; }
     if ((sec === 'B' || sec === 'C') && bar % 8 === 4) crash(t0);
     for (let b = 0; b < 4; b++) {
       const tb = t0 + b * B;
-      if (b === 0 || b === 2 || (sec === 'C' && b === 3 && bar % 2)) { kick(tb); ev.kick.push(tb); }
-      if (sec !== 'intro' && (b === 1 || b === 3)) { snare(tb); ev.snare.push(tb); }
+      if ((sec !== 'break' && (b === 0 || b === 2)) || (sec === 'C' && b === 3 && bar % 2)) { kick(tb); ev.kick.push(tb); }
+      if (sec !== 'intro' && sec !== 'break' && (b === 1 || b === 3)) { snare(tb); ev.snare.push(tb); }
       const hs = sec === 'C' ? 4 : 2;
-      for (let k = 0; k < hs; k++) { const th = tb + k * B / hs; hat(th, k === hs - 1 && b === 3 && sec === 'C'); ev.hat.push(th); }
-      if (sec !== 'intro') { const note = ROOT[ci] - 12 + (b % 2 ? 12 : 0); tone(tb + B / 2, hz(note), B * .45, 'sawtooth', .22, 520); ev.bass.push([tb + B / 2, note]); }
+      for (let k = 0; k < hs; k++) { if (sec === 'break' && (b % 2 || k)) continue; const th = tb + k * B / hs; hat(th, k === hs - 1 && b === 3 && sec === 'C'); ev.hat.push(th); }
+      if (sec !== 'intro' && sec !== 'break') { const note = ROOT[ci] - 12 + (b % 2 ? 12 : 0); tone(tb + B / 2, hz(note), B * .45, 'sawtooth', .22, 520); ev.bass.push([tb + B / 2, note]); }
     }
-    if (sec === 'A' || sec === 'B' || sec === 'C') {   // 화음 패드 (1마디 길게)
+    if (sec === 'A' || sec === 'B' || sec === 'break' || sec === 'C') {   // 화음 패드 (1마디 길게)
       for (const m of CH[ci]) tone(t0, hz(m), BAR * .95, 'triangle', .045, 1800);
       ev.chord.push([t0, BAR * .95]);
     }
-    if (sec === 'B' || sec === 'C') {   // 멜로디: 4마디 단위
-      const rel = (bar - 12) % 4; let acc = 0;
+    if (sec === 'A' || sec === 'B' || sec === 'break' || sec === 'C') {   // 일찍 등장하는 테마, 브레이크 뒤 옥타브 상승
+      const rel = bar % 4; let acc = 0;
       for (const [m, d] of MEL) {
         const pos = acc; acc += d;
         if (pos < rel * 4 || pos >= rel * 4 + 4) continue;
         const t = t0 + (pos - rel * 4) * B;
-        tone(t, hz(m), d * B * .92, 'square', .07, 3200); ev.lead.push([t, m, d * B]);
+        const pitch = m + (sec === 'C' ? 12 : 0);
+        tone(t, hz(pitch), d * B * .92, sec === 'break' ? 'sine' : 'triangle', sec === 'break' ? .12 : .14, 4200); ev.lead.push([t, pitch, d * B]);
         if (sec === 'C' && d >= 1) { tone(t + d * B / 2, hz(m + 12), d * B * .4, 'square', .04, 4000); ev.lead.push([t + d * B / 2, m + 12, d * B * .4, 'arp']); }
       }
     }
@@ -515,25 +580,33 @@ async function renderPractice(sr) {
   for (let T = STEP; T < LEN; T += STEP) oc.suspend(T).then(() => { pump(T); oc.resume(); });
   const buffer = await oc.startRendering();
   // 채보: 합성한 소리 그대로
-  const mk = diff => {
-    const n = [], r = rng(diff === 'EX' ? 11 : diff === 'NX' ? 22 : 33);
-    const leadLane = m => clamp(Math.round((m - 67) / 2.2) + 1, 0, 6);
-    for (const t of ev.kick) if (diff !== 'EX' || Math.round((t - LEAD_IN) / B) % 4 === 0) n.push([t, 3, 0]);
-    ev.snare.forEach((t, i) => { if (diff === 'EX' && i % 2) return; n.push([t, i % 2 ? 5 : 1, 0]); });
-    if (diff !== 'EX') ev.bass.forEach(([t, m], i) => { if (diff === 'NX' && i % 2) return; n.push([t, i % 4 < 2 ? 2 : 4, 0]); });
-    if (diff === 'HX') ev.hat.forEach((t, i) => { const bar = Math.floor((t - LEAD_IN) / BAR); if (bar >= 20 && bar < 30 && i % 2) n.push([t, (i >> 1) % 2 ? 0 : 6, 0]); });
+  const mk = (diff, keys) => {
+    const n = [], odd = keys % 2, middle = Math.floor(keys / 2);
+    const melody = odd ? Array.from({length: keys}, (_, i) => i).filter(i => i !== middle) : Array.from({length: keys}, (_, i) => i);
+    const leadLane = m => melody[clamp(Math.round(((m - 69 + 24) % 12) / 10 * (melody.length - 1)), 0, melody.length - 1)];
+    for (const t of ev.kick) {
+      const beatIndex = Math.round((t - LEAD_IN) / B);
+      if (diff === 'EX' && beatIndex % 4) continue;
+      n.push([t, odd ? middle : (beatIndex % 4 ? keys - 1 : 0), 0]);
+    }
+    ev.snare.forEach((t, i) => { if (diff === 'EX' && i % 2) return; n.push([t, i % 2 ? keys - 1 : 0, 0]); });
+    if (diff !== 'EX') ev.bass.forEach(([t, m], i) => { if (diff === 'NX' && i % 2) return; n.push([t, i % 2 ? keys - 2 : 1, 0]); });
+    if (diff === 'HX') ev.hat.forEach((t, i) => { const bar = Math.floor((t - LEAD_IN) / BAR); if (bar >= 20 && bar < 30 && i % 4 === 1) n.push([t, (i >> 2) % 2 ? keys - 1 : 0, 0]); });
     for (const [t, m, d, arp] of ev.lead) {
       if (arp && diff !== 'HX') continue;
       if (diff === 'EX' && d < B * .9) continue;
       const long = d >= B * (diff === 'EX' ? 1.9 : .95) && !arp;
       n.push([t, leadLane(m), long ? d * .9 : 0]);
     }
-    if (diff === 'HX') for (const [t, len] of ev.chord) if (r() < .5) n.push([t, r() < .5 ? 0 : 6, len * .5]);
-    return normalizeNotes(n, BPM);
+    if (diff === 'HX' && keys >= 6) for (const [t, len] of ev.chord) if (Math.round((t - LEAD_IN) / BAR) % 4 === 0) n.push([t, keys - 1, len * .5]);
+    return normalizeNotes(n, BPM, keys);
   };
-  const charts = {};
-  for (const d of ['EX', 'NX', 'HX']) { const notes = mk(d); charts[d] = { level: chartLevel(notes, LEN), notes }; }
-  return { buffer, data: { bpm: BPM, offset: LEAD_IN, length: LEN, charts } };
+  const modeCharts = {};
+  for (const keys of [4, 5, 6, 7]) {
+    modeCharts[keys] = {};
+    for (const d of ['EX', 'NX', 'HX']) { const notes = mk(d, keys); modeCharts[keys][d] = { level: chartLevel(notes, LEN), notes }; }
+  }
+  return { buffer, data: { bpm: BPM, offset: LEAD_IN, length: LEN, charts: modeCharts[7], modeCharts } };
 }
 
 // ═══════════ 음원 분석 → 채보 자동 생성 ═══════════
@@ -756,8 +829,25 @@ async function analyzeAudio(buffer, title) {
 
 // ═══════════ 플레이 ═══════════
 let run = null;
+function recordKey(song, diff, mode) { return song.id + ':' + diff + (mode === 7 ? '' : ':' + mode); }
+function accuracyOf(r, completed = true) {
+  return (r.cnt.cool + r.cnt.good * .6 + r.cnt.bad * .2) / Math.max(1, completed ? r.total : r.judged);
+}
+function goalForRecord(best) {
+  const legacyThreshold = { SS: .98, S: .95, A: .9, B: .8, C: .7 }[(best || {}).rank] || 0;
+  const accuracy = Math.max(legacyThreshold, best && Number.isFinite(best.acc) ? best.acc : 0);
+  return accuracy >= .98 ? { accuracy: 1, label: 'MAX / 100%' } : accuracy >= .95 ? { accuracy: .98, label: 'SS / 98%' } : accuracy >= .9 ? { accuracy: .95, label: 'S / 95%' } : { accuracy: .9, label: 'A / 90%' };
+}
+function achievementOf(r) {
+  if (r.auto) return 'DEMO';
+  if (r.failed) return 'FAILED';
+  if (r.total <= 0 || r.judged < r.total) return 'FINISHED';
+  if (r.cnt.cool === r.total) return 'MAX';
+  if (!r.cnt.bad && !r.cnt.miss && r.maxCombo === r.total) return 'FULL COMBO';
+  return 'CLEAR';
+}
 function startRun(song, diff, opt = {}) {
-  const mode = +(opt.mode || SET.mode); setMode(mode);
+  const mode = validMode(opt.mode || SET.mode); setMode(mode);
   const ac = audioInit(), data = opt.data || song.data, ch = chartFor(data, diff, mode);
   const from = Math.max(0, opt.from || 0), nFrom = opt.notesFrom != null ? opt.notesFrom : from;   // 편집기 테스트: 곡 중간부터 (소리는 from, 노트는 nFrom 부터)
   const notes = ch.notes.filter(n => n[0] >= nFrom - .02).map((n, i) => ({ i, t: n[0], lane: n[1], len: n[2], state: 0, tail: n[2] > 0 ? 0 : 2 }));   // state 0=대기 1=판정됨 / tail 0=대기 1=누르는 중 2=끝
@@ -769,8 +859,11 @@ function startRun(song, diff, opt = {}) {
   if (lead >= .05) src.start(t0, from); else src.start(ac.currentTime + .05, from + .05 - lead);
   run = { song, diff, mode, notes, lanes, ptr: new Array(NL).fill(0), hold: new Array(NL).fill(null), down: new Array(NL).fill(false), beam: new Array(NL).fill(0), fx: [],
     t0: t0 - from, src, total, score: 0, combo: 0, maxCombo: 0, jam: 0, jamG: 0, maxJam: 0, life: 1000, cnt: { cool: 0, good: 0, bad: 0, miss: 0 }, judged: 0,
-    lastJ: null, lastJAt: -9, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, mp: !!opt.mp, end: song.buffer.duration, bpm: data.bpm, offset: data.offset || 0, level: ch.level,
+    lastJ: null, lastJAt: -9, lastHitAt: 0, lastHitLane: null, lastHitKind: null, milestone: null, comboBreak: null, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, mp: !!opt.mp, end: song.buffer.duration, bpm: data.bpm, offset: data.offset || 0, level: ch.level,
     data, from, fromEditor: !!opt.fromEditor, label: opt.label || '' };
+  run.recordKey = recordKey(song, diff, mode);
+  run.bestBefore = BEST[run.recordKey] ? Object.assign({}, BEST[run.recordKey]) : null;
+  run.goal = goalForRecord(run.bestBefore);
   clk.off = null;
   $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
 }
@@ -781,15 +874,20 @@ function songNow() {
 }
 function addJudge(kind, lane) {
   const r = run; r.cnt[kind]++; r.judged++;
+  const now = performance.now(), previousCombo = r.combo;
   const lv = LIFE[r.diff] || LIFE.NX, dl = { cool: lv[0], good: lv[1], bad: lv[2], miss: lv[3] }[kind];
   r.life = clamp(r.life + dl, 0, 1000);
   if (kind === 'cool' || kind === 'good') {
     r.combo++; r.maxCombo = Math.max(r.maxCombo, r.combo);
+    if (r.combo === 25 || r.combo === 50 || r.combo % 100 === 0) r.milestone = { combo: r.combo, t: now };
+    if (lane != null) { hitSfx(KIND[lane]); r.lastHitAt = now; r.lastHitLane = lane; r.lastHitKind = kind; }
     r.jamG += kind === 'cool' ? 4 : 2;
     if (r.jamG >= 100) { r.jamG -= 100; r.jam++; r.maxJam = Math.max(r.maxJam, r.jam); r.jamAt = performance.now(); }
     r.score += kind === 'cool' ? 200 + 10 * r.jam : 100 + 5 * r.jam;
   } else {
     if (kind === 'bad') r.score += 4;
+    if (previousCombo >= 10) r.comboBreak = { combo: previousCombo, t: now };
+    r.milestone = null;
     r.combo = 0; r.jam = 0; r.jamG = 0;
   }
   r.lastJ = kind; r.lastJAt = performance.now();
@@ -801,7 +899,6 @@ function press(lane, ts) {
   const r = run; if (!r || r.paused || r.ended) return;
   r.down[lane] = true; r.beam[lane] = 1;
   const t = (ts != null ? heardAt(ts) : heardAt(performance.now())) - r.t0 - SET.offset / 1000;
-  hitSfx(KIND[lane]);
   const L = r.lanes[lane];
   for (let i = r.ptr[lane]; i < L.length; i++) {
     const n = L[i]; if (n.state) continue;
@@ -848,6 +945,7 @@ function rankOf(r) {
 function finish() {
   const r = run; if (!r || r.ended) return;
   r.ended = true;
+  r.achievement = achievementOf(r);
   try { r.src.stop(AU.ctx.currentTime + (r.failed ? .6 : 1.2)); } catch (e) {}
   if (r.failed) { const g = AU.music; g.gain.setTargetAtTime(0, AU.ctx.currentTime, .25); setTimeout(applyVol, 1400); }
   if (r.fromEditor) { setTimeout(() => { if (run === r) edBackFromTest(r); }, 1200); return; }
@@ -856,15 +954,45 @@ function finish() {
 }
 function showResult(r) {
   if (run !== r) return;
-  const rank = rankOf(r), acc = (r.cnt.cool * 100 + r.cnt.good * 60 + r.cnt.bad * 20) / Math.max(1, r.total * 100);
-  const key = r.song.id + ':' + r.diff + (r.mode === 7 ? '' : ':' + r.mode), old = BEST[key];
+  const rank = rankOf(r), acc = accuracyOf(r);
+  const key = r.recordKey || recordKey(r.song, r.diff, r.mode), old = r.bestBefore;
   let nb = '';
-  if (!r.auto && !r.failed && (!old || r.score > old.score)) { BEST[key] = { score: r.score, rank, combo: r.maxCombo, at: Date.now() }; save('o2jam_best', BEST); nb = old ? '🎉 최고 기록 갱신!' : '🎉 첫 클리어!'; }
+  const eligible = !r.auto && !r.failed && !r.fromEditor && !r.from && r.total > 0 && r.judged >= r.total;
+  const progress = [];
+  if (eligible) {
+    const improved = [];
+    if (!old || r.score > (old.score || 0)) improved.push('점수');
+    if (!old || !Number.isFinite(old.acc) || acc > old.acc + 1e-8) improved.push('정확도');
+    if (!old || r.maxCombo > (old.combo || 0)) improved.push('콤보');
+    // Independent records preserve combo/accuracy progress even on a lower score.
+    const storedAcc = old && Number.isFinite(old.acc) ? old.acc : 0;
+    const bestAcc = Math.max(storedAcc, acc);
+    const bestRank = bestAcc >= .98 ? 'SS' : bestAcc >= .95 ? 'S' : bestAcc >= .9 ? 'A' : bestAcc >= .8 ? 'B' : bestAcc >= .7 ? 'C' : 'D';
+    const legacyRank = { SS: 6, S: 5, A: 4, B: 3, C: 2, D: 1, F: 0 };
+    BEST[key] = Object.assign({}, old || {}, { score: Math.max(old && old.score || 0, r.score), acc: bestAcc, combo: Math.max(old && old.combo || 0, r.maxCombo), rank: old && legacyRank[old.rank] > legacyRank[bestRank] ? old.rank : bestRank, at: improved.length ? Date.now() : (old && old.at || Date.now()) });
+    save('o2jam_best', BEST);
+    nb = !old ? '첫 클리어!' : improved.length ? improved.join(' · ') + ' 최고 기록!' : '기록에 다시 도전';
+    if (old) {
+      const signed = n => (n > 0 ? '+' : '') + n.toLocaleString();
+      progress.push('점수 ' + signed(r.score - (old.score || 0)));
+      progress.push('콤보 ' + signed(r.maxCombo - (old.combo || 0)));
+      if (Number.isFinite(old.acc)) { const delta = (acc - old.acc) * 100; progress.push('정확도 ' + (delta > 0 ? '+' : '') + delta.toFixed(2) + '%p'); }
+      else progress.push('첫 정확도 기록');
+    } else progress.push('다음 판부터 이번 기록과 비교해요.');
+  } else progress.push(r.auto ? '감상 모드 / 최고 기록에 저장하지 않아요.' : '기록은 곡을 끝까지 연주하면 저장돼요.');
   const col = { SS: '#ffe066', S: '#ffcb3d', A: '#7fe9ff', B: '#9cff7a', C: '#b58cff', D: '#8e9cc4', F: '#ff5a6e' }[rank];
-  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : r.diff} Lv.${r.level}${r.auto ? ' · 자동 연주' : ''}`;
+  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : r.diff} ${levelLabel(r.level)}${r.auto ? ' · 자동 연주' : ''}`;
   $('resRank').textContent = rank; $('resRank').style.color = col; $('resRank').style.textShadow = `0 0 30px ${col}88`;
   $('resScore').textContent = String(r.score).padStart(7, '0');
   $('resBest').textContent = nb || (old ? `최고 ${old.score.toLocaleString()} (${old.rank})` : '');
+  const achievement = r.achievement || achievementOf(r);
+  $('resAchievement').textContent = achievement === 'MAX' ? 'MAX / ALL COOL' : achievement;
+  $('resAchievement').style.color = achievement === 'FAILED' ? '#ff8396' : achievement === 'MAX' || achievement === 'FULL COMBO' ? '#ffe29b' : '#67e8f9';
+  $('resProgress').textContent = progress.join(' / ');
+  const nextGoal = goalForRecord(eligible ? BEST[key] : old);
+  const accuracyGoal = r.goal || nextGoal;
+  const goalReached = eligible && acc >= accuracyGoal.accuracy;
+  $('resGoal').textContent = r.auto ? '직접 연주해서 기록에 도전하세요.' : (goalReached ? '목표 달성! ' : '') + '다음 도전: ' + (eligible && acc === 1 ? '다른 곡에서도 MAX!' : nextGoal.label) + (achievement === 'FULL COMBO' || achievement === 'MAX' ? '' : ' · FULL COMBO');
   $('resStats').innerHTML = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#fff'], ['MAX JAM', r.maxJam, '#ffcb3d'], ['정확도', (acc * 100).toFixed(2) + '%', '#fff'], ['노트', r.total, '#8e9cc4']]
     .map(([k, v, c]) => `<div><span style="color:${c}">${k}</span><b>${v}</b></div>`).join('');
   $('result').hidden = false;
@@ -929,7 +1057,7 @@ function renderKeys() {
   const kind = MODES[SET.mode].kind;
   const html = SET.keymap[SET.mode].map((c, i) => `<button class="key ${kind[i]}${waitKey === i ? ' wait' : ''}" data-key="${i}" title="눌러서 키 바꾸기">${waitKey === i ? '…' : keyLabel(c)}</button>`).join('');
   $('keyBoxes').innerHTML = html; if ($('rmKeys')) $('rmKeys').innerHTML = html;
-  const mh = [4, 6, 7].map(n => `<button class="diff${SET.mode === n ? ' on' : ''}" data-d="${n === 4 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-kmode="${n}" style="min-width:86px">${n}키</button>`).join('');
+  const mh = MODE_KEYS.map(n => `<button class="diff${SET.mode === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-kmode="${n}" style="min-width:86px">${n}키</button>`).join('');
   if ($('modeRow')) $('modeRow').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + mh;
 }
 function renderMenu() {
@@ -938,9 +1066,9 @@ function renderMenu() {
     const top = bests.sort((a, b) => b.score - a.score)[0];
     const len = s.data ? `${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}` : '';
     const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}${s.data.auto ? ' · 자동 채보' : ''}` : '';
-    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 🎵 로컬 파일') : '';
+    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 🎵 내장 음원') : '';
     const pick = s.synth ? '' : `<button class="btn ghost" data-pick="${s.id}" style="font-size:14px;padding:8px 12px;margin-left:auto">${s.ok ? '파일 바꾸기' : '🎵 음원 파일 선택'}</button>`;
-    const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원은 사이트에 없어요 — 가지고 있는 파일을 한 번 고르면 이 브라우저에 저장돼요</div>' : '';
+    const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원을 불러오지 못했어요. 다시 열거나 파일을 선택해주세요.</div>' : '';
     return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}"><div class="jk">${s.icon}</div><div><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
@@ -948,10 +1076,10 @@ function renderMenu() {
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
     const ch = s && s.data && chartFor(s.data, d, SET.mode), b = s && BEST[s.id + ':' + d + (SET.mode === 7 ? '' : ':' + SET.mode)];
-    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${d}${ch ? ` Lv.${ch.level}` : ''}<small>${ch ? ch.notes.length + ' 노트' : { EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${b ? ' · ' + b.rank : ''}</small></button>`;
+    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? ' ' + levelLabel(ch.level) : ''}<small>${d}${ch ? ' · ' + ch.notes.length + ' 노트' : ''}${b ? ' · ' + b.rank : ''}</small></button>`;
   }).join('') + mine.map(c => {
     const b = BEST[s.id + ':MY:' + c.id + (SET.mode === 7 ? '' : ':' + SET.mode)];
-    return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">Lv.${c.level}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
+    return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
   }).join('') + `<button class="btn ghost" data-act="ed-new" style="font-size:14px;padding:8px 14px" ${s && s.ok ? '' : 'disabled'} title="곡을 들으며 녹화하거나 마우스로 찍어서 ${SET.mode}키 채보 만들기">＋ 채보 만들기</button>`
     + (/^MY:/.test(SET.diff) ? '<button class="btn ghost" data-act="ed-edit" style="font-size:14px;padding:8px 14px">✏️ 이 채보 편집</button>' : '');
   $('spdV').textContent = '×' + SET.speed.toFixed(2).replace(/0$/, '');
@@ -960,6 +1088,7 @@ function renderMenu() {
   document.querySelectorAll('.offV').forEach(el => el.textContent = $('offV').textContent);
   $('hitSnd').checked = !!SET.hitSound; $('noFail').checked = !!SET.noFail;
   $('startBtn').disabled = !(s && s.ok);
+  $('autoBtn').disabled = !(s && s.ok);
   if ((!run || run.ended) && !ED) setMode(SET.mode);
   renderKeys();
 }
@@ -968,8 +1097,8 @@ document.addEventListener('click', e => {
   if (pk) { e.stopPropagation(); pickFor = pk.dataset.pick; picker.click(); return; }
   const km = e.target.closest('[data-kmode],[data-mmode]');
   if (km) {
-    if (km.dataset.mmode) { if (MP.isHost && MP.room) roomRef().update({ keys: +km.dataset.mmode }); else toast('키 모드는 방장이 골라요'); return; }
-    SET.mode = +km.dataset.kmode; setMode(SET.mode); waitKey = -1; saveSet(); renderMenu(); return;
+    if (km.dataset.mmode) { if (MP.isHost && MP.room) roomRef().update({ keys: validMode(km.dataset.mmode) }); else toast('키 모드는 방장이 골라요'); return; }
+    SET.mode = validMode(km.dataset.kmode); setMode(SET.mode); waitKey = -1; saveSet(); renderMenu(); return;
   }
   const mt = e.target.closest('[data-tab],[data-room],[data-msong],[data-mdiff],[data-kick]');
   if (mt) {
@@ -996,6 +1125,7 @@ document.addEventListener('click', e => {
   saveSet(); renderMenu();
 });
 $('startBtn').onclick = () => startSelected();
+$('autoBtn').onclick = () => startSelected({ auto: true });
 $('hitSnd').onchange = e => { SET.hitSound = e.target.checked; saveSet(); };
 $('noFail').onchange = e => { SET.noFail = e.target.checked; saveSet(); };
 
@@ -1158,7 +1288,7 @@ function edRenderBtns() {
 function edInfo() {
   const E = ED, b = edBeat(), rel = E.pos - E.offset, bar = Math.floor(rel / (4 * b) + 1e-6), bt = Math.floor(rel / b + 1e-6) - bar * 4;
   let long = 0; for (const n of E.notes) if (n[2] > 0) long++;
-  $('edInfo').innerHTML = `${fmtT(E.pos)}<small>/ ${fmtT(E.length)} · ${bar + 1}마디 ${bt + 1}박 · 노트 ${E.notes.length}개${long ? ` (롱 ${long})` : ''} · Lv.${chartLevel(E.notes, E.length)}${E.sel.size ? ` · 선택 ${E.sel.size}개` : ''}${E.dirty ? ' · <span style="color:#ffcb3d">저장 안 됨</span>' : E.id ? ' · 저장됨' : ''}</small>`;
+  $('edInfo').innerHTML = `${fmtT(E.pos)}<small>/ ${fmtT(E.length)} · ${bar + 1}마디 ${bt + 1}박 · 노트 ${E.notes.length}개${long ? ` (롱 ${long})` : ''} · ${levelLabel(chartLevel(E.notes, E.length, E.keys))}${E.sel.size ? ` · 선택 ${E.sel.size}개` : ''}${E.dirty ? ' · <span style="color:#ffcb3d">저장 안 됨</span>' : E.id ? ' · 저장됨' : ''}</small>`;
   const sb = $('edSeekBar'); if (document.activeElement !== sb) sb.value = Math.round(E.pos / E.length * 1000);
   const bi = Math.round(E.bias * 1000);
   $('edBias').textContent = E.presses.length < 8 || !E.ons ? '' : Math.abs(bi) < 5 ? '(정확해요)' : `(${Math.abs(bi)}ms ${bi > 0 ? '늦게' : '빨리'})`;
@@ -1686,6 +1816,13 @@ function txt(s, x, y, size, color, align = 'center', font = 'Jua') { ctx.font = 
 function drawBg(now) {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0b1230'); g.addColorStop(1, '#05070f');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // The atmosphere follows the music beat, outside the dark note highway.
+  if (run && !run.ended) {
+    const beat = 60 / run.bpm, phase = ((Math.max(0, songNow() - run.offset) / beat) % 1);
+    const pulse = Math.pow(1 - phase, 3), glow = ctx.createRadialGradient(1000, 480, 10, 1000, 480, 440);
+    glow.addColorStop(0, `rgba(37,125,155,${.06 + pulse * .07})`); glow.addColorStop(1, 'rgba(20,50,90,0)');
+    ctx.fillStyle = glow; ctx.fillRect(460, 180, 820, 540);
+  }
   ctx.globalAlpha = .08; ctx.strokeStyle = '#7fa4ff'; ctx.lineWidth = 1;
   const sh = (now * 30) % 48;
   for (let x = 600; x < W; x += 48) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
@@ -1698,8 +1835,70 @@ function drawNote(l, y, h, alpha = 1) {
   ctx.globalAlpha = alpha;
   const gr = ctx.createLinearGradient(0, y - h, 0, y); gr.addColorStop(0, c); gr.addColorStop(1, KIND[l] === 'w' ? '#9fb2d8' : KIND[l] === 'b' ? '#1f5fd6' : '#d8931c');
   ctx.fillStyle = gr; rr(x, y - h, w, h, 4); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1; rr(x + .5, y - h + .5, w - 1, h - 1, 3); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(x + 3, y - h + 2, w - 6, 3);
   ctx.globalAlpha = 1;
+}
+// Prepared visual-only integration: call drawImpactEffects(r, performance.now())
+// in draw(), replacing its existing r.fx drawing loop. No scoring/audio changes.
+function drawImpactEffects(r, pn) {
+  const strength = 1 + Math.min(1.5, r.combo / 120), fever = r.combo >= 50;
+  r.fx = r.fx.filter(f => pn - f.t < 460);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(FX - 25, JY - 120, FW + 50, 205); ctx.clip();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const f of r.fx) {
+    // BAD gets only subdued feedback; MISS can never produce a burst.
+    if (f.kind !== 'cool' && f.kind !== 'good') continue;
+    const age = pn - f.t, k = age / 460, fade = Math.pow(1 - k, 2);
+    const cx = FX + f.lane * LW + LW / 2;
+    const color = fever ? '#ffcb66' : f.kind === 'cool' ? '#80edff' : '#b9ff87';
+    ctx.globalAlpha = fade;
+    const glow = ctx.createRadialGradient(cx, JY, 0, cx, JY, 44 * strength);
+    glow.addColorStop(0, '#ffffff'); glow.addColorStop(.22, color); glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow; ctx.fillRect(cx - 65, JY - 65, 130, 130);
+    ctx.strokeStyle = color; ctx.lineWidth = 3 * fade + 1;
+    ctx.beginPath(); ctx.ellipse(cx, JY, 10 + k * 48 * strength, 5 + k * 23, 0, 0, Math.PI * 2); ctx.stroke();
+    // Short white hit core creates crisp physical contact at the judgment line.
+    if (age < 85) { ctx.globalAlpha = (1 - age / 85) * .9; ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - LW * .42, JY - 3, LW * .84, 6); }
+    ctx.globalAlpha = fade;
+    const count = f.kind === 'cool' ? 12 : 8;
+    for (let i = 0; i < count; i++) {
+      const angle = -Math.PI * .9 + (i / (count - 1)) * Math.PI * .8;
+      const speed = (30 + ((i * 17 + f.lane * 11) % 45)) * strength;
+      const travel = k * speed, x = cx + Math.cos(angle) * travel;
+      const y = JY + Math.sin(angle) * travel + k * k * 25;
+      ctx.fillStyle = i % 3 ? color : '#ffffff';
+      ctx.fillRect(x - 1.5, y - 1.5, 2 + fade * 2, 2 + fade * 2);
+    }
+  }
+  for (let l = 0; l < NL; l++) {
+    if (!r.hold[l] || !r.down[l] || r.hold[l].missed) continue;
+    const cx = FX + l * LW + LW / 2, pulse = .7 + .3 * Math.sin(pn / 45 + l);
+    ctx.globalAlpha = .7 * pulse; ctx.strokeStyle = fever ? '#ffcb66' : noteColor(l); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(cx, JY, 16 + pulse * 8, 9 + pulse * 4, 0, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 5; i++) {
+      const p = ((pn / 420 + i / 5) % 1), x = cx + Math.sin(i * 2.4 + pn / 150) * 12;
+      ctx.globalAlpha = (1 - p) * .75; ctx.fillStyle = noteColor(l); ctx.fillRect(x, JY - p * 80, 3, 7);
+    }
+  }
+  ctx.restore();
+  // Combo milestones belong in the spare solo HUD, away from falling notes.
+  const milestone = r.milestone, elapsed = milestone ? pn - milestone.t : 9999;
+  if (!r.mp && elapsed < 1100 && r.combo >= milestone.combo) {
+    ctx.save(); ctx.globalAlpha = Math.min(1, (1100 - elapsed) / 300);
+    const pop = 1 + Math.max(0, 1 - elapsed / 200) * .12;
+    ctx.translate(630, 280); ctx.scale(pop, pop);
+    ctx.shadowColor = '#ffcb66'; ctx.shadowBlur = 18;
+    txt(milestone.combo + ' COMBO!', 0, 0, 28, '#ffe29b', 'center', 'Black Han Sans');
+    ctx.restore();
+  }
+  if (!r.mp && fever && !r.failed && (r.lastJ === 'cool' || r.lastJ === 'good')) {
+    ctx.save(); ctx.globalAlpha = .75 + Math.sin(pn / 160) * .2;
+    ctx.shadowColor = '#ff9d36'; ctx.shadowBlur = 14;
+    txt('FEVER / ' + (r.combo >= 100 ? 'MAX FLOW' : 'ON FIRE'), 630, 490, 20, '#ffcb66', 'center', 'Black Han Sans');
+    ctx.restore();
+  }
 }
 function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1767,21 +1966,30 @@ function draw() {
   // 타격 이펙트
   if (r) {
     const pn = performance.now();
-    r.fx = r.fx.filter(f => pn - f.t < 260);
-    for (const f of r.fx) {
-      const k = (pn - f.t) / 260, cx = FX + f.lane * LW + LW / 2;
-      ctx.globalAlpha = 1 - k; ctx.strokeStyle = f.kind === 'cool' ? '#bff6ff' : f.kind === 'good' ? '#c8ffb0' : '#ffd08a'; ctx.lineWidth = 4 * (1 - k) + 1;
-      ctx.beginPath(); ctx.ellipse(cx, JY, 18 + k * 26, 8 + k * 12, 0, 0, Math.PI * 2); ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
+    drawImpactEffects(r, pn);
     // 판정 글자·콤보
     const pn2 = performance.now(), dt = pn2 - r.lastJAt;
     if (r.lastJ && dt < 700) {
       const pop = dt < 90 ? 1.25 - dt / 90 * .25 : 1, a = dt > 500 ? 1 - (dt - 500) / 200 : 1;
       const col = { cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[r.lastJ];
-      ctx.save(); ctx.globalAlpha = a; ctx.translate(FX + FW / 2, 330); ctx.scale(pop, pop);
-      ctx.shadowColor = col; ctx.shadowBlur = 18; txt(r.lastJ.toUpperCase(), 0, 0, 40, col, 'center', 'Black Han Sans'); ctx.restore();
-      if (r.combo >= 2) { ctx.globalAlpha = a; txt(String(r.combo), FX + FW / 2, 386, 40 * pop, '#ffffff', 'center', 'Black Han Sans'); txt('COMBO', FX + FW / 2, 414, 14, '#8e9cc4'); ctx.globalAlpha = 1; }
+      // Solo judgments stay beside the highway so they never hide incoming notes.
+      const judgeX = r.mp ? FX + FW / 2 : 630, judgeY = r.mp ? 480 : 340;
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(judgeX, judgeY); ctx.scale(pop, pop);
+      ctx.shadowColor = col; ctx.shadowBlur = 10; txt(r.lastJ.toUpperCase(), 0, 0, 32, col, 'center', 'Black Han Sans'); ctx.restore();
+    }
+    if (!r.mp) {
+      // Persistent current/best combo stays close to the highway in its own HUD.
+      const hitPop = r.lastHitAt ? 1 + Math.max(0, 1 - (pn2 - r.lastHitAt) / 140) * .08 : 1;
+      ctx.save(); ctx.translate(630, 412); ctx.scale(hitPop, hitPop);
+      ctx.shadowColor = r.combo >= 50 ? '#ffb94a' : '#67e8f9'; ctx.shadowBlur = r.combo >= 50 ? 18 : 5;
+      txt(String(r.combo).padStart(3, '0'), 0, 0, 78, r.combo >= 50 ? '#ffe3a0' : '#ffffff', 'center', 'Black Han Sans'); ctx.restore();
+      txt('COMBO', 630, 455, 13, '#a7bbd1');
+      txt('BEST ' + r.maxCombo, 630, 525, 18, '#9baac0');
+      txt((accuracyOf(r, false) * 100).toFixed(2) + '%', 630, 573, 30, '#e5f4ff', 'center', 'Black Han Sans');
+      const liveGoal = r.auto ? 'DEMO / 감상 모드' : 'GOAL ' + (r.goal ? r.goal.label : 'A / 90%');
+      txt(liveGoal, 630, 607, 15, '#ffdb89');
+      if (!r.auto) txt(!r.cnt.bad && !r.cnt.miss ? 'FULL COMBO 도전 중' : '다음 판은 FULL COMBO', 630, 632, 13, '#9baac0');
+      if (r.comboBreak && pn2 - r.comboBreak.t < 900 && r.combo === 0) txt('RESET / KEEP GOING', 630, 490, 14, '#ff8396');
     }
     // JAM
     const jx = FX, jy = 34;
@@ -1802,7 +2010,7 @@ function draw() {
     txt(s.title, px, 58, 36, '#ffffff', 'left', 'Black Han Sans');
     txt(`${r.label ? '✏️ ' + r.label + (r.fromEditor ? ' (테스트)' : '') + '  ·  ' : ''}${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 92, 17, '#8e9cc4', 'left');
     const dc = { EX: '#6cf09a', NX: '#ffcb3d', HX: '#ff5a6e' }[r.diff] || '#b58cff';
-    ctx.fillStyle = dc; rr(px, 110, 124, 28, 8); ctx.fill(); txt(`${r.mode}K ${/^MY:/.test(r.diff) ? 'MY' : r.diff} ${r.level}`, px + 62, 124, 17, '#0b1230', 'center', 'Black Han Sans');
+    ctx.fillStyle = dc; rr(px, 110, 124, 28, 8); ctx.fill(); txt(`${r.mode}K ${/^MY:/.test(r.diff) ? 'MY' : r.diff} ${levelLabel(r.level)}`, px + 62, 124, 15, '#0b1230', 'center', 'Black Han Sans');
     txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 138, 124, 15, '#8e9cc4', 'left');
     const prog = clamp(now / r.end, 0, 1);
     ctx.fillStyle = '#141c3a'; rr(px, 150, 740, 6, 3); ctx.fill(); ctx.fillStyle = '#7fe9ff'; rr(px, 150, 740 * prog, 6, 3); ctx.fill();
@@ -1840,13 +2048,26 @@ function draw() {
       txt('↑↓ 속도  ·  Esc 포기', px, 700, 14, '#56648c', 'left');
     } else {
       const rows = [['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
-      rows.forEach(([k, v, c], i2) => { const y = 280 + i2 * 34; txt(k, px, y, 20, c, 'left'); txt(String(v), px + 250, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
-      txt(r.fromEditor ? '↑↓ 속도  ·  Esc 편집기로 돌아가기' : '↑↓ 속도  ·  Esc 일시정지', px, 520, 15, r.fromEditor ? '#b58cff' : '#56648c', 'left');
+      rows.forEach(([k, v, c], i2) => { const y = 280 + i2 * 34; txt(k, 900, y, 18, c, 'left'); txt(String(v), 1200, y, 24, '#ffffff', 'right', 'Black Han Sans'); });
+      txt(r.fromEditor ? '↑↓ 속도  ·  Esc 편집기로 돌아가기' : '↑↓ 속도  ·  Esc 일시정지', px, 690, 15, r.fromEditor ? '#b58cff' : '#71849b', 'left');
     }
     if (now < (r.from || 0)) txt('READY', FX + FW / 2, 250, 34, '#ffffff', 'center', 'Black Han Sans');
     if (r.failed) { ctx.fillStyle = 'rgba(40,0,10,.55)'; ctx.fillRect(FX, 0, FW, JY); txt('FAILED', FX + FW / 2, 300, 48, '#ff5a6e', 'center', 'Black Han Sans'); }
+    if (r.ended && !r.mp && !r.fromEditor) {
+      const achievement = r.achievement || achievementOf(r);
+      ctx.save(); ctx.fillStyle = 'rgba(6,12,24,.94)'; rr(470, 265, 760, 390, 18); ctx.fill();
+      const achievementColor = achievement === 'FAILED' ? '#ff8396' : achievement === 'MAX' || achievement === 'FULL COMBO' ? '#ffe29b' : '#67e8f9';
+      ctx.strokeStyle = achievementColor; ctx.lineWidth = 2; rr(470, 265, 760, 390, 18); ctx.stroke();
+      txt('TRACK COMPLETE', 850, 325, 15, '#9baac0');
+      ctx.shadowColor = achievementColor; ctx.shadowBlur = 22;
+      txt(achievement === 'MAX' ? 'MAX / ALL COOL' : achievement, 850, 407, 48, achievementColor, 'center', 'Black Han Sans');
+      ctx.shadowBlur = 0;
+      txt((accuracyOf(r) * 100).toFixed(2) + '%  /  ' + r.maxCombo + ' MAX COMBO', 850, 485, 25, '#f1f6ff');
+      txt(r.auto ? '감상 모드' : '결과를 확인하고 다음 기록에 도전하세요', 850, 555, 17, '#9baac0');
+      ctx.restore();
+    }
   } else {
-    txt('O2JAM', 640 + 280, 330, 90, 'rgba(127,233,255,.08)', 'center', 'Black Han Sans');
+    txt('PULSE', 640 + 280, 330, 90, 'rgba(127,233,255,.08)', 'center', 'Black Han Sans');
   }
 }
 function frame() { sampleClk(); update(); edTick(); draw(); requestAnimationFrame(frame); }
@@ -1989,10 +2210,10 @@ function renderRoom(r) {
   }
   $('rmSeats').innerHTML = html;
   $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${x.icon} ${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
-  const data = song && (song.chartData || song.data), rk = +(r.keys || 4);
+  const data = song && (song.chartData || song.data), rk = validMode(r.keys);
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
-  $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + [4, 6, 7].map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n === 4 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
-  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${d}${ch ? ' Lv.' + ch.level : ''}</button>`; }).join('');
+  $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
+  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${d}${ch ? ' ' + levelLabel(ch.level) : ''}</button>`; }).join('');
   const me = r.players[MP.key] || {};
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
   $('rmReady').textContent = me.ready ? '준비 취소' : '✅ 준비';
@@ -2072,7 +2293,7 @@ function mpShowBoard(r, mode) {
   const pl = all.filter(e => !e.p.spec).sort((a, b) => (b.L.s || 0) - (a.L.s || 0)), specs = all.filter(e => e.p.spec);
   $('mrTitle').textContent = mode === 'result' ? '🏆 결과' : mode === 'done' ? '⏳ 다른 사람들이 연주 중…' : '👀 관전 중';
   const ch2 = d && chartFor(d, r.diff, +(r.keys || 4));
-  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${r.diff}${ch2 ? ' Lv.' + ch2.level : ''}`;
+  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${r.diff}${ch2 ? ' ' + levelLabel(ch2.level) : ''}`;
   const rows = pl.map((e, i) => {
     const L = e.L, acc = L.tot ? ((L.co * 100 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
     const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';

@@ -6,3 +6,11 @@ o2jam/*.wav
 o2jam/*.flac
 o2jam/audio/
 o2jam/src/
+
+# 사용자 제작 오리지널 곡
+!o2jam/drive-party.mp3
+!o2jam/autumn-rain.mp3
+
+# 업데이트한 기존 두 곡
+!o2jam/ghost.mp3
+!o2jam/xmas.mp3
