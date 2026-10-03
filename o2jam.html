@@ -184,7 +184,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <div class="opt">키 설정 <span class="sub" style="font-size:12px">(눌러서 바꾸기)</span> <div class="keys" id="keyBoxes"></div><button data-act="keys-reset" title="기본 키로" style="width:auto;padding:0 8px">기본</button></div>
       <button class="btn" id="startBtn" style="margin-left:auto">▶ 시작 (Enter)</button>
       <button class="btn ghost" id="autoBtn" title="자동 연주로 음악과 타격 효과 감상 · 기록 저장 안 함">자동 연주</button>
-      <label class="opt"><input type="checkbox" id="recordPlay"> 플레이 녹화</label>
+      <label class="opt"><input type="checkbox" id="recordPlay"> 플레이 녹화</label><label class="opt">영상 <select id="recordQuality" class="inp" style="padding:3px;font-size:12px"><option value="compressed">압축 · 최대 720p</option><option value="original">원본 화질 · 화면 해상도</option></select></label>
     </div>
     <div class="msg" id="menuMsg"></div>
     <div class="hint">재생 중: <b>↑ ↓</b> 속도 · <b>`</b> 일시정지 · 싱크가 어긋나면(노트보다 소리가 늦으면 +) 싱크 값을 조절하세요.<br>EXCELLENT·COOL·GOOD 이 이어지면 <b>JAM</b> 이 쌓여 점수가 커지고, BAD·MISS 에 끊겨요. 체력이 0이 되면 실패!<br>✏️ <b>채보 만들기</b> — 곡을 들으며 키를 쳐서 녹화하거나 마우스로 찍어서 나만의 채보를 만들어요 (지금 고른 키 모드로).</div>
@@ -220,7 +220,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×3.0</b><button data-act="spd+">+</button></div>
       <div class="opt">내 싱크 <button data-act="off-">−</button><b class="offV">0ms</b><button data-act="off+">+</button></div>
       <div class="opt">내 키 <div class="keys" id="rmKeys"></div></div>
-      <label class="opt"><input type="checkbox" id="recordRoom"> 플레이 녹화</label>
+      <label class="opt"><input type="checkbox" id="recordRoom"> 플레이 녹화</label><label class="opt">영상 <select id="recordRoomQuality" class="inp" style="padding:3px;font-size:12px"><option value="compressed">압축 · 최대 720p</option><option value="original">원본 화질 · 화면 해상도</option></select></label>
       <button class="btn ghost" id="rmReady" style="margin-left:auto">준비</button>
       <button class="btn" id="rmStart">▶ 시작</button>
     </div>
@@ -378,6 +378,7 @@ const keyLabel = c => c === 'Space' ? '␣' : c.startsWith('Key') ? c.slice(3) :
 const AU = { ctx: null, music: null, sfx: null };
 const REC = { session: null, url: null, timer: null };
 function recordingCleanup(session) {
+  if (session.copyTimer) clearInterval(session.copyTimer);
   for (const bus of [AU.music, AU.sfx]) try { bus.disconnect(session.audio); } catch (e) {}
   for (const track of session.stream.getTracks()) track.stop();
   for (const track of session.audio.stream.getTracks()) track.stop();
@@ -393,16 +394,28 @@ function recordingStart(r) {
   if (!$('recordPlay').checked || r.fromEditor) return;
   if (REC.session) { recordingStop(); toast('이전 녹화를 저장 중입니다. 다음 플레이부터 녹화돼요.'); return; }
   if (!cv.captureStream || typeof MediaRecorder === 'undefined') { toast('이 브라우저는 플레이 녹화를 지원하지 않아요.'); return; }
-  const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(type => MediaRecorder.isTypeSupported(type));
-  if (!mime) { toast('이 브라우저는 WebM 녹화를 지원하지 않아요.'); return; }
+  const mime = ['video/mp4;codecs=avc1.42001E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(type => MediaRecorder.isTypeSupported(type));
+  if (!mime) { toast('이 브라우저에서 사용할 수 있는 영상 형식이 없어요.'); return; }
   $('recordVideo').pause(); $('recordReview').hidden = true; $('recordDock').hidden = true;
   let session;
   try {
-    const stream = cv.captureStream(30), audio = AU.ctx.createMediaStreamDestination();
-    session = { stream, audio, chunks: [], song: r.song.title, recorder: null };
+    const quality = $('recordQuality').value === 'original' ? 'original' : 'compressed';
+    let capture = cv;
+    if (quality === 'compressed') {
+      capture = document.createElement('canvas');
+      const scale = Math.min(1, 1280 / cv.width, 720 / cv.height);
+      capture.width = Math.max(2, Math.floor(cv.width * scale / 2) * 2);
+      capture.height = Math.max(2, Math.floor(cv.height * scale / 2) * 2);
+    }
+    const stream = capture.captureStream(30), audio = AU.ctx.createMediaStreamDestination();
+    session = { stream, audio, chunks: [], song: r.song.title, recorder: null, quality, copyTimer: null };
+    if (capture !== cv) {
+      const copy = () => capture.getContext('2d').drawImage(cv, 0, 0, capture.width, capture.height);
+      copy(); session.copyTimer = setInterval(copy, 1000 / 30);
+    }
     AU.music.connect(audio); AU.sfx.connect(audio);
     audio.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-    const recorder = session.recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
+    const recorder = session.recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: quality === 'original' ? 5000000 : 1500000, audioBitsPerSecond: 128000 });
     recorder.ondataavailable = e => { if (e.data && e.data.size) session.chunks.push(e.data); };
     recorder.onstop = () => {
       recordingCleanup(session); if (REC.session === session) REC.session = null;
@@ -410,7 +423,7 @@ function recordingStart(r) {
       const blob = new Blob(session.chunks, { type: recorder.mimeType || mime });
       if (REC.url) URL.revokeObjectURL(REC.url);
       REC.url = URL.createObjectURL(blob); $('recordVideo').src = REC.url;
-      $('recordDownload').href = REC.url; $('recordDownload').download = session.song.replace(/[\\/:*?"<>|]/g, '_') + '.webm';
+      $('recordDownload').href = REC.url; $('recordDownload').download = session.song.replace(/[\\/:*?"<>|]/g, '_') + '_' + (session.quality === 'original' ? 'original' : 'compressed') + (blob.type.includes('mp4') ? '.mp4' : '.webm');
       $('recordReview').hidden = false;
       if (!$('result').hidden) { $('result').querySelector('.box').appendChild($('recordReview')); $('recordDock').hidden = true; }
       else { $('recordDock').appendChild($('recordReview')); $('recordDock').hidden = false; }
@@ -420,6 +433,7 @@ function recordingStart(r) {
   } catch (e) { if (session) recordingCleanup(session); REC.session = null; toast('녹화를 시작하지 못했어요. 게임은 계속 진행됩니다.'); }
 }
 for (const id of ['recordPlay', 'recordRoom']) $(id).onchange = e => { $('recordPlay').checked = $('recordRoom').checked = e.target.checked; };
+for (const id of ['recordQuality', 'recordRoomQuality']) $(id).onchange = e => { $('recordQuality').value = $('recordRoomQuality').value = e.target.value; };
 $('recordStop').onclick = () => recordingStop();
 $('recordClose').onclick = () => { $('recordVideo').pause(); $('recordReview').hidden = true; $('recordDock').hidden = true; };
 addEventListener('beforeunload', () => { if (REC.session) recordingCleanup(REC.session); if (REC.url) URL.revokeObjectURL(REC.url); });
