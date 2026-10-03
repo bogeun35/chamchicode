@@ -159,6 +159,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
 #roomOv > .box > .row:has(#rmStart) {position:sticky;bottom:0;z-index:2;background:#0b1426;padding-bottom:12px;}
 :focus-visible { outline:3px solid #67e8f9; outline-offset:3px; }
 dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
+.diff .stars {display:block;font-size:14px;letter-spacing:1px;line-height:1.5;color:#ffd977;margin-top:4px;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -169,7 +170,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 <p class="hint">떨어지는 노트를 판정선에 맞춰 누르세요. 긴 노트는 끝까지 누릅니다.</p>
 <div class="stats" style="margin:18px 0;font-size:14px"><div>↑↓ / ←→ <b>곡 / 난이도</b></div><div>4~7 <b>키 모드</b></div><div>Enter <b>시작 / 준비</b></div><div>백틱(1 왼쪽) <b>일시정지</b></div><div>F7 / F8 <b>온라인 / 전체화면</b></div><div>F9 <b>녹화 켜기</b></div><div>R / Backspace <b>재시도 / 돌아가기</b></div><div>Tab / Enter <b>버튼 이동 / 선택</b></div></div>
 <details><summary>판정과 설정</summary><p class="hint">EXCELLENT → COOL → GOOD → BAD → MISS 순입니다. 쉬움·보통·어려움은 같은 곡의 서로 다른 노트 배치이며 별은 1~8단계입니다.<br>속도는 노트가 떨어지는 빠르기, 싱크는 음악과 노트의 시간 보정입니다. 노페일을 켜면 체력이 없어져도 끝까지 연습할 수 있습니다.</p></details>
-<details style="margin-top:14px"><summary>온라인과 녹화</summary><p class="hint">방장이 곡과 난이도를 고르고 모두 준비하면 시작합니다. 전체화면에서 Esc는 브라우저가 창 모드로 전환합니다. 플레이 중에는 백틱으로 일시정지하세요.<br>녹화는 게임 화면과 소리를 저장합니다. 압축은 최대 720p, 원본 화질은 화면 해상도를 유지합니다. 저장 형식은 브라우저 지원에 따라 MP4 또는 WebM입니다.</p></details>
+<details style="margin-top:14px"><summary>온라인과 녹화</summary><p class="hint">방장이 곡과 난이도를 고르고 모두 준비하면 시작합니다. 전체화면에서 Esc는 브라우저가 창 모드로 전환합니다. 혼자 하기에서는 백틱으로 일시정지하며, 온라인에서는 백틱이 이번 곡 포기입니다.<br>녹화는 게임 화면과 소리를 저장합니다. 압축은 최대 720p, 원본 화질은 화면 해상도를 유지합니다. 저장 형식은 브라우저 지원에 따라 MP4 또는 WebM입니다.</p></details>
 </dialog>
 <button class="btn ghost" id="screenBtn" title="전체화면 · F8" aria-label="전체화면 전환">⛶</button>
 
@@ -509,6 +510,7 @@ const SONGS = [
   { id: 'ghost', title: '유령의 축제', sub: 'The Festival of Ghost', artist: 'Brandy', icon: '👻', cover: 'o2jam/covers/ghost.png', chart: 'o2jam/ghost.json', audioUrl: 'o2jam/ghost.mp3' },
   { id: 'xmas', title: '크리스마스 메모리즈', sub: 'Christmas Memories', artist: 'O2Jam OST', icon: '🎄', cover: 'o2jam/covers/xmas.png', chart: 'o2jam/xmas.json', audioUrl: 'o2jam/xmas.mp3' },
 ];
+for (const song of SONGS) if (song.id === 'drive-party' || song.id === 'autumn-rain') song.keysoundManifest = `o2jam/keysounds/${song.id}/manifest.json`;
 function songCover(song) { return `<div class="jk" aria-hidden="true"><span>${escH(song.icon || '♪')}</span>${song.cover ? `<img data-song-cover src="${escH(song.cover)}" alt="" loading="lazy" decoding="async">` : ''}</div>`; }
 document.addEventListener('error', e => { if (e.target instanceof HTMLImageElement && e.target.hasAttribute('data-song-cover')) e.target.remove(); }, true);
 // 제공 음원은 명시된 주소에서 재생하고, 파일이 없으면 브라우저에 저장한 음원을 사용한다.
@@ -553,7 +555,59 @@ async function loadSong(s) {
     s.data = null;
   }
   if (!s.data) s.data = await analyzeAudio(s.buffer, s.title);   // 채보 파일이 없으면 음원을 분석해서 즉석 생성
+  await loadKeysounds(s);
   return s;
+}
+async function loadKeysounds(song) {
+  if (!song.keysoundManifest || song.keysounds || song._keysoundAttempted || song.src !== 'url' || song.data !== song.chartData) return;
+  song._keysoundAttempted = true;
+  try {
+    const manifestUrl = new URL(song.keysoundManifest, location.href), response = await fetch(manifestUrl);
+    if (!response.ok) throw new Error('manifest');
+    const manifest = await response.json();
+    if (!Array.isArray(manifest.segments) || !manifest.assignments || Math.abs(manifest.duration - song.buffer.duration) > .15) throw new Error('schema');
+    const decode = async path => { const r = await fetch(new URL(path, manifestUrl)); if (!r.ok) throw new Error('audio'); return AU.ctx.decodeAudioData(await r.arrayBuffer()); };
+    const [backing, drums] = await Promise.all([decode(manifest.backing), decode(manifest.drums)]);
+    const segments = new Map();
+    for (const segment of manifest.segments) {
+      if (!Number.isFinite(segment.start) || !Number.isFinite(segment.end) || segment.start < 0 || segment.end <= segment.start || segment.end > drums.duration + .01 || segments.has(segment.id)) throw new Error('segments');
+      segments.set(segment.id, segment);
+    }
+    song.keysounds = { manifest, backing, drums, segments };
+  } catch (e) { song.keysounds = null; console.warn('Keysounds unavailable, using original mix:', song.id); }
+}
+function keysoundPlan(song, data, diff, mode, notes, opt) {
+  if (!song.keysounds || song.src !== 'url' || data !== song.chartData || opt.fromEditor) return null;
+  const entries = song.keysounds.manifest.assignments[mode + ':' + diff];
+  if (!Array.isArray(entries)) return null;
+  const assignments = new Map(), assigned = new Set();
+  for (const entry of entries) {
+    if (!Number.isInteger(entry.noteIndex) || !notes[entry.noteIndex] || !song.keysounds.segments.has(entry.segmentId)) return null;
+    if (assignments.has(entry.noteIndex)) return null;
+    assignments.set(entry.noteIndex, entry.segmentId); assigned.add(entry.segmentId);
+  }
+  return { assets: song.keysounds, assignments, assigned, played: new Set(), sources: new Set() };
+}
+function keysoundPlay(r, segmentId, when, offset = 0) {
+  const plan = r.keysound;
+  if (!plan || plan.played.has(segmentId)) return;
+  const segment = plan.assets.segments.get(segmentId); if (!segment || offset >= segment.end - segment.start) return;
+  const source = AU.ctx.createBufferSource(); source.buffer = plan.assets.drums; source.connect(AU.music);
+  plan.played.add(segmentId); plan.sources.add(source);
+  source.onended = () => { plan.sources.delete(source); source.disconnect(); };
+  source.start(when, segment.start + offset, segment.end - segment.start - offset);
+}
+function keysoundSchedule(r, audioFrom, audioStart) {
+  if (!r.keysound) return;
+  for (const segment of r.keysound.assets.segments.values()) {
+    if (segment.end <= audioFrom || (!r.auto && r.keysound.assigned.has(segment.id))) continue;
+    const offset = Math.max(0, audioFrom - segment.start);
+    keysoundPlay(r, segment.id, Math.max(audioStart, r.t0 + segment.start), offset);
+  }
+}
+function keysoundStop(r, when) {
+  if (!r || !r.keysound) return;
+  for (const source of r.keysound.sources) try { source.stop(when); } catch (e) {}
 }
 
 // ═══════════ 채보 공통 ═══════════
@@ -619,7 +673,7 @@ function chartLevel(notes, len, keys = 7) {   // 1~8: 실제 연주 구간의 �
   const demand = (density * .65 + peak * .40 + chords / ns.length * 2 + repeats / ns.length * 2.5 + holdBurden / ns.length * 1.5) * complexity;
   return clamp(Math.ceil(demand / 1.05), 1, 8);
 }
-const levelLabel = level => '★' + level + '/8';
+const levelLabel = level => { const n = clamp(Math.round(Number(level) || 1), 1, 8); return '★'.repeat(n) + '☆'.repeat(8 - n); };
 
 // ═══════════ 연습곡 (합성) — 채보가 음과 정확히 일치 ═══════════
 function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
@@ -958,23 +1012,28 @@ function achievementOf(r) {
 function startRun(song, diff, opt = {}) {
   const mode = validMode(opt.mode || SET.mode); setMode(mode);
   const ac = audioInit(), data = opt.data || song.data, ch = chartFor(data, diff, mode);
+  const keysound = keysoundPlan(song, data, diff, mode, ch.notes, opt);
   const from = Math.max(0, opt.from || 0), nFrom = opt.notesFrom != null ? opt.notesFrom : from;   // 편집기 테스트: 곡 중간부터 (소리는 from, 노트는 nFrom 부터)
-  const notes = ch.notes.filter(n => n[0] >= nFrom - .02).map((n, i) => ({ i, t: n[0], lane: n[1], len: n[2], state: 0, tail: n[2] > 0 ? 0 : 2 }));   // state 0=대기 1=판정됨 / tail 0=대기 1=누르는 중 2=끝
+  const notes = ch.notes.map((n, i) => ({ i, keySegment: keysound ? keysound.assignments.get(i) : undefined, t: n[0], lane: n[1], len: n[2], state: 0, tail: n[2] > 0 ? 0 : 2 })).filter(n => n.t >= nFrom - .02);
   const lanes = Array.from({ length: NL }, () => []); notes.forEach(n => lanes[n.lane].push(n));
   const total = notes.reduce((a, n) => a + (n.len > 0 ? 2 : 1), 0);
+  keysoundStop(run);
   if (run && run.src) try { run.src.stop(); } catch (e) {}
   const lead = opt.delay != null ? opt.delay : 1.6, t0 = ac.currentTime + lead;   // 멀티: 서버 시각에 맞춘 지연(늦게 불러왔으면 음수 → 곡 중간부터)
-  const src = ac.createBufferSource(); src.buffer = song.buffer; src.connect(AU.music);
-  if (lead >= .05) src.start(t0, from); else src.start(ac.currentTime + .05, from + .05 - lead);
+  const src = ac.createBufferSource(); src.buffer = keysound ? keysound.assets.backing : song.buffer; src.connect(AU.music);
+  const audioStart = lead >= .05 ? t0 : ac.currentTime + .05, audioFrom = lead >= .05 ? from : from + .05 - lead;
+  src.start(audioStart, audioFrom);
   run = { song, diff, mode, notes, lanes, ptr: new Array(NL).fill(0), hold: new Array(NL).fill(null), down: new Array(NL).fill(false), beam: new Array(NL).fill(0), fx: [],
     t0: t0 - from, src, total, score: 0, combo: 0, maxCombo: 0, jam: 0, jamG: 0, maxJam: 0, life: 1000, cnt: { excellent: 0, cool: 0, good: 0, bad: 0, miss: 0 }, judged: 0,
     lastJ: null, lastJAt: -9, lastHitAt: 0, lastHitLane: null, lastHitKind: null, milestone: null, comboBreak: null, ended: false, failed: false, paused: false, pauseAt: 0, auto: !!opt.auto, mp: !!opt.mp, end: song.buffer.duration, bpm: data.bpm, offset: data.offset || 0, level: ch.level,
-    data, from, fromEditor: !!opt.fromEditor, label: opt.label || '' };
+    data, from, keysound, fromEditor: !!opt.fromEditor, label: opt.label || '' };
+  keysoundSchedule(run, audioFrom, audioStart);
   run.recordKey = recordKey(song, diff, mode);
   run.bestBefore = BEST[run.recordKey] ? Object.assign({}, BEST[run.recordKey]) : null;
   run.goal = goalForRecord(run.bestBefore);
   clk.off = null;
   $('menu').hidden = true; $('result').hidden = true; $('pause').hidden = true;
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   recordingStart(run);
 }
 function songNow() {
@@ -990,7 +1049,7 @@ function addJudge(kind, lane) {
   if (kind === 'excellent' || kind === 'cool' || kind === 'good') {
     r.combo++; r.maxCombo = Math.max(r.maxCombo, r.combo);
     if (r.combo === 25 || r.combo === 50 || r.combo % 100 === 0) r.milestone = { combo: r.combo, t: now };
-    if (lane != null) { hitSfx(KIND[lane]); r.lastHitAt = now; r.lastHitLane = lane; r.lastHitKind = kind; }
+    if (lane != null) { if (!r.keysound) hitSfx(KIND[lane]); r.lastHitAt = now; r.lastHitLane = lane; r.lastHitKind = kind; }
     r.jamG += kind === 'excellent' ? 5 : kind === 'cool' ? 4 : 2;
     if (r.jamG >= 100) { r.jamG -= 100; r.jam++; r.maxJam = Math.max(r.maxJam, r.jam); r.jamAt = performance.now(); }
     r.score += kind === 'excellent' ? 300 + 15 * r.jam : kind === 'cool' ? 200 + 10 * r.jam : 100 + 5 * r.jam;
@@ -1015,6 +1074,7 @@ function press(lane, ts) {
     if (n.t - t > JW.bad) break;
     const k = judgeOf(t - n.t); if (!k) continue;
     n.state = 1; n.err = t - n.t; addJudge(k, lane);
+    if (r.keysound && !r.auto && n.keySegment !== undefined && k !== 'bad') keysoundPlay(r, n.keySegment, AU.ctx.currentTime);
     if (n.len > 0) { n.tail = 1; r.hold[lane] = n; }
     break;
   }
@@ -1057,6 +1117,7 @@ function finish() {
   const r = run; if (!r || r.ended) return;
   r.ended = true;
   r.achievement = achievementOf(r);
+  keysoundStop(r, AU.ctx.currentTime + (r.failed ? .6 : 1.2));
   recordingStop(1800);
   try { r.src.stop(AU.ctx.currentTime + (r.failed ? .6 : 1.2)); } catch (e) {}
   if (r.failed) { const g = AU.music; g.gain.setTargetAtTime(0, AU.ctx.currentTime, .25); setTimeout(applyVol, 1400); }
@@ -1115,6 +1176,7 @@ function pauseGame(on) {
   else if (!on && r.paused) { $('pause').hidden = true; AU.ctx.resume().then(() => { clk.off = null; r.paused = false; if (REC.session && REC.session.recorder.state === 'paused') REC.session.recorder.resume(); }); }
 }
 function quitToMenu() {
+  keysoundStop(run);
   recordingStop();
   if (!$('recordReview').hidden) { $('recordDock').appendChild($('recordReview')); $('recordDock').hidden = false; }
   if (run && run.src) try { run.src.stop(); } catch (e) {}
@@ -1141,9 +1203,9 @@ async function startSelected(opt) {
 // ═══════════ 입력 ═══════════
 let waitKey = -1;
 addEventListener('keydown', e => {
-  if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return;
+  if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
   if (e.defaultPrevented || $('helpDialog').open) return;
-  if ((e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
+  if (!(run && !run.ended && !run.paused) && (e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
   if (waitKey >= 0) { e.preventDefault(); if (e.code !== 'Escape') { const km = SET.keymap[SET.mode], i = km.indexOf(e.code); if (i >= 0) km[i] = km[waitKey]; km[waitKey] = e.code; saveSet(); } waitKey = -1; renderKeys(); return; }
   if (ED && !run) { edKey(e); return; }
   const lane = run && !run.ended ? keysNow().indexOf(e.code) : -1;
@@ -1162,7 +1224,7 @@ addEventListener('keydown', e => {
     else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); const D = ['EX', 'NX', 'HX']; SET.diff = D[clamp(D.indexOf(SET.diff) + (e.code === 'ArrowRight' ? 1 : -1), 0, 2)]; saveSet(); renderMenu(); }
   }
 });
-addEventListener('keyup', e => { if (/INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '')) return; if (ED && !run) { edKeyUp(e); return; } if (!run) return; const lane = keysNow().indexOf(e.code); if (lane >= 0) { e.preventDefault(); release(lane, e.timeStamp); } });
+addEventListener('keyup', e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (ED && !run) { edKeyUp(e); return; } if (!run) return; const lane = keysNow().indexOf(e.code); if (lane >= 0) { e.preventDefault(); release(lane, e.timeStamp); } });
 addEventListener('blur', () => {
   if (run && !run.ended && !run.paused && !run.mp) { if (run.fromEditor) edBackFromTest(run); else pauseGame(true); }
   else if (ED && !run) { edStop(); ED.down.fill(false); }
@@ -1193,7 +1255,7 @@ function renderMenu() {
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
     const ch = s && s.data && chartFor(s.data, d, SET.mode), b = s && BEST[recordKey(s, d, SET.mode)];
-    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? ' ' + levelLabel(ch.level) : ''}<small>${b ? '최고 ' + b.rank : ''}</small></button>`;
+    return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}<small>${b ? '최고 ' + b.rank : ''}</small></button>`;
   }).join('') + mine.map(c => {
     const b = BEST[recordKey(s, 'MY:' + c.id, SET.mode)];
     return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
@@ -2179,8 +2241,8 @@ function draw() {
     txt(s.title, px, 58, 36, '#ffffff', 'left', 'Black Han Sans');
     txt(`${r.label ? '✏️ ' + r.label + (r.fromEditor ? ' (테스트)' : '') + '  ·  ' : ''}${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 92, 17, '#8e9cc4', 'left');
     const dc = { EX: '#6cf09a', NX: '#ffcb3d', HX: '#ff5a6e' }[r.diff] || '#b58cff';
-    ctx.fillStyle = dc; rr(px, 110, 124, 28, 8); ctx.fill(); txt(`${r.mode}키 ${levelLabel(r.level)}`, px + 62, 124, 15, '#0b1230', 'center', 'Black Han Sans');
-    txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 138, 124, 15, '#8e9cc4', 'left');
+    ctx.fillStyle = dc; rr(px, 110, 176, 28, 8); ctx.fill(); txt(`${r.mode}키 ${levelLabel(r.level)}`, px + 88, 124, 13, '#0b1230', 'center', 'Black Han Sans');
+    txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 190, 124, 15, '#8e9cc4', 'left');
     const prog = clamp(now / r.end, 0, 1);
     ctx.fillStyle = '#141c3a'; rr(px, 150, 740, 6, 3); ctx.fill(); ctx.fillStyle = '#7fe9ff'; rr(px, 150, 740 * prog, 6, 3); ctx.fill();
     txt('SCORE', px, 180, 16, '#8e9cc4', 'left');
@@ -2402,7 +2464,7 @@ function renderRoom(r) {
   const data = song && (song.chartData || song.data), rk = validMode(r.keys);
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
-  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? ' ' + levelLabel(ch.level) : ''}</button>`; }).join('');
+  $('rmDiffs').innerHTML = ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${r.diff === d ? ' on' : ''}" data-mdiff="${d}" ${MP.isHost ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('');
   const me = r.players[MP.key] || {};
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
   $('rmReady').textContent = me.ready ? '준비 취소' : '✅ 준비';
@@ -2482,7 +2544,7 @@ function mpShowBoard(r, mode) {
   const pl = all.filter(e => !e.p.spec).sort((a, b) => (b.L.s || 0) - (a.L.s || 0)), specs = all.filter(e => e.p.spec);
   $('mrTitle').textContent = mode === 'result' ? '🏆 결과' : mode === 'done' ? '⏳ 다른 사람들이 연주 중…' : '👀 관전 중';
   const ch2 = d && chartFor(d, r.diff, +(r.keys || 4));
-  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${r.diff}${ch2 ? ' ' + levelLabel(ch2.level) : ''}`;
+  $('mrSong').textContent = `${x ? x.title : r.song} · ${r.keys || 4}키 ${{EX:'쉬움',NX:'보통',HX:'어려움'}[r.diff] || '커스텀'}${ch2 ? ' ' + levelLabel(ch2.level) : ''}`;
   const rows = pl.map((e, i) => {
     const L = e.L, acc = L.tot ? (((L.ex || 0) * 100 + L.co * 90 + L.go * 60 + L.ba * 20) / (L.tot * 100) * 100).toFixed(1) + '%' : '-';
     const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';
@@ -2503,7 +2565,7 @@ function mpBackToRoom() {
   }
   roomRef().update(upd);
 }
-function mpStopRun() { recordingStop(); const r = run; if (!r) return; r.ended = true; try { r.src.stop(); } catch (e) {} run = null; applyVol(); }
+function mpStopRun() { recordingStop(); const r = run; if (!r) return; keysoundStop(r); r.ended = true; try { r.src.stop(); } catch (e) {} run = null; applyVol(); }
 async function mpLeave(silent) {
   const code = MP.code, key = MP.key, r = MP.room, wasHost = MP.isHost;
   mpOff();
