@@ -133,10 +133,35 @@ h1 { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 38px; font
 .key { font-weight: 700; border-radius: 6px; }
 button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-offset: 3px; }
 @media (max-width: 650px) { .box { padding: 18px; } h1 { font-size: 30px; } .song { gap: 10px; padding: 12px; flex-wrap: wrap; } .song .jk { width: 64px; height: 64px; } .song .song-info { flex-basis: calc(100% - 74px); } .song .t { font-size: 16px; } .song .t small { display: block; margin-left: 0; } .song .best { display: none; } .song > button { margin-left: 74px !important; max-width: calc(100% - 74px); } .msong { flex-wrap: wrap; } .msong .song-title { flex-basis: calc(100% - 48px); } .diff { min-width: 75px; } }
+
+/* Game lobby occupies the screen; song browsing scrolls independently. */
+#screenBtn { position:fixed;right:20px;top:16px;z-index:12;padding:8px 14px;font-size:13px;background:#101c2ee8; }
+#menu > .box, #roomOv > .box { width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:28px clamp(20px,4vw,72px);background:linear-gradient(125deg,#0b1629f5,#080c18f5); }
+#menu .brand-line { margin-right:180px; } #menu h1 {font-size:32px;}
+.song-browser {display:grid;grid-template-columns:minmax(390px,1.25fr) minmax(260px,.75fr);gap:28px;align-items:stretch;margin-top:14px;}
+#songList {margin:0;max-height:clamp(220px,43vh,480px);overflow:auto;padding:3px 8px 3px 3px;scrollbar-width:thin;scrollbar-color:#31516a transparent;}
+#songList .song {padding:10px 12px;gap:12px;} #songList .jk {width:60px;height:60px;} #songList .t {font-size:17px;} #songList .t small {display:block;margin:2px 0 0;font-size:11px;} #songList .a {font-size:12px;} #songList button {font-size:11px!important;padding:6px 8px!important;}
+.song-preview {position:relative;min-height:240px;border:1px solid #304158;border-radius:16px;overflow:hidden;background:#101b2d;display:flex;align-items:flex-end;}
+.song-preview > img {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.preview-copy {position:relative;width:100%;padding:60px 24px 24px;background:linear-gradient(transparent,#050b18ee);}
+.preview-copy h2 {font-size:25px;margin:8px 0;overflow-wrap:anywhere;} .preview-copy p {font-size:13px;color:#c0d6e6;line-height:1.6;}
+.preview-label,.section-label {font-size:11px;letter-spacing:3px;color:var(--cyan);font-weight:700;}
+#soloPane > .hint {font-size:12px;margin-top:6px;} #startBtn {min-width:190px;}
+#roomOv h1 {font-size:26px!important;} .room-layout {display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;}
+.room-section {padding:20px;background:#0d1729;border:1px solid #263b51;border-radius:16px;min-width:0;}
+#rmSeats {grid-template-columns:repeat(2,1fr);gap:12px;} .seat {min-height:98px;padding:16px;border-radius:12px;} .seat.ready {box-shadow:inset 0 3px #6cf09a;}
+#rmSongs {display:grid;grid-template-columns:1fr;max-height:38vh;overflow:auto;} #rmSongLabel {margin:12px 0;font-size:18px;color:#eef3ff;}
+#roomStatus {margin-top:12px;color:var(--gold);font-size:14px;} #roomOv > .box > .row:last-of-type {padding-top:16px;border-top:1px solid #263b51;margin-top:20px;}
+@media(max-width:760px){#menu > .box,#roomOv > .box{padding:58px 16px 20px;} .song-browser,.room-layout{grid-template-columns:1fr;gap:14px;} .song-preview{min-height:160px;} #songList{max-height:38vh;} .preview-copy{padding:35px 16px 16px;} .preview-copy h2{font-size:20px;} .room-section{padding:12px;} #rmSongs{max-height:28vh;} #menu .sub{font-size:12px;} #menu .brand-line{margin-right:0;letter-spacing:2px;} }
+@media(max-height:740px) and (min-width:761px){#menu > .box,#roomOv > .box{padding-top:18px;padding-bottom:18px;} #menu .sub{font-size:12px;} #menu h1{font-size:26px;} #songList{max-height:35vh;} .song-preview{min-height:200px;} #soloPane > .hint{display:none;} .room-layout{margin-top:12px;} .seat{min-height:74px;padding:10px;} }
+
+#soloPane > .row:has(#startBtn) {position:sticky;bottom:0;z-index:2;padding:12px 0;background:linear-gradient(transparent,#080f1cf5 20%);}
+#roomOv > .box > .row:has(#rmStart) {position:sticky;bottom:0;z-index:2;background:#0b1426;padding-bottom:12px;}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<button class="btn ghost" id="screenBtn" aria-label="전체화면 전환">⛶ 전체화면</button>
 
 <div id="menu" class="ov">
   <div class="box">
@@ -145,7 +170,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
     <div class="sub">4 · 5 · 6 · 7 KEY / 음악을 고르고, 판정선에 맞춰 연주하세요. 처음에는 4키 EASY를 추천해요.</div>
     <div class="tabs"><button class="tab on" data-tab="solo">🎮 혼자 하기</button><button class="tab" data-tab="online">🌐 온라인 (최대 8명)</button></div>
     <div id="soloPane">
-    <div class="songs" id="songList"></div>
+    <div class="song-browser"><div class="songs" id="songList"></div><aside class="song-preview" id="songPreview" aria-label="선택한 곡"></aside></div>
     <div class="row" id="modeRow"></div>
     <div class="row" id="diffRow"></div>
     <div class="row">
@@ -171,7 +196,7 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
         <button class="btn ghost" id="mpRefresh" style="margin-left:auto" title="방 목록 새로고침">↻</button>
       </div>
       <div class="rooms" id="roomList"><div class="hint">불러오는 중…</div></div>
-      <div class="hint">최대 8명이 같은 곡·같은 채보를 동시에 연주해요. 곡 음원은 각자 이 브라우저에 있어야 해요 — 혼자 하기 탭이나 방 안의 <b>🎵 파일 선택</b>으로 한 번만 고르면 돼요. 연습곡은 누구나 바로 가능!<br>연주 중 <b>Esc</b> = 포기 · 체력이 0이 되면 그 곡은 탈락이에요.</div>
+      <div class="hint">최대 8명이 같은 곡·같은 채보를 동시에 연주해요. 제공된 곡은 바로 플레이할 수 있어요. 같은 곡·키 모드·난이도를 고르고 모두 준비하면 방장이 시작합니다. 파일을 바꿨다면 서로 같은 음원인지 확인해주세요.<br>연주 중 <b>Esc</b> = 포기 · 체력이 0이 되면 그 곡은 탈락이에요.</div>
     </div>
   </div>
 </div>
@@ -184,11 +209,11 @@ button:focus-visible, .song:focus-visible { outline: 3px solid #67e8f9; outline-
       <span class="sub" id="rmCount"></span>
       <button class="btn ghost" id="rmLeave" style="margin-left:auto">나가기</button>
     </div>
-    <div class="seats" id="rmSeats"></div>
+    <div class="room-layout"><section class="room-section"><div class="section-label">PLAYERS · 함께 플레이</div><div class="seats" id="rmSeats"></div><div id="roomStatus" role="status"></div></section><section class="room-section"><div class="section-label">SETLIST · 이번 라운드</div>
     <div class="sub" id="rmSongLabel">곡 선택</div>
     <div class="row" id="rmSongs"></div>
     <div class="row" id="rmModes"></div>
-    <div class="row" id="rmDiffs"></div>
+    <div class="row" id="rmDiffs"></div></section></div>
     <div class="row">
       <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×3.0</b><button data-act="spd+">+</button></div>
       <div class="opt">내 싱크 <button data-act="off-">−</button><b class="offV">0ms</b><button data-act="off+">+</button></div>
@@ -1075,12 +1100,13 @@ function renderMenu() {
     const top = bests.sort((a, b) => b.score - a.score)[0];
     const len = s.data ? `${Math.floor((s.data.length || 0) / 60)}:${String(Math.round((s.data.length || 0) % 60)).padStart(2, '0')}` : '';
     const info = s.data ? `BPM ${Math.round(s.data.bpm)} · ${len}${s.data.auto ? ' · 자동 채보' : ''}` : '';
-    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 🎵 내장 음원') : '';
+    const src = s.synth ? '' : s.ok ? (s.src === 'idb' ? ` · 🎵 내 파일${s.fileName ? ' (' + s.fileName.slice(0, 28) + ')' : ''}` : ' · 바로 플레이 가능') : '';
     const pick = s.synth ? '' : `<button class="btn ghost" data-pick="${s.id}" style="font-size:14px;padding:8px 12px;margin-left:auto">${s.ok ? '파일 바꾸기' : '🎵 음원 파일 선택'}</button>`;
     const need = !s.synth && !s.ok ? '<div class="a" style="color:#ffcb3d">음원을 불러오지 못했어요. 다시 열거나 파일을 선택해주세요.</div>' : '';
     return `<div class="song${s.id === SET.song ? ' on' : ''}${s.ok ? '' : ' off'}" data-song="${s.id}">${songCover(s)}<div class="song-info"><div class="t">${s.title}<small>${s.sub || ''}</small></div><div class="a">${s.artist}${info ? ' · ' + info : ''}${src}</div>${need}</div>${pick}<div class="best"${pick ? ' style="margin-left:12px"' : ''}>${top ? `BEST<br><b>${top.score.toLocaleString()}</b> ${top.rank}` : ''}</div></div>`;
   }).join('');
   const s = songById(SET.song);
+  if (s) $('songPreview').innerHTML = `<img src="${esc(s.cover)}" alt="" onerror="this.remove()"><div class="preview-copy"><div class="preview-label">SELECTED TRACK · ${SET.mode} KEY</div><h2>${esc(s.title)}</h2><p>${esc(s.artist)} · ${s.synth ? '연습곡' : s.ok ? '바로 플레이 가능' : '음원 확인 필요'}<br>키 모드와 난이도를 고르고 시작하세요.</p></div>`;
   const mine = s ? myCharts().filter(c => c.song === s.id && c.keys === SET.mode) : [];
   if (/^MY:/.test(SET.diff) && !mine.some(c => 'MY:' + c.id === SET.diff)) SET.diff = 'NX';
   $('diffRow').innerHTML = ['EX', 'NX', 'HX'].map(d => {
@@ -2218,6 +2244,8 @@ function mpOnRoom(r) {
 function renderRoom(r) {
   const ps = Object.entries(r.players || {}).sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
   $('rmCount').textContent = `${ps.length} / ${MAXP}명`;
+  const readyCount = ps.filter(([k,p]) => k === r.host || p.ready).length;
+  $('roomStatus').textContent = `${readyCount} / ${ps.length}명 준비 · ${MP.isHost ? '모두 준비되면 시작하세요' : '곡을 확인하고 준비 버튼을 누르세요'}`;
   const song = songById(r.song);
   let html = '';
   for (let i = 0; i < MAXP; i++) {
@@ -2374,6 +2402,22 @@ window.o2jam = {
   get ed() { return ED; }, edOpen, myCharts,
   exportChart: id => { const s = songById(id || SET.song); return s && s.data ? JSON.stringify(s.data) : null; },
 };
+
+// Fullscreen requires a direct player gesture; browser Escape exits normally.
+const screenBtn = $('screenBtn');
+screenBtn.onclick = async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    else toast('이 브라우저에서는 전체화면을 지원하지 않아요.');
+  } catch (e) { toast('전체화면을 열지 못했어요. 브라우저의 F11을 이용해주세요.'); }
+};
+addEventListener('fullscreenchange', () => {
+  screenBtn.textContent = document.fullscreenElement ? '⛶ 창 모드' : '⛶ 전체화면';
+  resize();
+  if (!document.fullscreenElement && run && !run.mp && !run.ended && !run.paused) pauseGame(true);
+});
+
 renderMenu(); probeSongs();
 </script>
 </body>
