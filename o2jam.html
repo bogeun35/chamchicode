@@ -2164,11 +2164,29 @@ function draw() {
       all.sort((a, b) => (b.L.s || 0) - (a.L.s || 0));
       const myRank = all.findIndex(e2 => e2.k === MP.key) + 1;
       txt(`${myRank} / ${all.length}위`, px + 300, 222, 30, myRank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
-      txt(`EXCELLENT ${r.cnt.excellent}  COOL ${r.cnt.cool}  GOOD ${r.cnt.good}  BAD ${r.cnt.bad}  MISS ${r.cnt.miss}  ·  콤보 ${r.combo} (최대 ${r.maxCombo})`, px, 262, 15, '#8e9cc4', 'left');
-      const others = all.filter(e2 => e2.k !== MP.key), pn3 = performance.now(), CW = 364, CH = 84;
+      const tiers = [['excellent', 'EXCELLENT', '#ffe29b'], ['cool', 'COOL', '#7fe9ff'], ['good', 'GOOD', '#9cff7a'], ['bad', 'BAD', '#ffb347'], ['miss', 'MISS', '#ff5a6e']];
+      const judgeAge = performance.now() - r.lastJAt;
+      tiers.forEach(([kind, label, color], i) => {
+        const cx = px + i * 150, active = r.lastJ === kind && judgeAge < 220;
+        ctx.save();
+        ctx.fillStyle = active ? '#1c2d45' : '#0d1729'; rr(cx, 264, 140, 66, 10); ctx.fill();
+        ctx.strokeStyle = active ? color : '#25334a'; ctx.lineWidth = active ? 2 : 1;
+        rr(cx, 264, 140, 66, 10); ctx.stroke();
+        ctx.fillStyle = color; ctx.globalAlpha = active ? 1 : .65; ctx.fillRect(cx + 12, 264, 116, 3); ctx.globalAlpha = 1;
+        txt(label, cx + 12, 283, label === 'EXCELLENT' ? 11 : 12, color, 'left', 'Black Han Sans');
+        const pop = active ? 1 + .1 * (1 - judgeAge / 220) : 1;
+        txt(String(r.cnt[kind]), cx + 126, 310, 28 * pop, '#f1f6ff', 'right', 'Black Han Sans');
+        ctx.restore();
+      });
+      txt('COMBO / BEST', px + 490, 183, 12, '#9baac0', 'left');
+      txt(r.combo + ' / ' + r.maxCombo, px + 490, 218, 28, '#ffe29b', 'left', 'Black Han Sans');
+      txt('ACCURACY', px + 740, 183, 12, '#9baac0', 'right');
+      txt((accuracyOf(r, false) * 100).toFixed(2) + '%', px + 740, 218, 28, '#7fe9ff', 'right', 'Black Han Sans');
+      txt('LIVE PLAYERS', px, 350, 12, '#9baac0', 'left');
+      const others = all.filter(e2 => e2.k !== MP.key), pn3 = performance.now(), CW = 364, CH = 74;
       MP.flash = MP.flash || {};
       others.slice(0, 7).forEach((e2, i2) => {
-        const L = e2.L, cx0 = px + (i2 % 2) * (CW + 12), cy0 = 286 + Math.floor(i2 / 2) * (CH + 10), rank = all.indexOf(e2) + 1;
+        const L = e2.L, cx0 = px + (i2 % 2) * (CW + 12), cy0 = 366 + Math.floor(i2 / 2) * (CH + 8), rank = all.indexOf(e2) + 1;
         const f = MP.flash[e2.k] || (MP.flash[e2.k] = { jn: 0, at: 0, kind: '' });
         if ((L.jn || 0) !== f.jn) { f.jn = L.jn || 0; f.at = pn3; f.kind = L.lj || ''; }
         const fk = pn3 - f.at < 350 ? { excellent: '#ffe7a0', cool: '#7fe9ff', good: '#9cff7a', bad: '#ffb347', miss: '#ff5a6e' }[f.kind] : null;
@@ -2183,11 +2201,11 @@ function draw() {
         txt(`정확도 ${acc}`, cx0 + CW - 12, cy0 + 47, 14, '#8e9cc4', 'right');
         if (fk) txt(f.kind.toUpperCase(), cx0 + CW / 2 + 30, cy0 + 47, 15, fk, 'center', 'Black Han Sans');
         const lf = clamp((L.l == null ? 1000 : L.l) / 1000, 0, 1);
-        ctx.fillStyle = '#141c3a'; rr(cx0 + 12, cy0 + 62, CW - 24, 8, 4); ctx.fill();
-        ctx.fillStyle = lf > .5 ? '#6cf09a' : lf > .25 ? '#ffcb3d' : '#ff5a6e'; rr(cx0 + 12, cy0 + 62, (CW - 24) * lf, 8, 4); ctx.fill();
-        ctx.fillStyle = 'rgba(127,233,255,.7)'; ctx.fillRect(cx0 + 12, cy0 + 73, (CW - 24) * clamp(L.p || 0, 0, 1), 3);
+        ctx.fillStyle = '#141c3a'; rr(cx0 + 12, cy0 + 59, CW - 24, 6, 3); ctx.fill();
+        ctx.fillStyle = lf > .5 ? '#6cf09a' : lf > .25 ? '#ffcb3d' : '#ff5a6e'; rr(cx0 + 12, cy0 + 59, (CW - 24) * lf, 6, 3); ctx.fill();
+        ctx.fillStyle = 'rgba(127,233,255,.7)'; ctx.fillRect(cx0 + 12, cy0 + 69, (CW - 24) * clamp(L.p || 0, 0, 1), 3);
       });
-      if (!others.length) txt('상대가 들어오면 여기에 현황이 보여요', px, 320, 16, '#56648c', 'left');
+      if (!others.length) txt('상대가 들어오면 여기에 현황이 보여요', px, 394, 16, '#56648c', 'left');
       txt('↑↓ 속도  ·  Esc 포기', px, 700, 14, '#56648c', 'left');
     } else {
       const rows = [['EXCELLENT', r.cnt.excellent, '#ffe7a0'], ['COOL', r.cnt.cool, '#7fe9ff'], ['GOOD', r.cnt.good, '#9cff7a'], ['BAD', r.cnt.bad, '#ffb347'], ['MISS', r.cnt.miss, '#ff5a6e'], ['MAX COMBO', r.maxCombo, '#ffffff'], ['MAX JAM', r.maxJam, '#ffcb3d']];
