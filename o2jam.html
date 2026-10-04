@@ -553,7 +553,7 @@ async function probeSongs() {   // 제공 음원 → 이 브라우저에 저장�
 async function loadSong(s, opt = {}) {
   if (!s._audioLoad) s._audioLoad = loadSongAudio(s).finally(() => { s._audioLoad = null; });
   await s._audioLoad;
-  if (!opt.mp) await loadKeysounds(s);
+  if (opt.keysounds === true && !opt.mp) await loadKeysounds(s);
   return s;
 }
 async function fetchOriginalAudio(url) {
@@ -599,6 +599,8 @@ async function loadKeysounds(song) {
   } catch (e) { song.keysounds = null; console.warn('Keysounds unavailable, using original mix:', song.id); }
 }
 function keysoundPlan(song, data, diff, mode, notes, opt) {
+  // Fragment playback shifts drums with input timing; keep normal play on the original mix.
+  if (opt.keysounds !== true) return null;
   if (!song.keysounds || song.src !== 'url' || data !== song.chartData || opt.fromEditor || opt.mp) return null;
   const entries = song.keysounds.manifest.assignments[mode + ':' + diff];
   if (!Array.isArray(entries)) return null;
