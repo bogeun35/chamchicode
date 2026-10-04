@@ -183,6 +183,7 @@
     <span class="chip" id="tChain"></span>
     <span class="chip" id="tWarn" style="display:none"></span>
     <span style="margin-left:auto"></span>
+    <button class="lnk" id="btnMute">🔊</button>
     <button class="lnk" id="btnMan2">📖</button>
     <button class="lnk" id="btnQuitGame">나가기</button>
   </div>
@@ -222,6 +223,10 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<!-- 그리기 교체용 (디자이너 담당). 이 파일이 없으면 아래 내장 fallback 으로 그린다.
+     규약: window.PUYO_ART = { drawPuyo(ctx, x, y, size, color, o), drawBg?, drawGhost?, drawBanner?, drawBurst? }
+           o = { conn:{up,down,left,right}, state:'normal'|'pop'|'land', t:0~1, squash:1 } -->
+<script src="puyo-art.js" onerror="window.PUYO_ART_MISSING=1"></script>
 <script>
 firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
 const db = firebase.database();
@@ -263,6 +268,98 @@ const DROP_MS = 820;                          // 자연 낙하 간격
 const SOFT_MS = 45;
 const LOCK_MS = 420;                          // 바닥에 닿고 고정까지
 
+/* ═══════════ 연출 타이밍 (규칙·점수와 무관) ═══════════ */
+const POP_MS    = 350;   // 깜빡 → 부풀기 → 터짐
+const FALL_BASE = 92;    // 낙하 기본 시간
+const FALL_PER  = 42;    // 한 칸당 추가
+const FALL_MAX  = 300;
+const SQUASH_MS = 90;    // 착지 찌그러짐
+const GWARN_MS  = 440;   // 방해뿌요 경고 표시
+const GFALL_MS  = 430;   // 방해뿌요 낙하
+const TRAIL_MS  = 190;   // 하드드롭 잔상
+const DAS_MS    = 170;   // 좌우 자동반복 대기
+const ARR_MS    = 40;    // 좌우 자동반복 간격
+// 연쇄가 깊어지면 각 단계를 조금씩 빠르게 — 리듬이 생긴다
+const chainSpd = ch => Math.max(0.62, Math.pow(0.94, Math.max(0, ch - 1)));
+
+/* ═══════════ 소리 — Web Audio 합성 (음원 파일 없음) ═══════════ */
+const SFX = (() => {
+  let ac = null, mg = null;
+  let muted = localStorage.getItem('pp_mute') === '1';
+  function ensure() {
+    if (muted) return null;                       // 음소거면 AudioContext 자체를 안 만든다
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { ac = new AC(); } catch (e) { return null; }
+      mg = ac.createGain(); mg.gain.value = 0.5; mg.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume().catch(() => {});
+    return ac;
+  }
+  function tone(o) {
+    const c = ensure(); if (!c) return;
+    const t0 = c.currentTime + (o.at || 0), d = o.d;
+    const osc = c.createOscillator(), g = c.createGain();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.f, t0);
+    if (o.f2) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f2), t0 + d);
+    const v = o.v == null ? 0.2 : o.v;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(v, t0 + Math.min(0.02, d * 0.35));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    osc.connect(g); g.connect(mg);
+    osc.start(t0); osc.stop(t0 + d + 0.03);
+  }
+  function noise(o) {
+    const c = ensure(); if (!c) return;
+    const t0 = c.currentTime + (o.at || 0), d = Math.max(0.03, o.d);
+    const buf = c.createBuffer(1, Math.ceil(c.sampleRate * d), c.sampleRate);
+    const a = buf.getChannelData(0);
+    for (let i = 0; i < a.length; i++) a[i] = (Math.random() * 2 - 1) * (1 - i / a.length);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bq = c.createBiquadFilter(); bq.type = o.type || 'lowpass';
+    bq.frequency.setValueAtTime(o.f || 500, t0);
+    if (o.f2) bq.frequency.exponentialRampToValueAtTime(Math.max(40, o.f2), t0 + d);
+    const g = c.createGain();
+    g.gain.setValueAtTime(o.v == null ? 0.16 : o.v, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    src.connect(bq); bq.connect(g); g.connect(mg);
+    src.start(t0); src.stop(t0 + d + 0.03);
+  }
+  let lastMove = 0;
+  const api = {
+    get muted() { return muted; },
+    unlock() { ensure(); },
+    toggle() {
+      muted = !muted;
+      localStorage.setItem('pp_mute', muted ? '1' : '0');
+      if (!muted) { ensure(); api.rot(); }
+      return muted;
+    },
+    move() { const n = performance.now(); if (n - lastMove < 38) return; lastMove = n; tone({ type: 'square', f: 470, f2: 560, d: 0.04, v: 0.055 }); },
+    rot()  { tone({ type: 'triangle', f: 620, f2: 900, d: 0.07, v: 0.09 }); },
+    land() { tone({ type: 'sine', f: 185, f2: 92, d: 0.10, v: 0.17 }); noise({ f: 900, f2: 180, d: 0.07, v: 0.09 }); },
+    tick() { tone({ type: 'sine', f: 250, f2: 155, d: 0.06, v: 0.07 }); },
+    drop() { noise({ f: 1900, f2: 300, d: 0.12, v: 0.11 }); },
+    // 연쇄마다 반음씩 올라가는 터지는 소리 (도-레-미-…)
+    pop(ch) {
+      const f = 523.25 * Math.pow(2, (ch - 1) / 12);
+      tone({ type: 'triangle', f: f,     d: 0.22, v: 0.19 });
+      tone({ type: 'sine',     f: f * 2, d: 0.16, v: 0.09, at: 0.005 });
+      tone({ type: 'sine',     f: f * 3, d: 0.10, v: 0.045, at: 0.012 });
+      noise({ f: 2600, f2: 700, d: 0.09, v: 0.06 });
+      if (ch >= 5) tone({ type: 'square', f: f * 1.5, d: 0.12, v: 0.05, at: 0.045 });
+    },
+    warn() { tone({ type: 'square', f: 300, d: 0.07, v: 0.09 }); tone({ type: 'square', f: 300, d: 0.07, v: 0.09, at: 0.15 }); },
+    garbageLand() { noise({ f: 700, f2: 90, d: 0.30, v: 0.2 }); tone({ type: 'sine', f: 132, f2: 60, d: 0.26, v: 0.15 }); },
+    allClear() { [0, 4, 7, 12, 16, 19].forEach((n, i) => tone({ type: 'triangle', f: 523.25 * Math.pow(2, n / 12), d: 0.26, v: 0.13, at: i * 0.055 })); },
+    lose()  { [0, -2, -5, -9].forEach((n, i) => tone({ type: 'sawtooth', f: 392 * Math.pow(2, n / 12), d: 0.40, v: 0.11, at: i * 0.13 })); noise({ f: 500, f2: 80, d: 0.6, v: 0.09, at: 0.1 }); },
+    win()   { [0, 4, 7, 12].forEach((n, i) => { tone({ type: 'triangle', f: 523.25 * Math.pow(2, n / 12), d: 0.3, v: 0.15, at: i * 0.1 }); tone({ type: 'sine', f: 1046.5 * Math.pow(2, n / 12), d: 0.22, v: 0.06, at: i * 0.1 }); }); },
+  };
+  return api;
+})();
+
 /* ═══════════ 상태 ═══════════ */
 let myNick = '', myKey = '', code = '', isHost = false, room = null, listeners = [];
 let players = {}, status = 'lobby', colors = 4, soloMode = false;
@@ -271,9 +368,20 @@ let score = 0, chainNow = 0, bestChain = 0, leftover = 0;
 let pending = 0;                              // 내려올 방해뿌요
 let incSeen = 0;                              // 내가 받은 공격 누적(중복 방지)
 let alive = true, playing = false, allClear = false;
-let dropTimer = 0, lockTimer = 0, animQ = [];
-let popFx = [];
+let dropTimer = 0, lockTimer = 0;
 let lastSync = 0;
+
+/* ── 연출 상태머신 ── */
+const PH_PLAY = 'play', PH_FALL = 'fall', PH_POP = 'pop', PH_GWARN = 'gwarn', PH_GFALL = 'gfall';
+let phase = PH_PLAY, phT = 0, phDur = 0;
+let fallers = [], fallG = 0, fallMotion = 1, fallSnd = false;
+let popCells = [], pendCommit = null;
+let gcells = [], gcols = [], gfallMotion = 1;
+let chainN = 0, chainTotal = 0;
+let landFx = [], landT = 1e9;
+let banner = null, trails = [], deadT = 0;
+let shake = { m: 0, t: 0, d: 1 };
+let hardFlag = false;
 
 const cv = $('cv'), ctx = cv.getContext('2d');
 const nextCv = $('nextCv'), nctx = nextCv.getContext('2d');
@@ -315,27 +423,35 @@ function canPlace(p) {
   return true;
 }
 function move(dc) {
-  if (!cur) return;
+  if (!cur || phase !== PH_PLAY) return;
   const t = { ...cur, c: cur.c + dc };
-  if (canPlace(t)) { cur = t; lockTimer = 0; }
+  if (canPlace(t)) { cur = t; lockTimer = 0; SFX.move(); }
 }
 function rotate(dir) {
-  if (!cur) return;
+  if (!cur || phase !== PH_PLAY) return;
   const t = { ...cur, rot: (cur.rot + dir + 4) % 4 };
-  if (canPlace(t)) { cur = t; lockTimer = 0; return; }
+  if (canPlace(t)) { cur = t; lockTimer = 0; SFX.rot(); return; }
   // 벽 차기: 좌우로 한 칸 밀어본다
   for (const dc of [-1, 1, -2, 2]) {
     const k = { ...t, c: t.c + dc };
-    if (canPlace(k)) { cur = k; lockTimer = 0; return; }
+    if (canPlace(k)) { cur = k; lockTimer = 0; SFX.rot(); return; }
   }
   // 바닥에 걸리면 한 칸 올려본다
   const up = { ...t, r: t.r - 1 };
-  if (canPlace(up)) { cur = up; lockTimer = 0; }
+  if (canPlace(up)) { cur = up; lockTimer = 0; SFX.rot(); }
 }
-function softDrop() { if (!cur) return; const t = { ...cur, r: cur.r + 1 }; if (canPlace(t)) { cur = t; dropTimer = 0; } else lockTimer = LOCK_MS; }
+function softDrop() { if (!cur || phase !== PH_PLAY) return; const t = { ...cur, r: cur.r + 1 }; if (canPlace(t)) { cur = t; dropTimer = 0; } else lockTimer = LOCK_MS; }
 function hardDrop() {
-  if (!cur) return;
+  if (!cur || phase !== PH_PLAY) return;
+  const r0 = cur.r, rc0 = childPos(cur).r;
   while (true) { const t = { ...cur, r: cur.r + 1 }; if (canPlace(t)) cur = t; else break; }
+  const ch = childPos(cur);
+  if (cur.r > r0) {                              // 낙하 궤적 잔상
+    trails.push({ c: cur.c, r0: r0, r1: cur.r, v: cur.a, t: 0 });
+    trails.push({ c: ch.c, r0: rc0, r1: ch.r, v: cur.b, t: 0 });
+  }
+  hardFlag = true;
+  SFX.drop();
   lockPiece();
 }
 function lockPiece() {
@@ -343,8 +459,13 @@ function lockPiece() {
   const ch = childPos(cur);
   if (cur.r >= 0) board[cur.r][cur.c] = cur.a;
   if (ch.r >= 0) board[ch.r][ch.c] = cur.b;
+  landFx = [{ r: cur.r, c: cur.c }, { r: ch.r, c: ch.c }].filter(q => q.r >= HIDDEN);
+  landT = 0;
   cur = null;
-  animQ.push({ t: 'resolve' });
+  SFX.land();
+  shakeBoard(hardFlag ? 4.5 : 1.8, hardFlag ? 230 : 130);
+  hardFlag = false;
+  beginResolve();
 }
 
 /* ═══════════ 중력 · 연쇄 ═══════════ */
@@ -355,6 +476,20 @@ function applyGravity() {
     for (let r = ROWS - 1; r >= 0; r--) {
       if (board[r][c] !== EMPTY) {
         if (w !== r) { board[w][c] = board[r][c]; board[r][c] = EMPTY; moved = true; }
+        w--;
+      }
+    }
+  }
+  return moved;
+}
+// 떨어진 칸을 기록하는 중력 (낙하 애니메이션용)
+function applyGravityTracked() {
+  const moved = [];
+  for (let c = 0; c < COLS; c++) {
+    let w = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (board[r][c] !== EMPTY) {
+        if (w !== r) { board[w][c] = board[r][c]; board[r][c] = EMPTY; moved.push({ r: w, c: c, dist: w - r }); }
         w--;
       }
     }
@@ -384,8 +519,9 @@ function findGroups() {
   }
   return groups;
 }
-// 한 단계 터뜨리기. 터질 게 없으면 null
-function popStep(chain) {
+// 한 단계 터뜨릴 것을 계산만 한다 (보드는 안 건드림). 터질 게 없으면 null
+// ⚠️ 점수 공식은 표준 뿌요뿌요 통 수치 — 건드리지 말 것
+function computePop(chain) {
   const groups = findGroups();
   if (!groups.length) return null;
   let cleared = 0, groupBonus = 0;
@@ -404,8 +540,7 @@ function popStep(chain) {
       }
     }
   }
-  for (const [r, c] of cells.map(x => [x[0], x[1]])) board[r][c] = EMPTY;
-  for (const k of garbageHit) { board[Math.floor(k / COLS)][k % COLS] = EMPTY; cells.push([Math.floor(k / COLS), k % COLS, GARBAGE]); }
+  for (const k of garbageHit) cells.push([Math.floor(k / COLS), k % COLS, GARBAGE]);
   const cp = CHAIN_POWER[Math.min(chain - 1, CHAIN_POWER.length - 1)];
   const cb = COLOR_BONUS[Math.min(colorSet.size - 1, COLOR_BONUS.length - 1)];
   let mult = cp + cb + groupBonus;
@@ -413,28 +548,40 @@ function popStep(chain) {
   if (mult > 999) mult = 999;
   return { gain: 10 * cleared * mult, cells, chain };
 }
+// 계산 결과를 보드에 반영 (터짐 연출이 끝난 뒤)
+function commitPop(st) { for (const [r, c] of st.cells) board[r][c] = EMPTY; }
+// 기존 동작 그대로의 즉시판 — 디버그/검증용
+function popStep(chain) { const st = computePop(chain); if (st) commitPop(st); return st; }
 function boardEmpty() {
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (board[r][c] !== EMPTY) return false;
   return true;
 }
 
 /* ═══════════ 방해뿌요 ═══════════ */
-function dropGarbage(n) {
+// 어디에 쌓일지 먼저 계산한다 (보드는 안 건드림). 열 분배 규칙은 기존과 동일
+function planGarbage(n) {
   n = Math.min(n, MAX_GARBAGE_WAVE);
   // 열마다 고르게, 남는 건 랜덤 열에
   const per = Math.floor(n / COLS), extra = n % COLS;
   const cols = [...Array(COLS).keys()];
   for (let i = cols.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cols[i], cols[j]] = [cols[j], cols[i]]; }
-  for (let i = 0; i < COLS; i++) {
-    const c = cols[i];
-    const cnt = per + (i < extra ? 1 : 0);
-    for (let k = 0; k < cnt; k++) {
-      // 그 열 맨 위 빈 칸에 쌓는다
-      let placed = false;
-      for (let r = 0; r < ROWS; r++) { if (board[r][c] === EMPTY) { continue; } placed = true; if (r > 0) board[r - 1][c] = GARBAGE; break; }
-      if (!placed) board[ROWS - 1][c] = GARBAGE;
+  const cnt = new Array(COLS).fill(0);
+  for (let i = 0; i < COLS; i++) cnt[cols[i]] = per + (i < extra ? 1 : 0);
+  const cells = [];
+  for (let c = 0; c < COLS; c++) {
+    let top = ROWS;                              // 그 열에서 가장 위에 있는 뿌요
+    for (let r = 0; r < ROWS; r++) if (board[r][c] !== EMPTY) { top = r; break; }
+    for (let k = 0; k < cnt[c]; k++) {
+      const r = top - 1 - k;
+      if (r < 0) break;                          // 넘치면 버린다 (기존과 동일)
+      cells.push({ r: r, c: c, idx: k });
     }
   }
+  return { cells: cells, cnt: cnt };
+}
+function dropGarbage(n) {                        // 즉시판 — 디버그/검증용
+  const p = planGarbage(n);
+  for (const g of p.cells) board[g.r][g.c] = GARBAGE;
   applyGravity();
 }
 // 공격 보내기 — 살아있는 상대에게 고르게 나눈다
@@ -449,47 +596,127 @@ function sendGarbage(n) {
   });
 }
 
-/* ═══════════ 진행 ═══════════ */
-function resolveChain() {
-  // 연쇄를 한 단계씩 애니메이션으로
+/* ═══════════ 진행 — 연쇄 상태머신 ═══════════ */
+/*
+  한 프레임에 전부 계산하던 걸 단계로 쪼갰다. 흐름:
+    lockPiece → beginResolve
+      settleStep : 중력 → 떨어질 게 있으면 FALL, 없으면 바로 POP 검사
+      FALL  : 위 뿌요가 가속하며 떨어지고 착지에서 찌그러진다
+      POP   : 깜빡 → 부풀기 → 터짐 (보드 반영은 연출이 끝난 뒤)
+      → 다시 settleStep … 터질 게 없으면 finishChain
+      finishChain : 점수/상쇄/공격 정산 (규칙 그대로) → 방해뿌요 있으면 GWARN→GFALL
+      → PH_PLAY 로 돌아가면 step() 이 다음 조각을 만든다
+  이 동안 phase !== PH_PLAY 이므로 move/rotate/drop 입력이 모두 막힌다.
+*/
+function inputLocked() { return !playing || !alive || phase !== PH_PLAY; }
+
+function beginResolve() { chainN = 0; chainTotal = 0; settleStep(); }
+
+function settleStep() {
+  const moved = applyGravityTracked();
+  if (moved.length) startFall(moved);
+  else popPhase();
+}
+
+function startFall(list) {
+  let maxD = 1;
+  for (const f of list) if (f.dist > maxD) maxD = f.dist;
+  // 거리에 비례한 시간 · 중력 가속(ease-in)으로 떨어뜨린다
+  fallMotion = clamp(FALL_BASE + FALL_PER * maxD, 110, FALL_MAX) * chainSpd(chainN);
+  fallG = 2 * maxD / (fallMotion * fallMotion);
+  fallers = list.map(f => ({ r: f.r, c: f.c, dist: f.dist, landT: fallMotion * Math.sqrt(f.dist / maxD), snd: false }));
+  fallSnd = false;
+  landFx = [];
+  phase = PH_FALL; phT = 0; phDur = fallMotion + SQUASH_MS;
+}
+
+function popPhase() {
+  const st = computePop(chainN + 1);
+  if (!st) { finishChain(); return; }
+  chainN++;
+  chainTotal += st.gain;
+  score += st.gain;                              // 합계는 기존과 동일, 단계마다 올려준다
+  chainNow = chainN;
+  bestChain = Math.max(bestChain, chainN);
+  pendCommit = st;
+  popCells = st.cells.map(x => [x[0], x[1]]);
+  phase = PH_POP; phT = 0; phDur = POP_MS * chainSpd(chainN);
+  SFX.pop(chainN);
+  showBanner(chainN);
+  shakeBoard(1.5 + Math.min(9, chainN * 1.1), 240);
+}
+
+function finishChain() {
+  fallers = []; popCells = []; pendCommit = null;
+  if (chainN > 0) {
+    // ⚠️ 상쇄·공격 규칙 그대로
+    const raw = chainTotal + leftover;
+    let n = Math.floor(raw / GARBAGE_RATE);
+    leftover = raw % GARBAGE_RATE;
+    if (allClear) { n += ALL_CLEAR_BONUS; allClear = false; toast('✨ 전체 지우기! +' + ALL_CLEAR_BONUS); SFX.allClear(); }
+    const cancel = Math.min(pending, n);
+    pending -= cancel; n -= cancel;
+    if (n > 0) sendGarbage(n);
+    if (boardEmpty()) allClear = true;
+  } else chainNow = 0;
+  if (pending > 0) { startGarbage(); return; }
+  backToPlay();
+}
+
+function backToPlay() { phase = PH_PLAY; phT = 0; dasT = 0; arrT = 0; }
+
+/* ── 방해뿌요: 경고 → 우르르 낙하 ── */
+function startGarbage() {
+  const n = Math.min(pending, MAX_GARBAGE_WAVE);
+  pending -= n;
+  const p = planGarbage(n);
+  gcells = p.cells.map(g => ({ r: g.r, c: g.c, start: HIDDEN - 2 - g.idx, delay: g.c * 26 + g.idx * 16 }));
+  gcols = p.cnt;
+  phase = PH_GWARN; phT = 0; phDur = GWARN_MS;
+  SFX.warn();
+}
+function commitGarbage() {
+  let last = 0;
+  for (const g of gcells) {
+    board[g.r][g.c] = GARBAGE;                   // 보드엔 바로 들어간다 (동기화 일관성)
+    g.dist = g.r - g.start;                      // 화면에선 위에서 내려오는 것처럼 보인다
+    if (g.delay > last) last = g.delay;
+  }
+  gfallMotion = GFALL_MS;
+  phase = PH_GFALL; phT = 0; phDur = GFALL_MS + last + SQUASH_MS;
+}
+function endGarbage() {
+  gcells = []; gcols = [];
+  SFX.garbageLand();
+  shakeBoard(5, 260);
+  // 방해뿌요로 연쇄가 터질 수도 있다
+  if (findGroups().length) { beginResolve(); return; }
+  backToPlay();
+}
+
+/* ── 연출 보조 ── */
+function showBanner(ch) { banner = { ch: ch, t: 0, dur: 720 + Math.min(ch, 10) * 45 }; }
+function shakeBoard(m, d) { if (shake.t <= 0 || m >= shake.m) { shake.m = m; shake.d = d; shake.t = d; } }
+
+// 애니메이션 없이 연쇄 전체를 즉시 계산 — 검증/디버그용 (점수 공식은 애니메이션 경로와 공유)
+function resolveInstant() {
   let chain = 0, total = 0;
-  const steps = [];
   while (true) {
     applyGravity();
     const st = popStep(chain + 1);
     if (!st) break;
     chain++; total += st.gain;
-    steps.push(st);
   }
-  bestChain = Math.max(bestChain, chain);
-  if (chain > 0) {
-    score += total;
-    chainNow = chain;
-    // 상쇄 후 공격
-    const raw = total + leftover;
-    let n = Math.floor(raw / GARBAGE_RATE);
-    leftover = raw % GARBAGE_RATE;
-    if (allClear) { n += ALL_CLEAR_BONUS; allClear = false; toast('✨ 전체 지우기! +' + ALL_CLEAR_BONUS); }
-    const cancel = Math.min(pending, n);
-    pending -= cancel; n -= cancel;
-    if (n > 0) sendGarbage(n);
-    if (boardEmpty()) allClear = true;
-    if (chain >= 3) toast(chain + '연쇄!', 1100);
-  } else { chainNow = 0; }
-  // 받은 방해뿌요 내려오기
-  if (pending > 0) {
-    const n = Math.min(pending, MAX_GARBAGE_WAVE);
-    pending -= n;
-    dropGarbage(n);
-    // 방해뿌요로 연쇄가 터질 수도 있다
-    if (findGroups().length) { animQ.push({ t: 'resolve' }); return; }
-  }
-  if (!spawnPiece()) return;
+  if (chain > 0) { score += total; chainNow = chain; bestChain = Math.max(bestChain, chain); }
+  return { chain: chain, total: total };
 }
 
 function die() {
   if (!alive) return;
   alive = false; playing = false; cur = null;
+  phase = PH_PLAY; fallers = []; popCells = []; gcells = []; gcols = []; pendCommit = null;
+  banner = null; deadT = 0;
+  SFX.lose(); shakeBoard(7, 420);
   if (soloMode) { showResult(); return; }
   meRef().update({ alive: false, score, best: bestChain, b: encodeBoard() });
   checkEnd();
@@ -500,18 +727,43 @@ let lastT = performance.now();
 function frame() {
   const now = performance.now();
   const dt = Math.min(120, now - lastT); lastT = now;
-  if (playing) step(dt);
+  tick(dt);
   render();
   requestAnimationFrame(frame);
 }
+// 연출 타이머는 게임이 멈춰 있어도 돌아간다 (창이 숨겨졌을 때 pp.tick 으로 직접 돌릴 수도 있다)
+function tick(dt) {
+  if (shake.t > 0) shake.t -= dt;
+  if (landT < 1e9) landT += dt;
+  if (banner) { banner.t += dt; if (banner.t >= banner.dur) banner = null; }
+  for (let i = trails.length - 1; i >= 0; i--) { trails[i].t += dt; if (trails[i].t >= TRAIL_MS) trails.splice(i, 1); }
+  if (!alive) deadT += dt;
+  if (playing) step(dt);
+}
 function step(dt) {
-  // 받은 공격 반영
+  // 받은 공격 반영 — 상대가 올린 inc 누적에서 증분만 가져온다 (동기화 규칙 그대로)
   if (!soloMode) {
     const me = players[myKey];
     if (me && typeof me.inc === 'number' && me.inc > incSeen) { pending += me.inc - incSeen; incSeen = me.inc; }
   }
-  if (animQ.length) { const a = animQ.shift(); if (a.t === 'resolve') resolveChain(); return; }
+  phT += dt;
+  // ── 연출 단계들: 여기 있는 동안 입력은 막힌다 ──
+  if (phase === PH_FALL) {
+    for (const f of fallers) if (!f.snd && phT >= f.landT) { f.snd = true; if (!fallSnd) { fallSnd = true; SFX.tick(); } }
+    if (phT >= phDur) { fallers = []; popPhase(); }
+    if (!soloMode) sync();
+    return;
+  }
+  if (phase === PH_POP) {
+    if (phT >= phDur) { if (pendCommit) commitPop(pendCommit); pendCommit = null; popCells = []; settleStep(); }
+    if (!soloMode) sync();
+    return;
+  }
+  if (phase === PH_GWARN) { if (phT >= phDur) commitGarbage(); if (!soloMode) sync(); return; }
+  if (phase === PH_GFALL) { if (phT >= phDur) endGarbage(); if (!soloMode) sync(); return; }
+  // ── 조작 ──
   if (!cur) { if (!spawnPiece()) return; }
+  autoShift(dt);
   const soft = keys.ArrowDown || padDown;
   dropTimer += dt;
   const iv = soft ? SOFT_MS : DROP_MS;
@@ -558,7 +810,16 @@ function fitCanvas() {
 addEventListener('resize', () => { fitCanvas(); });
 
 // 콩눈 뿌요 — 같은 색끼리 붙으면 이어진 것처럼
-function drawPuyo(c, x, y, size, v, grid, gr, gc) {
+const ART = window.PUYO_ART || null;
+function drawPuyo(c, x, y, size, v, grid, gr, gc, o) {
+  if (ART && ART.drawPuyo) {
+    const u = ART.util || {};
+    ART.drawPuyo(c, x, y, size, v, Object.assign({
+      conn: (grid && u.conn) ? u.conn(grid, gr, gc) : null,
+      face: u.face ? u.face(gr || 0, gc || 0) : 0,
+    }, o || {}));
+    return;
+  }
   const P = PUYO[v]; if (!P) return;
   const r = size * 0.46, cx = x + size / 2, cy = y + size / 2;
   if (v !== GARBAGE && grid) {        // 이음새
@@ -593,19 +854,28 @@ function render() {
   if (!$('game').classList.contains('active')) return;
   const W = COLS * CELL, H = VIS * CELL;
   ctx.clearRect(0, 0, W, H);
+  if (ART && ART.drawBoardBg) ART.drawBoardBg(ctx, W, H, performance.now() / 1000, COLS);
+  else {
   ctx.fillStyle = '#2b2438'; ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = '#3a3049'; ctx.lineWidth = 1;
   for (let c = 1; c < COLS; c++) { ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, H); ctx.stroke(); }
   for (let r = 1; r < VIS; r++) { ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(W, r * CELL); ctx.stroke(); }
+  }
   // 패배 지점 표시
   ctx.strokeStyle = '#6b5a7a'; ctx.setLineDash([4, 4]);
   ctx.strokeRect(SPAWN_C * CELL + 2, 2, CELL - 4, CELL - 4); ctx.setLineDash([]);
   // 보드
   const grid = [];
   for (let r = HIDDEN; r < ROWS; r++) grid.push(board[r]);
+  const popT = (phase === PH_POP && phDur) ? Math.min(1, phT / phDur) : 0;
+  const popping = {};
+  if (popT) for (const [pr, pc] of popCells) popping[(pr - HIDDEN) * COLS + pc] = 1;
   for (let r = 0; r < VIS; r++) for (let c = 0; c < COLS; c++) {
     const v = grid[r][c];
-    if (v) drawPuyo(ctx, c * CELL, r * CELL, CELL, v, grid, r, c);
+    if (!v) continue;
+    const isPop = popping[r * COLS + c];
+    drawPuyo(ctx, c * CELL, r * CELL, CELL, v, grid, r, c,
+      isPop ? { state: 'pop', t: popT } : null);
   }
   // 조작 중인 뿌요 (+ 착지 안내)
   if (cur) {
@@ -633,6 +903,10 @@ function render() {
     const y = 6 + i * 54, s = 24;
     drawPuyo(nctx, 16, y, s, b, null);
     drawPuyo(nctx, 16, y + s, s, a, null);
+  }
+  // 연쇄 배너 (2연쇄! 같은 큰 글자)
+  if (banner && ART && ART.drawChainBanner) {
+    ART.drawChainBanner(ctx, W, H, banner.ch, performance.now() / 1000, Math.min(1, banner.t / banner.dur));
   }
   $('pChain').textContent = chainNow || 0;
   $('pScore').textContent = score.toLocaleString();
@@ -690,13 +964,16 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; padDown = false; });
-// 자동 반복 (좌우)
-let repT = 0;
-setInterval(() => {
-  if (!playing) return;
-  if (keys.ArrowLeft || keys.ArrowRight) { repT++; if (repT > 3 && repT % 2 === 0) move(keys.ArrowLeft ? -1 : 1); }
-  else repT = 0;
-}, 50);
+// 좌우 자동반복(DAS/ARR) — 누르고 있으면 DAS_MS 뒤부터 ARR_MS 간격으로 이동
+let shiftDir = 0, shiftT = 0;
+function autoShift(dt) {
+  const d = (keys.ArrowLeft ? -1 : 0) + (keys.ArrowRight ? 1 : 0);
+  if (!d || !cur) { shiftDir = 0; shiftT = 0; return; }
+  if (d !== shiftDir) { shiftDir = d; shiftT = -DAS_MS; return; }   // 첫 한 칸은 keydown 이 이미 옮겼다
+  shiftT += dt;
+  let guard = 8;
+  while (shiftT >= 0 && guard--) { move(shiftDir); shiftT -= ARR_MS; }
+}
 // 모바일 패드
 function hold(el, fn, rep) {
   let iv = null, t0 = null;
@@ -950,8 +1227,9 @@ $('btnMan2').onclick = openManual;
 $('btnManClose').onclick = () => { $('manOv').hidden = true; };
 
 window.pp = {
-  get state() { return { code, myKey, isHost, status, soloMode, score, bestChain, pending, alive, playing, players }; },
-  board: () => board, startGame, resolveChain, dropGarbage, roomRef, die, findGroups, encodeBoard,
+  get state() { return { code, myKey, isHost, status, soloMode, score, bestChain, pending, alive, playing, players, phase, chainN }; },
+  board: () => board, startGame, dropGarbage, roomRef, die, findGroups, encodeBoard,
+  beginResolve, resolveInstant, popStep, computePop,
 };
 </script>
 </body>
