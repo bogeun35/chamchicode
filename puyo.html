@@ -63,7 +63,7 @@
   /* ── 게임 ── */
   #game { position: relative; height: 100vh; overflow: hidden; background: #fdf3e3; }
   #arena { display: flex; align-items: center; justify-content: center; gap: 10px; height: 100%; padding: 46px 6px 92px; }
-  #mainCol { display: flex; gap: 8px; align-items: flex-start; height: 100%; }
+  #mainCol { display: flex; gap: 8px; align-items: flex-start; max-height: 100%; }
   #cv { border-radius: 14px; background: #2b2438; box-shadow: 0 6px 0 #1a1524; height: 100%; width: auto; }
   #side { display: flex; flex-direction: column; gap: 8px; height: 100%; }
   .panel { background: #fff; border: 3px solid #ffe0b8; border-radius: 14px; padding: 6px 8px; font-size: 12px; text-align: center; }
@@ -800,8 +800,12 @@ function decodeBoard(s) {
 
 /* ═══════════ 그리기 ═══════════ */
 function fitCanvas() {
-  const h = $('arena').clientHeight - 4;
-  CELL = Math.max(16, Math.floor(Math.min(h / VIS, (innerWidth * 0.42) / COLS)));
+  // clientHeight 는 패딩을 포함한다 — 빼지 않으면 보드가 상단바·조작부 밑으로 넘쳐 스크롤이 생긴다
+  const ar = $('arena'), cs = getComputedStyle(ar);
+  const h = ar.clientHeight - parseFloat(cs.paddingTop || 0) - parseFloat(cs.paddingBottom || 0) - 4;
+  // 가로도 사이드 패널(다음·연쇄·점수)과 상대 보드 자리를 남긴다
+  const availW = Math.min(innerWidth * 0.42, innerWidth - 150);
+  CELL = clamp(Math.floor(Math.min(h / VIS, availW / COLS)), 16, 54);
   const dpr = Math.min(2, devicePixelRatio || 1);
   cv.width = COLS * CELL * dpr; cv.height = VIS * CELL * dpr;
   cv.style.width = (COLS * CELL) + 'px'; cv.style.height = (VIS * CELL) + 'px';
@@ -870,12 +874,36 @@ function render() {
   const popT = (phase === PH_POP && phDur) ? Math.min(1, phT / phDur) : 0;
   const popping = {};
   if (popT) for (const [pr, pc] of popCells) popping[(pr - HIDDEN) * COLS + pc] = 1;
+  // 떨어지는 중인 칸: 아직 도착하지 않았으면 위쪽에 그리고, 막 닿았으면 눌린다
+  const falling = {};
+  if (phase === PH_FALL) {
+    for (const f of fallers) {
+      const key = (f.r - HIDDEN) * COLS + f.c;
+      if (f.landT > 0 && phT < f.landT) {
+        const e = phT / f.landT;                 // 가속해서 떨어지는 느낌
+        falling[key] = { dy: -(1 - e * e) * f.dist * CELL, sq: 1 + 0.12 * e };
+      } else {
+        const st = Math.min(1, (phT - f.landT) / SQUASH_MS);
+        falling[key] = { dy: 0, sq: 1 - 0.3 * (1 - st) };   // 착지 직후 납작, 금방 복원
+      }
+    }
+  }
+  // 조작 조각이 막 고정됐을 때의 찌그러짐
+  const landed = {};
+  if (landT < SQUASH_MS * 2.2) {
+    const st = Math.min(1, landT / (SQUASH_MS * 2.2));
+    for (const q of landFx) landed[(q.r - HIDDEN) * COLS + q.c] = 1 - 0.26 * (1 - st) * Math.cos(st * 7);
+  }
   for (let r = 0; r < VIS; r++) for (let c = 0; c < COLS; c++) {
     const v = grid[r][c];
     if (!v) continue;
-    const isPop = popping[r * COLS + c];
-    drawPuyo(ctx, c * CELL, r * CELL, CELL, v, grid, r, c,
-      isPop ? { state: 'pop', t: popT } : null);
+    const key = r * COLS + c;
+    let o = null;
+    if (popping[key]) o = { state: 'pop', t: popT };
+    else if (falling[key]) o = { state: 'land', t: 1, squash: falling[key].sq };
+    else if (landed[key]) o = { state: 'land', t: 1, squash: landed[key] };
+    const dy = falling[key] ? falling[key].dy : 0;
+    drawPuyo(ctx, c * CELL, r * CELL + dy, CELL, v, grid, r, c, o);
   }
   // 조작 중인 뿌요 (+ 착지 안내)
   if (cur) {
