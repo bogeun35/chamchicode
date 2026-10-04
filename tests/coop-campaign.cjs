@@ -46,7 +46,7 @@ for(let count=2;count<=8;count++)for(let level=0;level<E.LEVEL_COUNT;level++){
 
  if(level===8){walk('0',230);for(const id of ids.slice(1)){climb(id,s.map.platforms[1]);climb(id,s.map.platforms[2]);walk(id,s.map.switches[Number(id)].x+5);}tick({},3);assert(s.gateOpen);walk('1',945);jumpKey('1');for(const id of ids)walk(id,1120);tick({},60);}
  if(level===9){for(const id of ids)travel(id,s.map.switches[Number(id)].x+5);openAndExit();}
- if(level===10){walk('0',545);climb('0',s.map.crates[0]);walk('0',900);tick({},60);assert(s.gateOpen);for(const id of ids){walk(id,990);jumpKey(id);walk(id,1120);}tick({},60);}
+ if(level===10){walk('0',545);climb('0',s.map.crates[0]);walk('0',900);tick({},60);assert(s.gateOpen);for(const id of ids){if(id!=='0'){climb(id,s.map.crates[0]);walk(id,895);tick({},60);}climb(id,s.map.crates[1]);walk(id,990);jumpKey(id);walk(id,1120);}tick({},60);}
  if(level===11){climb('0',s.map.platforms[1]);climbLeft('0',s.map.platforms[2]);climbLeft('0',s.map.platforms[3]);walk('0',155);jumpKey('0');descend('0');for(const id of ids)walk(id,s.map.switches[Number(id)].x+5);openAndExit();}
  if(level===12){climb('1',s.map.crates[0]);walk('1',390);climb('0',s.players[1]);climb('0',s.map.platforms[1]);walk('0',590);jumpKey('0');descend('0');for(const id of ids){if(Number(id)>1)climb(id,s.map.crates[0]);walk(id,s.map.switches[Number(id)].x+5);}openAndExit();}
  if(level===13){for(const id of ids){climb(id,s.map.platforms[1]);climb(id,s.map.platforms[2]);walk(id,s.map.switches[Number(id)].x+5);}tick({},60);assert(s.gateOpen);walk('0',970);jumpKey('0');for(const id of ids)walk(id,1120);tick({},60);}
@@ -54,8 +54,8 @@ for(let count=2;count<=8;count++)for(let level=0;level<E.LEVEL_COUNT;level++){
  if(level===15){for(const id of ids){const tier=Number(id)%4;for(let i=1;i<=Math.min(tier+1,3);i++)climb(id,s.map.platforms[i]);if(tier===3){walk(id,840);tick({},50);}walk(id,s.map.switches[Number(id)].x+5);}tick({},60);assert(s.gateOpen);const climber=ids[Math.min(2,count-1)];if(count===2)climb(climber,s.map.platforms[3]);walk(climber,700);jumpKey(climber);for(const id of ids)walk(id,1120);tick({},60);}
  if(level===16){walk('0',420);for(const id of ids.slice(1)){climb(id,s.map.crates[0]);climb(id,s.map.platforms[1]);walk(id,s.map.switches[Number(id)].x+5);}walk('0',980);tick({},60);assert(s.gateOpen);walk('1',925);jumpKey('1');for(const id of ids)walk(id,1120);tick({},60);}
  if(level===17){for(const id of ids)travel(id,s.map.switches[Number(id)].x+5);openAndExit();}
- if(level===18){for(const id of ids){for(const p of s.map.platforms.slice(1))climb(id,p);walk(id,s.map.switches[Number(id)].x+5);}tick({},60);assert(s.gateOpen);walk('0',1040);jumpKey('0');for(const id of ids)walk(id,1140);tick({},30);}
- if(level===19){for(const id of ids.slice(1)){climb(id,s.map.platforms[1]);climb(id,s.map.platforms[2]);walk(id,s.map.switches[Number(id)-1].x+5);}walk('0',1005);tick({},60);assert(s.gateOpen);walk('1',910);jumpKey('1');for(const id of ids)walk(id,1120);tick({},60);}
+ if(level===19){for(const id of ids){for(const p of s.map.platforms.slice(1))climb(id,p);walk(id,s.map.switches[Number(id)].x+5);}tick({},60);assert(s.gateOpen);walk('0',1040);jumpKey('0');for(const id of ids)walk(id,1140);tick({},30);}
+ if(level===18){for(const id of ids.slice(1)){climb(id,s.map.platforms[1]);climb(id,s.map.platforms[2]);walk(id,s.map.switches[Number(id)-1].x+5);}walk('0',1005);tick({},60);assert(s.gateOpen);walk('1',910);jumpKey('1');for(const id of ids)walk(id,1120);tick({},60);}
  assert.equal(s.status,'clear');assert(s.players.every(p=>p.exit));assert(Object.values(activity).every(n=>n>0));results.push({count,level:level+1,pass:true,ticks:s.ticks,activity});
  }catch(e){results.push({count,level:level+1,pass:false,error:e.message,positions:s.players.map(p=>({id:p.id,x:p.x,y:p.y})),activity});}
 }
