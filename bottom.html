@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>참스코드 바위 밑바닥</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #120d18; --panel: #22192c; --panel2: #2c2138; --line: #4a3a5c; --ink: #f5ecff; --dim: #b7a6c9; --gold: #ffd36b; --green: #7ce3a0; --pink: #ff8fc7; --cyan: #7fd8ff; --purple: #b58cff; --red: #ff6b7a; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+button { font-family: inherit; }
+#cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%) translateY(-16px); z-index: 95; background: var(--panel); border: 2px solid var(--gold); color: var(--ink); padding: 8px 18px; border-radius: 12px; font-size: 15px; opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* HUD */
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.hud > * { pointer-events: auto; }
+.topbar { position: absolute; left: 8px; right: 8px; top: 8px; display: flex; gap: 8px; align-items: flex-start; pointer-events: none; }
+.topbar > * { pointer-events: auto; }
+.lvbox { display: flex; align-items: center; gap: 7px; background: rgba(34,25,44,.92); border: 2px solid var(--line); border-radius: 12px; padding: 4px 9px 4px 4px; }
+.lvbox .lv { width: 32px; height: 32px; border-radius: 9px; background: var(--purple); color: #24123a; display: grid; place-items: center; font-size: 15px; }
+.xpbar { width: 120px; height: 14px; background: #150e1d; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; position: relative; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); transition: width .25s; }
+.xpbar span { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 10px; color: #f0e4ff; text-shadow: 0 1px 0 #000; }
+.curs { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+.cur { display: flex; align-items: center; gap: 4px; background: rgba(34,25,44,.92); border: 2px solid var(--line); border-radius: 10px; padding: 3px 8px 3px 5px; font-size: 14px; white-space: nowrap; }
+.cur .ic { width: 18px; height: 18px; border-radius: 5px; display: inline-grid; place-items: center; font-size: 12px; }
+.cur.pop { animation: pop .3s ease; } @keyframes pop { 45% { transform: scale(1.15); } }
+.btns { display: flex; gap: 6px; }
+.hb { border: 2px solid var(--line); border-radius: 11px; background: rgba(34,25,44,.94); color: var(--ink); font-size: 14px; padding: 7px 11px; cursor: pointer; white-space: nowrap; }
+.hb:active { transform: translateY(2px); }
+.hb.gold { border-color: var(--gold); color: var(--gold); }
+.energy { position: absolute; left: 10px; bottom: 12px; display: flex; align-items: flex-end; gap: 8px; pointer-events: none; }
+.face { width: 54px; height: 54px; border-radius: 14px; background: rgba(34,25,44,.92); border: 2px solid var(--line); display: grid; place-items: center; overflow: hidden; }
+.ebar { width: 170px; }
+.ebar .bar { height: 16px; background: #150e1d; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+.ebar .bar i { display: block; height: 100%; background: linear-gradient(90deg, #4fd38a, #b8f56a); transition: width .1s; }
+.ebar.low .bar i { background: linear-gradient(90deg, #ff6b7a, #ffb35e); }
+.ebar .t { font-size: 13px; color: var(--dim); margin-bottom: 3px; white-space: nowrap; }
+.ebar .t b { color: var(--ink); font-size: 16px; }
+.goals { position: absolute; left: 10px; bottom: 84px; font-size: 13px; color: var(--dim); line-height: 1.6; pointer-events: none; text-shadow: 0 1px 2px #000; }
+.goals b { color: var(--ink); } .goals .ok { color: var(--green); }
+.bag { position: absolute; left: 196px; bottom: 12px; display: flex; gap: 5px; pointer-events: none; }
+.bag .slot { min-width: 54px; height: 38px; border-radius: 9px; background: rgba(34,25,44,.92); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; padding: 0 6px; }
+.bag .slot.full { border-color: var(--red); }
+.retbtn { position: absolute; right: 10px; bottom: 12px; }
+.prompt { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); background: rgba(34,25,44,.95); border: 2px solid var(--gold); border-radius: 12px; padding: 8px 16px; font-size: 16px; display: none; cursor: pointer; }
+.prompt.on { display: block; animation: bob 1s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateX(-50%) translateY(-4px); } }
+.banner { position: fixed; left: 50%; top: 32%; transform: translate(-50%, -50%); z-index: 20; font-size: 34px; color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 20px rgba(255,211,107,.5); pointer-events: none; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+.banner.on { opacity: 1; }
+/* 터치 버튼 */
+.touch { position: fixed; inset: 0; pointer-events: none; z-index: 6; display: none; }
+body.tch .touch { display: block; }
+.tb { position: absolute; width: 66px; height: 66px; border-radius: 50%; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.35); color: #fff; font-size: 26px; display: grid; place-items: center; pointer-events: auto; touch-action: none; }
+.tb.on { background: rgba(255,211,107,.35); border-color: var(--gold); }
+body.tch .energy { bottom: 96px; } body.tch .bag { left: 10px; bottom: 160px; } body.tch .goals { bottom: 210px; } body.tch .retbtn { bottom: auto; top: 54px; }
+/* 오버레이 */
+.ov { position: fixed; inset: 0; z-index: 30; background: rgba(8,5,12,.82); display: none; align-items: center; justify-content: center; padding: 10px; }
+.ov.on { display: flex; }
+.box { width: min(560px, 96vw); max-height: 92vh; overflow: auto; background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.box h2 { font-size: 22px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.box h2 .x { margin-left: auto; }
+.box .sub { color: var(--dim); font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
+.btn { border: 2px solid var(--gold); border-radius: 12px; background: linear-gradient(180deg, #4a3566, #2c1f3c); color: var(--ink); font-size: 16px; padding: 9px 16px; cursor: pointer; }
+.btn:disabled { opacity: .4; cursor: default; border-color: var(--line); }
+.btn.sm { font-size: 13px; padding: 6px 10px; border-radius: 9px; }
+.btn.ghost { border-color: var(--line); background: var(--panel2); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card { background: var(--panel2); border: 2px solid var(--line); border-radius: 13px; padding: 10px 12px; margin-top: 8px; }
+.card.lock { opacity: .55; }
+.card h3 { font-size: 16px; display: flex; align-items: center; gap: 6px; }
+.card p { font-size: 13px; color: var(--dim); line-height: 1.5; margin-top: 3px; }
+.prog { height: 10px; background: #150e1d; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), #ff9f43); }
+/* 스킬트리 */
+#treeOv { padding: 0; }
+#treeOv .tw { position: absolute; inset: 0; }
+#tcv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.ttop { position: absolute; left: 8px; right: 8px; top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; z-index: 2; }
+.ttop .ttl { font-size: 20px; margin-right: 6px; }
+.ttop .x { margin-left: auto; }
+.tip { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(460px, 94vw); background: rgba(34,25,44,.97); border: 2px solid var(--gold); border-radius: 15px; padding: 12px 14px; z-index: 2; display: none; }
+.tip.on { display: block; }
+.tip h3 { font-size: 19px; display: flex; gap: 8px; align-items: center; }
+.tip .d { font-size: 14px; color: var(--dim); margin: 5px 0 6px; line-height: 1.5; }
+.tip .l { font-size: 13px; color: var(--cyan); }
+.tip .c { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.tip .c .need { font-size: 14px; } .tip .c .need.no { color: var(--red); }
+.tip .c .btn { margin-left: auto; }
+.tip .lk { color: var(--red); font-size: 13px; margin-top: 4px; }
+/* 결과 */
+.res { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.res div { background: var(--panel2); border: 2px solid var(--line); border-radius: 11px; padding: 8px 10px; font-size: 13px; color: var(--dim); }
+.res b { display: block; font-size: 20px; color: var(--ink); }
+.layer { display: flex; gap: 10px; align-items: center; }
+.layer .sw { width: 42px; height: 42px; border-radius: 11px; flex: none; display: grid; place-items: center; font-size: 22px; border: 2px solid rgba(255,255,255,.2); }
+.ml { display: flex; align-items: center; gap: 8px; }
+.ml .nm { flex: 1; min-width: 0; }
+.ml .nm small { display: block; color: var(--dim); font-size: 12px; }
+#sndBtn { left: auto !important; right: 12px !important; bottom: 60px !important; }
+#sndPanel { left: auto !important; right: 10px !important; bottom: 106px !important; }
+body.tch #sndBtn { bottom: 96px !important; } body.tch #sndPanel { bottom: 142px !important; }
+@media (max-width: 560px) { .xpbar { width: 84px; } .ebar { width: 120px; } .ebar .t b { font-size: 14px; } .bag { left: 150px; } .banner { font-size: 26px; } .cur { font-size: 12px; padding: 2px 6px 2px 4px; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="toast" id="toast"></div>
+<div class="banner" id="banner"></div>
+<div class="hud" id="hud">
+  <div class="topbar">
+    <div class="lvbox"><div class="lv" id="lv">1</div><div><div style="font-size:11px;color:var(--dim)" id="lvName">고블린 광부</div><div class="xpbar"><i id="xpI"></i><span id="xpT"></span></div></div></div>
+    <div class="curs" id="curs"></div>
+    <div class="btns" id="hubBtns"><button class="hb" id="bHelp">❓</button></div>
+  </div>
+  <div class="goals" id="goals"></div>
+  <div class="energy" id="energyBox" style="display:none"><div class="face" id="face"></div><div class="ebar" id="ebar"><div class="t">⚡ 에너지 <b id="eT">0</b></div><div class="bar"><i id="eI"></i></div></div></div>
+  <div class="bag" id="bag" style="display:none"></div>
+  <button class="hb gold retbtn" id="bReturn" style="display:none">⬆ 지상으로 귀환</button>
+  <div class="prompt" id="prompt"></div>
+</div>
+<div class="touch" id="touch">
+  <div class="tb" data-k="left" style="left:14px;bottom:16px">◀</div>
+  <div class="tb" data-k="right" style="left:92px;bottom:16px">▶</div>
+  <div class="tb" data-k="dash" style="left:170px;bottom:24px;width:52px;height:52px;font-size:20px">💨</div>
+  <div class="tb" data-k="dig" style="right:92px;bottom:16px">⛏</div>
+  <div class="tb" data-k="jump" style="right:14px;bottom:16px">⤒</div>
+</div>
+
+<div class="ov" id="treeOv"><div class="tw">
+  <canvas id="tcv"></canvas>
+  <div class="ttop" id="ttop"></div>
+  <div class="tip" id="tip"></div>
+</div></div>
+<div class="ov" id="panelOv"><div class="box" id="panel"></div></div>
+
+<script src="party-sound.js"></script><script>Sound.theme('mystery'); Sound.scene('game');</script>
+<script src="bottom/data.js"></script>
+<script>
+'use strict';
+// ════════════ 바위 밑바닥 — Rock Bottom(Steam) 원작 규칙 이식 ════════════
+// 원작: Godot 4.6 + C# 지형. 수치 출처 = PlayerUpgrades.gd / Player.gd / WorldGenerator.gd / Smelter.gd / Foundry.gd / SceneTransition.gd / TerrainManager(C#)
+// 기본 루프: 승강기로 지역에 내려가 좌우로 달리며 곡괭이로 캐고(에너지 1/스윙), 에너지가 다 떨어지면 기지로 → 제련소에서 주괴 → 스킬트리
+const $ = id => document.getElementById(id);
+const D = window.RB_DATA;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const TS = 16;                                            // 타일 16px (원작)
+const fmt = n => { n = Math.floor(n); const a = Math.abs(n); if (a >= 1e9) return (n / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'b'; if (a >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'm'; if (a >= 1e5) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k'; return n.toLocaleString(); };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function toast(m, ms) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2200); }
+function banner(m, ms) { const b = $('banner'); b.textContent = m; b.classList.add('on'); clearTimeout(banner._t); banner._t = setTimeout(() => b.classList.remove('on'), ms || 1600); }
+
+// ── 화폐 13종 (원작 currency_type 순서) ──
+const CUR = [
+  { k: 'gold', n: '금 주괴', c: '#ffd166' }, { k: 'stone', n: '돌', c: '#a7a3b5' }, { k: 'cobalt', n: '코발트 주괴', c: '#5aa9ff' }, { k: 'iron', n: '철 주괴', c: '#c9d2df' },
+  { k: 'token', n: '토큰', c: '#ffcf4d' }, { k: 'crystal', n: '크리스탈 주괴', c: '#ff8fd8' }, { k: 'molten', n: '용암 주괴', c: '#ff7a3d' }, { k: 'sea', n: '바다 주괴', c: '#49e6d2' },
+  { k: 'void', n: '공허 주괴', c: '#b07cff' }, { k: 'cosmic', n: '우주 주괴', c: '#8ff0ff' }, { k: 'electrum', n: '일렉트럼 주괴', c: '#f5e27a' }, { k: 'steel', n: '강화강 주괴', c: '#9fb4c8' }, { k: 'prism', n: '프리즘 주괴', c: '#ffffff' }];
+const BAR_OF_LAYER = [0, 2, 3, 5, 6, 7, 8, 9];             // 지역 → 그 광석의 주괴 화폐 번호
+// ── 지역 8곳 (SceneTransition.level_configs · level_health_multipliers · level_unlock_requirements, C# LayerConfig) ──
+const LAYERS = [   // freq·thr·sb·sa·gen = TerrainManager.InitializeLayerConfigs (CaveFrequency · CaveThreshold · SurfaceBaseY · SurfaceAmplitude · GenType)
+  { n: '침몰한 숲', ore: '금 광석', chunk: '금 덩어리', hp: 1, req: 1, freq: .04, thr: .55, sb: 5, sa: 8, gen: 0, rock: '#141f19', cave: '#2e5640', sky: '#2e5640', edge: '#86e08a', oc: '#ffd166', ic: '🌿' },
+  { n: '포자빛 동굴', ore: '코발트 광석', chunk: '코발트 덩어리', hp: 4, req: 10, freq: .05, thr: .5, sb: 10, sa: 12, gen: 0, rock: '#17122a', cave: '#3b3062', sky: '#3b3062', edge: '#c9a2ff', oc: '#5aa9ff', ic: '🍄' },
+  { n: '정전기 봉우리', ore: '철 광석', chunk: '철 덩어리', hp: 10, req: 20, freq: .04, thr: .5, sb: 50, sa: 10, gen: 1, rock: '#141925', cave: '#2f3d5c', sky: '#3b4c72', edge: '#a8c8ff', oc: '#e3e9f3', ic: '⚡', gold2: .25 },
+  { n: '크리스탈 동굴', ore: '크리스탈 광석', chunk: '크리스탈 덩어리', hp: 16, req: 30, freq: .04, thr: .5, sb: 5, sa: 4, gen: 2, rock: '#1a1222', cave: '#4a3058', sky: '#4a3058', edge: '#ffa6dc', oc: '#ff8fd8', ic: '💎' },
+  { n: '용암 핵심', ore: '용암 광석', chunk: '용암 덩어리', hp: 28, req: 40, freq: .04, thr: .5, sb: 5, sa: 4, gen: 2, rock: '#1f0e0a', cave: '#5a2c20', sky: '#5a2c20', edge: '#ffa36a', oc: '#ff7a3d', ic: '🌋' },
+  { n: '희미한 물', ore: '바다 광석', chunk: '바다 덩어리', hp: 45, req: 50, freq: .04, thr: .5, sb: 5, sa: 4, gen: 4, rock: '#0a1820', cave: '#1f4b5f', sky: '#1f4b5f', edge: '#86f2e2', oc: '#49e6d2', ic: '🌊' },
+  { n: '공허 동굴', ore: '공허 광석', chunk: '공허 덩어리', hp: 60, req: 60, freq: .032, thr: .54, sb: 5, sa: 4, gen: 2, rock: '#0e0a17', cave: '#2c2348', sky: '#2c2348', edge: '#b996ff', oc: '#b07cff', ic: '🌑' },
+  { n: '바위 밑바닥', ore: '우주 광석', chunk: '우주 덩어리', hp: 150, req: 70, freq: .026, thr: .46, sb: 5, sa: 4, gen: 2, rock: '#0a0b16', cave: '#232847', sky: '#232847', edge: '#9af2ff', oc: '#8ff0ff', ic: '🌌' }];
+const SMELT_MULT = [1, 2.5, 25, 50, 100, 250, 500, 1000];   // Smelter.SMELT_TIME_MULTIPLIERS (0.375초 기준)
+const PICK = [   // PlayerUpgrades.PICKAXE_TIERS
+  { n: '나무 곡괭이', sp: 1, dm: 1, cost: 0, layer: -1, c: '#b58b5a' }, { n: '금 곡괭이', sp: 1.15, dm: 1.2, cost: 3, layer: 0, c: '#ffd166' },
+  { n: '코발트 곡괭이', sp: 1.3, dm: 1.4, cost: 4, layer: 1, c: '#5aa9ff' }, { n: '철 곡괭이', sp: 1.45, dm: 1.6, cost: 4, layer: 2, c: '#d7deea' },
+  { n: '크리스탈 곡괭이', sp: 1.6, dm: 1.8, cost: 4, layer: 3, c: '#ff8fd8' }, { n: '용암 곡괭이', sp: 1.75, dm: 2.0, cost: 5, layer: 4, c: '#ff7a3d' },
+  { n: '심연 곡괭이', sp: 1.9, dm: 2.2, cost: 5, layer: 5, c: '#49e6d2' }, { n: '공허 곡괭이', sp: 2.05, dm: 2.4, cost: 5, layer: 6, c: '#b07cff' }];
+const LEVEL_XP = { 2: 50, 3: 100, 4: 170, 5: 260, 6: 380, 7: 540, 8: 750, 9: 1020, 10: 1500, 11: 2125, 12: 2906, 13: 3844, 14: 4938, 15: 6188, 16: 7594, 17: 9156, 18: 10875, 19: 12750, 20: 14781,
+  21: 16531, 22: 18531, 23: 20781, 24: 23281, 25: 26156, 26: 29406, 27: 33031, 28: 37031, 29: 41406, 30: 46156, 31: 49000, 32: 55250, 33: 62125, 34: 69625, 35: 77750, 36: 86500, 37: 95875, 38: 104625, 39: 112125, 40: 119625,
+  41: 140625, 42: 165125, 43: 191375, 44: 221125, 45: 254375, 46: 291125, 47: 333125, 48: 380375, 49: 432875, 50: 494125, 51: 564125, 52: 642875, 53: 730375, 54: 826625, 55: 940375, 56: 1062875, 57: 1202875, 58: 1360375, 59: 1535375, 60: 1736625,
+  61: 1964125, 62: 2209125, 63: 2489125, 64: 2786625, 65: 3119125, 66: 3486625, 67: 3889125, 68: 4326625, 69: 4816625, 70: 5376625 };
+const MAX_LEVEL = 70;
+const MASTERY = [   // PlayerUpgrades.TOKEN_MASTERY_STATS (토큰 제단)
+  { id: 'mining_speed', n: '채광 속도', per: .01, cost: 0, ic: '⚡' }, { id: 'mining_damage', n: '채광 피해', per: .01, cost: 3, ic: '⛏️' }, { id: 'token_gain', n: '토큰 획득', per: .01, cost: 3, ic: '🪙' },
+  { id: 'resource_gain', n: '자원 획득량', per: .01, cost: 5, ic: '💰' }, { id: 'pulse_wave_damage', n: '펄스 웨이브 피해', per: .02, cost: 5, ic: '🌊' },
+  { id: 'lightning_damage', n: '번개 피해', per: .02, cost: 20, ic: '🌩️' }, { id: 'explosion_damage', n: '폭발 피해', per: .02, cost: 20, ic: '💥' }];
+const MASTERY_XP_COSTS = [3, 5, 8, 12, 18, 25, 35, 50, 70];
+const RECIPES = [   // Foundry.RECIPES
+  { id: 'electrum', out: 10, n: '일렉트럼 주괴', ing: [[0, 8], [2, 8], [3, 8]], t: 2.0, d: '마법 에너지를 전도합니다. 번개 업그레이드에 사용됩니다.' },
+  { id: 'steel', out: 11, n: '강화강 주괴', ing: [[5, 8], [6, 8], [7, 8]], t: 2.5, d: '강화 합금. 채광 업그레이드에 사용됩니다.' },
+  { id: 'prism', out: 12, n: '프리즘 주괴', ing: [[9, 12], [8, 12], [11, 2]], t: 12.0, d: '빛을 굴절시킵니다. 치명타 업그레이드에 사용됩니다.' }];
+
+// ── 스킬트리 데이터 ──
+const TREE = D.tree, TTREE = D.token, NODE = {};
+for (const n of TREE.concat(TTREE)) NODE[n.id] = n;
+const fam = id => id.replace(/_\d+$/, '');
+const ICON = { wooden_pickaxe: '🪓', mining_speed: '⚡', max_energy: '🔋', pickaxe_power: '⛏️', smelting_speed: '🔥', gold_yield: '💰', cobalt_yield: '💰', iron_yield: '💰', crystal_yield: '💰', molten_yield: '💰', sea_yield: '💰', void_yield: '💰', cosmic_yield: '💰',
+  stone_yield: '🪨', critical_strike: '🎯', critical_power: '💢', fortune: '🍀', efficiency: '🌿', static_charge: '🌩️', chain_conductor: '⛓️', voltage_spike: '⚡', tesla_coil: '🌀', explosive_mining: '💣', blast_force: '💥', blast_radius: '⭕', tactical_nuke: '☢️',
+  pulse_wave: '🌊', wave_intensity: '〰️', wave_range: '📏', wave_spread: '📐', evolved_pulse_wave: '🌈', bouncing_ball: '🔵', ball_count: '🔵', ball_bounces: '↩️', ball_damage: '💠', bouncing_ball_evolved: '🌈', overclocked: '⏩', overclock_power: '⏫', overclock_duration: '⏱️', overclock_surge: '🌟',
+  deep_pockets: '👝', bigger_bag: '🎒', jetpack: '🚀', endless_jetpack: '♾️', structure_spawn: '🏛️', token_bounty: '🪙', treasure_sense: '🔍', prospector_eye: '👁️', prospectors_fortune: '🍀', mother_lode: '💎', lucky_strike: '🎲', double_glint: '✨',
+  double_smelt: '🔁', double_smelt_yield: '🔁', smelter_capacity: '📦', smelter_slots: '🗃️', foundry_speed: '🏭', efficient_reforging: '🔨', increased_range: '📏', swift_feet: '👟', universal_translator: '📜',
+  token_damage: '⛏️', token_mining_speed: '⚡', token_lightning_damage: '🌩️', token_lightning_proc: '🌩️', token_lightning_double: '🌩️', token_explosion_damage: '💥', token_explosion_proc: '💣', token_explosion_size: '⭕',
+  token_pulse_damage: '🌊', token_pulse_proc: '🌊', token_pulse_rear: '↔️', token_ball_damage: '💠', token_ball_proc: '🔵', token_ball_explosion: '💥' };
+const iconOf = id => /^pickaxe_(gold|cobalt|iron|crystal|molten|sea|void)$/.test(id) ? '⛏️' : ICON[fam(id)] || ICON[id] || '✦';
+const YIELD_LAYER = { gold_yield: 0, cobalt_yield: 1, iron_yield: 2, crystal_yield: 3, molten_yield: 4, sea_yield: 5, void_yield: 6, cosmic_yield: 7 };   // SkillTreeNode.YIELD_LAYER_REQUIREMENT
+
+// ════════════ 저장 상태 ════════════
+const SAVE_KEY = 'bottom_save_v1';
+const fresh = () => ({ v: 1, cur: Array(13).fill(0), up: {}, gems: [0, 0, 0, 0, 0, 0, 0, 0], giant: {}, pick: 1, xp: 0, lvl: 1, bag: {}, smelt: {}, smeltT: 0, foundry: [], mastery: {}, activeM: 'mining_speed',
+  stats: { runs: 0, blocks: 0, ores: 0, depth: 0 }, lastLayer: 0, seen: [0], hubX: 560, savedAt: Date.now(), intro: 0 });
+let S = fresh();
+function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (v && typeof v === 'object') S = Object.assign(fresh(), v); } catch (e) { S = fresh(); } if (!Array.isArray(S.cur) || S.cur.length < 13) { const c = Array(13).fill(0); (S.cur || []).forEach((x, i) => c[i] = x); S.cur = c; } }
+function save() { try { S.savedAt = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+
+// ════════════ 능력치 (PlayerUpgrades.gd 그대로) ════════════
+const lv = id => S.up[id] | 0;
+const epl = (id, fb) => NODE[id] ? NODE[id].epl : fb;                 // _epl: 데이터의 effect_per_level, 없으면 코드 기본값
+const sumL = list => { let s = 0; for (const [id, fb] of list) s += lv(id) * epl(id, fb); return s; };
+const sumLi = list => { let s = 0; for (const [id, fb] of list) s += lv(id) * Math.trunc(epl(id, fb)); return s; };
+const pickStats = () => PICK[clamp(S.pick, 1, PICK.length) - 1];
+function mLevel(id) { return (S.mastery[id] && S.mastery[id].lv) | 0; }
+function masteryVal(id) { const d = MASTERY.find(m => m.id === id); return d ? mLevel(id) * d.per : 0; }
+const buffMult = id => 1 + masteryVal(id);                              // get_token_buff_multiplier — 지금 원작은 숙련(토큰 제단) 값만 씀
+const giantBonus = () => Object.keys(S.giant).length * 0.1;
+const tokProc = (id, per) => 1 + per * lv(id);                           // _token_ability_proc_mult (경로 선택 칸은 원작 트리에 미배치)
+const tokDmg = id => 1 + 0.2 * lv(id);                                   // _token_ability_damage_mult
+const ST = {
+  speed() {
+    let b = sumL([['mining_speed', .05], ['mining_speed_2', .05], ['mining_speed_3', .075], ['mining_speed_4', .1], ['mining_speed_5', .15], ['mining_speed_6', .15], ['mining_speed_7', .175], ['mining_speed_8', .2], ['mining_speed_9', .25], ['mining_speed_10', .3]]);
+    let m = (1 + b) * pickStats().sp * buffMult('mining_speed');
+    if (R && R.oc > 0) m *= 1 + ST.ocEff();
+    return m * (1 + .05 * lv('token_mining_speed') + .1 * lv('token_mining_speed_2'));
+  },
+  maxEnergy() { return Math.floor(120 * (1 + sumL([['max_energy', .15], ['max_energy_2', .25], ['max_energy_3', .75], ['max_energy_4', 1.25], ['max_energy_5', 1.5], ['max_energy_6', 2], ['max_energy_7', 2.5], ['max_energy_8', 3]]))); },
+  smeltSpeed() { return 1 + sumL([['smelting_speed', .5], ['smelting_speed_2', 5], ['smelting_speed_3', 25], ['smelting_speed_4', 80], ['smelting_speed_5', 500], ['smelting_speed_6', 2500], ['smelting_speed_7', 1250], ['smelting_speed_8', 8000], ['smelting_speed_9', 3000], ['smelting_speed_10', 4000], ['smelting_speed_11', 5000], ['smelting_speed_12', 7500]]); },
+  oreYield(layer) {
+    const k = ['gold', 'cobalt', 'iron', 'crystal', 'molten', 'sea', 'void', 'cosmic'][layer];
+    const big = layer <= 2 ? [.2, .5, 1.25, 2, 6] : [.2, .5, 1.25];
+    const b = sumL(big.map((fb, i) => [k + '_yield' + (i ? '_' + (i + 1) : ''), fb]));
+    return (1 + b) * buffMult('resource_gain') * ST.surge() * (1 + giantBonus());
+  },
+  stoneYield() {
+    const fb = [.2, .3, .4, .5, .6, .7, 2.5, 3, 4, 5, 6, 7.5, 9, 11];
+    return (1 + sumL(fb.map((f, i) => ['stone_yield' + (i ? '_' + (i + 1) : ''), f]))) * buffMult('resource_gain') * ST.surge() * (1 + giantBonus());
+  },
+  damage() {
+    let m = 1 + sumL([['pickaxe_power', .2], ['pickaxe_power_2', .4], ['pickaxe_power_3', .6], ['pickaxe_power_4', .8], ['pickaxe_power_5', .5], ['pickaxe_power_6', .6], ['pickaxe_power_7', .7], ['pickaxe_power_8', .8]]);
+    m *= pickStats().dm * buffMult('mining_damage') * (1 + giantBonus()) * (1 + .1 * lv('token_damage') + .2 * lv('token_damage_2'));
+    return Math.max(1, m);
+  },
+  lightChance() {
+    const c = sumL([['static_charge', .005], ['static_charge_2', .002], ['static_charge_3', .002], ['static_charge_4', .005], ['static_charge_5', .005], ['static_charge_6', .0075], ['static_charge_7', .01], ['static_charge_8', .0125], ['static_charge_9', .015], ['static_charge_10', .025]])
+      + sumL(Array.from({ length: 10 }, (_, i) => ['static_surge' + (i ? '_' + (i + 1) : ''), .005]));
+    return c * tokProc('token_lightning_proc', .1);
+  },
+  lightChains() { return 10 + sumLi([['chain_conductor', 1], ['chain_conductor_2', 1], ['chain_conductor_3', 2], ['chain_conductor_4', 2], ['chain_conductor_5', 2], ['chain_conductor_6', 4], ['chain_conductor_7', 3], ['chain_conductor_8', 4], ['chain_conductor_9', 5], ['chain_conductor_10', 6]]) + lv('tesla_coil') * 10; },
+  lightDamage() {
+    let b = 5 + sumLi([['voltage_spike', 3], ['voltage_spike_2', 4], ['voltage_spike_3', 5], ['voltage_spike_4', 7], ['voltage_spike_5', 8], ['voltage_spike_6', 9], ['voltage_spike_7', 10], ['voltage_spike_8', 12], ['voltage_spike_9', 13], ['voltage_spike_10', 14], ['tesla_coil', 140]]);
+    b = Math.trunc(b * buffMult('lightning_damage')); return Math.trunc(b * tokDmg('token_lightning_damage'));
+  },
+  lightDouble() { return .5 * lv('token_lightning_double'); },
+  range() { return 80 * (1 + (lv('increased_range') ? .25 : 0) + (lv('increased_range_2') ? .5 : 0)); },
+  moveMult() { return 1 + lv('swift_feet') * epl('swift_feet', .15); },
+  laserChance() { return sumL([['pulse_wave', .0005], ['pulse_wave_2', .0005], ['pulse_wave_3', .0005], ['pulse_wave_4', .00025], ['pulse_wave_5', .000375], ['pulse_wave_6', .0005], ['pulse_wave_7', .000625], ['pulse_wave_8', .00075], ['pulse_wave_9', .001], ['pulse_wave_10', .00125]]) * tokProc('token_pulse_proc', .1); },
+  laserRear() { return .5 * lv('token_pulse_rear'); },
+  laserDur() { return 1 + sumL([['wave_duration', .25], ['wave_duration_2', .5], ['wave_duration_3', .25], ['wave_duration_4', .3], ['wave_duration_5', .375], ['wave_duration_6', .45], ['wave_duration_7', .5], ['wave_duration_8', .625], ['wave_duration_9', .75], ['wave_duration_10', 1]]); },
+  laserDamage() {
+    let d = 20 + sumLi([['wave_intensity', 7], ['wave_intensity_2', 22], ['wave_intensity_3', 110], ['wave_intensity_4', 55], ['wave_intensity_5', 75], ['wave_intensity_6', 100], ['wave_intensity_7', 137], ['wave_intensity_8', 187], ['wave_intensity_9', 250], ['wave_intensity_10', 375]]);
+    d = Math.trunc(d * buffMult('pulse_wave_damage')); return Math.trunc(d * tokDmg('token_pulse_damage'));
+  },
+  laserRange() { return 1 + sumL([['wave_range', .1], ['wave_range_2', .25], ['wave_range_3', .125], ['wave_range_4', .15], ['wave_range_5', .2], ['wave_range_6', .25], ['wave_range_7', .3], ['wave_range_8', .375], ['wave_range_9', .5], ['wave_range_10', .75]]); },
+  laserWidth() { return 1 + sumL([['wave_spread', .25], ['wave_spread_2', .5], ['wave_spread_3', .25], ['wave_spread_4', .3], ['wave_spread_5', .375], ['wave_spread_6', .5], ['wave_spread_7', .625], ['wave_spread_8', .75], ['wave_spread_9', 1], ['wave_spread_10', 1.5]]); },
+  surge() { return R && R.oc > 0 ? 1 + sumL([['overclock_surge', .25], ['overclock_surge_2', .5]]) : 1; },
+  stoneOreChance() { return .00667 + sumL([['prospector_eye', .003], ['prospector_eye_2', .005]]); },
+  stoneOreAmount() { return 1 + lv('mother_lode'); },
+  stoneJackpot() { return lv('lucky_strike') * epl('lucky_strike', .12); },
+  stoneTokenChance() { return .001 + sumL([['treasure_sense', .001], ['treasure_sense_2', .002]]); },
+  stoneTokenDouble() { return lv('double_glint') * epl('double_glint', .2); },
+  stoneOreToken() { return lv('prospectors_fortune') * epl('prospectors_fortune', .15); },
+  boomChance() { return sumL([['explosive_mining', .002], ['explosive_mining_2', .002], ['explosive_mining_3', .002], ['explosive_mining_4', .002], ['explosive_mining_5', .002], ['explosive_mining_6', .0005], ['explosive_mining_7', .00075], ['explosive_mining_8', .001], ['explosive_mining_9', .00125], ['explosive_mining_10', .00175]]) * tokProc('token_explosion_proc', .1); },
+  boomDamage() {
+    let b = 48 + sumLi([['blast_force', 8], ['blast_force_2', 10], ['blast_force_3', 12], ['blast_force_4', 14], ['blast_force_5', 20], ['blast_force_6', 10], ['blast_force_7', 12], ['blast_force_8', 17], ['blast_force_9', 25], ['blast_force_10', 37]]);
+    b = Math.trunc(b * buffMult('explosion_damage')); return Math.trunc(b * tokDmg('token_explosion_damage'));
+  },
+  boomSize() {   // 한 변 칸 수 (3 → 5 → … 23, 전술 핵 15)
+    let s = 3;
+    if (lv('tactical_nuke')) s = 15;
+    else for (let i = 10; i >= 1; i--) { const id = 'blast_radius' + (i > 1 ? '_' + i : ''); if (lv(id)) { s = Math.trunc(epl(id, 3 + 2 * i)); break; } }
+    return s + 3 * lv('token_explosion_size');
+  },
+  jetpack() { return lv('jetpack') > 0; }, freeJet() { return lv('endless_jetpack') > 0; },
+  stack() { return lv('deep_pockets_5') ? 5000 : lv('deep_pockets_4') ? 3000 : lv('deep_pockets_3') ? 1000 : lv('deep_pockets_2') ? 500 : lv('deep_pockets_1') ? 200 : 99; },
+  slots() { return lv('bigger_bag_4') ? 20 : lv('bigger_bag_3') ? 16 : lv('bigger_bag_2') ? 8 : lv('bigger_bag_1') ? 4 : 2; },
+  critChance() { return Math.min(1, sumL([['critical_strike', .02], ['critical_strike_2', .04], ['critical_strike_3', .06], ['critical_strike_4', .08], ['critical_strike_5', .12]])); },
+  critMult() { return 2 + sumL([['critical_power', .25], ['critical_power_2', .5], ['critical_power_3', .75], ['critical_power_4', 1], ['critical_power_5', 1.5]]); },
+  doubleDrop() { return sumL([['fortune', .03], ['fortune_2', .06], ['fortune_3', .1], ['fortune_4', .15], ['fortune_5', .25]]); },
+  efficiency() { return Math.min(1, sumL([['efficiency', .05], ['efficiency_2', .1], ['efficiency_3', .15], ['efficiency_4', .2], ['efficiency_5', .3]])); },
+  ballChance() { return sumL([['bouncing_ball', .01], ['bouncing_ball_2', .015], ['bouncing_ball_3', .02]]) * tokProc('token_ball_proc', .1); },
+  ballCount() { return 1 + lv('ball_count') + lv('ball_count_2') + lv('ball_count_3'); },
+  ballBounces() { return 2 + lv('ball_bounces') + lv('ball_bounces_2') * Math.trunc(epl('ball_bounces_2', 1)) + lv('ball_bounces_3') * Math.trunc(epl('ball_bounces_3', 1)); },
+  ballDamage() { return Math.trunc((30 + sumLi([['ball_damage', 7], ['ball_damage_2', 16], ['ball_damage_3', 30], ['bouncing_ball_evolved', 150]])) * tokDmg('token_ball_damage')); },
+  ballBoom() { return lv('token_ball_explosion') > 0; },
+  ocChance() { return sumL([['overclocked', .002], ['overclocked_2', .003], ['overclocked_3', .004], ['overclocked_4', .005]]); },
+  ocEff() { return .75 + sumL([['overclock_power', .15], ['overclock_power_2', .2], ['overclock_power_3', .25]]); },
+  ocDur() { return 3 + sumL([['overclock_duration', .5], ['overclock_duration_2', .75], ['overclock_duration_3', 1]]); },
+  structures() { return lv('structure_spawn') * Math.trunc(epl('structure_spawn', 3)) + lv('structure_spawn_2') * Math.trunc(epl('structure_spawn_2', 5)); },
+  tokenBounty() { return lv('token_bounty') * Math.trunc(epl('token_bounty', 1)) + lv('token_bounty_2') * Math.trunc(epl('token_bounty_2', 2)) + lv('token_bounty_3') * Math.trunc(epl('token_bounty_3', 3)); },
+  smeltSlots() { return lv('smelter_slots_2') ? Math.trunc(epl('smelter_slots_2', 16)) : lv('smelter_slots_1') ? Math.trunc(epl('smelter_slots_1', 12)) : 8; },
+  smeltPer() { for (let i = 5; i >= 1; i--) if (lv('smelter_capacity_' + i)) return Math.trunc(epl('smelter_capacity_' + i, [0, 200, 500, 1000, 2500, 5000][i])); return 99; },
+  doubleSmelt() { return lv('double_smelt') * epl('double_smelt', .05); }, doubleSmeltYield() { return lv('double_smelt_yield') * epl('double_smelt_yield', .2); },
+  foundrySpeed() { return 1 + sumL([['foundry_speed', .25], ['foundry_speed_2', .5], ['foundry_speed_3', .75], ['foundry_speed_4', 1], ['foundry_speed_5', 8]]); },
+};
+// 레벨·경험치 (get_xp_for_level: 10레벨까지 ×1.3, 그 뒤엔 그만큼 더함)
+function xpFor(L) { if (L <= 1) return 0; const b = LEVEL_XP[L]; if (b == null) return 1e15; if (L <= 10) return Math.round(b * 1.3); return b + Math.round(LEVEL_XP[10] * .3); }
+function addXp(n) {
+  if (S.lvl >= MAX_LEVEL) return; S.xp += n; let up = false;
+  while (S.lvl < MAX_LEVEL && S.xp >= xpFor(S.lvl + 1)) { S.lvl++; up = true; }
+  if (up) { banner('레벨 ' + S.lvl + '!'); sfx('level'); const nx = LAYERS.findIndex((L, i) => i > 0 && L.req === S.lvl); if (nx > 0) toast(`🔓 레벨 ${S.lvl} — ${LAYERS[nx].n}에 갈 레벨이 됐어요 (${PICK[nx].n} 필요)`, 3200); }
+  hudXp();
+}
+// 숙련 (토큰 제단): 블록 1개 = 숙련 경험치 1 × 배수, 다음 레벨 = round(10 × 1.082^레벨), 최대 99
+function mEntry(id) { if (!S.mastery[id]) { const d = MASTERY.find(m => m.id === id); S.mastery[id] = { lv: 0, xp: 0, mul: 0, on: !d || d.cost <= 0 }; } return S.mastery[id]; }
+const mNeed = L => L >= 99 ? 0 : Math.round(10 * Math.pow(1.082, L));
+function addMasteryXp(n) {
+  const e = mEntry(S.activeM); if (!e.on) { S.activeM = 'mining_speed'; return; }
+  if (e.lv >= 99) return; e.xp += n * (1 + .5 * e.mul);
+  let need = mNeed(e.lv); while (need > 0 && e.xp >= need) { e.xp -= need; e.lv++; need = mNeed(e.lv); if (e.lv >= 99) { e.xp = 0; break; } }
+}
+// 덩어리 · 곡괭이
+const chunksReq = L => L <= 0 ? 3 : L <= 3 ? 4 : 5;                                    // get_chunks_required_for_layer
+const pickBoughtFor = L => S.pick >= L + 2;
+const hasMaxChunks = L => S.gems[L] >= chunksReq(L) || pickBoughtFor(L) || (L === 7 && lv('universal_translator') > 0);
+function layerUnlocked(L) { return L <= 0 || (S.lvl >= LAYERS[L].req && S.pick >= L + 1); }      // is_level_unlocked (레벨 + 곡괭이 등급)
+
+// ════════════ 소리 (짧은 합성음 — 파티 사운드 볼륨 설정을 따름) ════════════
+let AC = null;
+sfx.last = {};
+function sfx(kind, opt = {}) {
+  const vol = window.Sound ? Sound.sfxVolume : 0.7;
+  if (!(vol > 0)) return;
+  const now = performance.now(); if (now - (sfx.last[kind] || -1e9) < 45) return; sfx.last[kind] = now;
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { return; }
+  const t = AC.currentTime, g = AC.createGain(); g.connect(AC.destination);
+  const tone = (f0, f1, dur, type, v) => { const o = AC.createOscillator(); o.type = type || 'triangle'; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur); const gg = AC.createGain(); gg.gain.setValueAtTime(v * vol, t); gg.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(gg); gg.connect(g); o.start(t); o.stop(t + dur + .02); };
+  const noise = (dur, f, v) => { const n = AC.sampleRate * dur | 0, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); const s = AC.createBufferSource(); s.buffer = b; const fl = AC.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = f; const gg = AC.createGain(); gg.gain.value = v * vol; s.connect(fl); fl.connect(gg); gg.connect(g); s.start(t); };
+  const p = opt.pitch || 1;
+  if (kind === 'hit') { noise(.07, 900 * p, .5); tone(220 * p, 120 * p, .06, 'square', .06); }
+  else if (kind === 'ore') { noise(.06, 1600 * p, .4); tone(880 * p, 1320 * p, .09, 'triangle', .1); }
+  else if (kind === 'break') { noise(.14, 600, .6); tone(160, 70, .12, 'triangle', .14); }
+  else if (kind === 'crit') { tone(1200, 1800, .1, 'square', .08); noise(.05, 3000, .3); }
+  else if (kind === 'zap') { noise(.18, 4000, .35); tone(1600, 500, .16, 'sawtooth', .05); }
+  else if (kind === 'boom') { noise(.4, 180, .9); tone(90, 40, .35, 'sine', .3); }
+  else if (kind === 'wave') { tone(300, 900, .3, 'sine', .12); }
+  else if (kind === 'coin') { tone(1320, 1320, .06, 'square', .06); setTimeout(() => sfx('coin2'), 60); }
+  else if (kind === 'coin2') { tone(1760, 1760, .08, 'square', .06); }
+  else if (kind === 'level') { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => sfx('note', { f }), i * 90)); }
+  else if (kind === 'note') { tone(opt.f, opt.f, .16, 'triangle', .14); }
+  else if (kind === 'jump') { tone(380, 620, .1, 'sine', .07); }
+  else if (kind === 'buy') { tone(660, 990, .12, 'triangle', .14); }
+  else if (kind === 'tap') { tone(880, 880, .05, 'triangle', .08); }
+  else if (kind === 'no') { tone(200, 150, .12, 'square', .07); }
+  else if (kind === 'chunk') { [784, 988, 1175, 1568].forEach((f, i) => setTimeout(() => sfx('note', { f }), i * 70)); }
+}
+
+// ════════════ 캔버스 · 입력 ════════════
+const cv = $('cv'), ctx = cv.getContext('2d');
+let VW = 0, VH = 0, DPR = 1, Z = 3, ZM = 2, ZH = 2;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1); VW = innerWidth; VH = innerHeight;
+  cv.width = Math.round(VW * DPR); cv.height = Math.round(VH * DPR);
+  ZM = clamp(Math.min(VW / (44 * TS), VH / (26 * TS)), 1.3, 3);   // 광산: 원작처럼 넓게 보기 (가로 40칸 남짓)
+  ZH = clamp(Math.min(VW / 520, VH / 270), 1.1, 3.2);                // 기지
+  setZoom();
+  if (treeOpen) drawTree();
+}
+function setZoom() { Z = scene === 'mine' ? ZM : ZH; }
+addEventListener('resize', resize);
+const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+if (isTouch) document.body.classList.add('tch');
+const K = { left: 0, right: 0, jump: 0, down: 0, dash: 0, dig: 0, jumpHit: 0, dashHit: 0, act: 0 };
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', ArrowDown: 'down', KeyS: 'down', ShiftLeft: 'dash', ShiftRight: 'dash', KeyE: 'act', Enter: 'act', KeyJ: 'dig' };
+addEventListener('keydown', e => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.code === 'Escape') { closeAll(); return; }
+  if (panelKind === 'results' && (e.code === 'Enter' || e.code === 'Space') && $('rHub')) { e.preventDefault(); $('rHub').click(); return; }
+  if (anyOverlay()) return;
+  const k = KEYMAP[e.code]; if (!k) return; e.preventDefault();
+  if (!K[k]) { if (k === 'jump') K.jumpHit = 1; if (k === 'dash') K.dashHit = 1; if (k === 'act' || (k === 'jump' && scene === 'hub' && near)) hubAct(); }
+  K[k] = 1;
+});
+addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) K[k] = 0; });
+addEventListener('blur', () => { for (const k in K) K[k] = 0; M.down = 0; });
+const M = { x: 0, y: 0, down: 0, used: 0 };   // 마우스/터치 조준
+cv.addEventListener('pointerdown', e => { if (anyOverlay()) return; M.x = e.clientX; M.y = e.clientY; M.down = 1; M.used = 1; M.id = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {} if (scene === 'hub') hubClick(e.clientX, e.clientY); sfxUnlock(); });
+cv.addEventListener('pointermove', e => { M.x = e.clientX; M.y = e.clientY; if (e.pointerType === 'mouse') M.used = 1; });
+const pUp = e => { if (e.pointerId === M.id || e.pointerType === 'mouse') M.down = 0; };
+cv.addEventListener('pointerup', pUp); cv.addEventListener('pointercancel', pUp);
+function sfxUnlock() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} }
+document.querySelectorAll('.tb').forEach(b => {
+  const k = b.dataset.k;
+  const on = e => { e.preventDefault(); sfxUnlock(); if (!K[k]) { if (k === 'jump') K.jumpHit = 1; if (k === 'dash') K.dashHit = 1; } K[k] = 1; b.classList.add('on'); if (k === 'jump' && scene === 'hub' && near) hubAct(); };
+  const off = e => { e.preventDefault(); K[k] = 0; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+});
+
+// ════════════ 지형 (C# TerrainManager 를 줄여서: 노이즈 동굴 + 광맥 + 덩어리 + 보물) ════════════
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function perlin(seed) {
+  const r = rng(seed), p = new Uint8Array(512), g = []; const q = Array.from({ length: 256 }, (_, i) => i);
+  for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [q[i], q[j]] = [q[j], q[i]]; }
+  for (let i = 0; i < 512; i++) p[i] = q[i & 255];
+  for (let i = 0; i < 256; i++) { const a = r() * Math.PI * 2; g.push([Math.cos(a), Math.sin(a)]); }
+  const f = t => t * t * t * (t * (t * 6 - 15) + 10);
+  return (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = f(xf), v = f(yf);
+    const d = (ix, iy, dx, dy) => { const G = g[p[(p[ix & 255] + iy) & 511] & 255]; return G[0] * dx + G[1] * dy; };
+    const a = d(xi, yi, xf, yf), b = d(xi + 1, yi, xf - 1, yf), c = d(xi, yi + 1, xf, yf - 1), e = d(xi + 1, yi + 1, xf - 1, yf - 1);
+    return (a + (b - a) * u) + ((c + (e - c) * u) - (a + (b - a) * u)) * v;
+  };
+}
+const fbm = (n, x, y, oct) => { let s = 0, a = 1, f = 1, t = 0; for (let i = 0; i < oct; i++) { s += n(x * f, y * f) * a; t += a; a *= .5; f *= 2; } return s / t; };
+// 타일: 0 빈칸 1 돌 2 광석 3 금(정전기 봉우리의 두 번째 광석) 4 덩어리(20타) 5 거대 덩어리 6 보물상자 7 바닥 암반
+const BASE_HP = [0, 3, 5, 5, 4, 4, 4, 0];   // TerrainManager.TileHealth (돌 3 · 광석 5 · 보석 4)
+let R = null;   // 지금 원정
+const FNL = 1.4248;   // Godot FastNoiseLite 의 Perlin 은 ±1 범위로 늘려서 돌려줌 → 같은 문턱값을 쓰려고 맞춤
+function genWorld(layer, seed) {   // TerrainManager.GenerateTerrain (원작 512×1024 칸 → 웹은 256×512)
+  const W = 256 + 2, H = 512, T = new Uint8Array(W * H), L = LAYERS[layer], cx = W >> 1;
+  const cave = perlin(seed), surf = perlin(seed ^ 0x5bd1e995), r = rng(seed + 500), f = L.freq, sThr = 2 * L.thr - 1;
+  const surfH = new Float32Array(W); for (let x = 0; x < W; x++) surfH[x] = L.sb + fbm(surf, (x - cx) * .02, 7.3, 6) * FNL * L.sa;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    if (x === 0 || x === W - 1 || y >= H - 2) { T[i] = 7; continue; }
+    if (y < surfH[x]) continue;
+    const wx = x - cx; let solid;
+    if (L.gen === 2) solid = (fbm(cave, wx * f, y * 1.8 * f, 4) * .7 + fbm(cave, wx * .5 * f + 77, y * f + 31, 3) * .3) * FNL <= sThr;   // 낮은 천장형: 가로로 길게 눌린 동굴
+    else if (L.gen === 1) solid = fbm(cave, wx * f * .8, y * f * 1.25, 4) * FNL > .12;                                                  // 떠 있는 섬
+    else if (L.gen === 4) solid = Math.abs(fbm(cave, wx * f + fbm(surf, wx * .03, y * .03, 2) * 2, y * f, 4) * FNL) > .1;                // 굽이치는 물길(능선형)
+    else solid = fbm(cave, wx * f, y * f, 4) * FNL <= sThr;                                                                               // CalculateIsSolid: (n+1)/2 > 문턱 이면 빈 곳
+    if (!solid) continue;
+    T[i] = 1;
+    // GenerateOreClusters: 같은 동굴 노이즈를 2배 촘촘히 → 0.35 넘으면 광석, 정전기 봉우리는 25% 가 금
+    if (y >= L.sb + 5 && fbm(cave, wx * 2 * f, (y * 2 + 1000) * f, 4) * FNL > .35) T[i] = L.gold2 && r() < L.gold2 ? 3 : 2;
+  }
+  // 승강기 내리는 곳: 가운데 기둥의 첫 땅
+  let sy = 2; while (sy < H - 3 && !T[(sy + 1) * W + cx]) sy++;
+  for (let y = Math.max(0, sy - 3); y <= sy; y++) for (let x = cx - 1; x <= cx + 1; x++) T[y * W + x] = 0;
+  // GenerateGemBlocks: 지역 레벨 구간에서 진행도 p 가 오를수록 덩어리가 많아지고(1+2p²) 가운데로 모임
+  const chunks = [], cr = rng(seed + layer * 1000);
+  const lo = layer * 10 + 1, hi = layer ? (layer + 1) * 10 : 5, p = clamp((S.lvl - lo) / (hi - lo), 0, 1);
+  let mult = 1 + 2 * p * p; if (!layer) mult = Math.max(mult, 1.5);
+  const count = Math.max(Math.ceil((4 + Math.floor(cr() * 3)) * mult), chunksReq(layer) - S.gems[layer]);
+  const restrict = p > .05 || layer === 0, maxDist = p >= .8 ? 50 : p >= .5 ? 100 : (W - 2) / 2;
+  const free = (x, y) => T[y * W + x] === 1 && !chunks.some(([a, b]) => Math.abs(a - x) < 25 && Math.abs(b - y) < 25);
+  for (let k = 0; k < count; k++) {
+    let pos = null;
+    for (let t = 0; t < 20000 && !pos; t++) {
+      const x = 20 + Math.floor(cr() * (W - 40)), y = 20 + Math.floor(cr() * (H - 40));
+      if (!free(x, y)) continue;
+      if (restrict) { const d = Math.abs(x - cx); if (d > maxDist) continue; if (cr() * 10.1 > .1 + (1 - d / maxDist) ** 2 * 10) continue; }
+      pos = [x, y];
+    }
+    if (!pos) break; T[pos[1] * W + pos[0]] = 4; chunks.push(pos);
+  }
+  const putIn = (y0, y1, x0, x1, type) => { for (let k = 0; k < 4000; k++) { const x = x0 + Math.floor(r() * (x1 - x0)), y = y0 + Math.floor(r() * (y1 - y0)); if (T[y * W + x] === 1) { T[y * W + x] = type; return [x, y]; } } return null; };
+  let giant = null;   // 거대 덩어리: 그 지역 덩어리를 다 모았고 아직 못 찾았을 때 깊은 곳에 하나
+  if (hasMaxChunks(layer) && !S.giant[layer]) giant = putIn(Math.floor(H * .55), H - 30, cx - 60, cx + 60, 5);
+  const nChest = (layer >= 2 ? 3 : 0) + ST.structures();   // 구조물(보물상자): 정전기 봉우리부터 + 구조물 업그레이드
+  for (let k = 0; k < nChest; k++) { const y0 = 30 + Math.floor((H - 90) * k / Math.max(1, nChest)); const q = putIn(y0, y0 + 60, 12, W - 12, 6); if (q && q[1] > 1) { const up = (q[1] - 1) * W + q[0]; if (T[up] !== 7) T[up] = 0; } }
+  return { W, H, T, HP: new Float32Array(W * H), chunks, giant, surfH, spawn: [cx * TS + TS / 2, (sy + 1) * TS - 1] };
+}
+const tileAt = (x, y) => (x < 0 || y < 0 || x >= R.w.W || y >= R.w.H) ? 7 : R.w.T[y * R.w.W + x];
+const solidT = t => t !== 0;
+function maxHpOf(t) { if (t === 4 || t === 5) return 20; return BASE_HP[t] * LAYERS[R.layer].hp; }   // 덩어리는 피해와 상관없이 20번
+
+// ════════════ 원정 시작 · 끝 ════════════
+let scene = 'hub';
+function startRun(layer) {
+  closeAll(); try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch (e) {}   // 눌렀던 버튼이 스페이스로 다시 눌리지 않게
+  const seed = (Math.random() * 2 ** 31) >>> 0, w = genWorld(layer, seed);
+  R = { layer, w, seed, t: 0, energy: ST.maxEnergy(), maxE: ST.maxEnergy(), x: w.spawn[0], y: w.spawn[1], vx: 0, vy: 0, face: 1, ground: 0, coyote: 0, buf: 0, jumping: 0, hold: 0, minHold: 0,
+    dash: 0, dashCd: 0, dashDir: 1, jet: 0, dbl: 0, cd: 0, swing: 0, oc: 0, fx: [], nums: [], items: [], waves: [], balls: [], arcs: [], target: null, ending: 0,
+    got: { blocks: 0, stone: 0, ore: {}, xp: 0, tokens: 0, chunks: 0, lost: 0, lv0: S.lvl, depth: 0 }, shake: 0 };
+  scene = 'mine'; setZoom(); camX = R.x; camY = R.y; S.lastLayer = layer; if (!S.seen.includes(layer)) S.seen.push(layer);
+  S.stats.runs++; save();
+  setHud(); banner(LAYERS[layer].ic + ' ' + LAYERS[layer].n, 1800); sfx('jump');
+}
+function endRun(why) {
+  if (!R || R.ending) return; R.ending = 1;
+  banner(why === 'energy' ? '에너지가 다 떨어졌어요' : '기지로 돌아가요', 1200);
+  setTimeout(showResults, why === 'energy' ? 1300 : 300);
+}
+function showResults() {
+  if (!R) return;
+  const g = R.got, dep = depositOres();
+  const oreTxt = Object.entries(g.ore).map(([L, n]) => `${LAYERS[L].ore} ${fmt(n)}`).join(' · ') || '-';
+  openPanel(`<h2>⛏️ 원정 결과 <small style="font-size:13px;color:var(--dim)">${LAYERS[R.layer].ic} ${LAYERS[R.layer].n}</small></h2>
+    <div class="res"><div>캔 블록<b>${fmt(g.blocks)}</b></div><div>가장 깊이<b>${fmt(g.depth)}m</b></div><div>돌<b>+${fmt(g.stone)}</b></div><div>경험치<b>+${fmt(g.xp)}</b></div>
+    <div style="grid-column:1/-1">광석<b style="font-size:16px">${oreTxt}</b></div>
+    ${g.tokens ? `<div>토큰<b>+${g.tokens}</b></div>` : ''}${g.chunks ? `<div>덩어리<b>+${g.chunks}</b></div>` : ''}${S.lvl > g.lv0 ? `<div>레벨 업<b>${g.lv0} → ${S.lvl}</b></div>` : ''}${g.lost ? `<div style="border-color:var(--red)">가방이 꽉 차서 놓친 광석<b>${fmt(g.lost)}</b></div>` : ''}</div>
+    <p class="sub" style="margin-top:10px">${dep ? `🔥 제련소에 광석 ${fmt(dep)}개를 넣었어요 — 기다리면 주괴가 돼요` : '제련소가 가득 차 있으면 광석은 가방에 남아요'}</p>
+    <div class="row" style="margin-top:6px"><button class="btn" id="rHub" style="flex:1">🏠 기지로</button><button class="btn ghost" id="rAgain">⬇ 다시 내려가기</button></div>`, true);
+  $('rHub').onclick = () => { toHub(); };
+  $('rAgain').onclick = () => { const L = R ? R.layer : S.lastLayer; toHub(); startRun(L); };
+  save();
+}
+function toHub() { R = null; scene = 'hub'; setZoom(); closePanelForce(); closeAll(); setHud(); save(); }
+$('bReturn').onclick = () => { if (scene === 'mine' && R && !R.ending && confirm('지금 기지로 돌아갈까요?')) endRun('return'); };
+
+// ════════════ 채굴 · 드롭 ════════════
+function bagUsed() { return Object.keys(S.bag).filter(k => S.bag[k] > 0); }
+function bagSpace(L) {   // get_inventory_space: 같은 광석 칸은 쌓기 한도까지, 새 광석은 빈 칸이 있어야
+  const st = ST.stack(), have = S.bag[L] | 0;
+  if (have > 0) return st - have;
+  return bagUsed().length < ST.slots() ? st : 0;
+}
+function addOre(L, n, x, y) {
+  const sp = bagSpace(L), k = Math.min(n, sp);
+  if (k > 0) { S.bag[L] = (S.bag[L] | 0) + k; R.got.ore[L] = (R.got.ore[L] | 0) + k; S.stats.ores += k; flyItem(x, y, LAYERS[L].oc, k); }
+  if (k < n) { R.got.lost += n - k; if (!R.fullWarn || R.t - R.fullWarn > 4) { R.fullWarn = R.t; toast('🎒 가방이 가득 찼어요 — 스킬트리의 가방·주머니 업그레이드로 늘릴 수 있어요', 2600); } }
+  hudBag();
+}
+function addCur(i, n) { S.cur[i] += n; popCur(i); }
+function addTokens(n, x, y) { const m = 1 + masteryVal('token_gain'); let k = Math.floor(n * m); if (Math.random() < n * m - k) k++; addCur(4, k); R.got.tokens += k; flyItem(x, y, '#ffcf4d', k, '🪙'); sfx('coin'); }
+function collectChunk(L, x, y) {   // collect_chunk: 다 모았으면 토큰 1
+  if (hasMaxChunks(L)) { addTokens(1, x, y); return; }
+  S.gems[L]++; R.got.chunks++; banner(`✨ ${LAYERS[L].chunk} ${S.gems[L]}/${chunksReq(L)}`, 1800); sfx('chunk');
+  if (S.gems[L] >= chunksReq(L) && L < 7) setTimeout(() => toast(`⛏️ ${PICK[L + 1].n}을(를) 스킬트리에서 만들 수 있어요!`, 3200), 1900);
+  save();
+}
+function damageTile(tx, ty, amt, src, crit) {   // WorldGenerator._damage_csharp_block
+  const t = tileAt(tx, ty); if (!solidT(t) || t === 7) return false;
+  const W = R.w.W, i = ty * W + tx;
+  if (t === 4 || t === 5) { if (src !== 'player') return false; if (!R.w.HP[i]) R.w.HP[i] = 20; R.w.HP[i] -= 1; }
+  else { if (!R.w.HP[i]) R.w.HP[i] = maxHpOf(t); R.w.HP[i] -= amt; }
+  R.nums.push({ x: tx * TS + 8 + (Math.random() * 6 - 3), y: ty * TS + 4, v: Math.round(amt * 10), crit, src, t: 0 });   // 원작처럼 피해 표시 ×10
+  if (R.nums.length > 40) R.nums.shift();
+  if (R.w.HP[i] > 0) return false;
+  breakTile(tx, ty, t, src); return true;
+}
+function breakTile(tx, ty, t, src) {
+  const W = R.w.W, i = ty * W + tx, L = R.layer, cx = tx * TS + 8, cy = ty * TS + 8;
+  R.w.T[i] = 0; R.w.HP[i] = 0; R.got.blocks++; S.stats.blocks++;
+  // 경험치 = 기본 체력 × 지역 배수, 숙련 +1
+  const xp = BASE_HP[t] * LAYERS[L].hp; addXp(xp); R.got.xp += xp; addMasteryXp(1);
+  burst(cx, cy, t === 2 || t === 3 ? LAYERS[L].oc : LAYERS[L].edge, t === 4 || t === 5 ? 26 : 8);
+  if (t === 4) { collectChunk(L, cx, cy); return; }
+  if (t === 5) { S.giant[L] = 1; addCur(BAR_OF_LAYER[L], 350); banner(`🌟 거대 덩어리! ${CUR[BAR_OF_LAYER[L]].n} +350 · 영구 +10%`, 2600); sfx('chunk'); save(); return; }
+  if (t === 6) { addTokens(2 + ST.tokenBounty(), cx, cy); burst(cx, cy, '#ffcf4d', 16); return; }
+  const base = 1 + Math.floor(Math.random() * 2);   // randi_range(1, 2)
+  let n;
+  if (t === 2 || t === 3) { const oreL = t === 3 ? 0 : L; n = Math.ceil(base * ST.oreYield(oreL)); if (Math.random() < ST.doubleDrop()) n *= 2; addOre(oreL, n, cx, cy); sfx('ore', { pitch: .9 + Math.random() * .2 }); }
+  else {
+    n = Math.ceil(base * ST.stoneYield() * Math.max(1, LAYERS[L].hp)); if (Math.random() < ST.doubleDrop()) n *= 2;
+    addCur(1, n); R.got.stone += n; flyItem(cx, cy, '#a7a3b5', n, '🪨');
+    if (src === 'player') stoneRareFind(cx, cy, L);
+  }
+  if (src === 'player') sfx('break');
+}
+function stoneRareFind(x, y, L) {   // _try_stone_rare_find
+  if (Math.random() < ST.stoneOreChance()) { let a = ST.stoneOreAmount(); if (Math.random() < ST.stoneJackpot()) a *= 2; addOre(L, a, x, y); if (Math.random() < ST.stoneOreToken()) addTokens(1, x, y); }
+  if (Math.random() < ST.stoneTokenChance()) addTokens(Math.random() < ST.stoneTokenDouble() ? 2 : 1, x, y);
+}
+function swing(tx, ty) {   // Player.mine_block
+  if (R.energy <= 0) return;
+  R.swing = .18; sfxHitPitch();
+  let dmg = ST.damage(), crit = false;
+  if (Math.random() < ST.critChance()) { crit = true; dmg *= ST.critMult(); sfx('crit'); }
+  const t = tileAt(tx, ty);
+  sfx(t === 2 || t === 3 ? 'ore' : 'hit', { pitch: R.pitch });
+  damageTile(tx, ty, dmg, 'player', crit);
+  R.shake = Math.max(R.shake, crit ? 3 : 1.5);
+  // 발동: 번개 · 펄스 웨이브 · 폭발 · 튕기는 공 (try_proc_*)
+  if (Math.random() < ST.lightChance()) { lightning(tx, ty); if (Math.random() < ST.lightDouble()) setTimeout(() => R && lightning(tx, ty), 120); }
+  if (Math.random() < ST.laserChance()) { pulseWave(); if (Math.random() < ST.laserRear()) pulseWave(Math.PI); }
+  if (Math.random() < ST.boomChance()) explode(tx, ty, ST.boomSize(), ST.boomDamage());
+  if (Math.random() < ST.ballChance()) balls(tx, ty);
+  if (!(Math.random() < ST.efficiency())) drainEnergy(1);
+  if (Math.random() < ST.ocChance() && !(R.oc > 0)) { R.oc = ST.ocDur(); banner('⏩ 오버클럭!', 1200); }
+}
+function sfxHitPitch() { if (R.lastHit !== (R.target && R.target.join(','))) R.pitch = 1; R.lastHit = R.target && R.target.join(','); R.pitch = Math.min(2, (R.pitch || 1) + .1); }
+function drainEnergy(n) { if (R.energy <= 0) return; R.energy = Math.max(0, R.energy - n); if (R.energy <= 0) endRun('energy'); }
+function lightning(tx, ty) {   // 연쇄 번개: 맞은 블록에서 가까운 블록으로 사슬(기본 10 + 연쇄 업그레이드)
+  sfx('zap'); const n = ST.lightChains(), dmg = ST.lightDamage(), hit = new Set(), pts = [[tx * TS + 8, ty * TS + 8]];
+  let cx = tx, cy = ty;
+  for (let k = 0; k <= n; k++) {
+    let best = null, bd = 1e9;
+    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+      const x = cx + dx, y = cy + dy, t = tileAt(x, y); if (!solidT(t) || t === 7 || t === 4 || t === 5 || hit.has(x + ',' + y)) continue;
+      const d = dx * dx + dy * dy + (t === 2 || t === 3 ? -3 : 0) + Math.random() * 2; if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (!best) break; hit.add(best.join(',')); damageTile(best[0], best[1], dmg, 'lightning'); pts.push([best[0] * TS + 8, best[1] * TS + 8]); cx = best[0]; cy = best[1];
+  }
+  R.arcs.push({ pts, t: 0 });
+}
+function explode(tx, ty, size, dmg) {
+  sfx('boom'); R.shake = 7; const r = (size - 1) / 2;
+  for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+    if (dx * dx + dy * dy > (r + .5) * (r + .5)) continue; const t = tileAt(tx + dx, ty + dy); if (solidT(t) && t !== 7) damageTile(tx + dx, ty + dy, dmg, 'explosion');
+  }
+  R.fx.push({ k: 'boom', x: tx * TS + 8, y: ty * TS + 8, r: (r + .5) * TS, t: 0 });
+}
+function pulseWave(off = 0) {   // 펄스 웨이브: 바라보는 쪽 원뿔, 지속 시간 동안 0.12초마다 피해
+  sfx('wave'); const a = aimAngle() + off;
+  R.waves.push({ a, range: 120 * ST.laserRange(), half: (10 * ST.laserWidth()) * Math.PI / 180, dur: ST.laserDur(), dmg: ST.laserDamage() * (lv('evolved_pulse_wave') ? 2 : 1), t: 0, tick: 0 });
+}
+function balls(tx, ty) {
+  const n = ST.ballCount(), a0 = aimAngle();
+  for (let k = 0; k < n; k++) { const a = a0 + (k - (n - 1) / 2) * .35 + (Math.random() - .5) * .3; R.balls.push({ x: R.x, y: R.y - 8, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, b: ST.ballBounces(), dmg: ST.ballDamage(), t: 0 }); }
+}
+function aimAngle() { if (R.target) return Math.atan2(R.target[1] * TS + 8 - (R.y - 8), R.target[0] * TS + 8 - R.x); return R.face > 0 ? 0 : Math.PI; }
+// 드롭 연출 · 효과
+function flyItem(x, y, c, n, ic) { R.items.push({ x, y, c, n, ic, t: 0, vx: (Math.random() - .5) * 60, vy: -60 - Math.random() * 40 }); if (R.items.length > 60) R.items.shift(); }
+function burst(x, y, c, n) { for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, s = 30 + Math.random() * 90; R.fx.push({ k: 'p', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, c, t: 0, life: .35 + Math.random() * .3 }); } if (R.fx.length > 400) R.fx.splice(0, R.fx.length - 400); }
+
+// ════════════ 물리 (Player._physics_process) ════════════
+const PW = 10, PH = 14;   // 고블린 몸 크기(px)
+function solidAtPx(x, y) { return solidT(tileAt(Math.floor(x / TS), Math.floor(y / TS))); }
+function boxHits(x, y) { const l = x - PW / 2 + .01, r = x + PW / 2 - .01, t = y - PH + .01, b = y - .01; return solidAtPx(l, t) || solidAtPx(r, t) || solidAtPx(l, b) || solidAtPx(r, b) || solidAtPx(l, (t + b) / 2) || solidAtPx(r, (t + b) / 2); }
+function moveX(P, dx) { let blocked = 0; const n = Math.ceil(Math.abs(dx) / 6), s = dx / (n || 1); for (let k = 0; k < n; k++) { if (boxHits(P.x + s, P.y)) { const st = Math.sign(s) * .25; for (let j = 0; j < 48 && !boxHits(P.x + st, P.y); j++) P.x += st; blocked = Math.sign(s); P.vx = 0; break; } P.x += s; } return blocked; }   // 막히면 벽에 딱 붙게
+function moveY(P, dy) { let hit = 0; const n = Math.ceil(Math.abs(dy) / 6), s = dy / (n || 1); for (let k = 0; k < n; k++) { if (boxHits(P.x, P.y + s)) { const st = Math.sign(s) * .25; for (let j = 0; j < 48 && !boxHits(P.x, P.y + st); j++) P.y += st; hit = Math.sign(s); P.vy = 0; break; } P.y += s; } return hit; }
+function physics(P, dt, canAct, world) {
+  const G = 980;
+  P.dashCd = Math.max(0, P.dashCd - dt);
+  if (K.dashHit && P.dashCd <= 0) { P.dash = .14; P.dashCd = 3; P.dashDir = P.face; sfx('jump'); }
+  K.dashHit = 0;
+  if (P.dash > 0) { P.dash -= dt; P.vx = P.dashDir * 320; P.vy = 0; }
+  else {
+    if (!P.ground) {
+      let gm = 1;
+      if (P.jet) gm = .4;
+      else if (P.jumping && P.vy < 0 && P.minHold > 0) { gm = .45; P.minHold -= dt; }
+      else if (P.jumping && P.vy < 0 && K.jump && P.hold < .18) { gm = .45; P.hold += dt; }
+      else if (P.vy > 0) gm = 1.05; else if (Math.abs(P.vy) < 35) gm = .55;
+      P.vy = Math.min(1200, P.vy + G * gm * dt);
+    }
+    P.coyote = P.ground ? .12 : P.coyote - dt;
+    P.buf = K.jumpHit ? .1 : P.buf - dt;
+    if (canAct && P.buf > 0 && (P.ground || P.coyote > 0)) { P.vy = -300; P.buf = 0; P.coyote = 0; P.jumping = 1; P.minHold = .07; P.hold = 0; P.jumpedNow = 1; sfx('jump'); }
+    if (P.jumping && !P.jet && P.minHold <= 0 && !K.jump && P.vy < 0) { P.vy *= .25; P.jumping = 0; }
+    // 제트팩: 공중에서 다시 점프 → 켜고, 누르는 동안 위로 (에너지 3/초, 무한 추진기면 0)
+    if (world === 'mine' && ST.jetpack() && !P.ground && K.jumpHit && !P.jumpedNow && (ST.freeJet() || R.energy > 0)) { if (!P.dbl) { P.dbl = 1; P.vy = -350; } P.jet = 1; }
+    if (P.jet && K.jump && (ST.freeJet() || R.energy > 0)) { P.vy += (-350 - P.vy) * Math.min(1, 1200 * dt / 350); if (!ST.freeJet()) drainEnergy(3 * dt); if (Math.random() < .5) R.fx.push({ k: 'p', x: P.x - P.face * 4, y: P.y - 2, vx: (Math.random() - .5) * 30, vy: 80, c: '#ffb35e', t: 0, life: .3 }); }
+    if (P.jet && !K.jump) P.jet = 0;
+    const dir = (K.right ? 1 : 0) - (K.left ? 1 : 0);
+    if (dir) { P.vx = dir * 220 * (world === 'mine' ? ST.moveMult() : 1) * (P.jet ? 1.4 : 1); P.face = dir; } else P.vx = 0;
+  }
+  K.jumpHit = 0; P.jumpedNow = 0;
+  const bx = moveX(P, P.vx * dt), by = moveY(P, P.vy * dt);
+  const wasGround = P.ground; P.ground = by > 0 || (P.vy >= 0 && boxHits(P.x, P.y + 1)) ? 1 : 0;
+  if (P.ground) { P.jumping = 0; P.dbl = 0; P.jet = 0; if (!wasGround) P.land = .1; }
+  return bx;
+}
+
+// ════════════ 원정 업데이트 ════════════
+function tileUnderPointer() { const wx = (M.x - VW / 2) / Z + camX, wy = (M.y - VH / 2) / Z + camY; return [wx, wy]; }
+function rayTarget(wx, wy) {   // 몸 가운데에서 조준 방향으로 가장 먼저 닿는 블록 (사거리 80px × 사거리 업그레이드)
+  const ox = R.x, oy = R.y - PH / 2, dx = wx - ox, dy = wy - oy, d = Math.hypot(dx, dy) || 1, rng = Math.min(ST.range(), d + 6);
+  for (let s = 0; s <= rng; s += 2) { const x = Math.floor((ox + dx / d * s) / TS), y = Math.floor((oy + dy / d * s) / TS); if (solidT(tileAt(x, y)) && tileAt(x, y) !== 7) return [x, y]; }
+  return null;
+}
+let camX = 0, camY = 0;
+function updateMine(dt) {
+  const P = R; R.t += dt;
+  if (R.oc > 0) R.oc -= dt;
+  if (R.ending) { P.vx = 0; }
+  const blocked = physics(P, dt, !R.ending, 'mine');
+  R.got.depth = Math.max(R.got.depth, Math.max(0, Math.floor((P.y / TS - 14))));
+  // 무엇을 캘지: 마우스·터치 조준 > ↓ 아래 > 좌우로 벽을 밀면 그 벽 > (땅에서) 위가 막혔는데 점프 → 위
+  let tgt = null; const ptx = Math.floor(P.x / TS), pty = Math.floor((P.y - PH / 2) / TS);
+  if (M.down && M.used) { const [wx, wy] = tileUnderPointer(); tgt = rayTarget(wx, wy); }
+  else if (K.down || K.dig) { const t = [ptx, Math.floor((P.y + 2) / TS)]; if (solidT(tileAt(t[0], t[1]))) tgt = t; else if (K.dig) { const f = [Math.floor((P.x + P.face * (PW / 2 + 3)) / TS), pty]; if (solidT(tileAt(f[0], f[1]))) tgt = f; } }
+  else if (blocked && (K.left || K.right)) { const fx = Math.floor((P.x + blocked * (PW / 2 + 1)) / TS); const head = Math.floor((P.y - PH + 2) / TS), feet = Math.floor((P.y - 2) / TS); tgt = solidT(tileAt(fx, head)) ? [fx, head] : solidT(tileAt(fx, feet)) ? [fx, feet] : null; }
+  else if (K.jump && P.ground) { const up = [ptx, Math.floor((P.y - PH - 2) / TS)]; if (solidT(tileAt(up[0], up[1]))) tgt = up; }
+  if (tgt && tileAt(tgt[0], tgt[1]) === 7) tgt = null;
+  R.target = tgt || (M.used && !isTouch ? rayTarget(...tileUnderPointer()) : null);
+  R.cd -= dt; if (R.swing > 0) R.swing -= dt;
+  if (tgt && R.cd <= 0 && !R.ending && R.energy > 0) { swing(tgt[0], tgt[1]); R.cd = 0.4 / ST.speed(); if (tgt[0] !== ptx) P.face = tgt[0] > ptx ? 1 : -1; }
+  // 효과들
+  for (const w of R.waves) {
+    w.t += dt; w.tick -= dt;
+    if (w.tick <= 0) { w.tick = .12; const ox = R.x, oy = R.y - 8;
+      for (let dy = -Math.ceil(w.range / TS); dy <= Math.ceil(w.range / TS); dy++) for (let dx = -Math.ceil(w.range / TS); dx <= Math.ceil(w.range / TS); dx++) {
+        const x = Math.floor(ox / TS) + dx, y = Math.floor(oy / TS) + dy, t = tileAt(x, y); if (!solidT(t) || t === 7 || t === 4 || t === 5) continue;
+        const cx = x * TS + 8 - ox, cy = y * TS + 8 - oy, d = Math.hypot(cx, cy); if (d > w.range) continue;
+        let da = Math.atan2(cy, cx) - w.a; da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) <= w.half) damageTile(x, y, w.dmg, 'laser');
+      } }
+  }
+  R.waves = R.waves.filter(w => w.t < w.dur);
+  for (const b of R.balls) {
+    b.t += dt; const n = 3;
+    for (let k = 0; k < n; k++) {
+      const nx = b.x + b.vx * dt / n, ny = b.y + b.vy * dt / n, tx = Math.floor(nx / TS), ty = Math.floor(ny / TS), t = tileAt(tx, ty);
+      if (solidT(t)) {
+        if (t !== 7 && t !== 4 && t !== 5) damageTile(tx, ty, b.dmg, 'ball');
+        if (Math.floor(b.x / TS) !== tx) b.vx = -b.vx; if (Math.floor(b.y / TS) !== ty) b.vy = -b.vy; if (Math.floor(b.x / TS) === tx && Math.floor(b.y / TS) === ty) { b.vx = -b.vx; b.vy = -b.vy; }
+        b.b--; if (b.b < 0) { if (ST.ballBoom()) explode(tx, ty, 3, b.dmg); break; }
+      } else { b.x = nx; b.y = ny; }
+    }
+  }
+  R.balls = R.balls.filter(b => b.b >= 0 && b.t < 6);
+  for (const a of R.arcs) a.t += dt; R.arcs = R.arcs.filter(a => a.t < .35);
+  for (const f of R.fx) { f.t += dt; if (f.k === 'p') { f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 300 * dt; } } R.fx = R.fx.filter(f => f.k === 'p' ? f.t < f.life : f.t < .4);
+  for (const n of R.nums) n.t += dt; R.nums = R.nums.filter(n => n.t < .8);
+  for (const it of R.items) { it.t += dt; if (it.t < .25) { it.x += it.vx * dt; it.y += it.vy * dt; it.vy += 400 * dt; } else { const dx = R.x - it.x, dy = R.y - 8 - it.y, d = Math.hypot(dx, dy) || 1, sp = 300 + it.t * 600; it.x += dx / d * Math.min(d, sp * dt); it.y += dy / d * Math.min(d, sp * dt); if (d < 6) it.done = 1; } }
+  R.items = R.items.filter(i => !i.done && i.t < 3);
+  R.shake = Math.max(0, R.shake - dt * 20);
+  if (P.y > R.w.H * TS) { P.x = R.w.spawn[0]; P.y = R.w.spawn[1]; P.vy = 0; }
+  camX += (P.x - camX) * Math.min(1, dt * 8); camY += (P.y - 30 - camY) * Math.min(1, dt * 8);
+  hudEnergy();
+}
+
+// ════════════ 그리기: 광산 ════════════
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255; if (f < 0) { r *= 1 + f; g *= 1 + f; b *= 1 + f; } else { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; } return `rgb(${r | 0},${g | 0},${b | 0})`; }
+function drawMine() {   // 원작처럼: 바위는 어둡게, 파낸 동굴 안쪽은 지역 색, 경계엔 밝은 테두리
+  const L = LAYERS[R.layer], W = R.w.W;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = L.rock; ctx.fillRect(0, 0, VW, VH);
+  const sh = R.shake ? (Math.random() - .5) * R.shake : 0;
+  const ox = Math.round((VW / 2 - camX * Z + sh) * DPR) / DPR, oy = Math.round((VH / 2 - camY * Z + sh) * DPR) / DPR;
+  ctx.setTransform(DPR * Z, 0, 0, DPR * Z, ox * DPR, oy * DPR);
+  const x0 = Math.max(0, Math.floor((camX - VW / 2 / Z) / TS) - 1), x1 = Math.min(W - 1, Math.ceil((camX + VW / 2 / Z) / TS) + 1);
+  const y0 = Math.max(0, Math.floor((camY - VH / 2 / Z) / TS) - 1), y1 = Math.min(R.w.H - 1, Math.ceil((camY + VH / 2 / Z) / TS) + 1);
+  // 하늘(지표 위)과 파낸 동굴 안쪽 (가로로 이어진 칸은 한 번에)
+  const sky = R.w.surfH;
+  const yTop = Math.floor((camY - VH / 2 / Z) / TS) - 1;
+  const sameSky = L.sky === L.cave;   // 하늘·동굴 색이 같으면 한 번에 칠해서 경계 이음매가 안 생기게
+  if (yTop < 0) { ctx.fillStyle = L.sky; ctx.fillRect(x0 * TS, yTop * TS, (x1 - x0 + 1) * TS, -yTop * TS + .5); }
+  if (!sameSky && y0 < 72) for (let x = x0; x <= x1; x++) { const sY = Math.min(y1 + 1, Math.ceil(sky[x])); if (sY > y0) { ctx.fillStyle = L.sky; ctx.fillRect(x * TS, y0 * TS, TS + .5, (sY - y0) * TS); } }
+  ctx.fillStyle = L.cave;
+  for (let y = y0; y <= y1; y++) { let run = -1; for (let x = x0; x <= x1 + 1; x++) { const open = x <= x1 && R.w.T[y * W + x] === 0 && (sameSky || y >= sky[x]); if (open && run < 0) run = x; if (!open && run >= 0) { ctx.fillRect(run * TS, y * TS, (x - run) * TS + .5, TS + .5); run = -1; } } }
+  const now = performance.now() / 1000;
+  // 승강기 (돌아갈 곳 표시)
+  const ex = R.w.spawn[0], ey = R.w.spawn[1];
+  ctx.fillStyle = '#8a8aa0'; ctx.fillRect(ex - .75, -800, 1.5, ey - 18 + 800); ctx.fillStyle = '#5a5a6e'; ctx.fillRect(ex - 13, ey - 20, 26, 2.5); ctx.fillStyle = 'rgba(160,160,185,.7)'; for (let i = -12; i <= 12; i += 6) ctx.fillRect(ex + i - .5, ey - 18, 1, 18);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const t = R.w.T[y * W + x]; if (!t) continue;
+    const X = x * TS, Y = y * TS;
+    if (t === 7) { ctx.fillStyle = '#05040a'; ctx.fillRect(X, Y, TS + .5, TS + .5); continue; }
+    const up = tileAt(x, y - 1) === 0, dn = tileAt(x, y + 1) === 0, lf = tileAt(x - 1, y) === 0, rt = tileAt(x + 1, y) === 0;
+    if (up || dn || lf || rt) {   // 공기와 맞닿은 바위: 모서리는 둥글게 + 밝은 이끼 테두리 (바위 바탕은 배경색 그대로라 타일 사이 이음매가 안 보임)
+      const R6 = 6, tl = up && lf, tr = up && rt, br = dn && rt, bl = dn && lf, air = y < sky[x] + 1 && up ? L.sky : L.cave;
+      ctx.fillStyle = air; ctx.beginPath();   // 둥근 모서리 바깥 쐐기는 동굴 색
+      if (tl) { ctx.moveTo(X, Y); ctx.lineTo(X + R6, Y); ctx.arcTo(X, Y, X, Y + R6, R6); ctx.closePath(); }
+      if (tr) { ctx.moveTo(X + TS, Y); ctx.lineTo(X + TS, Y + R6); ctx.arcTo(X + TS, Y, X + TS - R6, Y, R6); ctx.closePath(); }
+      if (br) { ctx.moveTo(X + TS, Y + TS); ctx.lineTo(X + TS - R6, Y + TS); ctx.arcTo(X + TS, Y + TS, X + TS, Y + TS - R6, R6); ctx.closePath(); }
+      if (bl) { ctx.moveTo(X, Y + TS); ctx.lineTo(X, Y + TS - R6); ctx.arcTo(X, Y + TS, X + R6, Y + TS, R6); ctx.closePath(); }
+      ctx.fill();
+      ctx.fillStyle = L.edge;   // 곧은 면 테두리
+      if (up) ctx.fillRect(X + (tl ? R6 : 0), Y, TS - (tl ? R6 : 0) - (tr ? R6 : 0), 2.5);
+      if (dn) ctx.fillRect(X + (bl ? R6 : 0), Y + TS - 1.5, TS - (bl ? R6 : 0) - (br ? R6 : 0), 1.5);
+      if (lf) ctx.fillRect(X, Y + (tl ? R6 : 0), 1.5, TS - (tl ? R6 : 0) - (bl ? R6 : 0));
+      if (rt) ctx.fillRect(X + TS - 1.5, Y + (tr ? R6 : 0), 1.5, TS - (tr ? R6 : 0) - (br ? R6 : 0));
+      if (tl || tr || br || bl) {   // 둥근 모서리 테두리
+        ctx.strokeStyle = L.edge; ctx.lineWidth = 2; ctx.beginPath();
+        if (tl) { ctx.moveTo(X + R6, Y + 1); ctx.arcTo(X + 1, Y + 1, X + 1, Y + R6, R6 - 1); }
+        if (tr) { ctx.moveTo(X + TS - 1, Y + R6); ctx.arcTo(X + TS - 1, Y + 1, X + TS - R6, Y + 1, R6 - 1); }
+        if (br) { ctx.moveTo(X + TS - R6, Y + TS - 1); ctx.arcTo(X + TS - 1, Y + TS - 1, X + TS - 1, Y + TS - R6, R6 - 1); }
+        if (bl) { ctx.moveTo(X + 1, Y + TS - R6); ctx.arcTo(X + 1, Y + TS - 1, X + R6, Y + TS - 1, R6 - 1); }
+        ctx.stroke();
+      }
+    }
+    if (t === 2 || t === 3) drawGem(X, Y, t === 3 ? LAYERS[0].oc : L.oc, x * 31 + y * 17);
+    else if (t === 4 || t === 5) drawChunk(X, Y, L.oc, t === 5, now);
+    else if (t === 6) drawChest(X, Y);
+    const hp = R.w.HP[y * W + x];
+    if (hp > 0) {
+      const mx = (t === 4 || t === 5) ? 20 : maxHpOf(t), f = 1 - hp / mx;
+      ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X + 8, Y + 8); ctx.lineTo(X + 8 - 6 * f, Y + 3);
+      if (f > .33) { ctx.moveTo(X + 8, Y + 8); ctx.lineTo(X + 13, Y + 10 + 4 * f); } if (f > .66) { ctx.moveTo(X + 8, Y + 8); ctx.lineTo(X + 4, Y + 14); } ctx.stroke();
+    }
+  }
+  // 덩어리 빛줄기 (멀리서도 보이게 — 원작 spinning rays)
+  const shines = R.w.chunks.concat(R.w.giant ? [R.w.giant] : []);
+  for (const c of shines) {
+    const t = R.w.T[c[1] * W + c[0]]; if (t !== 4 && t !== 5) continue;
+    if (c[0] < x0 - 8 || c[0] > x1 + 8 || c[1] < y0 - 8 || c[1] > y1 + 8) continue;
+    const len = t === 5 ? 90 : 60;
+    ctx.save(); ctx.translate(c[0] * TS + 8, c[1] * TS + 8); ctx.rotate(now * .4); ctx.globalAlpha = .16; ctx.fillStyle = L.oc;
+    for (let k = 0; k < 6; k++) { ctx.rotate(Math.PI / 3); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-5, -len); ctx.lineTo(5, -len); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+  }
+  // 조준 표시 · 펄스 웨이브 · 튕기는 공
+  if (R.target) { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(R.target[0] * TS + .5, R.target[1] * TS + .5, TS - 1, TS - 1); }
+  for (const w of R.waves) { const a = 1 - w.t / w.dur; ctx.fillStyle = 'rgba(127,216,255,' + (.18 + .2 * a) + ')'; ctx.beginPath(); ctx.moveTo(R.x, R.y - 8); ctx.arc(R.x, R.y - 8, w.range, w.a - w.half, w.a + w.half); ctx.closePath(); ctx.fill(); }
+  for (const b of R.balls) { ctx.fillStyle = '#9fe2ff'; ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x - 1, b.y - 1, 1, 0, Math.PI * 2); ctx.fill(); }
+  drawGoblin(R.x, R.y, R.face, R.swing > 0 ? R.swing / .18 : 0, !R.ground, R.jet);
+  ctx.lineCap = 'round';
+  for (const a of R.arcs) {
+    ctx.strokeStyle = 'rgba(214,190,255,' + (1 - a.t / .35) + ')'; ctx.lineWidth = 1.6; ctx.beginPath();
+    a.pts.forEach((p, i) => { const j = i ? (Math.random() - .5) * 5 : 0; if (i) ctx.lineTo(p[0] + j, p[1] + j); else ctx.moveTo(p[0], p[1]); });
+    ctx.stroke();
+  }
+  for (const f of R.fx) {
+    if (f.k === 'p') { ctx.fillStyle = f.c; ctx.globalAlpha = Math.max(0, 1 - f.t / f.life); ctx.fillRect(f.x - 1.2, f.y - 1.2, 2.4, 2.4); ctx.globalAlpha = 1; }
+    else if (f.k === 'boom') { const k = f.t / .4; ctx.fillStyle = 'rgba(255,190,90,' + (.55 * (1 - k)) + ')'; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (.6 + .5 * k), 0, Math.PI * 2); ctx.fill(); }
+  }
+  for (const it of R.items) { ctx.fillStyle = it.c; ctx.beginPath(); ctx.moveTo(it.x, it.y - 3); ctx.lineTo(it.x + 3, it.y); ctx.lineTo(it.x, it.y + 3); ctx.lineTo(it.x - 3, it.y); ctx.closePath(); ctx.fill(); }
+  ctx.textAlign = 'center'; ctx.font = 'bold 7px Jua, sans-serif';
+  for (const n of R.nums) {
+    ctx.globalAlpha = 1 - n.t / .8;
+    ctx.fillStyle = n.crit ? '#ffd36b' : n.src === 'lightning' ? '#d4b8ff' : n.src === 'explosion' ? '#ffb35e' : n.src === 'laser' ? '#9fe2ff' : '#fff';
+    ctx.fillText(String(n.v), n.x, n.y - n.t * 14);
+  }
+  ctx.globalAlpha = 1;
+  // 화면 가장자리 은은한 어둠 · 오버클럭 테두리 · 화면 밖 덩어리 방향
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.max(VW, VH) * .75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.45)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  if (R.oc > 0) { ctx.strokeStyle = 'rgba(255,211,107,' + (.35 + .2 * Math.sin(now * 10)) + ')'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, VW - 6, VH - 6); }
+  let best = null, bd = 1e18;
+  for (const c of shines) { const t = R.w.T[c[1] * W + c[0]]; if (t !== 4 && t !== 5) continue; const d = (c[0] * TS - R.x) ** 2 + (c[1] * TS - R.y) ** 2; if (d < bd) { bd = d; best = [c[0], c[1], t]; } }
+  if (best) {
+    const sx = (best[0] * TS + 8 - camX) * Z + VW / 2, sy = (best[1] * TS + 8 - camY) * Z + VH / 2;
+    const bx0 = 60, bx1 = VW - 60, by0 = 80, by1 = VH - (isTouch ? 200 : 160);   // HUD 와 안 겹치는 상자 안에서 가장자리로
+    if (sx < bx0 || sx > bx1 || sy < by0 || sy > by1) {
+      const ccx = (bx0 + bx1) / 2, ccy = (by0 + by1) / 2, a = Math.atan2(sy - ccy, sx - ccx), rx = (bx1 - bx0) / 2, ry = Math.max(20, (by1 - by0) / 2);
+      const k = Math.min(Math.abs(rx / (Math.cos(a) || 1e-6)), Math.abs(ry / (Math.sin(a) || 1e-6)));
+      ctx.save(); ctx.translate(ccx + Math.cos(a) * k, ccy + Math.sin(a) * k); ctx.globalAlpha = .75 + .25 * Math.sin(now * 4);
+      ctx.fillStyle = 'rgba(20,14,30,.75)'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fill();
+      ctx.rotate(a); ctx.fillStyle = L.oc; ctx.beginPath(); ctx.moveTo(23, 0); ctx.lineTo(14, -6); ctx.lineTo(14, 6); ctx.closePath(); ctx.fill(); ctx.rotate(-a);
+      ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(best[2] === 5 ? '🌟' : '✨', 0, 1);
+      ctx.font = '11px Jua, sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(Math.round(Math.sqrt(bd) / TS) + 'm', 0, 28); ctx.textBaseline = 'alphabetic';
+      ctx.restore();
+    }
+  }
+}
+function drawGem(X, Y, c, h) {   // 광석: 바위에 박힌 큼직한 결정 두 개
+  const flip = h & 1, a = flip ? 5 : 11, b = flip ? 11 : 5;
+  const shard = (cx, cy, w, ht, lean) => { ctx.beginPath(); ctx.moveTo(X + cx - w, Y + cy); ctx.lineTo(X + cx + lean, Y + cy - ht); ctx.lineTo(X + cx + w, Y + cy); ctx.lineTo(X + cx, Y + cy + w * .7); ctx.closePath(); ctx.fill(); };
+  ctx.fillStyle = c; shard(a, 11, 3.6, 8, flip ? -1 : 1); shard(b, 13, 2.4, 5, flip ? 1 : -1);
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.beginPath(); ctx.moveTo(X + a - 1.2, Y + 10); ctx.lineTo(X + a + (flip ? -1 : 1) * .6, Y + 5); ctx.lineTo(X + a, Y + 10); ctx.closePath(); ctx.fill();
+}
+function drawChunk(X, Y, c, giant, now) {
+  const s = giant ? 1.8 : 1, cx = X + 8, cy = Y + 9, p = 1 + Math.sin(now * 3) * .06;
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.beginPath(); ctx.arc(cx, cy, 9 * s * p, 0, Math.PI * 2); ctx.fill();
+  const shard = (dx, h, w) => { ctx.beginPath(); ctx.moveTo(cx + dx * s, cy + 6 * s); ctx.lineTo(cx + (dx - w) * s, cy + (6 - h * .55) * s); ctx.lineTo(cx + dx * s, cy + (6 - h) * s); ctx.lineTo(cx + (dx + w) * s, cy + (6 - h * .55) * s); ctx.closePath(); ctx.fill(); };
+  ctx.fillStyle = c; shard(0, 13, 3.2); shard(-4.5, 9, 2.4); shard(4.5, 10, 2.4);
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; shard(-.6, 9, .9);
+}
+function drawChest(X, Y) { ctx.fillStyle = '#8a5a2b'; ctx.fillRect(X + 2, Y + 6, 12, 9); ctx.fillStyle = '#b07a3e'; ctx.fillRect(X + 2, Y + 4, 12, 4); ctx.fillStyle = '#ffd36b'; ctx.fillRect(X + 7, Y + 7, 2, 3); ctx.fillRect(X + 2, Y + 9, 12, 1); }
+function drawGoblin(x, y, face, sw, air, jet) {   // 콩눈 고블린 (작은 얼굴 · 큰 귀 · 고글)
+  ctx.save(); ctx.translate(x, y); ctx.scale(face, 1);
+  if (jet) { ctx.fillStyle = '#ff9f43'; ctx.beginPath(); ctx.moveTo(-6, -4); ctx.lineTo(-8, 3 + Math.random() * 3); ctx.lineTo(-4, -2); ctx.fill(); }
+  ctx.fillStyle = '#6b4a2f'; ctx.fillRect(-4, -7, 8, 6);                                   // 작업복
+  ctx.fillStyle = '#4b3424'; ctx.fillRect(-4, -1, 3, 1.4); ctx.fillRect(1, -1, 3, 1.4);      // 신발
+  ctx.fillStyle = '#7fcf6a'; ctx.beginPath(); ctx.ellipse(0, -10.5, 5.2, 4.6, 0, 0, Math.PI * 2); ctx.fill();   // 머리
+  ctx.beginPath(); ctx.moveTo(-4.6, -11.5); ctx.lineTo(-8.5, -13.5); ctx.lineTo(-4.4, -9.4); ctx.fill(); ctx.beginPath(); ctx.moveTo(4.6, -11.5); ctx.lineTo(8.5, -13.5); ctx.lineTo(4.4, -9.4); ctx.fill();   // 귀
+  ctx.fillStyle = '#5b3f2a'; ctx.fillRect(-5, -14.6, 10, 1.6);                                 // 고글 끈
+  ctx.fillStyle = '#8fd3ff'; ctx.beginPath(); ctx.arc(-2.2, -14.3, 1.7, 0, Math.PI * 2); ctx.arc(2.2, -14.3, 1.7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2b1d14'; ctx.beginPath(); ctx.ellipse(1.6, -10.6, .8, 1.1, 0, 0, Math.PI * 2); ctx.ellipse(-1.2, -10.6, .8, 1.1, 0, 0, Math.PI * 2); ctx.fill();   // 콩눈
+  ctx.fillStyle = 'rgba(255,140,160,.6)'; ctx.fillRect(2.8, -9.2, 1.4, .8);
+  // 곡괭이 (스윙)
+  const a = sw > 0 ? (-1.9 + (1 - sw) * 2.6) : (air ? -.4 : -.9);
+  ctx.translate(3, -6); ctx.rotate(a);
+  ctx.fillStyle = '#8a5a2b'; ctx.fillRect(0, -.8, 8, 1.6);
+  ctx.fillStyle = PICK[clamp(S.pick, 1, 8) - 1].c; ctx.beginPath(); ctx.moveTo(7, -4); ctx.quadraticCurveTo(10.5, 0, 7, 4); ctx.lineTo(8.2, 0); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// ════════════ 기지 (원작 오크 기지: 승강기 · 토큰 제단 · 제련소 · 상점(스킬트리) · 주조소) ════════════
+const HUB = { W: 1320, floor: 0, P: null };
+const STATIONS = [
+  { id: 'lift', x: 120, n: '⬇ 승강기', d: '광산으로 내려가기' },
+  { id: 'altar', x: 360, n: '🔮 토큰 제단', d: '숙련 · 토큰 트리' },
+  { id: 'smelter', x: 620, n: '🔥 제련소', d: '광석 → 주괴' },
+  { id: 'shop', x: 880, n: '🌳 스킬트리', d: '업그레이드' },
+  { id: 'foundry', x: 1140, n: '🏭 주조소', d: '합금 만들기', lock: () => !layerUnlocked(3) ? '크리스탈 동굴을 열면 써요' : '' }];
+let near = null;
+function hubPlayer() { if (!HUB.P) HUB.P = { x: S.hubX || 560, y: 0, vx: 0, vy: 0, face: 1, ground: 1, coyote: 0, buf: 0, dash: 0, dashCd: 0 }; return HUB.P; }
+function hubSolid(x, y) { return y >= 0 || x < 20 || x > HUB.W - 20; }
+function updateHub(dt) {
+  const P = hubPlayer();
+  const dir = (K.right ? 1 : 0) - (K.left ? 1 : 0); P.vx = dir * 220; if (dir) P.face = dir;
+  P.vy = Math.min(1200, P.vy + 980 * dt); if (K.jumpHit && P.y >= 0 && !near) { P.vy = -300; sfx('jump'); } K.jumpHit = 0;
+  P.x = clamp(P.x + P.vx * dt, 30, HUB.W - 30); P.y = Math.min(0, P.y + P.vy * dt); if (P.y >= 0) P.vy = 0;
+  S.hubX = P.x;
+  near = STATIONS.find(s => Math.abs(s.x - P.x) < 60) || null;
+  const pr = $('prompt');
+  if (near) { const lk = near.lock && near.lock(); pr.innerHTML = lk ? `🔒 ${near.n} — ${lk}` : `${near.n} 열기 <small style="color:var(--dim)">${isTouch ? '(⤒ 또는 눌러서)' : '(E · Enter)'}</small>`; pr.classList.add('on'); }
+  else pr.classList.remove('on');
+  camX += (clamp(P.x, VW / 2 / Z, HUB.W - VW / 2 / Z) - camX) * Math.min(1, dt * 6); camY = -60;
+  tickSmelt(); tickFoundry();
+}
+function hubAct() { if (scene !== 'hub' || !near) return; const lk = near.lock && near.lock(); if (lk) { toast('🔒 ' + lk); sfx('no'); return; } openStation(near.id); }
+$('prompt').onclick = hubAct;
+function hubClick(sx, sy) { const wx = (sx - VW / 2) / Z + camX; const s = STATIONS.find(s => Math.abs(s.x - wx) < 50); if (s && sy < VH - 90) { const P = hubPlayer(); if (Math.abs(P.x - s.x) > 60) { P.x = s.x - 30 * Math.sign(s.x - P.x || 1); } near = s; hubAct(); } }
+function drawHub() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 0, VH); g.addColorStop(0, '#1b1424'); g.addColorStop(1, '#0e0a13'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  const ox = VW / 2 - camX * Z, oy = VH / 2 - camY * Z;
+  ctx.setTransform(DPR * Z, 0, 0, DPR * Z, ox * DPR, oy * DPR);
+  // 동굴 천장·바닥
+  ctx.fillStyle = '#2a2033'; ctx.fillRect(-400, -900, HUB.W + 800, 730); ctx.fillStyle = '#231a2b'; for (let x = -200; x < HUB.W + 200; x += 32) ctx.fillRect(x, -172 + ((x / 32) % 3) * 4, 32, 14);
+  ctx.fillStyle = '#3a2c45'; ctx.fillRect(-400, 0, HUB.W + 800, 90); ctx.fillStyle = '#2c2136'; ctx.fillRect(-400, 90, HUB.W + 800, 900); ctx.fillStyle = '#5a4467'; ctx.fillRect(-400, 0, HUB.W + 800, 3);
+  // 나무 기둥 · 등불
+  const t = performance.now() / 1000;
+  for (let x = 0; x <= HUB.W; x += 240) {
+    ctx.fillStyle = '#5b3d26'; ctx.fillRect(x - 5, -172, 10, 172); ctx.fillRect(x - 40, -172, 80, 8);
+    const lx = x + 60, ly = -122, gl = ctx.createRadialGradient(lx, ly, 2, lx, ly, 70); gl.addColorStop(0, `rgba(255,205,120,${.3 + .05 * Math.sin(t * 2 + x)})`); gl.addColorStop(1, 'rgba(255,205,120,0)');
+    ctx.fillStyle = gl; ctx.fillRect(lx - 70, ly - 70, 140, 140);
+    ctx.fillStyle = '#8a6a3a'; ctx.fillRect(lx - 1, -172, 2, 46); ctx.fillStyle = '#ffcf6b'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(lx - 3.5, -127, 7, 9, 2) : ctx.rect(lx - 3.5, -127, 7, 9); ctx.fill();
+  }
+  // 바닥 장식: 버섯 · 상자 (평면 파스텔)
+  for (let x = 40; x < HUB.W; x += 170) { const k = (x / 170) | 0; if (STATIONS.some(s => Math.abs(s.x - x) < 50)) continue;
+    if (k % 2) { ctx.fillStyle = '#e9d8c4'; ctx.fillRect(x - 1.5, -7, 3, 7); ctx.fillStyle = k % 3 ? '#ff9fb8' : '#b8a2ff'; ctx.beginPath(); ctx.ellipse(x, -7, 7, 4.5, 0, Math.PI, 0); ctx.fill(); }
+    else { ctx.fillStyle = '#7a5434'; ctx.fillRect(x - 8, -14, 16, 14); ctx.fillStyle = '#946844'; ctx.fillRect(x - 8, -14, 16, 3); ctx.fillStyle = '#5b3d26'; ctx.fillRect(x - 1, -14, 2, 14); } }
+  for (const s of STATIONS) drawStation(s);
+  const P = hubPlayer(); drawGoblin(P.x, P.y, P.face, 0, P.y < 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+function drawStation(s) {
+  const x = s.x, lk = s.lock && s.lock(), t = performance.now() / 1000;
+  ctx.save(); if (lk) ctx.globalAlpha = .45;
+  if (s.id === 'lift') { ctx.fillStyle = '#4a4a5a'; ctx.fillRect(x - 22, -46, 44, 46); ctx.fillStyle = '#2a2a36'; ctx.fillRect(x - 18, -42, 36, 42); ctx.strokeStyle = '#8a8aa0'; ctx.lineWidth = 1.5; for (let i = -14; i <= 14; i += 7) { ctx.beginPath(); ctx.moveTo(x + i, -42); ctx.lineTo(x + i, 0); ctx.stroke(); } ctx.fillStyle = '#6a6a7a'; ctx.fillRect(x - 1, -172, 2, 126); }
+  if (s.id === 'altar') { ctx.fillStyle = '#4b5a3a'; ctx.fillRect(x - 26, -18, 52, 18); ctx.fillStyle = '#6f8452'; ctx.fillRect(x - 30, -22, 60, 6); ctx.fillStyle = '#ffd36b'; ctx.globalAlpha *= .3 + .15 * Math.sin(t * 3); ctx.beginPath(); ctx.arc(x, -34, 14, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = lk ? .45 : 1; ctx.fillStyle = '#ffcf4d'; ctx.beginPath(); ctx.moveTo(x, -42); ctx.lineTo(x + 6, -34); ctx.lineTo(x, -26); ctx.lineTo(x - 6, -34); ctx.closePath(); ctx.fill(); }
+  if (s.id === 'smelter') { ctx.fillStyle = '#6a6458'; ctx.beginPath(); ctx.moveTo(x - 28, 0); ctx.lineTo(x - 22, -46); ctx.lineTo(x + 22, -46); ctx.lineTo(x + 28, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#4e4a42'; ctx.fillRect(x - 6, -64, 12, 20); const busy = Object.values(S.smelt).some(v => v > 0); ctx.fillStyle = busy ? `rgb(255,${120 + 40 * Math.sin(t * 8) | 0},60)` : '#3a2a22'; ctx.beginPath(); ctx.arc(x, -14, 11, Math.PI, 0); ctx.fill(); ctx.fillRect(x - 11, -14, 22, 14); }
+  if (s.id === 'shop') { ctx.fillStyle = '#7a4a2a'; ctx.fillRect(x - 30, -24, 60, 24); ctx.fillStyle = '#ffb35e'; for (let i = 0; i < 6; i++) { ctx.fillStyle = i % 2 ? '#fff1d6' : '#ff9f43'; ctx.fillRect(x - 32 + i * 11, -50, 11, 12); } ctx.fillStyle = '#5b3d26'; ctx.fillRect(x - 30, -38, 3, 14); ctx.fillRect(x + 27, -38, 3, 14); ctx.fillStyle = '#7fcf6a'; ctx.beginPath(); ctx.arc(x, -30, 5, 0, Math.PI * 2); ctx.fill(); }
+  if (s.id === 'foundry') { ctx.fillStyle = '#5a4f4a'; ctx.fillRect(x - 26, -40, 52, 40); ctx.fillStyle = '#433a36'; ctx.fillRect(x + 8, -70, 10, 30); ctx.fillStyle = S.foundry.length ? '#ff9f43' : '#2a2220'; ctx.fillRect(x - 16, -24, 22, 14); }
+  ctx.globalAlpha = 1;
+  ctx.font = Math.max(8, 12 / Z).toFixed(1) + 'px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = near === s ? '#ffd36b' : '#cbb8dd'; ctx.fillText(s.n, x, -78);
+  if (s.id === 'smelter') { const q = Object.values(S.smelt).reduce((a, b) => a + b, 0); if (q > 0) { ctx.fillStyle = '#ffb35e'; ctx.font = '6px Jua, sans-serif'; ctx.fillText('제련 중 ' + fmt(q), x, -86); } }
+  ctx.restore();
+}
+
+// ════════════ 제련소 (Smelter.gd: 광석 1 → 주괴 1, 0.375초 × 광석별 배수 ÷ 제련 속도) ════════════
+const SMELT_BASE = 0.375;
+function smeltCap() { return ST.smeltSlots() * ST.smeltPer(); }
+function smeltTotal() { return Object.values(S.smelt).reduce((a, b) => a + b, 0); }
+function depositOres() {   // deposit_all_ore: 가방 광석 → 제련소 (칸·칸당 한도까지)
+  let room = smeltCap() - smeltTotal(), moved = 0;
+  for (const L of Object.keys(S.bag)) { const n = Math.min(S.bag[L] | 0, Math.max(0, room)); if (n <= 0) continue; S.bag[L] -= n; if (S.bag[L] <= 0) delete S.bag[L]; S.smelt[L] = (S.smelt[L] | 0) + n; room -= n; moved += n; }
+  if (moved && !S.smeltT) S.smeltT = Date.now();
+  return moved;
+}
+function tickSmelt() {   // 실시간: 브라우저가 켜져 있는 동안 계속 (꺼져 있던 시간도 최대 12시간 반영)
+  const now = Date.now();
+  if (!smeltTotal()) { S.smeltT = 0; return; }
+  if (!S.smeltT) S.smeltT = now;
+  let budget = Math.min(12 * 3600, (now - S.smeltT) / 1000); if (budget < .05) return; S.smeltT = now;
+  const sp = ST.smeltSpeed();
+  for (let L = 0; L < 8 && budget > 0; L++) {
+    const have = S.smelt[L] | 0; if (!have) continue;
+    const per = SMELT_BASE * SMELT_MULT[L] / sp, k = Math.min(have, Math.floor((budget + (S.smeltRem || 0)) / per));
+    if (k <= 0) { S.smeltRem = (S.smeltRem || 0) + budget; budget = 0; break; }
+    S.smeltRem = 0; budget -= k * per; S.smelt[L] = have - k; if (S.smelt[L] <= 0) delete S.smelt[L];
+    let out = k; const dc = ST.doubleSmelt(), yb = ST.doubleSmeltYield();
+    if (dc > 0) for (let i = 0; i < Math.min(k, 2000); i++) if (Math.random() < dc) { out++; out += Math.floor(yb) + (Math.random() < yb % 1 ? 1 : 0); }
+    addCur(BAR_OF_LAYER[L], out);
+  }
+  if (panelKind === 'smelter') renderSmelter();
+}
+// 주조소 (합금)
+function tickFoundry() {
+  if (!S.foundry.length) return;
+  const now = Date.now(), job = S.foundry[0], R0 = RECIPES.find(r => r.id === job.id), need = R0.t / ST.foundrySpeed() * 1000;
+  if (now - job.at >= need) { S.foundry.shift(); addCur(R0.out, 1); if (S.foundry[0]) S.foundry[0].at = now; sfx('coin'); if (panelKind === 'foundry') renderFoundry(); }
+}
+
+// ════════════ HUD ════════════
+const SHOWN_CUR = () => CUR.map((c, i) => i).filter(i => i === 0 || i === 1 || S.cur[i] > 0 || (i === 4 && S.stats.blocks > 0) || (i >= 2 && i <= 9 && S.seen.includes(BAR_OF_LAYER.indexOf(i))));
+function curIcon(i, sz = 18) { const c = CUR[i]; const sym = i === 1 ? '🪨' : i === 4 ? '🪙' : ''; return `<span class="ic" style="width:${sz}px;height:${sz}px;background:${sym ? 'transparent' : c.c};${sym ? '' : 'border:1px solid rgba(255,255,255,.5)'}">${sym}</span>`; }
+function renderCurs() { $('curs').innerHTML = SHOWN_CUR().map(i => `<div class="cur" id="cur${i}" title="${CUR[i].n}">${curIcon(i)}<b>${fmt(S.cur[i])}</b></div>`).join(''); }
+function popCur(i) { const el = $('cur' + i); if (!el) { renderCurs(); return; } el.querySelector('b').textContent = fmt(S.cur[i]); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+function hudXp() { $('lv').textContent = S.lvl; const a = xpFor(S.lvl), b = xpFor(S.lvl + 1), f = S.lvl >= MAX_LEVEL ? 1 : clamp((S.xp - a) / (b - a), 0, 1); $('xpI').style.width = (f * 100) + '%'; $('xpT').textContent = S.lvl >= MAX_LEVEL ? 'MAX' : fmt(S.xp - a) + ' / ' + fmt(b - a); }
+function hudEnergy() { if (!R) return; const f = R.energy / R.maxE; $('eI').style.width = (f * 100) + '%'; $('eT').textContent = Math.ceil(R.energy) + ' / ' + R.maxE; $('ebar').classList.toggle('low', f < .25); }
+function hudBag() {
+  if (scene !== 'mine') return;
+  const used = bagUsed(), slots = ST.slots(), st = ST.stack();
+  $('bag').innerHTML = Array.from({ length: Math.min(slots, 6) }, (_, i) => { const L = used[i]; if (L == null) return '<div class="slot" style="opacity:.5">빈 칸</div>'; const n = S.bag[L]; return `<div class="slot ${n >= st ? 'full' : ''}"><span style="color:${LAYERS[L].oc}">◆</span>${fmt(n)}<small style="color:var(--dim)">/${fmt(st)}</small></div>`; }).join('') + (slots > 6 ? `<div class="slot">+${slots - 6}칸</div>` : '');
+}
+function goalsHtml() {
+  const L = S.lastLayer, out = [];
+  // 다음 지역으로 가는 조건 (원작 HUD 목표: 덩어리 모으기 · 레벨 달성)
+  const nx = LAYERS.findIndex((x, i) => !layerUnlocked(i)); if (nx > 0) {
+    const pl = nx - 1, g = Math.min(S.gems[pl], chunksReq(pl));
+    if (S.pick < nx + 1) out.push(`<span class="${g >= chunksReq(pl) ? 'ok' : ''}">✨ ${LAYERS[pl].chunk} 채굴 <b>(${g}/${chunksReq(pl)})</b></span>`);
+    out.push(`<span class="${S.lvl >= LAYERS[nx].req ? 'ok' : ''}">⭐ 레벨 ${LAYERS[nx].req} 달성 <b>(${S.lvl}/${LAYERS[nx].req})</b></span>`);
+    if (S.gems[pl] >= chunksReq(pl) && S.pick < nx + 1) out.push(`<span class="ok">⛏️ 스킬트리에서 ${PICK[nx].n} 만들기!</span>`);
+  }
+  return out.join('<br>');
+}
+function setHud() {
+  const mine = scene === 'mine';
+  $('energyBox').style.display = mine ? '' : 'none'; $('bag').style.display = mine ? 'flex' : 'none'; $('bReturn').style.display = mine ? '' : 'none';
+  $('prompt').classList.remove('on'); $('touch').style.display = '';
+  document.querySelector('.tb[data-k="dig"]').style.display = mine ? '' : 'none'; document.querySelector('.tb[data-k="dash"]').style.display = mine ? '' : 'none';
+  $('face').innerHTML = faceSvg();
+  renderCurs(); hudXp(); hudEnergy(); hudBag(); $('goals').innerHTML = goalsHtml();
+  $('lvName').textContent = mine ? LAYERS[R.layer].ic + ' ' + LAYERS[R.layer].n : '🏠 오크 기지';
+}
+function faceSvg() { return '<svg viewBox="0 0 40 40" width="46" height="46"><path d="M8 17 L1 11 L9 22Z M32 17 L39 11 L31 22Z" fill="#7fcf6a"/><ellipse cx="20" cy="22" rx="12" ry="11" fill="#7fcf6a"/><rect x="8" y="10" width="24" height="4" rx="2" fill="#5b3f2a"/><circle cx="15" cy="11" r="4" fill="#8fd3ff" stroke="#5b3f2a"/><circle cx="25" cy="11" r="4" fill="#8fd3ff" stroke="#5b3f2a"/><ellipse cx="16" cy="22" rx="1.6" ry="2.2" fill="#2b1d14"/><ellipse cx="24" cy="22" rx="1.6" ry="2.2" fill="#2b1d14"/><rect x="26.5" y="25" width="3" height="1.6" rx=".8" fill="#ff8ca0"/><rect x="10.5" y="25" width="3" height="1.6" rx=".8" fill="#ff8ca0"/></svg>'; }
+
+// ════════════ 오버레이 공통 ════════════
+let panelKind = null, treeOpen = false;
+const anyOverlay = () => panelKind !== null || treeOpen;
+function openPanel(html, results) { $('panel').innerHTML = html; $('panelOv').classList.add('on'); panelKind = results ? 'results' : panelKind; for (const k in K) K[k] = 0; }
+function closeAll() { if (panelKind === 'results') return; $('panelOv').classList.remove('on'); $('treeOv').classList.remove('on'); panelKind = null; treeOpen = false; if (scene === 'hub') setHud(); }
+function closePanelForce() { $('panelOv').classList.remove('on'); panelKind = null; }
+$('panelOv').addEventListener('pointerdown', e => { if (e.target === $('panelOv') && panelKind !== 'results') closeAll(); });
+const xBtn = '<button class="btn sm ghost x" onclick="closeAll()">✕</button>';
+function openStation(id) {
+  for (const k in K) K[k] = 0;
+  if (id === 'lift') { panelKind = 'lift'; renderLift(); }
+  else if (id === 'smelter') { depositOres(); panelKind = 'smelter'; renderSmelter(); }
+  else if (id === 'shop') openTree('main');
+  else if (id === 'altar') { panelKind = 'altar'; renderAltar(); }
+  else if (id === 'foundry') { panelKind = 'foundry'; renderFoundry(); }
+  sfx('buy');
+}
+function renderLift() {
+  openPanel(`<h2>⬇ 승강기 — 어디로 내려갈까요? ${xBtn}</h2><p class="sub">지역마다 캘 수 있는 광석이 달라요. 다음 지역은 <b>레벨</b>과 <b>곡괭이</b>(그 지역 덩어리를 모아 스킬트리에서 제작)가 있어야 열려요.</p>` +
+    LAYERS.map((L, i) => { const ok = layerUnlocked(i), why = ok ? '' : [S.lvl < L.req ? `레벨 ${L.req} 필요 (지금 ${S.lvl})` : '', S.pick < i + 1 ? `${PICK[i].n} 필요` : ''].filter(Boolean).join(' · ');
+      return `<div class="card ${ok ? '' : 'lock'}"><div class="layer"><div class="sw" style="background:${L.rock};color:${L.oc}">${L.ic}</div><div style="flex:1;min-width:0"><h3>${i + 1}. ${L.n}</h3><p>${L.ore} · 블록 체력 ×${L.hp} · 덩어리 ${Math.min(S.gems[i], chunksReq(i))}/${chunksReq(i)}${S.giant[i] ? ' · 🌟' : ''}${why ? `<br><span style="color:var(--red)">🔒 ${why}</span>` : ''}</p></div><button class="btn sm" ${ok ? '' : 'disabled'} data-go="${i}">내려가기</button></div></div>`; }).join(''));
+  $('panel').querySelectorAll('[data-go]').forEach(b => b.onclick = () => { closePanelForce(); startRun(+b.dataset.go); });
+}
+function renderSmelter() {
+  const cap = smeltCap(), tot = smeltTotal(), sp = ST.smeltSpeed(), bagN = Object.values(S.bag).reduce((a, b) => a + b, 0);
+  $('panel').innerHTML = `<h2>🔥 제련소 ${xBtn}</h2><p class="sub">광석 1개 → 주괴 1개. 기지에 있든 광산에 있든 계속 녹여요 (창을 닫아 둔 시간도 최대 12시간까지 반영).</p>
+    <div class="card"><h3>📦 용량 ${fmt(tot)} / ${fmt(cap)} <small style="color:var(--dim);font-weight:normal">(${ST.smeltSlots()}칸 × ${fmt(ST.smeltPer())})</small></h3><div class="prog"><i style="width:${cap ? Math.min(100, tot / cap * 100) : 0}%"></i></div>
+    <p>제련 속도 ×${sp.toLocaleString(undefined, { maximumFractionDigits: 2 })}${ST.doubleSmelt() ? ` · 두 배 제련 ${(ST.doubleSmelt() * 100).toFixed(0)}%` : ''}</p></div>` +
+    (Object.keys(S.smelt).length ? Object.keys(S.smelt).map(L => { const n = S.smelt[L], per = SMELT_BASE * SMELT_MULT[L] / sp; return `<div class="card"><h3><span style="color:${LAYERS[L].oc}">◆</span> ${LAYERS[L].ore} ${fmt(n)}개</h3><p>개당 ${per < 1 ? per.toFixed(2) : per.toFixed(1)}초 · 다 녹이는 데 약 ${dur(n * per)} → ${CUR[BAR_OF_LAYER[L]].n}</p></div>`; }).join('') : '<div class="card"><p>녹일 광석이 없어요 — 광산에서 캐 오세요.</p></div>') +
+    (bagN ? `<div class="card"><h3>🎒 가방에 남은 광석 ${fmt(bagN)}</h3><p>제련소가 가득 차서 못 넣은 광석이에요. 스킬트리의 제련 용량·슬롯을 올리세요.</p><button class="btn sm" id="dep">다시 넣어 보기</button></div>` : '');
+  if ($('dep')) $('dep').onclick = () => { const m = depositOres(); toast(m ? `광석 ${m}개를 넣었어요` : '자리가 없어요'); renderSmelter(); };
+  $('panelOv').classList.add('on');
+}
+const dur = s => s < 60 ? Math.ceil(s) + '초' : s < 3600 ? Math.floor(s / 60) + '분 ' + Math.ceil(s % 60) + '초' : Math.floor(s / 3600) + '시간 ' + Math.floor(s % 3600 / 60) + '분';
+function renderFoundry() {
+  const sp = ST.foundrySpeed();
+  $('panel').innerHTML = `<h2>🏭 주조소 ${xBtn}</h2><p class="sub">주괴를 섞어 합금을 만들어요. 후반 스킬트리 칸에 쓰여요. (원작 제작법 그대로)</p>` +
+    RECIPES.map(r => { const can = r.ing.every(([c, n]) => S.cur[c] >= n), t = r.t / sp, q = S.foundry.filter(j => j.id === r.id).length;
+      return `<div class="card"><h3>${curIcon(r.out)} ${r.n} <small style="color:var(--dim);font-weight:normal">보유 ${fmt(S.cur[r.out])}</small></h3><p>${r.d}</p><p>재료: ${r.ing.map(([c, n]) => `<span style="color:${S.cur[c] >= n ? 'var(--ink)' : 'var(--red)'}">${CUR[c].n} ${n}</span>`).join(' + ')} · ${t.toFixed(1)}초${q ? ` · 대기 ${q}` : ''}</p><div class="row" style="margin-top:6px"><button class="btn sm" data-c="${r.id}" data-n="1" ${can ? '' : 'disabled'}>1개 만들기</button><button class="btn sm ghost" data-c="${r.id}" data-n="10" ${can ? '' : 'disabled'}>최대 10개</button></div></div>`; }).join('') +
+    (S.foundry.length ? `<div class="card"><h3>⏳ 제작 중 ${S.foundry.length}개</h3><div class="prog"><i style="width:${Math.min(100, (Date.now() - S.foundry[0].at) / (RECIPES.find(r => r.id === S.foundry[0].id).t / sp * 1000) * 100)}%"></i></div></div>` : '');
+  $('panel').querySelectorAll('[data-c]').forEach(b => b.onclick = () => { const r = RECIPES.find(x => x.id === b.dataset.c); let k = 0; for (let i = 0; i < +b.dataset.n; i++) { if (!r.ing.every(([c, n]) => S.cur[c] >= n)) break; r.ing.forEach(([c, n]) => S.cur[c] -= n); S.foundry.push({ id: r.id, at: Date.now() }); k++; } if (S.foundry.length === k) S.foundry[0].at = Date.now(); renderCurs(); sfx('buy'); renderFoundry(); save(); });
+  $('panelOv').classList.add('on');
+}
+function renderAltar() {
+  const e0 = mEntry(S.activeM);
+  $('panel').innerHTML = `<h2>🔮 토큰 제단 ${xBtn}</h2><p class="sub">고른 <b>숙련</b>이 블록을 캘 때마다 경험치를 받아 레벨이 올라요 (최대 99). 토큰으로 숙련을 열고, 경험치 배율을 올릴 수 있어요.</p>
+    <div class="row"><div class="cur">${curIcon(4)}<b>${fmt(S.cur[4])}</b></div><button class="btn sm" id="tTree" style="margin-left:auto">🌟 토큰 트리 열기</button></div>` +
+    MASTERY.map(m => { const e = mEntry(m.id), need = mNeed(e.lv), act = S.activeM === m.id, xc = MASTERY_XP_COSTS[e.mul];
+      return `<div class="card" style="${act ? 'border-color:var(--gold)' : ''}"><div class="ml"><span style="font-size:22px">${m.ic}</span><div class="nm">${m.n} <b style="color:var(--gold)">Lv ${e.lv}</b> <small>효과 +${(e.lv * m.per * 100).toFixed(0)}% · 경험치 배율 ×${(1 + .5 * e.mul).toFixed(1)}</small></div>
+      ${!e.on ? `<button class="btn sm" data-un="${m.id}" ${S.cur[4] >= m.cost ? '' : 'disabled'}>🪙${m.cost} 열기</button>` : act ? '<span style="color:var(--gold);font-size:13px">✓ 수련 중</span>' : `<button class="btn sm ghost" data-on="${m.id}">이걸 수련</button>`}</div>
+      ${e.on ? `<div class="prog"><i style="width:${need ? e.xp / need * 100 : 100}%"></i></div><div class="row" style="margin-top:5px;justify-content:space-between"><small style="color:var(--dim)">${need ? Math.floor(e.xp) + ' / ' + need : 'MAX'}</small>${xc != null ? `<button class="btn sm ghost" data-xp="${m.id}" ${S.cur[4] >= xc ? '' : 'disabled'}>경험치 배율 +0.5 (🪙${xc})</button>` : ''}</div>` : ''}</div>`; }).join('');
+  $('panel').querySelectorAll('[data-un]').forEach(b => b.onclick = () => { const m = MASTERY.find(x => x.id === b.dataset.un); if (S.cur[4] < m.cost) return; S.cur[4] -= m.cost; mEntry(m.id).on = true; S.activeM = m.id; sfx('buy'); renderAltar(); renderCurs(); save(); });
+  $('panel').querySelectorAll('[data-on]').forEach(b => b.onclick = () => { S.activeM = b.dataset.on; sfx('tap'); renderAltar(); save(); });
+  $('panel').querySelectorAll('[data-xp]').forEach(b => b.onclick = () => { const e = mEntry(b.dataset.xp), c = MASTERY_XP_COSTS[e.mul]; if (c == null || S.cur[4] < c) return; S.cur[4] -= c; e.mul++; sfx('buy'); renderAltar(); renderCurs(); save(); });
+  $('tTree').onclick = () => { closePanelForce(); openTree('token'); };
+  $('panelOv').classList.add('on');
+}
+
+// ════════════ 스킬트리 (SkillTree.gd · SkillTreeNode.gd) ════════════
+const TV = { kind: 'main', x: 0, y: 0, z: 1, sel: null, drag: null, moved: 0 };
+const tcv = $('tcv'), tctx = tcv.getContext('2d');
+function nodesOf() { return TV.kind === 'token' ? TTREE : TREE; }
+function costOf(n) {   // [[화폐, 값]] (곡괭이 칸 = 덩어리, 덩어리 칸 = 덩어리)
+  const L = lv(n.id); if (L >= n.max) return [];
+  if (n.pick) { const t = PICK[n.pick - 1]; return [['gem', t.layer, t.cost]]; }
+  if (n.chunk) return [['gem', n.chunk[0], n.chunk[1]]];
+  if (n.mc) return n.mc.map(([c, b, inc]) => ['cur', c, b + inc * L]);
+  return [['cur', n.cur, n.base + n.inc * L]];
+}
+const canPay = n => { const c = costOf(n); return c.length && c.every(([k, a, v]) => k === 'gem' ? S.gems[a] >= v : S.cur[a] >= v); };
+const prereqMet = n => n.pre.every(p => !NODE[p] || lv(p) >= NODE[p].max);   // check_prerequisites: 선행 칸이 모두 최대 레벨
+const layerLocked = n => { const y = YIELD_LAYER[fam(n.id)]; return y != null && !layerUnlocked(y); };
+const visible = n => lv(n.id) > 0 || prereqMet(n);
+function pickLocked(n) { return n.pick && S.pick !== n.pick - 1 ? (S.pick >= n.pick ? '이미 있어요' : `${PICK[n.pick - 2].n}부터 만들어야 해요`) : ''; }
+function buyNode(n) {
+  if (!prereqMet(n) || layerLocked(n) || lv(n.id) >= n.max || !canPay(n) || pickLocked(n)) { sfx('no'); return false; }
+  for (const [k, a, v] of costOf(n)) { if (k === 'gem') S.gems[a] -= v; else S.cur[a] -= v; }
+  S.up[n.id] = lv(n.id) + 1;
+  if (n.pick) { S.pick = n.pick; banner('⛏️ ' + PICK[n.pick - 1].n + '!', 2200); toast(`🔓 ${LAYERS[n.pick - 1] ? LAYERS[n.pick - 1].n : ''} — 레벨 ${LAYERS[n.pick - 1] ? LAYERS[n.pick - 1].req : ''}이면 갈 수 있어요`, 3200); }
+  sfx(lv(n.id) >= n.max ? 'level' : 'buy'); save(); return true;
+}
+function openTree(kind) {
+  TV.kind = kind; TV.sel = null; treeOpen = true; panelKind = null; $('panelOv').classList.remove('on'); $('treeOv').classList.add('on'); $('tip').classList.remove('on');
+  const ns = nodesOf(), xs = ns.filter(visible).map(n => n.x), ys = ns.filter(visible).map(n => n.y);
+  TV.x = (Math.min(...xs) + Math.max(...xs)) / 2 || 0; TV.y = (Math.min(...ys) + Math.max(...ys)) / 2 || 0;
+  TV.z = clamp(Math.min(innerWidth / Math.max(240, Math.max(...xs) - Math.min(...xs) + 180), innerHeight / Math.max(240, Math.max(...ys) - Math.min(...ys) + 220)), .45, 1.6);
+  renderTreeTop(); drawTree();
+}
+function renderTreeTop() {
+  const ns = nodesOf(), curs = new Set(); ns.forEach(n => costOf(n).forEach(([k, a]) => k === 'cur' && curs.add(a))); if (TV.kind === 'token') curs.add(4);
+  const gemTxt = TV.kind === 'main' ? S.gems.map((g, i) => g || (S.seen.includes(i)) ? `<div class="cur" title="${LAYERS[i].chunk}"><span style="color:${LAYERS[i].oc}">✨</span><b>${g}</b></div>` : '').join('') : '';
+  $('ttop').innerHTML = `<span class="ttl">${TV.kind === 'token' ? '🌟 토큰 트리' : '🌳 스킬트리'}</span>` + [...curs].sort((a, b) => a - b).filter(i => S.cur[i] > 0 || i <= 1 || i === 4).map(i => `<div class="cur">${curIcon(i)}<b>${fmt(S.cur[i])}</b></div>`).join('') + gemTxt +
+    `<button class="btn sm ghost x" onclick="closeAll()">✕ 닫기</button>`;
+}
+function drawTree() {
+  if (!treeOpen) return;
+  const w = innerWidth, h = innerHeight; tcv.width = w * DPR; tcv.height = h * DPR;
+  const c = tctx; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = c.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, Math.max(w, h)); g.addColorStop(0, TV.kind === 'token' ? '#2a2210' : '#1d1530'); g.addColorStop(1, '#0a0710'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.setTransform(DPR * TV.z, 0, 0, DPR * TV.z, (w / 2 - TV.x * TV.z) * DPR, (h / 2 - TV.y * TV.z) * DPR);
+  const ns = nodesOf(), vis = new Set(ns.filter(visible).map(n => n.id));
+  c.lineCap = 'round';
+  for (const n of ns) if (vis.has(n.id)) for (const p of n.pre) { const q = NODE[p]; if (!q || !vis.has(p)) continue; const on = lv(p) >= q.max; c.strokeStyle = on ? (TV.kind === 'token' ? '#ffcf4d' : '#ffd36b') : 'rgba(180,160,210,.35)'; c.lineWidth = on ? 3 : 2; c.beginPath(); c.moveTo(q.x, q.y); c.lineTo(n.x, n.y); c.stroke(); }
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (const n of ns) {
+    if (!vis.has(n.id)) continue;
+    const L = lv(n.id), max = L >= n.max, aff = !max && prereqMet(n) && canPay(n) && !layerLocked(n) && !pickLocked(n), lock = layerLocked(n), s = 19;
+    if (aff) { c.fillStyle = 'rgba(255,211,107,.25)'; c.beginPath(); c.arc(n.x, n.y, s + 9 + Math.sin(performance.now() / 300) * 2, 0, Math.PI * 2); c.fill(); }
+    rrect(c, n.x - s, n.y - s, s * 2, s * 2, 8); c.fillStyle = lock ? '#3a3440' : shadeHex(n.col, max ? .1 : L ? -.1 : -.45); c.fill();
+    c.lineWidth = n.id === TV.sel ? 4 : 2.5; c.strokeStyle = n.id === TV.sel ? '#fff' : max ? '#7ce3a0' : aff ? '#ffd36b' : lock ? '#5a5060' : 'rgba(255,255,255,.35)'; c.stroke();
+    c.font = '18px sans-serif'; c.globalAlpha = lock ? .4 : L || aff ? 1 : .6; c.fillText(lock ? '🔒' : iconOf(n.id), n.x, n.y - 1); c.globalAlpha = 1;
+    if (n.max > 1 || L) { c.font = 'bold 10px Jua, sans-serif'; c.fillStyle = max ? '#7ce3a0' : '#fff'; rrect(c, n.x - 13, n.y + s - 6, 26, 12, 6); c.fillStyle = 'rgba(0,0,0,.65)'; c.fill(); c.fillStyle = max ? '#7ce3a0' : '#fff'; c.fillText(`${L}/${n.max}`, n.x, n.y + s); }
+  }
+}
+function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function shadeHex(hex, f) { return shade(hex, f); }
+function treeAt(sx, sy) { const wx = (sx - innerWidth / 2) / TV.z + TV.x, wy = (sy - innerHeight / 2) / TV.z + TV.y; return nodesOf().find(n => visible(n) && Math.abs(n.x - wx) < 22 && Math.abs(n.y - wy) < 22) || null; }
+function showTip(n) {
+  TV.sel = n.id; const L = lv(n.id), max = L >= n.max, cost = costOf(n), lk = layerLocked(n), pk = pickLocked(n);
+  const cs = cost.map(([k, a, v]) => k === 'gem' ? `<span class="need ${S.gems[a] >= v ? '' : 'no'}"><span style="color:${LAYERS[a].oc}">✨</span>${LAYERS[a].chunk} ${S.gems[a]}/${v}</span>` : `<span class="need ${S.cur[a] >= v ? '' : 'no'}">${curIcon(a, 16)} ${fmt(v)} <small style="color:var(--dim)">(${fmt(S.cur[a])})</small></span>`).join('');
+  $('tip').innerHTML = `<h3><span>${iconOf(n.id)}</span>${esc(n.n)}</h3><div class="d">${esc(n.d)}</div><div class="l">레벨 ${L} / ${n.max}</div>` +
+    (lk ? `<div class="lk">🔒 ${LAYERS[YIELD_LAYER[fam(n.id)]].n}을(를) 열면 살 수 있어요</div>` : '') + (pk && !max ? `<div class="lk">🔒 ${pk}</div>` : '') +
+    (max ? '<div class="c"><span style="color:var(--green)">✓ 최대 레벨</span></div>' : `<div class="c">${cs}<button class="btn" id="tBuy" ${canPay(n) && !lk && !pk ? '' : 'disabled'}>구매</button></div>`);
+  $('tip').classList.add('on');
+  if ($('tBuy')) $('tBuy').onclick = () => { if (buyNode(n)) { renderTreeTop(); showTip(n); drawTree(); renderCurs(); } };
+  drawTree();
+}
+tcv.addEventListener('pointerdown', e => { TV.drag = { x: e.clientX, y: e.clientY, tx: TV.x, ty: TV.y, id: e.pointerId }; TV.moved = 0; try { tcv.setPointerCapture(e.pointerId); } catch (x) {} TV.pts = TV.pts || new Map(); TV.pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
+tcv.addEventListener('pointermove', e => {
+  if (TV.pts && TV.pts.has(e.pointerId)) TV.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (TV.pts && TV.pts.size === 2) { const [a, b] = [...TV.pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (TV.pinch) TV.z = clamp(TV.z * d / TV.pinch, .35, 2.5); TV.pinch = d; TV.moved = 1; drawTree(); return; }
+  if (!TV.drag) return; const dx = e.clientX - TV.drag.x, dy = e.clientY - TV.drag.y; if (Math.abs(dx) + Math.abs(dy) > 6) TV.moved = 1;
+  if (TV.moved) { TV.x = TV.drag.tx - dx / TV.z; TV.y = TV.drag.ty - dy / TV.z; drawTree(); }
+});
+tcv.addEventListener('pointerup', e => { if (TV.pts) TV.pts.delete(e.pointerId); TV.pinch = 0; if (TV.drag && !TV.moved) { const n = treeAt(e.clientX, e.clientY); if (n) { if (TV.sel === n.id && canPay(n)) { if (buyNode(n)) { renderTreeTop(); renderCurs(); } } showTip(n); } else { TV.sel = null; $('tip').classList.remove('on'); drawTree(); } } TV.drag = null; });
+tcv.addEventListener('wheel', e => { e.preventDefault(); TV.z = clamp(TV.z * (e.deltaY < 0 ? 1.12 : .89), .35, 2.5); drawTree(); }, { passive: false });
+
+// ════════════ 도움말 ════════════
+$('bHelp').onclick = () => { panelKind = 'help'; openPanel(`<h2>❓ 이렇게 해요 ${xBtn}</h2>
+  <div class="card"><h3>⌨️ 조작</h3><p>${isTouch ? '◀ ▶ 걷기 · ⤒ 점프 · ⛏ 아래/앞 캐기 · 💨 대시 · 화면을 길게 누르면 그 쪽 블록을 캐요.' : '← → (A D) 걷기 — 벽을 밀면 그 벽을 캐요 · ↑ W Space 점프 (위가 막혀 있으면 위를 캐요) · ↓ S 아래 캐기 · Shift 대시 · 마우스 왼쪽을 누르고 있으면 조준한 블록을 캐요 · 기지에서 E/Enter 로 시설 열기'}</p></div>
+  <div class="card"><h3>⛏️ 원정</h3><p>곡괭이를 한 번 휘두를 때마다 에너지 1. 에너지가 다 떨어지면 기지로 돌아와요. 돌은 바로 돌 화폐가 되고, 광석은 가방에 담겨 제련소에서 주괴가 돼요.</p></div>
+  <div class="card"><h3>✨ 덩어리 · 곡괭이</h3><p>지역마다 반짝이는 큰 덩어리(20번 쳐야 깨짐)가 있어요. 덩어리를 모아 스킬트리에서 다음 곡괭이를 만들고, 레벨이 되면 더 깊은 지역이 열려요.</p></div>
+  <div class="card"><h3>🌳 성장</h3><p>스킬트리 194칸·토큰 트리·토큰 제단 숙련은 원작 Rock Bottom 의 수치 그대로예요. 선행 칸을 최대 레벨까지 올리면 다음 칸이 나타나요.</p></div>`); };
+
+// ════════════ 루프 ════════════
+let last = performance.now(), SPEED = 1, saveT = 0;
+function frame(ts) {
+  let dt = Math.min(.05, (ts - last) / 1000) * SPEED; last = ts;
+  if (!anyOverlay()) { if (scene === 'mine' && R) updateMine(dt); else if (scene === 'hub') updateHub(dt); }
+  else { tickSmelt(); tickFoundry(); if (panelKind === 'foundry' && S.foundry.length && Math.random() < .2) renderFoundry(); }
+  if (scene === 'mine' && R) drawMine(); else drawHub();
+  saveT += dt; if (saveT > 5) { saveT = 0; save(); if (scene === 'hub') $('goals').innerHTML = goalsHtml(); }
+  requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else last = performance.now(); });
+addEventListener('pagehide', save);
+
+// ════════════ 시작 ════════════
+load(); resize();
+camX = S.hubX || 560;
+if (!lv('wooden_pickaxe')) S.up.wooden_pickaxe = 1;   // 원작 튜토리얼에서 바로 주는 첫 곡괭이
+tickSmelt(); setHud();
+if (!S.intro) { S.intro = 1; setTimeout(() => { $('bHelp').click(); }, 400); save(); }
+requestAnimationFrame(frame);
+// 디버그 (테스트용): bottom.speed(4) · bottom.sim(초) · bottom.cheat(화폐번호, 수)
+function stepSim(sec, dt = 1 / 60) {   // 창이 숨겨져 rAF 가 멈춰도 테스트할 수 있게 고정 간격으로 진행
+  for (let t = 0; t < sec; t += dt) { if (!anyOverlay()) { if (scene === 'mine' && R) updateMine(dt); else if (scene === 'hub') updateHub(dt); } else { tickSmelt(); tickFoundry(); } }
+  if (scene === 'mine' && R) drawMine(); else drawHub();
+}
+window.bottom = { get S() { return S; }, get R() { return R; }, get scene() { return scene; }, K, M, step: stepSim, ST, TTREE, layerUnlocked, hasMaxChunks, openStation, openTree, toScreen: (x, y) => [(x - camX) * Z + VW / 2, (y - camY) * Z + VH / 2], canBuy: n => prereqMet(n) && !layerLocked(n) && lv(n.id) < n.max && canPay(n) && !pickLocked(n),
+  reset: () => { S = fresh(); S.up.wooden_pickaxe = 1; S.intro = 1; R = null; scene = 'hub'; setZoom(); save(); setHud(); }, LAYERS, TREE, NODE, buyNode, startRun, endRun, toHub, xpFor, speed: n => { SPEED = n; }, cheat: (i, n) => { S.cur[i] += n; renderCurs(); }, save, genWorld, swing, costOf, prereqMet, depositOres, tickSmelt };
+</script>
+</body>
+</html>
