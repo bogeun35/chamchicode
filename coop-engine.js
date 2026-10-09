@@ -45,7 +45,19 @@ function level(n,count){
 }
 function create(ids,n=0){const map=level(n,ids.length);return {level:n,map,players:ids.map((id,i)=>({id,x:map.spawn.x+i*33,y:map.spawn.y,w:PW,h:PH,vx:0,vy:0,ground:false,coyote:0,jump:false,key:false,exit:false})),keyTaken:false,gateOpen:false,status:'play',ticks:0,deaths:0};}
 // A vertical-only step must not eject a standing player sideways into another collider.
-function move(a,dx,dy,solids){a.x+=dx;for(const b of solids)if(dx!==0&&overlap(a,b)){a.x=dx>0?b.x-a.w:b.x+b.w;a.vx=0;}a.y+=dy;a.ground=false;for(const b of solids)if(overlap(a,b)){if(dy>=0){a.y=b.y-a.h;a.ground=true;}else a.y=b.y+b.h;a.vy=0;}a.x=Math.max(0,Math.min(W-a.w,a.x));}
+function move(a,dx,dy,solids){
+ const oldX=a.x,oldY=a.y;let x=Math.max(0,Math.min(W-a.w,oldX+dx)),y=oldY+dy;
+ for(const b of solids){if(a.y>=b.y+b.h||a.y+a.h<=b.y)continue;
+  if(dx>0&&oldX+a.w<=b.x+.001&&x+a.w>b.x)x=Math.min(x,b.x-a.w);
+  else if(dx<0&&oldX>=b.x+b.w-.001&&x<b.x+b.w)x=Math.max(x,b.x+b.w);
+ }
+ a.x=x;if(Math.abs(x-oldX-dx)>.001)a.vx=0;if(dy===0)return;a.ground=false;
+ for(const b of solids){if(a.x>=b.x+b.w||a.x+a.w<=b.x)continue;
+  if(dy>=0&&oldY+a.h<=b.y+.001&&y+a.h>=b.y){if(b.y-a.h<=y){y=b.y-a.h;a.ground=true;a.vy=0;}}
+  else if(dy<0&&oldY>=b.y+b.h-.001&&y<b.y+b.h){y=Math.max(y,b.y+b.h);a.vy=0;}
+ }
+ a.y=y;
+}
 function step(s,inputs,dt=1/60){if(s.status!=='play')return;dt=Math.min(dt,1/30);s.ticks++;
  const m=s.map;
  s.switchActive=m.switches.map(sw=>(sw.accept!=='crate'&&s.players.some(p=>!p.exit&&overlap({...p,y:p.y+3},sw)))||(sw.accept!=='player'&&m.crates.some(c=>overlap({...c,y:c.y+3},sw))));
@@ -56,7 +68,7 @@ function step(s,inputs,dt=1/60){if(s.status!=='play')return;dt=Math.min(dt,1/30)
  const edge=input.jumpSeq!==undefined?input.jumpSeq>(p.jumpSeq||0):input.jump&&!p.jump;if(input.jumpSeq!==undefined)p.jumpSeq=input.jumpSeq;if(edge&&p.coyote>0){p.vy=-530;p.coyote=0;}p.jump=!!input.jump;p.vy=Math.min(950,p.vy+1500*dt);
  for(const c of m.crates){const test={...p,x:p.x+p.vx*dt};if(overlap(test,c)){const before=c.x;move(c,p.vx*dt,0,solids.concat(m.crates.filter(other=>other!==c),s.players.filter(other=>other!==p&&!other.exit)));if(c.x===before)p.vx=0;}}
  // Check stack headroom after horizontal movement, so a teammate cannot lift us through a ceiling edge.
- move(p,p.vx*dt,0,solids.concat(m.crates));const others=s.players.filter(o=>o!==p&&!o.exit&&o.y>=p.y+PH-8&&p.vy>=0&&!solids.concat(m.crates).some(b=>overlap({...p,y:o.y-PH},b)));move(p,0,p.vy*dt,solids.concat(m.crates,others));
+ const others=s.players.filter(o=>o!==p&&!o.exit);move(p,p.vx*dt,0,solids.concat(m.crates,others));move(p,0,p.vy*dt,solids.concat(m.crates,others));
  if(!s.keyTaken&&overlap(p,m.key)){s.keyTaken=true;p.key=true;}
  if(s.keyTaken&&s.gateOpen&&overlap(p,m.exit)){p.exit=true;p.vx=0;p.vy=0;p.ground=false;continue;}
  if(p.y>H+50||m.hazards.some(h=>Hazards.hit(p,h,'spike'))){s.status='dead';s.failure={playerId:p.id,reason:p.y>H+50?'fall':'hazard'};s.deaths++;return;}

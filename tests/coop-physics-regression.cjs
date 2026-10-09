@@ -15,6 +15,8 @@ const solidClear=(s,label)=>{
 // Actual stage 11, no position/state injection: previously the boxes overlapped on frame 148.
 for(const dt of [1/60,1/30]){
  const s=E.create(['a','b'],10);
+ // Keep the second player behind the crate tester; teammates now correctly block movement.
+ s.players[1].x=20;
  for(let frame=0;frame<500;frame++){tick(s,{a:{right:true}},1,dt);solidClear(s,`cargo ${dt} frame ${frame}`);}
  assert.equal(s.map.crates[0].x+s.map.crates[0].w,s.map.crates[1].x);
  assert.equal(s.map.crates[1].x,720,'a blocked push must not teleport the second box');
@@ -29,6 +31,7 @@ for(const dt of [1/60,1/30]){
 // Actual stage 17: push into its closed gate until blocked; no wall crossing or spontaneous unlock.
 {
  const s=E.create(['a','b'],16);
+ s.players[1].x=20;
  for(let frame=0;frame<600;frame++){tick(s,{a:{right:true}});solidClear(s,`gate push ${frame}`);}
  assert.equal(s.gateOpen,false,'upper teammate station cannot be replaced by a floor box');
  assert(s.map.crates[0].x+s.map.crates[0].w<=s.map.gate.x);
