@@ -13,6 +13,7 @@
   "musicDecodeLoopPauseToggle": true,
   "muteQueryPreventsPlayback": true,
   "inputReplayStartsEightAndStaysSilent": true,
+  "replaySpeedKeyboardToggle": true,
   "reviewCardsAndReport": true,
   "audio": "Chrome --mute-audio throughout",
   "pageErrors": [],

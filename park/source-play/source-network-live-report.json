@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-10-09T11:43:22.666Z",
+  "backend": "Firebase RTDB via actual browser compat SDK",
+  "code": "18292C57",
+  "contexts": 8,
+  "checks": {
+    "eightIsolatedClientsJoined": true,
+    "allReadyReceived": true,
+    "startSnapshotReceivedByEight": true,
+    "peerInputReceivedByHost": true,
+    "jumpEdgeRetainedAfterRelease": true,
+    "clearSnapshotReceivedByEight": true,
+    "emptyRoomDeleted": true
+  },
+  "errors": [],
+  "passed": true,
+  "callbackCounts": [
+    19,
+    18,
+    17,
+    16,
+    15,
+    14,
+    13,
+    12
+  ]
+}

@@ -1657,7 +1657,51 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p2": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p2": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 20,
+      "inputs": {
+        "p2": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 11,
+      "inputs": {
+        "p2": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 166,
       "inputs": {
         "p3": {
           "right": true,
@@ -1670,7 +1714,42 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p3": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p3": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 32,
+      "inputs": {
+        "p3": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 165,
       "inputs": {
         "p4": {
           "right": true,
@@ -1683,7 +1762,42 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p4": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p4": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 44,
+      "inputs": {
+        "p4": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 171,
       "inputs": {
         "p5": {
           "right": true,
@@ -1696,7 +1810,42 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p5": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p5": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 56,
+      "inputs": {
+        "p5": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 159,
       "inputs": {
         "p6": {
           "right": true,
@@ -1709,7 +1858,42 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p6": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p6": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 68,
+      "inputs": {
+        "p6": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 158,
       "inputs": {
         "p7": {
           "right": true,
@@ -1722,7 +1906,42 @@
       "inputs": {}
     },
     {
-      "frames": 1000,
+      "frames": 10,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 80,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 200,
       "inputs": {
         "p8": {
           "right": true,
@@ -1733,11 +1952,2441 @@
     {
       "frames": 40,
       "inputs": {}
+    },
+    {
+      "frames": 24,
+      "inputs": {
+        "p8": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p8": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 92,
+      "inputs": {
+        "p8": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 98,
+      "inputs": {
+        "p8": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 99,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 2,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 29,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 160,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 31,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 12,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 19,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 200,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 110,
+      "inputs": {
+        "p6": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 112,
+      "inputs": {
+        "p5": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 113,
+      "inputs": {
+        "p4": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 114,
+      "inputs": {
+        "p3": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 116,
+      "inputs": {
+        "p2": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 116,
+      "inputs": {
+        "p1": {
+          "right": true,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 41,
+      "inputs": {}
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p7": {
+          "right": true,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 31,
+      "inputs": {
+        "p7": {
+          "right": false,
+          "jump": false
+        }
+      }
+    },
+    {
+      "frames": 299,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 93,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "left": true,
+          "up": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 11,
+      "inputs": {
+        "p1": {
+          "left": true,
+          "up": true
+        },
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 3,
+      "inputs": {
+        "p1": {},
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {
+          "left": true,
+          "up": true
+        },
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 8,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 2,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {
+          "left": true,
+          "up": true
+        },
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 11,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {
+          "left": true,
+          "up": true
+        },
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 8,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {
+          "left": true,
+          "up": true
+        },
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 7,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "right": true,
+          "left": false,
+          "jump": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 8,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 14,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 8,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {
+          "left": true,
+          "up": true
+        }
+      }
+    },
+    {
+      "frames": 6,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 1,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "right": true,
+          "left": false,
+          "jump": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 160,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 95,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "left": true,
+          "up": true
+        },
+        "p8": {}
+      }
+    },
+    {
+      "frames": 196,
+      "inputs": {}
+    },
+    {
+      "frames": 182,
+      "inputs": {
+        "p7": {
+          "left": true
+        }
+      }
+    },
+    {
+      "frames": 40,
+      "inputs": {}
+    },
+    {
+      "frames": 40,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {
+          "left": true,
+          "up": true
+        },
+        "p7": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 51,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p7": {},
+        "p8": {}
+      }
+    },
+    {
+      "frames": 140,
+      "inputs": {
+        "p1": {},
+        "p2": {},
+        "p3": {},
+        "p4": {},
+        "p5": {},
+        "p6": {},
+        "p7": {
+          "left": true,
+          "up": true
+        },
+        "p8": {}
+      }
     }
   ],
-  "scope": "Natural spawn, gap, spring staircase tower, first stair and first switch approach",
-  "fullRouteVerified": false,
+  "scope": "Complete input-only source01-01: natural spawn through key pickup and every player entering goal",
+  "fullRouteVerified": true,
   "placementsUsed": false,
+  "stateMutationUsed": false,
+  "fixtureFlagsUsed": false,
   "milestones": [
     {
       "name": "first player crosses gap and reaches spring row",
@@ -2165,7 +4814,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 5610,
+      "tick": 5746,
       "players": [
         {
           "id": "p1",
@@ -2177,7 +4826,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2236,7 +4885,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 6650,
+      "tick": 6089,
       "players": [
         {
           "id": "p1",
@@ -2248,7 +4897,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2256,7 +4905,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2307,7 +4956,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 7690,
+      "tick": 6443,
       "players": [
         {
           "id": "p1",
@@ -2319,7 +4968,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2327,7 +4976,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2335,7 +4984,7 @@
         },
         {
           "id": "p4",
-          "x": 1818,
+          "x": 2063,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2378,7 +5027,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 8730,
+      "tick": 6815,
       "players": [
         {
           "id": "p1",
@@ -2390,7 +5039,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2398,7 +5047,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2406,7 +5055,7 @@
         },
         {
           "id": "p4",
-          "x": 1818,
+          "x": 2063,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2414,7 +5063,7 @@
         },
         {
           "id": "p5",
-          "x": 1786,
+          "x": 2099,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2449,7 +5098,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 9770,
+      "tick": 7187,
       "players": [
         {
           "id": "p1",
@@ -2461,7 +5110,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2469,7 +5118,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2477,7 +5126,7 @@
         },
         {
           "id": "p4",
-          "x": 1818,
+          "x": 2063,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2485,7 +5134,7 @@
         },
         {
           "id": "p5",
-          "x": 1786,
+          "x": 2099,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2493,7 +5142,7 @@
         },
         {
           "id": "p6",
-          "x": 1754,
+          "x": 2135,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2520,7 +5169,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 10810,
+      "tick": 7570,
       "players": [
         {
           "id": "p1",
@@ -2532,7 +5181,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2540,7 +5189,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2548,7 +5197,7 @@
         },
         {
           "id": "p4",
-          "x": 1818,
+          "x": 2063,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2556,7 +5205,7 @@
         },
         {
           "id": "p5",
-          "x": 1786,
+          "x": 2099,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2564,7 +5213,7 @@
         },
         {
           "id": "p6",
-          "x": 1754,
+          "x": 2135,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2572,7 +5221,7 @@
         },
         {
           "id": "p7",
-          "x": 1722,
+          "x": 2171,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2581,7 +5230,7 @@
         {
           "id": "p8",
           "x": 1383,
-          "y": 324.89422607421875,
+          "y": 664.1998291015625,
           "grounded": false,
           "supportId": null,
           "exit": false
@@ -2591,7 +5240,7 @@
     },
     {
       "name": "remaining player first spring launch and stair climb",
-      "tick": 11850,
+      "tick": 8021,
       "players": [
         {
           "id": "p1",
@@ -2603,7 +5252,7 @@
         },
         {
           "id": "p2",
-          "x": 1882,
+          "x": 1991,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2611,7 +5260,7 @@
         },
         {
           "id": "p3",
-          "x": 1850,
+          "x": 2027,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2619,7 +5268,7 @@
         },
         {
           "id": "p4",
-          "x": 1818,
+          "x": 2063,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2627,7 +5276,7 @@
         },
         {
           "id": "p5",
-          "x": 1786,
+          "x": 2099,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2635,7 +5284,7 @@
         },
         {
           "id": "p6",
-          "x": 1754,
+          "x": 2135,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2643,7 +5292,7 @@
         },
         {
           "id": "p7",
-          "x": 1722,
+          "x": 2171,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2651,7 +5300,7 @@
         },
         {
           "id": "p8",
-          "x": 1690,
+          "x": 2207,
           "y": 434,
           "grounded": true,
           "supportId": "terrain:22",
@@ -2659,7 +5308,514 @@
         }
       ],
       "playerId": "p8"
+    },
+    {
+      "name": "second scout reaches delay switch approach",
+      "tick": 9106,
+      "players": [
+        {
+          "id": "p1",
+          "x": 1957,
+          "y": 425,
+          "grounded": true,
+          "supportId": "source:a12",
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 1991,
+          "y": 434,
+          "grounded": true,
+          "supportId": "terrain:22",
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 2027,
+          "y": 434,
+          "grounded": true,
+          "supportId": "terrain:22",
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 2063,
+          "y": 434,
+          "grounded": true,
+          "supportId": "terrain:22",
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 2099,
+          "y": 434,
+          "grounded": true,
+          "supportId": "terrain:22",
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 2135,
+          "y": 434,
+          "grounded": true,
+          "supportId": "terrain:22",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2849,
+          "y": 146,
+          "grounded": true,
+          "supportId": "terrain:10",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2501,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a34",
+          "exit": false
+        }
+      ]
+    },
+    {
+      "name": "second spring launch queue",
+      "tick": 10027,
+      "players": [
+        {
+          "id": "p1",
+          "x": 2305,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a29",
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 2337,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a30",
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 2369,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a30",
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 2401,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a31",
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 2433,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a32",
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 2465,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a33",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2849,
+          "y": 146,
+          "grounded": true,
+          "supportId": "terrain:10",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2501,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a34",
+          "exit": false
+        }
+      ]
+    },
+    {
+      "name": "delay switch pressed",
+      "tick": 10073,
+      "players": [
+        {
+          "id": "p1",
+          "x": 2305,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a29",
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 2337,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a30",
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 2369,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a30",
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 2401,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a31",
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 2433,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a32",
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 2465,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a33",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2885,
+          "y": 137,
+          "grounded": true,
+          "supportId": "source:a35",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2501,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a34",
+          "exit": false
+        }
+      ],
+      "pressed": true
+    },
+    {
+      "name": "earlier wave goal entry and survivor recovery",
+      "tick": 11373,
+      "players": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 2037,
+          "y": 50,
+          "grounded": true,
+          "supportId": "terrain:5",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2885,
+          "y": 137,
+          "grounded": true,
+          "supportId": "source:a35",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "launched": [
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5",
+        "p8",
+        "p6"
+      ],
+      "keyTaken": true,
+      "enteredCount": 6
+    },
+    {
+      "name": "new countdown armed before scout return",
+      "tick": 11569,
+      "players": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 2037,
+          "y": 50,
+          "grounded": true,
+          "supportId": "terrain:5",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2885,
+          "y": 137,
+          "grounded": true,
+          "supportId": "source:a35",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "remaining": 5
+    },
+    {
+      "name": "scout returned",
+      "tick": 11791,
+      "players": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 2037,
+          "y": 50,
+          "grounded": true,
+          "supportId": "terrain:5",
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2339,
+          "y": 540,
+          "grounded": true,
+          "supportId": "source:a30",
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "remaining": 1.3000000000000131
+    },
+    {
+      "name": "all player goal entry",
+      "tick": 12022,
+      "players": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p7",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p8",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "enteredCount": 8,
+      "status": "clear",
+      "keyTaken": true
     }
   ],
-  "terminalStatus": "play"
+  "terminalStatus": "clear"
 }

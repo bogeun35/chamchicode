@@ -1,0 +1,6263 @@
+{
+  "schemaVersion": 1,
+  "stage": "PP2 source01-01",
+  "generatedAt": "2026-10-09T12:01:12.894Z",
+  "audio": "none (headless simulation)",
+  "runtimeSha256": "e75dfdc691536a3d8c6a65e4395116674b19311cb56d752c9f2b2c1f1fdcf982",
+  "fullRouteVerified": true,
+  "humanPlayVerified": false,
+  "nativeExecutableVerified": false,
+  "cases": [
+    {
+      "count": 2,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 4598,
+      "seconds": 76.63333333333027,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 2,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": true,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 11,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 458,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 1020,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 2
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 1158,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1600,
+              "y": 722,
+              "grounded": true,
+              "supportId": "terrain:37",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a21",
+              "exit": false
+            }
+          ],
+          "passed": true,
+          "requiredRise": 60
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 1158,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1600,
+              "y": 722,
+              "grounded": true,
+              "supportId": "terrain:37",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a21",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 1700,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 777.9499816894531,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 2212,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 3440,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 3440,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 3555,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2384,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a25",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 4009,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p2"
+          ],
+          "keyTaken": true,
+          "enteredCount": 1
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 4145,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 4367,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a24",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 4598,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 2,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 120,
+      "recordedFrames": 4598
+    },
+    {
+      "count": 3,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 5857,
+      "seconds": 97.61666666666241,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 3,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": true,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 620,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 441,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 1595,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 3
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 1725,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 674,
+              "grounded": true,
+              "supportId": "terrain:35",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a21",
+              "exit": false
+            }
+          ],
+          "passed": true,
+          "requiredRise": 62
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 1725,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 674,
+              "grounded": true,
+              "supportId": "terrain:35",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a21",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 2221,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a21",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 2733,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 334.6434020996094,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 3338,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 4543,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 4699,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a24",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 4814,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a24",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2384,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 5268,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p3"
+          ],
+          "keyTaken": true,
+          "enteredCount": 2
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 5404,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 5626,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a25",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 5857,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 3,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 163,
+      "recordedFrames": 5857
+    },
+    {
+      "count": 4,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 7018,
+      "seconds": 116.96666666666131,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 4,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": true,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 1839,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 424,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 184,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 2198,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1443,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 4
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 2321,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 626,
+              "grounded": true,
+              "supportId": "terrain:33",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a20",
+              "exit": false
+            }
+          ],
+          "passed": true,
+          "requiredRise": 64
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 2321,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 626,
+              "grounded": true,
+              "supportId": "terrain:33",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a20",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 2817,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a20",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 3329,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a20",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 3842,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 398.9906005859375,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 4367,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p4"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 5548,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 5860,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a25",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 5975,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a25",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2384,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 6430,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p2",
+            "p4"
+          ],
+          "keyTaken": true,
+          "enteredCount": 3
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 6565,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 6787,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 7018,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 4,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 197,
+      "recordedFrames": 7018
+    },
+    {
+      "count": 5,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 8351,
+      "seconds": 139.18333333333624,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 5,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": true,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 3614,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 408,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 184,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 234,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 2832,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1468,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1443,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 5
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 2946,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 578,
+              "grounded": true,
+              "supportId": "terrain:31",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "passed": true,
+          "requiredRise": 66
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 2946,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1612,
+              "y": 578,
+              "grounded": true,
+              "supportId": "terrain:31",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 3442,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 3954,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 4467,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 4992,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 432.1395568847656,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p4"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5529,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p5"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 6686,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 7152,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 7308,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a26",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2401,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 7774,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p2",
+            "p3",
+            "p5"
+          ],
+          "keyTaken": true,
+          "enteredCount": 4
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 7898,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 8120,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 8351,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 5,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 243,
+      "recordedFrames": 8351
+    },
+    {
+      "count": 6,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 10043,
+      "seconds": 167.38333333335868,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 6,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": false,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 9729,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 391,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 184,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 234,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 284,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 3495,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1493,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1468,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1443,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 6
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 3601,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1552,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "passed": false,
+          "requiredRise": 68
+        },
+        {
+          "name": "delayed carrier jump and top re-jump",
+          "tick": 3742,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1666,
+              "y": 530,
+              "grounded": true,
+              "supportId": "terrain:28",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 3742,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1666,
+              "y": 530,
+              "grounded": true,
+              "supportId": "terrain:28",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 4192,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 4658,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1502,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5125,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5604,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a19",
+              "exit": false
+            }
+          ],
+          "playerId": "p4"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6095,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1430,
+              "y": 334.6465759277344,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p5"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6598,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p6"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 7731,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 8350,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2402,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 8396,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a27",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2402,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 9434,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p6"
+          ],
+          "keyTaken": true,
+          "enteredCount": 5
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 9590,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 9812,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 10043,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 6,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 333,
+      "recordedFrames": 10043
+    },
+    {
+      "count": 7,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 11094,
+      "seconds": 184.90000000003928,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 7,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": false,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 15087,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 374,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 184,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 234,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 284,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 334,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 4186,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1515,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1493,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1468,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1443,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 7
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 4285,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1552,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "passed": false,
+          "requiredRise": 70
+        },
+        {
+          "name": "delayed carrier jump and top re-jump",
+          "tick": 4426,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1669,
+              "y": 482,
+              "grounded": true,
+              "supportId": "terrain:25",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 4426,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1669,
+              "y": 482,
+              "grounded": true,
+              "supportId": "terrain:25",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 4876,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1530,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5296,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5717,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6150,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1458,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "playerId": "p4"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6595,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a18",
+              "exit": false
+            }
+          ],
+          "playerId": "p5"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 7052,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 828,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p6"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 7521,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2171,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p7"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 8630,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 9401,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2402,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2435,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 9447,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a28",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2402,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2435,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 10485,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "p7"
+          ],
+          "keyTaken": true,
+          "enteredCount": 6
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 10641,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 10863,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 11094,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p7",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 7,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p7",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 359,
+      "recordedFrames": 11094
+    },
+    {
+      "count": 8,
+      "placementsUsed": false,
+      "stateMutationUsed": false,
+      "fixtureFlagsUsed": false,
+      "ticks": 12022,
+      "seconds": 200.36666666671826,
+      "status": "clear",
+      "keyTaken": true,
+      "fullRouteVerified": true,
+      "firstGapPassed": true,
+      "towerPlayers": 8,
+      "firstStairPassed": true,
+      "directTowerJumpPassed": false,
+      "overlapTicks": 0,
+      "includingExitedOverlapTicks": 20841,
+      "activePlayerOverlapTicks": 0,
+      "deaths": 0,
+      "milestones": [
+        {
+          "name": "first player crosses gap and reaches spring row",
+          "tick": 358,
+          "players": [
+            {
+              "id": "p1",
+              "x": 84,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 134,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 184,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 234,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 284,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 334,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 384,
+              "y": 866,
+              "grounded": true,
+              "supportId": "terrain:42",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "full staircase tower assembled",
+          "tick": 4908,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1540,
+              "y": 506,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1515,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1493,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1468,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1443,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1421,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1396,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1371,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "towerHeightPlayers": 8
+        },
+        {
+          "name": "direct top held-jump attempt",
+          "tick": 4998,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1552,
+              "y": 506,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "passed": false,
+          "requiredRise": 72
+        },
+        {
+          "name": "delayed carrier jump and top re-jump",
+          "tick": 5139,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1669,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first stair reached by normal inputs",
+          "tick": 5139,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1669,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "first source switch approach",
+          "tick": 5405,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1527,
+              "y": 552,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 5746,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 1505,
+              "y": 598,
+              "grounded": true,
+              "supportId": "p4",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "playerId": "p2"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6089,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 1480,
+              "y": 644,
+              "grounded": true,
+              "supportId": "p5",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "playerId": "p3"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6443,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 1455,
+              "y": 690,
+              "grounded": true,
+              "supportId": "p6",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "playerId": "p4"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 6815,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 1433,
+              "y": 736,
+              "grounded": true,
+              "supportId": "p7",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "playerId": "p5"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 7187,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 1408,
+              "y": 782,
+              "grounded": true,
+              "supportId": "p8",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 828,
+              "grounded": true,
+              "supportId": "source:a17",
+              "exit": false
+            }
+          ],
+          "playerId": "p6"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 7570,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2171,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1383,
+              "y": 664.1998291015625,
+              "grounded": false,
+              "supportId": null,
+              "exit": false
+            }
+          ],
+          "playerId": "p7"
+        },
+        {
+          "name": "remaining player first spring launch and stair climb",
+          "tick": 8021,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2171,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 2207,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            }
+          ],
+          "playerId": "p8"
+        },
+        {
+          "name": "second scout reaches delay switch approach",
+          "tick": 9106,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1957,
+              "y": 425,
+              "grounded": true,
+              "supportId": "source:a12",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 1991,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2027,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2063,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2099,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2135,
+              "y": 434,
+              "grounded": true,
+              "supportId": "terrain:22",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "second spring launch queue",
+          "tick": 10027,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2401,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2433,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2465,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2849,
+              "y": 146,
+              "grounded": true,
+              "supportId": "terrain:10",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            }
+          ]
+        },
+        {
+          "name": "delay switch pressed",
+          "tick": 10073,
+          "players": [
+            {
+              "id": "p1",
+              "x": 2305,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a29",
+              "exit": false
+            },
+            {
+              "id": "p2",
+              "x": 2337,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p3",
+              "x": 2369,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p4",
+              "x": 2401,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a31",
+              "exit": false
+            },
+            {
+              "id": "p5",
+              "x": 2433,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a32",
+              "exit": false
+            },
+            {
+              "id": "p6",
+              "x": 2465,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a33",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a35",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 2501,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a34",
+              "exit": false
+            }
+          ],
+          "pressed": true
+        },
+        {
+          "name": "earlier wave goal entry and survivor recovery",
+          "tick": 11373,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2037,
+              "y": 50,
+              "grounded": true,
+              "supportId": "terrain:5",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a35",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "launched": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "p8",
+            "p6"
+          ],
+          "keyTaken": true,
+          "enteredCount": 6
+        },
+        {
+          "name": "new countdown armed before scout return",
+          "tick": 11569,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2037,
+              "y": 50,
+              "grounded": true,
+              "supportId": "terrain:5",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2885,
+              "y": 137,
+              "grounded": true,
+              "supportId": "source:a35",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 5
+        },
+        {
+          "name": "scout returned",
+          "tick": 11791,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 2037,
+              "y": 50,
+              "grounded": true,
+              "supportId": "terrain:5",
+              "exit": false
+            },
+            {
+              "id": "p7",
+              "x": 2339,
+              "y": 540,
+              "grounded": true,
+              "supportId": "source:a30",
+              "exit": false
+            },
+            {
+              "id": "p8",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "remaining": 1.3000000000000131
+        },
+        {
+          "name": "all player goal entry",
+          "tick": 12022,
+          "players": [
+            {
+              "id": "p1",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p2",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p3",
+              "x": 1918,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p4",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p5",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p6",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p7",
+              "x": 1919,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            },
+            {
+              "id": "p8",
+              "x": 1917,
+              "y": 50,
+              "grounded": false,
+              "supportId": null,
+              "exit": true
+            }
+          ],
+          "enteredCount": 8,
+          "status": "clear",
+          "keyTaken": true
+        }
+      ],
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p2",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p3",
+          "x": 1918,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p4",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p5",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p6",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p7",
+          "x": 1919,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        },
+        {
+          "id": "p8",
+          "x": 1917,
+          "y": 50,
+          "grounded": false,
+          "supportId": null,
+          "exit": true
+        }
+      ],
+      "bottleneck": null,
+      "fidelityLimitations": [
+        "Native tick frequency (60 Hz explicit prototype calibration)",
+        "Native collision pushback and update ordering equivalence",
+        "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+      ],
+      "freshSpawnReplayMatched": true,
+      "recordedCommandGroups": 429,
+      "recordedFrames": 12022
+    }
+  ],
+  "summary": {
+    "countsTested": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "firstStairPassed": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "fullRoutePassed": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "activeOverlapCounts": [],
+    "scope": "Complete source-runtime input route; no placements, manual warps, key opening or exit flags."
+  }
+}

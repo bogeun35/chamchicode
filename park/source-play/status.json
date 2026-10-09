@@ -3,7 +3,29 @@
   "label": "원본 첫 라운드 연결 검수",
   "sourceRoundsConnected": 1,
   "originalFidelityReviewedRounds": 0,
-  "localOnlyControls": true,
+  "localOnlyControls": false,
+  "online": {
+    "minPlayers": 2,
+    "maxPlayers": 8,
+    "backend": "existing Firebase RTDB",
+    "hostAuthoritative": true,
+    "protocol": "source-park-v1"
+  },
+  "functionalRoute": {
+    "stage": "st_w_01_01",
+    "counts": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "inputOnlyClearVerified": true,
+    "originalFidelityVerified": false,
+    "humanFunVerified": false
+  },
   "audio": {
     "type": "original procedural composition",
     "file": "audio/park-together.wav",

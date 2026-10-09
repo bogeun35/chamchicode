@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-10-09T12:03:38.749Z",
+  "backend": "Actual Firebase RTDB; integrated UI; eight isolated Chrome contexts",
+  "checks": {
+    "eightUiRosters": true,
+    "eightUiGamesStarted": true,
+    "guestOwnMovementAndDigitIsolation": true,
+    "guestRightMovement": true,
+    "hostPausePropagated": true,
+    "snapshotMirroredToAll": true,
+    "guestCannotResumeHostPause": true,
+    "hostResumePropagated": true,
+    "hostDepartureElectsNewHostAndLobby": true,
+    "sevenUiClientsRestartAfterReadiness": true,
+    "allClientsExitThroughUi": true,
+    "emptyTestRoomDeleted": true
+  },
+  "browserErrors": [],
+  "errors": [],
+  "passed": true,
+  "code": "KVRKVI",
+  "networkDiagnostics": [
+    {
+      "id": "p5ccc5b077d0248c2adaf49f703ada23f",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "p7d70a012a3f042d09be5a3170a6d3366",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": false
+        }
+      ]
+    },
+    {
+      "id": "pfc231e9ae6494d2b8502923aaf6b17ca",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "p5054974753124ec880f7af053e0fbc71",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": false,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "p0466577b560e4712a0b2c9a618b08a3d",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": false,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "pe98896ae768848fb997512a402c28a0f",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "p749791c752c14d70a67b6490253730d4",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "pc3dc4e9abe0242738b65b633be73c2e4",
+      "errors": [],
+      "transactions": [
+        {
+          "committed": true,
+          "exists": true
+        },
+        {
+          "committed": true,
+          "exists": true
+        }
+      ]
+    }
+  ]
+}
