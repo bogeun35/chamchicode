@@ -59,6 +59,12 @@ function simulate(s,inputs,dt){
   p.vy=Math.min(config.maxFallSpeed,p.vy+config.gravity*dt);
   moveY(p,p.vy*dt,[...terrain,...activePlayers.filter(other=>other!==p)]);
  }
+ // Exited players cannot return to help. Preserve the initial all-player
+ // requirement, then let the remaining team recover this stage's lift.
+ // This is a recovery rule for the reconstruction, not source calibration.
+ if(s.map.id==='pico1/world/01-01')for(const d of s.map.devices){
+  if(d.id==='team-lift'&&d.kind==='lift')d.requiredPlayers=Math.max(1,activePlayers.length);
+ }
  const devices=D.stepDevices({bodies:activePlayers,buttons:s.map.switches,devices:s.map.devices,timers:s.map.timers,solids:s.map.platforms},dt,{}, {contactTolerance:config.contactTolerance});
  const updated=new Map(devices.bodies.map(p=>[p.id,p]));
  s.players=s.players.map(p=>updated.get(p.id)||p);s.map.devices=devices.devices;s.map.switches=devices.buttons;s.map.timers=devices.timers;s.signals=devices.signals;
