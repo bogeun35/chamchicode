@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scope": "Static schema for JumpStand, JumpStandMediator, Switch, DelaySwitch; runtime implements world01-01 relay subset only",
+  "nativeExecuted": false,
+  "testsRun": false,
+  "input": "Original raw actorCreateParamList or imported source-world actors, population count 2..8; caller owns verified directional collision facts and velocity unit conversion",
+  "parameterEncoding": {"1": "numeric f, native FP Q16.16", "2": "string s", "integer": "numeric FP arithmetic shift by 16; flags compare integer portion"},
+  "types": {
+    "JumpStand": {
+      "parseVA": "0x181868400",
+      "slots": {"0": "m_JumpVelo.x", "1": "m_JumpVelo.y", "2": "m_IsAffectAll (unsigned integer portion > 0)", "3": "m_ParentName", "4": "m_SwitchType (signed byte integer portion)", "5": "m_DelaySec (replace default only if > 0)", "6": "m_AppearSec (replace default only if > 0)", "7": "m_DisappearSec (replace default only if > 0)", "8": "m_IsKeepVeloX (integer portion != 0)"},
+      "fieldPointerConvention": "Disassembly value-type pointer offsets equal metadata boxed offsets minus 16",
+      "collisionRect": {"height":34,"width":32,"x":-16,"y":-34},
+      "mediatedCollisionRect": {"height":38,"width":32,"x":-16,"y":-38},
+      "collisionEvidence": ["JumpStandComponent..cctor 0x181869b6a..0x181869be7", "RectFP fields Height/Width/X/Y", "InitCollision 0x181868740: parent nonempty selects COLLISION_RECT2"],
+      "animation": {"windupRawFP":13107,"windupSeconds":0.1999969482421875,"recoveryRawFP":5461,"recoverySeconds":0.0833282470703125,"evidence":".cctor metadata literals usage 0xa00008ff->literal1151=0.2 and 0xa00008df->literal1135=0.0833333333333333, parsed by 0x18163fcb0"},
+      "trigger": "SwitchOn event61 sender actor type95 (JumpStandMediator), exact sender name equals parent. If visible and phase0, phase=1. On next OnUpdate phase1 sets animation2 and phase2 timer windup. Phase2 expires: notifyJump; phase3 recovery; phase3 expiry phase0. Unparented stands call notifyJump every visible update.",
+      "impulse": "notifyJump 0x181868c60 obtains UP-face contacts nonrecursively, mask -1; skips contacted collisions with any UP-face contact. Sends event36 to each remaining actor with configured velocity. If affectAll false and layer1 Player, sets x=0. If keepVeloX, replaces x with contacted actor current x velocity and event integer field at0x70=1.",
+      "switchModes": {"0":"always visible", "1":"visible while count>0; when count drops0, waits delay then disappears only if phase0", "2":"initially visible; count>0 disappears only if phase0; count0 waits delay before appearing", "3":"toggles visibility with appear/disappear intervals, waits phase0 before disappearing"},
+      "unimplementedRuntimeModes": [1,2,3]
+    },
+    "JumpStandMediator": {"slots":{},"eventVA":"0x181869df0","trigger":"Receives event61 only, obtains own event61 parameter (sender is mediator), broadcasts through Frame.NotifyEvent to actor type16 JumpStand; no global occupancy threshold"},
+    "Switch": {
+      "parseVA":"0x181888840",
+      "slots":{"0":"target name", "1":"enable repeat, flags bit7", "2":"switch id", "3":"subtarget name", "4":"timer add seconds", "5":"direction", "6":"population x offset table", "7":"population y offset table", "8":"text type", "9":"text offset x", "10":"text offset y"},
+      "position":"Select offset pair for count n, walking down to smaller count until either x or y nonzero; add pair to actor position. Entire 56 exclamation mark encoded tables in world01-01 represent zero.",
+      "upwardCollisionRect":{"height":9,"width":18,"x":-9,"y":-9,"evidence":"SwitchComponent..cctor 0x181715468..0x1817154f5 writes height9,width18,x-9,y-9 to static+0x20; GetCollisionByDirection default direction0 selects static+0x20"},
+      "contact":"Normal type0 accepts collided collision attribute bit1 plus layer1,2,3 or8. Physics type1 bypasses this filter. Direction0 is source UP.",
+      "events":"ON61 and OFF60 to target and subtarget exact actor names, with own actor as sender, switchId and timerAddSeconds fields. Repeat enables another rising contact after release; default contact latch persists until forced off.",
+      "evidence":["SwitchComponent.OnUpdate 0x1817149f0","SwitchComponent.OnCollided 0x181714f80","SwitchComponent.NotifyTarget 0x181714cd0"]
+    },
+    "DelaySwitch": {
+      "parseVA":"0x1818191a0",
+      "slots":{"0":"delay seconds base", "1":"target name", "2":"direction", "3":"population x offset table", "4":"population y offset table", "5":"delay seconds increment per player above2"},
+      "delayFormula":"d0+d5*(count-2)",
+      "trigger":"Sets Switch flags bit9 manual notification. ON transition callback starts remaining=delay. Delay OnUpdate subtracts dt; when remaining<=0, NotifyTarget(true), sets Switch flags bit3 request off, clears remaining. OFF callback does nothing, so early release does not cancel countdown. Request off rearms latch; held contact may begin another countdown on subsequent update.",
+      "evidence":["DelaySwitchComponent.Initialize 0x181819140","OnUpdate 0x1818195c0","onChangeSwitchState 0x1818199a0"]
+    }
+  },
+  "world01_01": {"sourceActorCount":36,"springCount":15,"mediatorCount":2,"switchCount":1,"delaySwitchCount":1,"groups":[{"mediator":"JumpStandMediator1","springNames":"JumpStand1..JumpStand9","velocity":[0,-26],"trigger":"Switch sourceIndex12 at1962,480"},{"mediator":"JumpStandMediator2","springNames":"JumpStand10..JumpStand15","velocity":[0,-30],"trigger":"DelaySwitch sourceIndex35 at2890,192, delay5 seconds"}]},
+  "limits":["No original DLL execution or assets publishing", "Population offset string grammar outside zero first-stage tables unresolved", "Native actor velocity to web pixels/second conversion requires player integration", "Runtime expects actual native-direction collision facts; it does not fabricate terrain or pressure occupancy", "Native event ordering and physics integration fidelity require caller integration"]
+}

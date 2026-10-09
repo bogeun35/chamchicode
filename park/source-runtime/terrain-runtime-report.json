@@ -1,0 +1,23 @@
+{
+  "done": {
+    "api": "SourceTerrainRuntime.createTerrain({stageId,count,online,source,geometry})",
+    "originalStages": 60,
+    "sourceVariants": 75,
+    "verifiedSelections": 840,
+    "testsPassed": 5,
+    "coordinateConversion": "48 pixel tiles, origin zero, source Y up; runtime Y = mapHeight - sourceY",
+    "terrain": "Exact source cells, population-selected MapRect and TopViewMapRect overlays, collision flags and disjoint Y-down platform runs",
+    "nativeEvidence": {
+      "MapRect": "ParseParameter 0x18172e800; modifyMap 0x18187f210; modify 0x18187f390; GetMapChipType 0x18187f7b0; 2x16 initializer extracted via .cctor 0x18187f850 metadata field reference",
+      "MapRectModes": "0 maps shapes to [2..11,20..25]; 1 maps shapes to [52..67]; native shape selection and recursive neighbor modification retained",
+      "TopViewMapRect": "Additional static disassembly of OnStart 0x18172e920 and modifyMap 0x18172e930: same map, fills (x+i,y-j), mode byte zero writes69; otherwise writes1"
+    },
+    "browser": "UMD accepts supplied JSON; no runtime raw paths, network, native execution or music"
+  },
+  "problems": [
+    "Actor reference points are converted; actor anchors and gameplay semantics remain unresolved.",
+    "Ice, break and fall flags are preserved; dynamic behavior must be implemented by the consuming physics runtime.",
+    "Unsupported coordinate conventions, unknown tiles/modes, missing variants and deferred terrain overlays throw explicit errors."
+  ],
+  "next": "Integrate browser importer with source data endpoints; assess native physics and actor semantics separately."
+}

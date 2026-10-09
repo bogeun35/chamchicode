@@ -48,17 +48,17 @@ function create(ids,n=0){const map=level(n,ids.length);return {level:n,map,playe
 function move(a,dx,dy,solids){a.x+=dx;for(const b of solids)if(dx!==0&&overlap(a,b)){a.x=dx>0?b.x-a.w:b.x+b.w;a.vx=0;}a.y+=dy;a.ground=false;for(const b of solids)if(overlap(a,b)){if(dy>=0){a.y=b.y-a.h;a.ground=true;}else a.y=b.y+b.h;a.vy=0;}a.x=Math.max(0,Math.min(W-a.w,a.x));}
 function step(s,inputs,dt=1/60){if(s.status!=='play')return;dt=Math.min(dt,1/30);s.ticks++;
  const m=s.map;
- s.switchActive=m.switches.map(sw=>(sw.accept!=='crate'&&s.players.some(p=>overlap({...p,y:p.y+3},sw)))||(sw.accept!=='player'&&m.crates.some(c=>overlap({...c,y:c.y+3},sw))));
+ s.switchActive=m.switches.map(sw=>(sw.accept!=='crate'&&s.players.some(p=>!p.exit&&overlap({...p,y:p.y+3},sw)))||(sw.accept!=='player'&&m.crates.some(c=>overlap({...c,y:c.y+3},sw))));
  s.gateOpen=s.gateOpen||s.switchActive.every(Boolean);
  const solids=m.platforms.concat(s.gateOpen||!m.gate?[]:[m.gate]);
  for(const c of m.crates){c.vy=(c.vy||0)+1500*dt;move(c,0,c.vy*dt,solids.concat(m.crates.filter(other=>other!==c)));}
- for(const p of s.players){const input=inputs[p.id]||{},previousGround=p.ground;p.coyote=previousGround?.10:Math.max(0,p.coyote-dt);p.vx=((input.right?1:0)-(input.left?1:0))*230;
+ for(const p of s.players){if(p.exit)continue;const input=inputs[p.id]||{},previousGround=p.ground;p.coyote=previousGround?.10:Math.max(0,p.coyote-dt);p.vx=((input.right?1:0)-(input.left?1:0))*230;
  const edge=input.jumpSeq!==undefined?input.jumpSeq>(p.jumpSeq||0):input.jump&&!p.jump;if(input.jumpSeq!==undefined)p.jumpSeq=input.jumpSeq;if(edge&&p.coyote>0){p.vy=-530;p.coyote=0;}p.jump=!!input.jump;p.vy=Math.min(950,p.vy+1500*dt);
  for(const c of m.crates){const test={...p,x:p.x+p.vx*dt};if(overlap(test,c)){const before=c.x;move(c,p.vx*dt,0,solids.concat(m.crates.filter(other=>other!==c),s.players.filter(other=>other!==p&&!other.exit)));if(c.x===before)p.vx=0;}}
  // Check stack headroom after horizontal movement, so a teammate cannot lift us through a ceiling edge.
  move(p,p.vx*dt,0,solids.concat(m.crates));const others=s.players.filter(o=>o!==p&&!o.exit&&o.y>=p.y+PH-8&&p.vy>=0&&!solids.concat(m.crates).some(b=>overlap({...p,y:o.y-PH},b)));move(p,0,p.vy*dt,solids.concat(m.crates,others));
  if(!s.keyTaken&&overlap(p,m.key)){s.keyTaken=true;p.key=true;}
- p.exit=s.keyTaken&&s.gateOpen&&overlap(p,m.exit);
+ if(s.keyTaken&&s.gateOpen&&overlap(p,m.exit)){p.exit=true;p.vx=0;p.vy=0;p.ground=false;continue;}
  if(p.y>H+50||m.hazards.some(h=>Hazards.hit(p,h,'spike'))){s.status='dead';s.failure={playerId:p.id,reason:p.y>H+50?'fall':'hazard'};s.deaths++;return;}
  }if(s.players.every(p=>p.exit))s.status='clear';
 }

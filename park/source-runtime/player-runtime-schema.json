@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "scope": "pico2/world/01-01 and shared Player/Key/Goal",
+  "readOnlyStatic": true,
+  "nativeCodeExecuted": false,
+  "completePhysicsFidelity": false,
+  "fixedPoint": {"fractionBits":16,"rawOne":65536},
+  "coordinates": {"x":"right positive","y":"down positive","playerPosition":"feet center, one source unit above bottom of collision","rectOrder":"Height, Width, X, Y; value-type metadata field offsets include a 16-byte boxed header"},
+  "player": {
+    "drawSize": {"width":44,"height":48},
+    "collision": {"x":-16,"y":-47,"width":32,"height":46},
+    "spawn": {
+      "order":"native createPlayer uses current created PlayerInfoList count as ordinal into PlayerIndexList",
+      "limitPlayer":"ActorScene flag bit2 rejects ordinal >= active PlayerIndexList count",
+      "nameIndex":"No native numeric actor.name parsing observed; names 1..8 coincide with sequential order in 01-01",
+      "stage01Positions":[{"name":"1","x":100,"y":912},{"name":"2","x":150,"y":912},{"name":"3","x":200,"y":912},{"name":"4","x":250,"y":912},{"name":"5","x":300,"y":912},{"name":"6","x":350,"y":912},{"name":"7","x":400,"y":912},{"name":"8","x":450,"y":912}],
+      "stage01LimitPlayer":true,
+      "evidence":"ActorFactoryComponent.createPlayer 0x1816a3ff0-0x1816a4083; ActorSceneComponent fields PlayerIndexListPtr boxed+60/unboxed+44, PlayerInfoListPtr boxed+64/unboxed+48"
+    },
+    "motion": {
+      "defaultWalkSpeed":3,
+      "walkScale":"stage BaseScale; optional datas[2] multiplier replaces default factor 1; ice maximum multiplies stage IceSpeedUp",
+      "jumpBaseRaw":-334234,
+      "jumpBase":-5.100006103515625,
+      "jumpScale":"Actor BaseScale; actor Y scale under 1 uses lerp(0.8,1,clamp(scaleY,0,1)); reversed gravity negates",
+      "gravityIncrementRaw":42598,
+      "gravityIncrement":0.649993896484375,
+      "terminalGravityVelocityRaw":1277952,
+      "terminalGravityVelocity":19.5,
+      "gravityScale":"calcGravity computes directional capped acceleration then multiplies Actor BaseScale",
+      "heldJump":"OnUpdate_Default 0x1816c3c5c-0x1816c3cf7: while jump input held and JumpFrame <14, add base jump velocity times Q16 0x3333 times (1-JumpFrame/14), then increment JumpFrame; release sets frame0",
+      "tickRate":null,
+      "evidence":["QPlayerDefine..cctor 0x18177e300 uses QFP._3 at static+0x128; QFP..cctor 0x181781299 stores0x30000","PlayerComponent.Initialize 0x1816bd697-0x1816bd74d; InitWalkSpeed 0x1816bec85-0x1816beccd","GetJumpVelo 0x1816bed62-0x1816beded","calcGravity 0x1816bf53c-0x1816bf5c6","PlayerComponent..cctor 0x1816cba37-0x1816cbb10"]
+    }
+  },
+  "key": {
+    "collision":{"x":-16,"y":-28,"width":32,"height":56},
+    "collisionLayer":10,
+    "anchor":"collision centered on source actor position",
+    "pickupStateSemantics":"pending; bounding rect and layer verified only",
+    "evidence":"KeyComponent..cctor 0x18186d42e-0x18186d4a4; InitCollision 0x18186be1f-0x18186be79"
+  },
+  "goal": {
+    "collision":{"x":-24,"y":-32,"width":48,"height":32},
+    "collisionLayer":12,
+    "heightOffsetSlot":0,
+    "heightOffsetRule":"height += offset; y -= offset; bottom stays on source anchor",
+    "entry":"Open door overlap marks only the contacting player's InFrontOfGoal flag. Player presses QActionInput.Up (index4) to request Clear state5. Each player enters independently.",
+    "clearBehavior":"OnInitialize_Clear zeroes actor velocity, calls SetVisible(false), clears collision contact info",
+    "allPlayersSimultaneousDoorOverlap":false,
+    "enteredPlayerCollisionExclusion":"verified: SetVisible(false) event calls setVisible(false), which calls SetCollisionActive(false); each collision gets m_Flags bit0 set; active collision list skips that bit",
+    "evidence":["GoalComponent..cctor 0x18185fd22-0x18185fd5b","GoalComponent.InitCollision 0x18185f7de-0x18185f7fc","GoalComponent.OnCollided 0x18185f9d0-0x18185fa1c","PlayerComponent.InFrontOfGoal 0x1816bd070","PlayerComponent.updatePlayerState 0x1816c0828-0x1816c08b5","PlayerComponent.IsCleared 0x1816bff80","PlayerComponent.OnInitialize_Clear 0x1816c26f3-0x1816c2745","ActorComponent.OnRecvEvent 0x18169eae5-0x18169eb18; setVisible 0x18169ef27-0x18169ef39; SetCollisionActive 0x1816a0144-0x1816a0164; active collision list skip 0x181800621-0x181800625"]
+  },
+  "pending":["Native simulation tick rate and full movement integration","Key attach/pickup state machine and transfer","Full collision pushback, contact, held-jump sequencing equivalence"],
+  "evidenceFiles":["player-runtime-disassembly.txt","quantum-field-offsets.json","quantum-method-index.json","population-selection-report.json"]
+}
+
