@@ -481,7 +481,7 @@
       "chapterId": "pico1/battle",
       "title": "높이 대결",
       "mechanic": "시간이 끝났을 때 가장 높이 있는 사람이 승리",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -501,7 +501,7 @@
       "chapterId": "pico1/battle",
       "title": "점프 생존",
       "mechanic": "포탄을 피해 마지막까지 살아남기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -511,7 +511,7 @@
       "chapterId": "pico1/battle",
       "title": "시간 맞추기",
       "mechanic": "남은 시간을 0.01초에 가깝게 멈추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -521,7 +521,7 @@
       "chapterId": "pico1/endless",
       "title": "끝없는 점프",
       "mechanic": "함께 포탄을 계속 피하기 · 맞으면 종료",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -531,7 +531,7 @@
       "chapterId": "pico1/endless",
       "title": "끝없는 블록 퍼즐",
       "mechanic": "떨어지는 블록으로 함께 줄 없애기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -571,7 +571,7 @@
       "chapterId": "pico1/world/chapter-01",
       "title": "1-2",
       "mechanic": "벽 밀기 · 떨어지는 기둥 · 발판 되돌리기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -581,7 +581,7 @@
       "chapterId": "pico1/world/chapter-01",
       "title": "1-3",
       "mechanic": "위아래 경로의 버튼을 서로 열어 주기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -591,7 +591,7 @@
       "chapterId": "pico1/world/chapter-01",
       "title": "1-4",
       "mechanic": "이동 발판 · 탑승 인원에 반응하는 발판",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -601,7 +601,7 @@
       "chapterId": "pico1/world/chapter-02",
       "title": "2-1",
       "mechanic": "밧줄로 연결된 동료와 함께 이동",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -611,7 +611,7 @@
       "chapterId": "pico1/world/chapter-02",
       "title": "2-2",
       "mechanic": "밧줄에 매달려 동료의 착지 돕기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -621,7 +621,7 @@
       "chapterId": "pico1/world/chapter-02",
       "title": "2-3",
       "mechanic": "밧줄로 연결된 동료를 쌓아 운반",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -631,7 +631,7 @@
       "chapterId": "pico1/world/chapter-02",
       "title": "2-4",
       "mechanic": "쌓은 높이를 조절하며 함께 건너기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -641,7 +641,7 @@
       "chapterId": "pico1/world/chapter-03",
       "title": "3-1",
       "mechanic": "제한 시간 안에 동전 모으기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -661,7 +661,7 @@
       "chapterId": "pico1/world/chapter-03",
       "title": "3-3",
       "mechanic": "제한 시간 안에 동전을 모아 열쇠 얻기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -671,7 +671,7 @@
       "chapterId": "pico1/world/chapter-03",
       "title": "3-4",
       "mechanic": "버튼을 눌러 남은 시간 늘리기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -691,7 +691,7 @@
       "chapterId": "pico1/world/chapter-04",
       "title": "4-2",
       "mechanic": "함께 날며 장애물 밀기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -701,7 +701,7 @@
       "chapterId": "pico1/world/chapter-04",
       "title": "4-3",
       "mechanic": "각자의 남은 시간을 합쳐 목표 맞추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -761,7 +761,7 @@
       "chapterId": "pico1/world/chapter-06",
       "title": "6-1",
       "mechanic": "같은 색 블록 밀기 · 움직이는 계단",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -771,7 +771,7 @@
       "chapterId": "pico1/world/chapter-06",
       "title": "6-2",
       "mechanic": "자동으로 움직이는 화면 · 계단 운반",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -781,7 +781,7 @@
       "chapterId": "pico1/world/chapter-06",
       "title": "6-3",
       "mechanic": "발판을 타고 위로 이동",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -791,7 +791,7 @@
       "chapterId": "pico1/world/chapter-06",
       "title": "6-4",
       "mechanic": "누르면 위험해지는 버튼 피하기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -801,7 +801,7 @@
       "chapterId": "pico1/world/chapter-07",
       "title": "7-1",
       "mechanic": "움직임에 반응해 쫓아오는 유령",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -811,7 +811,7 @@
       "chapterId": "pico1/world/chapter-07",
       "title": "7-2",
       "mechanic": "신호에 맞춰 움직이고 멈추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -831,7 +831,7 @@
       "chapterId": "pico1/world/chapter-07",
       "title": "7-4",
       "mechanic": "움직일 때 줄어드는 공동 체력",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -841,7 +841,7 @@
       "chapterId": "pico1/world/chapter-08",
       "title": "8-1",
       "mechanic": "떨어지는 블록으로 함께 줄 맞추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -851,7 +851,7 @@
       "chapterId": "pico1/world/chapter-08",
       "title": "8-2",
       "mechanic": "공으로 벽돌 없애기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -861,7 +861,7 @@
       "chapterId": "pico1/world/chapter-08",
       "title": "8-3",
       "mechanic": "점점 빨라지는 블록 맞추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -871,7 +871,7 @@
       "chapterId": "pico1/world/chapter-08",
       "title": "8-4",
       "mechanic": "장애물과 가속 벽돌이 추가된 벽돌 깨기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -901,7 +901,7 @@
       "chapterId": "pico1/world/chapter-09",
       "title": "9-3",
       "mechanic": "튕기는 공으로 블록을 깨 길 만들기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -931,7 +931,7 @@
       "chapterId": "pico1/world/chapter-10",
       "title": "10-2",
       "mechanic": "동료의 도움으로 공중 점프 · 발판 타이밍 맞추기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -941,7 +941,7 @@
       "chapterId": "pico1/world/chapter-10",
       "title": "10-3",
       "mechanic": "어두워진 길 통과",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -951,7 +951,7 @@
       "chapterId": "pico1/world/chapter-10",
       "title": "10-4",
       "mechanic": "어둠 속 보이지 않는 블록 건너기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1011,7 +1011,7 @@
       "chapterId": "pico1/world/chapter-12",
       "title": "12-2",
       "mechanic": "바람 · 점프대 · 인원수 승강기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1021,7 +1021,7 @@
       "chapterId": "pico1/world/chapter-12",
       "title": "12-3",
       "mechanic": "날아서 장애물 구간 통과",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1031,7 +1031,7 @@
       "chapterId": "pico1/world/chapter-12",
       "title": "12-4",
       "mechanic": "앞서 배운 장치를 함께 사용하는 마지막 이동 구간",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1041,7 +1041,7 @@
       "chapterId": "pico2/battle",
       "title": "높이 대결",
       "mechanic": "종료 때 최고 높이",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1051,7 +1051,7 @@
       "chapterId": "pico2/battle",
       "title": "시야 제한 높이 대결",
       "mechanic": "가려진 화면에서 높이 경쟁",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1071,7 +1071,7 @@
       "chapterId": "pico2/battle",
       "title": "반응 속도",
       "mechanic": "신호 직후 버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1091,7 +1091,7 @@
       "chapterId": "pico2/battle",
       "title": "공중 점프",
       "mechanic": "공중 점프 생존",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1111,7 +1111,7 @@
       "chapterId": "pico2/battle",
       "title": "공 주고받기",
       "mechanic": "공을 반사해 실점 최소화",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1121,7 +1121,7 @@
       "chapterId": "pico2/dark/chapter-01",
       "title": "1-1",
       "mechanic": "오른쪽 유지·버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1131,7 +1131,7 @@
       "chapterId": "pico2/dark/chapter-01",
       "title": "1-2",
       "mechanic": "쌓아 버튼 통과",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1141,7 +1141,7 @@
       "chapterId": "pico2/dark/chapter-01",
       "title": "1-3",
       "mechanic": "상승 발판 점프",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1151,7 +1151,7 @@
       "chapterId": "pico2/dark/chapter-01",
       "title": "1-4",
       "mechanic": "쌓아 블록 밀기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1161,7 +1161,7 @@
       "chapterId": "pico2/dark/chapter-02",
       "title": "2-1",
       "mechanic": "점선 경로 이동",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1181,7 +1181,7 @@
       "chapterId": "pico2/dark/chapter-02",
       "title": "2-3",
       "mechanic": "녹색 공 회피",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1191,7 +1191,7 @@
       "chapterId": "pico2/dark/chapter-02",
       "title": "2-4",
       "mechanic": "쌓기·버튼 담당 유지",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1201,7 +1201,7 @@
       "chapterId": "pico2/dark/chapter-03",
       "title": "3-1",
       "mechanic": "이동·상승 발판",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1221,7 +1221,7 @@
       "chapterId": "pico2/dark/chapter-03",
       "title": "3-3",
       "mechanic": "분홍 장애물 회피",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1231,7 +1231,7 @@
       "chapterId": "pico2/dark/chapter-03",
       "title": "3-4",
       "mechanic": "플랫폼·다리 점프",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1241,7 +1241,7 @@
       "chapterId": "pico2/dark/chapter-04",
       "title": "4-1",
       "mechanic": "분홍 장애물 회피",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1251,7 +1251,7 @@
       "chapterId": "pico2/dark/chapter-04",
       "title": "4-2",
       "mechanic": "굴러오는 기어·벌레 회피",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1261,7 +1261,7 @@
       "chapterId": "pico2/dark/chapter-04",
       "title": "4-3",
       "mechanic": "바람·장애물 점프",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1271,7 +1271,7 @@
       "chapterId": "pico2/dark/chapter-04",
       "title": "4-4",
       "mechanic": "벌레 회피·플랫폼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1291,7 +1291,7 @@
       "chapterId": "pico2/endless",
       "title": "반응 속도 도전",
       "mechanic": "점점 짧아지는 반응 시간",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1301,7 +1301,7 @@
       "chapterId": "pico2/endless",
       "title": "그래프 맞추기",
       "mechanic": "제시 그래프 재현",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1311,7 +1311,7 @@
       "chapterId": "pico2/endless",
       "title": "탄막 피하기",
       "mechanic": "탄막 회피",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1331,7 +1331,7 @@
       "chapterId": "pico2/endless",
       "title": "위험 버튼 피하기",
       "mechanic": "위험 버튼 피하기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1341,7 +1341,7 @@
       "chapterId": "pico2/endless",
       "title": "끝없는 공 주고받기",
       "mechanic": "공 랠리",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1351,7 +1351,7 @@
       "chapterId": "pico2/world/chapter-01",
       "title": "1-1",
       "mechanic": "쌓기·스프링",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1371,7 +1371,7 @@
       "chapterId": "pico2/world/chapter-01",
       "title": "1-3",
       "mechanic": "복원 기둥",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1381,7 +1381,7 @@
       "chapterId": "pico2/world/chapter-01",
       "title": "1-4",
       "mechanic": "숨은 버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1391,7 +1391,7 @@
       "chapterId": "pico2/world/chapter-02",
       "title": "2-1",
       "mechanic": "밧줄",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1401,7 +1401,7 @@
       "chapterId": "pico2/world/chapter-02",
       "title": "2-2",
       "mechanic": "접촉 금지·빙판",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1411,7 +1411,7 @@
       "chapterId": "pico2/world/chapter-02",
       "title": "2-3",
       "mechanic": "수직 정렬",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1421,7 +1421,7 @@
       "chapterId": "pico2/world/chapter-02",
       "title": "2-4",
       "mechanic": "바람·접촉 금지",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1431,7 +1431,7 @@
       "chapterId": "pico2/world/chapter-03",
       "title": "3-1",
       "mechanic": "안전 틈",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1441,7 +1441,7 @@
       "chapterId": "pico2/world/chapter-03",
       "title": "3-2",
       "mechanic": "이동 플랫폼 안전지대",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1461,7 +1461,7 @@
       "chapterId": "pico2/world/chapter-03",
       "title": "3-4",
       "mechanic": "기억 배치",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1471,7 +1471,7 @@
       "chapterId": "pico2/world/chapter-04",
       "title": "4-1",
       "mechanic": "문 받치기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1491,7 +1491,7 @@
       "chapterId": "pico2/world/chapter-04",
       "title": "4-3",
       "mechanic": "교대 낙하 가시",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1501,7 +1501,7 @@
       "chapterId": "pico2/world/chapter-04",
       "title": "4-4",
       "mechanic": "레이저",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1511,7 +1511,7 @@
       "chapterId": "pico2/world/chapter-05",
       "title": "5-1",
       "mechanic": "제한시간 동전",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1521,7 +1521,7 @@
       "chapterId": "pico2/world/chapter-05",
       "title": "5-2",
       "mechanic": "시간 연장 버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1601,7 +1601,7 @@
       "chapterId": "pico2/world/chapter-07",
       "title": "7-2",
       "mechanic": "동시 이동 추적",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1611,7 +1611,7 @@
       "chapterId": "pico2/world/chapter-07",
       "title": "7-3",
       "mechanic": "암전 이동",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1641,7 +1641,7 @@
       "chapterId": "pico2/world/chapter-08",
       "title": "8-2",
       "mechanic": "농구",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1661,7 +1661,7 @@
       "chapterId": "pico2/world/chapter-08",
       "title": "8-4",
       "mechanic": "폭탄 섞인 농구",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1701,7 +1701,7 @@
       "chapterId": "pico2/world/chapter-09",
       "title": "9-4",
       "mechanic": "밧줄·절벽",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1711,7 +1711,7 @@
       "chapterId": "pico2/world/chapter-10",
       "title": "10-1",
       "mechanic": "반응 버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1751,7 +1751,7 @@
       "chapterId": "pico2/world/chapter-11",
       "title": "11-1",
       "mechanic": "탄환 생존",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1761,7 +1761,7 @@
       "chapterId": "pico2/world/chapter-11",
       "title": "11-2",
       "mechanic": "밧줄 등반",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1781,7 +1781,7 @@
       "chapterId": "pico2/world/chapter-11",
       "title": "11-4",
       "mechanic": "좁아지는 낙하 틈",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1811,7 +1811,7 @@
       "chapterId": "pico2/world/chapter-12",
       "title": "12-3",
       "mechanic": "열쇠 후 가속",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1821,7 +1821,7 @@
       "chapterId": "pico2/world/chapter-12",
       "title": "12-4",
       "mechanic": "긴 점프 연속",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1831,7 +1831,7 @@
       "chapterId": "pico2/world/chapter-13",
       "title": "13-1",
       "mechanic": "위험 버튼",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1841,7 +1841,7 @@
       "chapterId": "pico2/world/chapter-13",
       "title": "13-2",
       "mechanic": "색 그래프",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1851,7 +1851,7 @@
       "chapterId": "pico2/world/chapter-13",
       "title": "13-3",
       "mechanic": "공 랠리",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1881,7 +1881,7 @@
       "chapterId": "pico2/world/chapter-14",
       "title": "14-2",
       "mechanic": "두더지",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1901,7 +1901,7 @@
       "chapterId": "pico2/world/chapter-14",
       "title": "14-4",
       "mechanic": "구름 상대",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1911,7 +1911,7 @@
       "chapterId": "pico2/world/chapter-15",
       "title": "15-1",
       "mechanic": "경로 따라 움직이는 바퀴",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1921,7 +1921,7 @@
       "chapterId": "pico2/world/chapter-15",
       "title": "15-2",
       "mechanic": "암전 블록 쌓기",
-      "playable": false,
+      "playable": true,
       "preview": null
     },
     {
@@ -1941,7 +1941,7 @@
       "chapterId": "pico2/world/chapter-15",
       "title": "15-4",
       "mechanic": "빙판·출현 플랫폼",
-      "playable": false,
+      "playable": true,
       "preview": null
     }
   ]

@@ -88,7 +88,7 @@ for(const count of [2,4,8])test(`${count} players enter a narrow exit sequential
  assert.equal(s.status,'clear');const before=JSON.stringify(s);tick(s,{},2);assert.equal(JSON.stringify(s),before);
 });
 test('CommonJS and browser globals load independently without audio',()=>{
- const context=vm.createContext({window:{}});for(const file of ['devices.js','stage1-1.js','engine.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,file),'utf8'),context);
+ const context=vm.createContext({window:{}});for(const file of ['devices.js','stage1-1.js','hazard-geometry.js','engine.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,file),'utf8'),context);
  assert(context.window.ParkDevices);assert(context.window.ParkStageOne);assert(context.window.ParkRebuild.create(['a','b']));
 });
 test('two players complete observed route using input frames only',()=>{

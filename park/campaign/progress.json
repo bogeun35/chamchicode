@@ -1,0 +1,1834 @@
+{
+  "schemaVersion": 2,
+  "updatedAt": "2026-10-09",
+  "scope": "Mechanic demo; exact source layouts and full route reviews unfinished",
+  "counts": {
+    "referenceEntries": 147,
+    "playableMechanicDemos": 94,
+    "platformDemos": 65,
+    "miniDemos": 29,
+    "pending": 53,
+    "sourceFidelityVerified": 0
+  },
+  "verification": {
+    "firstStageInputCompletionPopulations": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "platformInitializationCases": 455,
+    "miniInitializationCases": 203,
+    "actualEightPersonOnline": false,
+    "humanFunReview": false,
+    "additionalTwoPlayerRoutes": 15
+  },
+  "implementations": [
+    {
+      "sourceId": "pico1/battle/01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/battle/02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/battle/03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/battle/04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/endless/01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/endless/02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/endless/03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/endless/04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/01-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "몸 쌓기",
+        "다리 버튼",
+        "전원 승강기"
+      ],
+      "omittedRules": [
+        "원작 물리 수치 보정"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "sourceId": "pico1/world/01-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "상자 밀기",
+        "상자를 발판으로 사용"
+      ],
+      "omittedRules": [
+        "떨어지는 기둥"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/01-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "위아래 경로",
+        "버튼으로 동료 통과"
+      ],
+      "omittedRules": [
+        "상자를 버튼 위에 놓는 과정"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico1/world/01-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 발판",
+        "전원 승강기"
+      ],
+      "omittedRules": [
+        "무게로 내려가는 중앙 발판·기둥 회피"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/02-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "좁은 틈 건너기"
+      ],
+      "omittedRules": [
+        "아래 매달려 열쇠를 얻는 원작 경로"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/02-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "좁은 틈 건너기"
+      ],
+      "omittedRules": [
+        "아래 매달려 열쇠를 얻는 원작 경로"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/02-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "쌓기",
+        "승강기"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/02-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "머리 위 장애물"
+      ],
+      "omittedRules": [
+        "붕괴 다리"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/03-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "제한 시간",
+        "모든 동전 회수",
+        "전원 출구"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/03-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/03-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "제한 시간",
+        "모든 동전 회수",
+        "전원 출구"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/03-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "시간 연장 버튼",
+        "계단 오르기",
+        "열쇠 회수"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/04-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/04-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "비행",
+        "위아래 굴곡 통과"
+      ],
+      "omittedRules": [
+        "함께 상자를 미는 구간"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico1/world/04-03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/04-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/05-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/05-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/05-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/05-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/06-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "상자 밀기",
+        "상자 계단"
+      ],
+      "omittedRules": [
+        "자기 색상 상자만 미는 제한"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/06-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "상자 계단 밀기"
+      ],
+      "omittedRules": [
+        "자동 스크롤"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/06-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "수직 이동 발판",
+        "오르내리며 열쇠 회수"
+      ],
+      "omittedRules": [
+        "공략에 없는 나머지 구간"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/06-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "위험 버튼 회피",
+        "높은 열쇠"
+      ],
+      "omittedRules": [
+        "무한 반복 진행"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico1/world/07-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "정지 신호에 멈추기"
+      ],
+      "omittedRules": [
+        "뒤쫓는 유령 형상·추격 속도"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/07-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "정지 신호",
+        "점프대"
+      ],
+      "omittedRules": [
+        "상자 재배치"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/07-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/07-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "공동 이동 체력",
+        "번갈아 이동",
+        "점프대"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/08-01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/08-02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/08-03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/08-04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/09-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/09-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/09-03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/09-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/10-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/10-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 발판",
+        "상단 열쇠"
+      ],
+      "omittedRules": [
+        "동시 점프 화살표·구조 버튼"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/10-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "어두운 경로",
+        "승강기",
+        "점프대"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/10-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "암전",
+        "상자 이동",
+        "계단 만들기"
+      ],
+      "omittedRules": [
+        "원작 숨은 장치 배치"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/11-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/11-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/11-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/11-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/12-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/12-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "바람",
+        "점프대",
+        "전원 승강기"
+      ],
+      "omittedRules": [
+        "왼쪽으로 복귀하는 출구 동선"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico1/world/12-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "비행",
+        "장애물 통과",
+        "열쇠 회수"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico1/world/12-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "다리 버튼",
+        "점프대",
+        "이동 장애물",
+        "위험 버튼"
+      ],
+      "omittedRules": [
+        "자동 스크롤"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/05",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/06",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/07",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/battle/08",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/01-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "오른쪽 이동",
+        "버튼"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/dark/01-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "쌓기",
+        "버튼 담당 유지"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/dark/01-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "상승 발판",
+        "점프"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/01-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "쌓기",
+        "상자 밀기"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/02-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "분리 발판 경로"
+      ],
+      "omittedRules": [
+        "점선 경로의 정확한 배치"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/02-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/02-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 공 회피"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/02-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "쌓기",
+        "버튼 담당 유지"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/dark/03-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "상승 발판",
+        "점프"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/03-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/03-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 분홍 위험물 회피"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/03-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "발판",
+        "다리 버튼",
+        "점프"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/04-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 분홍 위험물 회피"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/04-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 적 회피",
+        "발판"
+      ],
+      "omittedRules": [
+        "적의 원작 추적 행동"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/04-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "바람",
+        "장애물 점프"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/dark/04-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 적 회피",
+        "발판"
+      ],
+      "omittedRules": [
+        "적의 원작 추적 행동"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/05",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/endless/06",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "위험 버튼 회피",
+        "높은 열쇠"
+      ],
+      "omittedRules": [
+        "무한 반복 진행"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/endless/07",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/01-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "몸 쌓기",
+        "버튼으로 점프대 작동"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/01-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/01-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "기둥 밀어 통과"
+      ],
+      "omittedRules": [
+        "기둥 자동 복원"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/01-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "숨은 버튼",
+        "문 열기",
+        "열쇠 회수"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/02-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "간격 유지",
+        "절벽 통과"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/02-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "빙판 관성",
+        "동료 접촉 금지"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/02-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "수직 쌓기",
+        "위험 버튼 회피"
+      ],
+      "omittedRules": [
+        "정렬 강제 실패 조건"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/02-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "바람",
+        "동료 접촉 금지"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/03-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "움직이는 위험 구역",
+        "안전 틈"
+      ],
+      "omittedRules": [
+        "원작 빛 장치의 정확한 주기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/03-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "이동 발판",
+        "위험 구역 회피"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/03-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/03-04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/04-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료가 문을 유지",
+        "열쇠 회수"
+      ],
+      "omittedRules": [
+        "머리로 문을 받치는 물리"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/04-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/04-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "번갈아 내려오는 위험물"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/04-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "주기적 위험 구역",
+        "타이밍 통과"
+      ],
+      "omittedRules": [
+        "레이저 발사·소멸은 이동 위험물로 시각화"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/05-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "제한 시간",
+        "모든 동전 회수",
+        "전원 출구"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/05-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "시간 연장 버튼",
+        "계단 오르기",
+        "열쇠 회수"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/05-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/05-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/06-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/06-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/06-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/06-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/07-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/07-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동시 이동 제한"
+      ],
+      "omittedRules": [
+        "유령 추격 시각화"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/07-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "암전 경로"
+      ],
+      "omittedRules": [
+        "밝을 때 이동 금지 조건"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/07-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/08-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/08-02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/08-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/08-04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/09-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/09-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/09-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/09-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "간격 유지",
+        "절벽 통과"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/10-01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/10-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/10-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/10-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/11-01",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/11-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "동료 연결",
+        "상승",
+        "가시 회피"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/11-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/11-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "좁은 안전 통로",
+        "몸 쌓기"
+      ],
+      "omittedRules": [
+        "연속 파도에 따른 틈 축소"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/12-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/12-02",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/12-03",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "열쇠 후 속도 상승",
+        "강한 점프"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/12-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "긴 도약",
+        "가시 구간"
+      ],
+      "omittedRules": [],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/13-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "위험 버튼 회피",
+        "높은 열쇠"
+      ],
+      "omittedRules": [
+        "무한 반복 진행"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": [
+        2
+      ]
+    },
+    {
+      "sourceId": "pico2/world/13-02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/13-03",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/13-04",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/14-01",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/14-02",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/14-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/14-04",
+      "status": "mechanic_demo",
+      "implementedRules": [],
+      "omittedRules": [
+        "원작 수치·배치 미보정"
+      ],
+      "route": "mini",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/15-01",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "이동 발판",
+        "쌓기"
+      ],
+      "omittedRules": [
+        "원형 경로 바퀴·열쇠 후 복귀"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/15-02",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "암전",
+        "상자 이동",
+        "계단 만들기"
+      ],
+      "omittedRules": [
+        "원작 숨은 장치 배치"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/15-03",
+      "status": "not_started",
+      "implementedRules": [],
+      "omittedRules": [
+        "단계 고유 규칙 구현 대기"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    },
+    {
+      "sourceId": "pico2/world/15-04",
+      "status": "mechanic_demo",
+      "implementedRules": [
+        "빙판",
+        "이동 발판"
+      ],
+      "omittedRules": [
+        "발판 출현 조건"
+      ],
+      "route": "platform",
+      "fullRouteVerified": false,
+      "inputOnlyCompletionPopulations": []
+    }
+  ],
+  "notes": [
+    "Initialization is not full-route completion.",
+    "Demo layouts are interpretations of researched mechanics.",
+    "Original geometry/physics/population scaling are unverified."
+  ]
+}

@@ -1,0 +1,851 @@
+{
+  "scope": "2인 실제 입력만 사용한 경로 검사. UNRESOLVED는 미완주이며 불가능 확정이 아님.",
+  "passed": 15,
+  "unresolved": 16,
+  "notScripted": 33,
+  "results": [
+    {
+      "id": "pico1/world/01-02",
+      "family": "crates",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/01-03",
+      "family": "relay",
+      "result": "PASS",
+      "frames": 1072,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 493,
+          "exit": true
+        },
+        {
+          "x": 1884,
+          "y": 484,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/01-04",
+      "family": "moving",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/02-01",
+      "family": "rope",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/02-02",
+      "family": "rope",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/02-03",
+      "family": "ropestack",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/02-04",
+      "family": "ropestack",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/03-01",
+      "family": "coins",
+      "result": "UNRESOLVED",
+      "frames": 993,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1950,
+          "y": 474,
+          "exit": false
+        },
+        {
+          "x": 1950,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": true,
+      "coins": 1
+    },
+    {
+      "id": "pico1/world/03-03",
+      "family": "coins",
+      "result": "UNRESOLVED",
+      "frames": 1015,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1948,
+          "y": 484,
+          "exit": false
+        },
+        {
+          "x": 1950,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": true,
+      "coins": 2
+    },
+    {
+      "id": "pico1/world/03-04",
+      "family": "timer",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/04-02",
+      "family": "flight",
+      "result": "PASS",
+      "frames": 1292,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 522,
+          "exit": true
+        },
+        {
+          "x": 1848,
+          "y": 522,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/06-01",
+      "family": "cratestairs",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/06-02",
+      "family": "cratestairs",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/06-03",
+      "family": "vertical",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/06-04",
+      "family": "avoidbuttons",
+      "result": "PASS",
+      "frames": 1059,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 562,
+          "exit": true
+        },
+        {
+          "x": 1848,
+          "y": 562,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/07-01",
+      "family": "traffic",
+      "result": "UNRESOLVED",
+      "frames": 1412,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1951,
+          "y": 481,
+          "exit": false
+        },
+        {
+          "x": 1948,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/07-02",
+      "family": "traffic",
+      "result": "UNRESOLVED",
+      "frames": 1412,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1951,
+          "y": 481,
+          "exit": false
+        },
+        {
+          "x": 1948,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/07-04",
+      "family": "stamina",
+      "result": "UNRESOLVED",
+      "frames": 1353,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1950,
+          "y": 474,
+          "exit": false
+        },
+        {
+          "x": 1948,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/10-02",
+      "family": "stack",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/10-03",
+      "family": "blackout",
+      "result": "UNRESOLVED",
+      "frames": 998,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1951,
+          "y": 481,
+          "exit": false
+        },
+        {
+          "x": 1948,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/10-04",
+      "family": "darkcrates",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/12-02",
+      "family": "windlift",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico1/world/12-03",
+      "family": "flight",
+      "result": "PASS",
+      "frames": 1292,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 522,
+          "exit": true
+        },
+        {
+          "x": 1848,
+          "y": 522,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico1/world/12-04",
+      "family": "finale",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/01-01",
+      "family": "relay",
+      "result": "PASS",
+      "frames": 1072,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 493,
+          "exit": true
+        },
+        {
+          "x": 1884,
+          "y": 484,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/01-02",
+      "family": "stackrelay",
+      "result": "PASS",
+      "frames": 1081,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 549,
+          "exit": true
+        },
+        {
+          "x": 1849,
+          "y": 549,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/01-03",
+      "family": "vertical",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/01-04",
+      "family": "cratestairs",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/02-01",
+      "family": "moving",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/02-03",
+      "family": "dodge",
+      "result": "UNRESOLVED",
+      "frames": 141,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 618,
+          "y": 524,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/02-04",
+      "family": "stackrelay",
+      "result": "PASS",
+      "frames": 1081,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 549,
+          "exit": true
+        },
+        {
+          "x": 1849,
+          "y": 549,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/03-01",
+      "family": "vertical",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/03-03",
+      "family": "safegap",
+      "result": "UNRESOLVED",
+      "frames": 131,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 578,
+          "y": 498,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/03-04",
+      "family": "bridge",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/dark/04-01",
+      "family": "safegap",
+      "result": "UNRESOLVED",
+      "frames": 131,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 578,
+          "y": 498,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/04-02",
+      "family": "dodge",
+      "result": "UNRESOLVED",
+      "frames": 135,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 595,
+          "y": 524,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/04-03",
+      "family": "wind",
+      "result": "UNRESOLVED",
+      "frames": 191,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 0,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 539,
+          "y": 538,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/dark/04-04",
+      "family": "dodge",
+      "result": "UNRESOLVED",
+      "frames": 152,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 660,
+          "y": 524,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/endless/06",
+      "family": "avoidbuttons",
+      "result": "PASS",
+      "frames": 1059,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 562,
+          "exit": true
+        },
+        {
+          "x": 1848,
+          "y": 562,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/01-01",
+      "family": "springrelay",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/01-03",
+      "family": "crates",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/01-04",
+      "family": "hiddenbutton",
+      "result": "PASS",
+      "frames": 1072,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 493,
+          "exit": true
+        },
+        {
+          "x": 1884,
+          "y": 484,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/02-01",
+      "family": "rope",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/02-02",
+      "family": "icecontact",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/02-03",
+      "family": "alignment",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/02-04",
+      "family": "windcontact",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/03-01",
+      "family": "safegap",
+      "result": "UNRESOLVED",
+      "frames": 131,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 578,
+          "y": 498,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/03-02",
+      "family": "movinghazard",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/04-01",
+      "family": "relay",
+      "result": "PASS",
+      "frames": 1072,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 493,
+          "exit": true
+        },
+        {
+          "x": 1884,
+          "y": 484,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/04-03",
+      "family": "fallinghazard",
+      "result": "UNRESOLVED",
+      "frames": 181,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 769,
+          "y": 509,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/04-04",
+      "family": "laser",
+      "result": "UNRESOLVED",
+      "frames": 110,
+      "reason": {
+        "playerId": "b",
+        "reason": "hazard"
+      },
+      "positions": [
+        {
+          "x": 45,
+          "y": 562,
+          "exit": false
+        },
+        {
+          "x": 499,
+          "y": 487,
+          "exit": false
+        }
+      ],
+      "key": false,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/05-01",
+      "family": "coins",
+      "result": "UNRESOLVED",
+      "frames": 993,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1950,
+          "y": 474,
+          "exit": false
+        },
+        {
+          "x": 1950,
+          "y": 562,
+          "exit": false
+        }
+      ],
+      "key": true,
+      "coins": 1
+    },
+    {
+      "id": "pico2/world/05-02",
+      "family": "timer",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/07-02",
+      "family": "oneatatime",
+      "result": "PASS",
+      "frames": 942,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1872,
+          "y": 484,
+          "exit": true
+        },
+        {
+          "x": 1849,
+          "y": 493,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/07-03",
+      "family": "blackout",
+      "result": "PASS",
+      "frames": 961,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 486,
+          "exit": true
+        },
+        {
+          "x": 1890,
+          "y": 484,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/09-04",
+      "family": "rope",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/11-02",
+      "family": "ropespring",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/11-04",
+      "family": "narrow",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/12-03",
+      "family": "speedkey",
+      "result": "PASS",
+      "frames": 659,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1851,
+          "y": 502,
+          "exit": true
+        },
+        {
+          "x": 1850,
+          "y": 502,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/12-04",
+      "family": "longjump",
+      "result": "PASS",
+      "frames": 923,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1829,
+          "y": 462,
+          "exit": true
+        },
+        {
+          "x": 1829,
+          "y": 462,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/13-01",
+      "family": "avoidbuttons",
+      "result": "PASS",
+      "frames": 1059,
+      "reason": null,
+      "positions": [
+        {
+          "x": 1849,
+          "y": 562,
+          "exit": true
+        },
+        {
+          "x": 1848,
+          "y": 562,
+          "exit": true
+        }
+      ],
+      "key": true,
+      "coins": 0
+    },
+    {
+      "id": "pico2/world/15-01",
+      "family": "moving",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/15-02",
+      "family": "darkcrates",
+      "result": "not_scripted"
+    },
+    {
+      "id": "pico2/world/15-04",
+      "family": "icemoving",
+      "result": "not_scripted"
+    }
+  ]
+}

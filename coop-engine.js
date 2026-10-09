@@ -1,5 +1,6 @@
 (function(root){
 'use strict';
+const Hazards=typeof module!=='undefined'&&module.exports?require('./hazard-geometry.js'):root.ParkHazards;
 const W=1200,H=675,PW=32,PH=38;
 const LEVEL_COUNT=20;
 const rect=(x,y,w,h)=>({x,y,w,h});
@@ -58,7 +59,7 @@ function step(s,inputs,dt=1/60){if(s.status!=='play')return;dt=Math.min(dt,1/30)
  move(p,p.vx*dt,0,solids.concat(m.crates));const others=s.players.filter(o=>o!==p&&!o.exit&&o.y>=p.y+PH-8&&p.vy>=0&&!solids.concat(m.crates).some(b=>overlap({...p,y:o.y-PH},b)));move(p,0,p.vy*dt,solids.concat(m.crates,others));
  if(!s.keyTaken&&overlap(p,m.key)){s.keyTaken=true;p.key=true;}
  p.exit=s.keyTaken&&s.gateOpen&&overlap(p,m.exit);
- if(p.y>H+50||m.hazards.some(h=>overlap(p,h))){s.status='dead';s.failure={playerId:p.id,reason:p.y>H+50?'fall':'hazard'};s.deaths++;return;}
+ if(p.y>H+50||m.hazards.some(h=>Hazards.hit(p,h,'spike'))){s.status='dead';s.failure={playerId:p.id,reason:p.y>H+50?'fall':'hazard'};s.deaths++;return;}
  }if(s.players.every(p=>p.exit))s.status='clear';
 }
 const api={create,step,level,overlap,W,H,LEVEL_COUNT};if(typeof module!=='undefined')module.exports=api;root.CoopEngine=api;
