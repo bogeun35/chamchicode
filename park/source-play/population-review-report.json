@@ -1,0 +1,3089 @@
+{
+  "schemaVersion": 1,
+  "stage": "PP2 01-01",
+  "generatedAt": "2026-10-09T11:11:26.578Z",
+  "audio": "none (headless simulation)",
+  "runtimeSha256": "e75dfdc691536a3d8c6a65e4395116674b19311cb56d752c9f2b2c1f1fdcf982",
+  "fullRouteVerified": false,
+  "humanPlayVerified": false,
+  "funVerified": false,
+  "cases": [
+    {
+      "count": 2,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 0,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 2,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 0,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 2,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 2,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 2,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 24,
+        "warped": [
+          "p1",
+          "p2"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 388.89996337890625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 335,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 2,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 23,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 2,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 753.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 363,
+            "y": 755.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 2,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 2,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 102,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 866,
+            "y": 867.4991760253906,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1230,
+            "y": 852.0999145507812,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 3,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 10,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 3,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 0,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 3,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 3,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 3,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 27,
+        "warped": [
+          "p1",
+          "p2",
+          "p3"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 398.6498718261719,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 338.89996337890625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 285,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 35,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 3,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 707.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 363,
+            "y": 709.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 103,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 872,
+            "y": 867.4991760253906,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1230,
+            "y": 852.7995300292969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 785,
+            "y": 862.8492736816406,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 4,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 17,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1456,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a19",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 4,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 0,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 4,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 330,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 4,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9,
+          12
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 4,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 30,
+        "warped": [
+          "p1",
+          "p2",
+          "p3",
+          "p4"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285,
+          235
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 414.2497253417969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 348.6498718261719,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 288.89996337890625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 704,
+            "y": 235,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 4,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 47,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          },
+          {
+            "id": "p4",
+            "tick": 47
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 4,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 661.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 360,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 363,
+            "y": 663.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 4,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 620,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 4,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 104,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 84,
+            "y": 850.4807884875421,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1166,
+            "y": 862.8492736816406,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1198,
+            "y": 847.5099790955428,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1230,
+            "y": 849.3496704101562,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 5,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 32,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 818,
+            "y": 793.2471618652344,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1456,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a19",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 5,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 0,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 5,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 330,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 330,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 5,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9,
+          12,
+          15
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 5,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 33,
+        "warped": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285,
+          235,
+          185
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 435.69952392578125,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 364.2497253417969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 298.6498718261719,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 704,
+            "y": 238.89996337890625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 704,
+            "y": 185,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 5,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 59,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          },
+          {
+            "id": "p4",
+            "tick": 47
+          },
+          {
+            "id": "p5",
+            "tick": 59
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 5,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 615.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 360,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 360,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 363,
+            "y": 617.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 5,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 620,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 660,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 5,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 105,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 872,
+            "y": 867.4991760253906,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1198,
+            "y": 858.849365234375,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 791,
+            "y": 845.0810257613855,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 836,
+            "y": 848.4997863769531,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1230,
+            "y": 854.5999450683594,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 6,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 42,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 848,
+            "y": 838.2471618652344,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1456,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a19",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 728,
+            "y": 158.3997802734375,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 6,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 1,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 6,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 330,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 330,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 330,
+            "y": 636,
+            "grounded": true,
+            "supportId": "p5",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 6,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9,
+          12,
+          15,
+          18
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 6,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 35,
+        "warped": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "p6"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285,
+          235,
+          185,
+          135
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 453.2493591308594,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 377.89959716796875,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 308.3997802734375,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 704,
+            "y": 244.74990844726562,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 704,
+            "y": 186.94998168945312,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 704,
+            "y": 135,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 6,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 71,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          },
+          {
+            "id": "p4",
+            "tick": 47
+          },
+          {
+            "id": "p5",
+            "tick": 59
+          },
+          {
+            "id": "p6",
+            "tick": 71
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 6,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 569.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 360,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 360,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 360,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 363,
+            "y": 571.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 6,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 620,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 660,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 700,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 6,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 106,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 815,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1166,
+            "y": 848.4997863769531,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 851,
+            "y": 852.7995300292969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1230,
+            "y": 852.7995300292969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 722,
+            "y": 379.9981689453125,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1198,
+            "y": 849.0498352050781,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 7,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 44,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1456,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a19",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 880,
+            "y": 972.2471618652344,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 749,
+            "y": 412.999267578125,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 800,
+            "y": 726.2471618652344,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 7,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 1,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 7,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 330,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 330,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 330,
+            "y": 636,
+            "grounded": true,
+            "supportId": "p5",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 330,
+            "y": 590,
+            "grounded": true,
+            "supportId": "p6",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 7,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9,
+          12,
+          15,
+          18,
+          21
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 7,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 38,
+        "warped": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "p6",
+          "p7"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285,
+          235,
+          185,
+          135,
+          85
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 484.4490661621094,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 403.2493591308594,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 327.89959716796875,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 704,
+            "y": 258.3997802734375,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 704,
+            "y": 194.74990844726562,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 704,
+            "y": 138.89996337890625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 704,
+            "y": 85,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 7,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 83,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          },
+          {
+            "id": "p4",
+            "tick": 47
+          },
+          {
+            "id": "p5",
+            "tick": 59
+          },
+          {
+            "id": "p6",
+            "tick": 71
+          },
+          {
+            "id": "p7",
+            "tick": 83
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 7,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 523.160058442736,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 360,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 360,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 360,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 360,
+            "y": 636,
+            "grounded": true,
+            "supportId": "p5",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 363,
+            "y": 525.0499946612399,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 7,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 620,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 660,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 700,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 740,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 7,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 107,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 1134,
+            "y": 850.5365896826672,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1102,
+            "y": 846.4613597761572,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 1035,
+            "y": 850.7496032714844,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1070,
+            "y": 823.9441064896197,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1230,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:43",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1166,
+            "y": 848.4997863769531,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 1198,
+            "y": 858.849365234375,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    },
+    {
+      "count": 8,
+      "name": "spawn crowd, synchronized walking and held jumps",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "seconds": 20.000000000000146,
+        "overlapTicks": 0,
+        "warpEvents": 31,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 1424,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a18",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 1392,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a18",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 731,
+            "y": 114.24972534179688,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 1360,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a17",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 1488,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a20",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1456,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a19",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 1520,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a21",
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 1552,
+            "y": 828,
+            "grounded": true,
+            "supportId": "source:a22",
+            "exit": false
+          }
+        ],
+        "routeCleared": false,
+        "reversePlayerArrayPositionsMatch": true
+      }
+    },
+    {
+      "count": 8,
+      "name": "natural-spawn support and carrying remain invariant under array permutation",
+      "kind": "whole-stage-start-input-regression",
+      "passed": true,
+      "evidence": {
+        "ticks": 1200,
+        "reverseArraySupportsMatch": true,
+        "carrierCounterfactuals": 1,
+        "placementsUsed": false
+      }
+    },
+    {
+      "count": 8,
+      "name": "full tower carries through bottom walking and blocks bottom jump",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 10,
+        "translation": 30,
+        "players": [
+          {
+            "id": "p1",
+            "x": 330,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 330,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 330,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 330,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 330,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 330,
+            "y": 636,
+            "grounded": true,
+            "supportId": "p5",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 330,
+            "y": 590,
+            "grounded": true,
+            "supportId": "p6",
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 330,
+            "y": 544,
+            "grounded": true,
+            "supportId": "p7",
+            "exit": false
+          }
+        ],
+        "bottomJumpBlocked": true
+      }
+    },
+    {
+      "count": 8,
+      "name": "each tower member moves right in one tick",
+      "kind": "original-terrain-position-fixture-observation",
+      "passed": true,
+      "evidence": {
+        "individualWalkPixelsPerTick": 3,
+        "displacementByStackLevel": [
+          3,
+          6,
+          9,
+          12,
+          15,
+          18,
+          21,
+          24
+        ],
+        "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+      }
+    },
+    {
+      "count": 8,
+      "name": "all bodies fall through actual gap and warp in ordinal order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 40,
+        "warped": [
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "p6",
+          "p7",
+          "p8"
+        ],
+        "ordinalDestinationY": [
+          385,
+          335,
+          285,
+          235,
+          185,
+          135,
+          85,
+          35
+        ],
+        "counter": 0,
+        "terminalPlayers": [
+          {
+            "id": "p1",
+            "x": 704,
+            "y": 508.49884033203125,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 704,
+            "y": 423.399169921875,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 704,
+            "y": 344.1494445800781,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 704,
+            "y": 270.7496643066406,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 704,
+            "y": 203.1998291015625,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 704,
+            "y": 144.74990844726562,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 704,
+            "y": 86.94998168945312,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 704,
+            "y": 35,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 8,
+      "name": "team walks into goal sequentially and exited bodies stop blocking",
+      "kind": "original-terrain-position-and-open-goal-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 95,
+        "entered": [
+          {
+            "id": "p1",
+            "tick": 11
+          },
+          {
+            "id": "p2",
+            "tick": 23
+          },
+          {
+            "id": "p3",
+            "tick": 35
+          },
+          {
+            "id": "p4",
+            "tick": 47
+          },
+          {
+            "id": "p5",
+            "tick": 59
+          },
+          {
+            "id": "p6",
+            "tick": 71
+          },
+          {
+            "id": "p7",
+            "tick": 83
+          },
+          {
+            "id": "p8",
+            "tick": 95
+          }
+        ],
+        "terminalStatus": "clear",
+        "keyRouteVerified": false
+      }
+    },
+    {
+      "count": 8,
+      "name": "tower top jumps while bottom carries and tries blocked jump; reverse player order",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "bottomBlocked": true,
+        "topApex": 477.1600584427361,
+        "reversePlayerArrayMatches": true,
+        "players": [
+          {
+            "id": "p1",
+            "x": 360,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 360,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 360,
+            "y": 774,
+            "grounded": true,
+            "supportId": "p2",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 360,
+            "y": 728,
+            "grounded": true,
+            "supportId": "p3",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 360,
+            "y": 682,
+            "grounded": true,
+            "supportId": "p4",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 360,
+            "y": 636,
+            "grounded": true,
+            "supportId": "p5",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 360,
+            "y": 590,
+            "grounded": true,
+            "supportId": "p6",
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 363,
+            "y": 479.04999466123996,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 8,
+      "name": "jumping head meets a falling teammate without penetration",
+      "kind": "original-terrain-position-fixture",
+      "passed": true,
+      "evidence": {
+        "ticks": 20,
+        "headBlockedAtTick": 4,
+        "players": [
+          {
+            "id": "p1",
+            "x": 300,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 300,
+            "y": 820,
+            "grounded": true,
+            "supportId": "p1",
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 580,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 620,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 660,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 700,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 740,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 780,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:42",
+            "exit": false
+          }
+        ]
+      }
+    },
+    {
+      "count": 8,
+      "name": "seeded mixed movement from natural spawns",
+      "kind": "whole-stage-start-input-stress",
+      "passed": true,
+      "evidence": {
+        "initialSeed": 108,
+        "ticks": 3600,
+        "seconds": 59.999999999997875,
+        "keyTaken": false,
+        "terminalStatus": "play",
+        "players": [
+          {
+            "id": "p1",
+            "x": 102,
+            "y": 854.2393624880347,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p2",
+            "x": 134,
+            "y": 852.7995300292969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p3",
+            "x": 184,
+            "y": 855.4994506835938,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p4",
+            "x": 243,
+            "y": 858.5921291898865,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p5",
+            "x": 275,
+            "y": 852.7995300292969,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p6",
+            "x": 1198,
+            "y": 856.8028399440393,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p7",
+            "x": 1166,
+            "y": 846.4613597761572,
+            "grounded": false,
+            "supportId": null,
+            "exit": false
+          },
+          {
+            "id": "p8",
+            "x": 1230,
+            "y": 866,
+            "grounded": true,
+            "supportId": "terrain:43",
+            "exit": false
+          }
+        ],
+        "routeCleared": false
+      }
+    }
+  ],
+  "observations": [
+    {
+      "severity": "unverified-fidelity",
+      "behavior": "Same-direction tower inputs accumulate horizontal transport",
+      "evidence": [
+        {
+          "count": 2,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 3,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 4,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9,
+            12
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 5,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 6,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9,
+            12,
+            15,
+            18
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 7,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9,
+            12,
+            15,
+            18,
+            21
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        },
+        {
+          "count": 8,
+          "individualWalkPixelsPerTick": 3,
+          "displacementByStackLevel": [
+            3,
+            6,
+            9,
+            12,
+            15,
+            18,
+            21,
+            24
+          ],
+          "interpretation": "Carrier displacement accumulates with each rider input. Native equivalence is unverified; this is an observed population-sensitive behavior, not an established source defect."
+        }
+      ]
+    },
+    {
+      "severity": "fixed-runtime-defect",
+      "currentlyFailing": false,
+      "behavior": "Natural-spawn support selection and rider movement are invariant under reverse player array order in this tested input sequence. One-tick carrier-left counterfactuals at the previously failing ticks also match.",
+      "evidence": [],
+      "historicalEvidenceRetained": true
+    },
+    {
+      "severity": "gameplay-constraint",
+      "behavior": "Synchronized walking and repeated held jumps do not solve the first stair or reach the key within 20 simulated seconds for any population. The team needs coordinated support/switch/spring actions; no fairness or fun conclusion follows from this stress script.",
+      "evidence": [
+        {
+          "count": 2,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 0
+        },
+        {
+          "count": 3,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 10
+        },
+        {
+          "count": 4,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 17
+        },
+        {
+          "count": 5,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 32
+        },
+        {
+          "count": 6,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 42
+        },
+        {
+          "count": 7,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 44
+        },
+        {
+          "count": 8,
+          "keyTaken": false,
+          "status": "play",
+          "warpEvents": 31
+        }
+      ]
+    },
+    {
+      "severity": "validation-limit",
+      "behavior": "Goal queue is tested only after fixture-opening the goal. Warp and tower tests place players on original terrain. Neither proves that all eight players can complete the original route. Native timing, source contact fidelity, and human coordination remain unverified."
+    }
+  ],
+  "historicalRegressionEvidence": [
+    {
+      "runtimeSha256": "aad11ab8253a2c1015b1f2ddb0608c586187fe434330a33d4c5ac02a87899d22",
+      "generatedAt": "2026-10-09T11:10:16.296Z",
+      "failedCases": [
+        {
+          "count": 6,
+          "evidence": {
+            "firstDifferentSupportTick": 234,
+            "playerId": "p6",
+            "before": {
+              "x": 815,
+              "y": 820,
+              "supportNormal": "p2",
+              "supportReversed": "p1"
+            },
+            "nextTickInput": {
+              "p2": {
+                "left": true
+              }
+            },
+            "afterNormal": {
+              "id": "p6",
+              "x": 812,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            "afterReversed": {
+              "id": "p6",
+              "x": 815,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p1",
+              "exit": false
+            },
+            "placementsUsed": false
+          }
+        },
+        {
+          "count": 7,
+          "evidence": {
+            "firstDifferentSupportTick": 217,
+            "playerId": "p7",
+            "before": {
+              "x": 815,
+              "y": 820,
+              "supportNormal": "p3",
+              "supportReversed": "p2"
+            },
+            "nextTickInput": {
+              "p3": {
+                "left": true
+              }
+            },
+            "afterNormal": {
+              "id": "p7",
+              "x": 812,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            "afterReversed": {
+              "id": "p7",
+              "x": 815,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            "placementsUsed": false
+          }
+        },
+        {
+          "count": 8,
+          "evidence": {
+            "firstDifferentSupportTick": 217,
+            "playerId": "p7",
+            "before": {
+              "x": 815,
+              "y": 820,
+              "supportNormal": "p3",
+              "supportReversed": "p2"
+            },
+            "nextTickInput": {
+              "p3": {
+                "left": true
+              }
+            },
+            "afterNormal": {
+              "id": "p7",
+              "x": 812,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p3",
+              "exit": false
+            },
+            "afterReversed": {
+              "id": "p7",
+              "x": 815,
+              "y": 820,
+              "grounded": true,
+              "supportId": "p2",
+              "exit": false
+            },
+            "placementsUsed": false
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 63,
+    "passed": 63,
+    "failed": 0,
+    "scope": "2..8 population simulation, actual spawn-input stress, and explicitly placed original-terrain mechanic fixtures. No complete key-to-goal route or human fun assessment."
+  }
+}

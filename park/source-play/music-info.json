@@ -1,0 +1,41 @@
+{
+  "title": "Together at Tuna Park",
+  "title_ko": "참치파크, 함께 한 걸음",
+  "file": "audio/park-together.wav",
+  "original": true,
+  "source": "Original composed note sequences and procedural instrument synthesis; no samples or borrowed audio.",
+  "composer": "Codex for this project",
+  "bpm": 96,
+  "key": "D major",
+  "meter": "4/4",
+  "bars": 16,
+  "duration_seconds": 40.0,
+  "sample_rate": 22050,
+  "channels": 2,
+  "bits_per_sample": 16,
+  "arrangement": "Warm wooden pluck lead with call-and-response phrases, soft organ pad, bell counterline, rounded bass, quiet kick/brush/shaker rhythm; second-half variation and dominant return.",
+  "loop": "Exact 16-bar circular timeline; instrument tails wrap into opening; no fade-to-silence gap.",
+  "suggested_browser_volume": 0.28,
+  "verification": {
+    "audio_played": false,
+    "method": "PCM statistics and WAV header inspection only; no listening validation",
+    "frames": 882000,
+    "bytes": 3528044,
+    "peak_amplitude": 0.419996,
+    "peak_dbfs": -7.54,
+    "rms_amplitude": 0.070002,
+    "rms_dbfs": -23.1,
+    "clipped_samples": 0,
+    "loop_boundary_max_step": 0.006439,
+    "sha256": "cd64fee1e6460e9fa66b3755a1224adb84673155876ce593990cf775f6fbe8d0"
+  },
+  "synthesized_events": {
+    "pluck": 110,
+    "bell": 64,
+    "pad": 64,
+    "bass": 64,
+    "kick": 32,
+    "brush": 36,
+    "hat": 128
+  }
+}

@@ -81,7 +81,15 @@
   for(const b of obstacles){
    if(!horizontal(p,b))continue;
    if(dy>=0&&before+p.h<=b.y+0.001&&target+p.h>=b.y){
-    if(b.y-p.h<=target){target=b.y-p.h;support=b;}
+    if(b.y-p.h<=target){
+     // Equal-height teammates must not change the carrier when actor array
+     // order changes. Prefer the widest contact, then a stable actor ID.
+     const contact=Math.min(p.x+p.w,b.x+b.w)-Math.max(p.x,b.x);
+     const previous=support?Math.min(p.x+p.w,support.x+support.w)-Math.max(p.x,support.x):-1;
+     if(b.y-p.h<target-1e-9||!support||contact>previous+1e-9||Math.abs(contact-previous)<=1e-9&&String(b.id)<String(support.id)){
+      target=b.y-p.h;support=b;
+     }
+    }
    }else if(dy<0&&before>=b.y+b.h-0.001&&target<b.y+b.h){target=Math.max(target,b.y+b.h);p.vy=0;p.jumpFrame=0;}
   }
   p.y=target;

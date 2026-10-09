@@ -4,8 +4,14 @@ const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('
 const colors=['#ffb36b','#74e4db','#afa4ff','#ff93b8','#b5e47b','#7abaff','#f4d475','#e2a2ff'];
 let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0;
 const keys=new Set();
-function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();}
-function start(){if(!state)return;paused=false;keys.clear();$('cover').hidden=true;last=performance.now();canvas.focus();}
+const testMuted=new URLSearchParams(location.search).has('mute');
+const music=new Audio('audio/park-together.wav');music.loop=true;music.volume=.35;music.preload='none';
+let musicEnabled=!testMuted&&localStorage.getItem('park-source-music')!=='off';
+function musicLabel(){$('music').textContent=musicEnabled?'♫':'♫̸';$('music').setAttribute('aria-pressed',String(musicEnabled));$('music').title=`배경음악 ${musicEnabled?'켜짐':'꺼짐'} · M`;}
+function syncMusic(){musicLabel();if(!musicEnabled||testMuted||paused){music.pause();return;}music.play().catch(()=>{});}
+function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('park-source-music',musicEnabled?'on':'off');syncMusic();}
+function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();syncMusic();}
+function start(){if(!state)return;paused=false;keys.clear();$('cover').hidden=true;last=performance.now();canvas.focus();syncMusic();}
 function reset(){if(!compiled)return;state=SourceStageRuntime.create(compiled);selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
 async function load(){const token=++loadVersion;compiled=null;state=null;overlay('불러오는 중','원본 지형과 장치를 준비합니다.');$('start').disabled=true;
  try{const res=await fetch(`data/${$('count').value}.json`,{cache:'no-store'});if(!res.ok)throw Error('연결 데이터 준비 중');const data=await res.json();if(token!==loadVersion)return;compiled=data;$('limitations').textContent='원본 지형·스프링·워프 연결 · 물리·열쇠 동작 일치 검수 중';$('start').disabled=false;reset();}
@@ -16,8 +22,20 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
  camera=ParkCamera.update(camera,state.players,state.map,{width:1200,height:675},1/60);
  ctx.save();ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
- for(const b of state.map.switches||[])box(b,'#ffcd65');
- for(const b of state.map.springs||[]){box(b,'#e762bd');ctx.strokeStyle='#ffb7e8';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<5;i++){const x=b.x+(i%2?b.w-5:5),y=b.y+5+i*(b.h-10)/4;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+ for(const b of state.map.switches||[]){
+  ctx.save();ctx.shadowColor='#ffd876';ctx.shadowBlur=b.pressed?20:0;box(b,b.pressed?'#fff4ba':'#ffcd65');ctx.restore();
+  if(b.remaining>0){const relay=state.relayState.relays.find(r=>r.id===b.id),x=b.x+b.w/2,y=b.y-24;
+   ctx.strokeStyle='#34566b';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.stroke();
+   ctx.strokeStyle='#ffe482';ctx.beginPath();ctx.arc(x,y,16,-Math.PI/2,-Math.PI/2+Math.PI*2*b.remaining/relay.delay);ctx.stroke();
+   ctx.fillStyle='#fff4ba';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(String(Math.ceil(b.remaining)),x,y+5);
+  }
+ }
+ for(const b of state.map.springs||[]){if(b.visible===false)continue;
+  const lit=b.phase===2||b.phase===3,compression=b.phase===2?5+3*Math.sin(state.elapsed*45):b.phase===3?-5:0;
+  ctx.save();ctx.shadowColor='#ff78d6';ctx.shadowBlur=lit?18:0;box({...b,y:b.y+compression,h:b.h-compression},lit?'#ff8fdf':'#b95c9b');ctx.restore();
+  ctx.strokeStyle=lit?'#fff0fb':'#ffb7e8';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<5;i++){const x=b.x+(i%2?b.w-5:5),y=b.y+compression+5+i*(b.h-compression-10)/4;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+  if(b.phase===3){ctx.strokeStyle='#ffd6f2';ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+4+i*12;ctx.moveTo(x,b.y-8);ctx.lineTo(x,b.y-28);}ctx.stroke();}
+ }
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
  if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle='#ffdb72';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();}
  state.players.forEach((p,i)=>{if(p.exit)return;box(p,colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
@@ -36,10 +54,10 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();
  if(e.code==='Enter'&&paused){if(state&&state.status!=='play')reset();start();return;}
  if(e.code.startsWith('Digit')&&state){const i=Number(e.code.slice(5))-1;if(i>=0&&i<state.players.length)selected=i;return;}
- if(e.code==='KeyR'&&!e.repeat){reset();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
+ if(e.code==='KeyR'&&!e.repeat){reset();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
  if(e.code==='Backspace'&&!e.repeat){paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');return;}keys.add(e.code);
 });document.addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>{keys.clear();if(state&&state.status==='play'&&!paused)overlay('잠깐 쉬어가기','','계속 · Enter');});
- $('start').onclick=()=>{if(state&&state.status!=='play')reset();start();};$('retry').onclick=reset;$('count').onchange=load;
+ $('start').onclick=()=>{if(state&&state.status!=='play')reset();start();};$('retry').onclick=reset;$('count').onchange=load;$('music').onclick=toggleMusic;
  $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
  await load();requestAnimationFrame(frame);
 })();

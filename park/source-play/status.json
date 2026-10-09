@@ -4,7 +4,13 @@
   "sourceRoundsConnected": 1,
   "originalFidelityReviewedRounds": 0,
   "localOnlyControls": true,
-  "audio": "none",
+  "audio": {
+    "type": "original procedural composition",
+    "file": "audio/park-together.wav",
+    "durationSeconds": 40,
+    "muteKey": "M",
+    "testsMuted": true
+  },
   "rows": [
     {
       "count": 2,
