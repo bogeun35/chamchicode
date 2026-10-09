@@ -12,6 +12,7 @@
   "keyboardStartMovementAndPause": true,
   "musicDecodeLoopPauseToggle": true,
   "muteQueryPreventsPlayback": true,
+  "inputReplayStartsEightAndStaysSilent": true,
   "reviewCardsAndReport": true,
   "audio": "Chrome --mute-audio throughout",
   "pageErrors": [],

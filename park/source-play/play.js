@@ -2,17 +2,24 @@
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d');
 const colors=['#ffb36b','#74e4db','#afa4ff','#ff93b8','#b5e47b','#7abaff','#f4d475','#e2a2ff'];
-let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0;
+let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0,replay=null,replayLoading=false;
 const keys=new Set();
 const testMuted=new URLSearchParams(location.search).has('mute');
 const music=new Audio('audio/park-together.wav');music.loop=true;music.volume=.35;music.preload='none';
 let musicEnabled=!testMuted&&localStorage.getItem('park-source-music')!=='off';
-function musicLabel(){$('music').textContent=musicEnabled?'♫':'♫̸';$('music').setAttribute('aria-pressed',String(musicEnabled));$('music').title=`배경음악 ${musicEnabled?'켜짐':'꺼짐'} · M`;}
-function syncMusic(){musicLabel();if(!musicEnabled||testMuted||paused){music.pause();return;}music.play().catch(()=>{});}
+function musicLabel(){const enabled=musicEnabled&&!testMuted&&!replay;$('music').textContent=enabled?'♫':'♫̸';$('music').setAttribute('aria-pressed',String(enabled));$('music').title=replay?'검수 재생은 무음입니다':`배경음악 ${enabled?'켜짐':'꺼짐'} · M`;}
+function syncMusic(){musicLabel();if(!musicEnabled||testMuted||paused||replay){music.pause();return;}music.play().catch(()=>{});}
 function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('park-source-music',musicEnabled?'on':'off');syncMusic();}
 function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();syncMusic();}
 function start(){if(!state)return;paused=false;keys.clear();$('cover').hidden=true;last=performance.now();canvas.focus();syncMusic();}
-function reset(){if(!compiled)return;state=SourceStageRuntime.create(compiled);selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
+function reset(){if(!compiled)return;replay=null;state=SourceStageRuntime.create(compiled);selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
+async function runReplay(){if(replayLoading)return;replayLoading=true;$('replay').disabled=true;
+ try{const res=await fetch('whole-route-input-replay.json',{cache:'no-store'});if(!res.ok)throw Error('재생 기록을 준비하고 있습니다.');const data=await res.json();
+  if(data.schemaVersion!==1||data.count!==8||!Array.isArray(data.commands)||!data.commands.length||data.commands.some(c=>!Number.isInteger(c.frames)||c.frames<1||c.frames>36000))throw Error('입력 기록 형식을 확인해주세요.');
+  $('count').value=String(data.count);await load();if(!compiled||compiled.count!==data.count)throw Error('8인 지형을 불러오지 못했습니다.');
+  replay={data,index:0,remaining:data.commands[0].frames,accumulator:0};start();
+ }catch(e){overlay('입력 재생 준비 중',e.message);}finally{replayLoading=false;$('replay').disabled=false;}
+}
 async function load(){const token=++loadVersion;compiled=null;state=null;overlay('불러오는 중','원본 지형과 장치를 준비합니다.');$('start').disabled=true;
  try{const res=await fetch(`data/${$('count').value}.json`,{cache:'no-store'});if(!res.ok)throw Error('연결 데이터 준비 중');const data=await res.json();if(token!==loadVersion)return;compiled=data;$('limitations').textContent='원본 지형·스프링·워프 연결 · 물리·열쇠 동작 일치 검수 중';$('start').disabled=false;reset();}
  catch(e){if(token===loadVersion)overlay('연결 준비 중',e.message);}
@@ -43,9 +50,16 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
 }
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
  if(state&&!paused&&state.status==='play'){
+  if(replay){replay.accumulator+=dt;const h=1/state.physics.nativeTickRate;
+   while(replay&&replay.accumulator+1e-10>=h&&state.status==='play'){
+    const command=replay.data.commands[replay.index];SourceStageRuntime.step(state,command.inputs||{},h);replay.accumulator-=h;replay.remaining--;
+    if(replay.remaining===0){replay.index++;if(replay.index>=replay.data.commands.length){replay=null;overlay('입력 재생 종료','출발부터 실제 입력으로 진행한 기록입니다. 전체 클리어와 게임성은 검수 중입니다.','직접 조작 · Enter');}else replay.remaining=replay.data.commands[replay.index].frames;}
+   }
+  }else{
   const p=state.players[selected],input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW')};
   if(p&&!p.exit)SourceStageRuntime.step(state,{[p.id]:input},dt);
   else SourceStageRuntime.step(state,{},dt);
+  }
   if(state.status==='clear')overlay('함께 해냈어요','원본 첫 라운드 연결 검수 완료','다시 · Enter');
   else if(state.status==='dead')overlay('다시 한번',state.failure?.reason||'처음부터 다시 확인해요','다시 · Enter');
  }render();requestAnimationFrame(frame);
@@ -54,10 +68,10 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();
  if(e.code==='Enter'&&paused){if(state&&state.status!=='play')reset();start();return;}
  if(e.code.startsWith('Digit')&&state){const i=Number(e.code.slice(5))-1;if(i>=0&&i<state.players.length)selected=i;return;}
- if(e.code==='KeyR'&&!e.repeat){reset();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
+ if(e.code==='KeyR'&&!e.repeat){reset();return;}if(e.code==='KeyT'&&!e.repeat){runReplay();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
  if(e.code==='Backspace'&&!e.repeat){paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');return;}keys.add(e.code);
 });document.addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>{keys.clear();if(state&&state.status==='play'&&!paused)overlay('잠깐 쉬어가기','','계속 · Enter');});
- $('start').onclick=()=>{if(state&&state.status!=='play')reset();start();};$('retry').onclick=reset;$('count').onchange=load;$('music').onclick=toggleMusic;
+ $('start').onclick=()=>{if(state&&state.status!=='play')reset();start();};$('retry').onclick=reset;$('count').onchange=load;$('music').onclick=toggleMusic;$('replay').onclick=runReplay;
  $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
  await load();requestAnimationFrame(frame);
 })();
