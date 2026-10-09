@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "scope": "PP2 world01-01 Warp and shared WarpComponent static semantics",
+  "readOnlyStatic": true,
+  "nativeCodeExecuted": false,
+  "coordinates": "Source and native coordinates are Y-down. Actor position is feet-center for players; collision top-left is actor position plus(-16,-47), size32x46.",
+  "parameterEncoding": "Numeric t=1 values become native FP Q16.16; other t values read as zero.",
+  "slots": {"0":"collision width", "1":"collision height", "2":"destination x", "3":"destination y", "4":"destination offset x per warp counter", "5":"destination offset y per warp counter"},
+  "fieldPointerConvention": "Value-type pointers use metadata boxed offsets minus16",
+  "parseVA": "0x181734390",
+  "initCollisionVA": "0x181734580",
+  "onCollidedVA": "0x181734630",
+  "collision": {"rect":{"height":"slot1","width":"slot0","x":0,"y":0}, "layer":14, "creationArguments":{"r9":0,"stackBoolean":true}, "evidence":"ParseParameter0x1817344ac..504 stores height=slot1,width=slot0 at component+0x38 and zeros localX/Y; InitCollision0x1817345c0..610 passes this rect to ActorComponent.CreateCollision then sets Collision.m_Layer at+1 to14."},
+  "actorVariants": {"41":{"warpType":0,"targetAll":false,"destinationInitPos":false},"42":{"warpType":1,"targetAll":true,"destinationInitPos":false},"43":{"warpType":3,"targetAll":true,"destinationInitPos":true},"44":{"warpType":2,"targetAll":false,"destinationInitPos":true}},
+  "ordinaryWarp": {
+    "trigger": "OnCollided receives collision; layer1 Player accepted. No button/action, direction, occupancy or actor-name condition is checked. Layers2 and8 also accepted; other layers ignored.",
+    "playerDestination": "base destination + destinationOffset*shared signed-byte m_Counter; counter starts0 on default component creation and advances(counter+1)%Frame.GetPlayerActorCount after each player collision event. Counter is shared by the Warp actor rather than bound to player identity.",
+    "nearZeroSentinel": "Native compares absolute rawFP destination components to4 (not 4 world units): if both are below4, base becomes contacted player's current actor position; if only x is below4, base x becomes player's current x. Explicit world01-01 destination does not use this sentinel.",
+    "otherAcceptedLayerDestination": "Layers2/8 receive base destination directly; offset/counter do not apply and counter does not advance.",
+    "event": {"id":63,"positionField":"QEventParam.Position managed-object offset0x30","target":"contacted collision EntityRef offset0x18","sender":"warp ActorComponent via GetEventParam"},
+    "eventResponse": "ActorComponent.OnRecvEvent event63 copies Position into m_WarpPos, applies IsDisableCorrentWarpPos to flagbit20, zeros m_WarpVelo and calls ResetVeloAll. warpProc clears collision contacts, SetPosForce(destination), assigns actual m_Velo from m_WarpVelo (zero), then clears pending warp position/velocity.",
+    "warpPositionCorrection": "When correction is enabled, player type27 in a stage with camera-scroll flag may clamp destination x to camera view left boundary; no player-foot offset is added to destination itself.",
+    "evidence": ["WarpComponent.OnCollided0x181734699..6b4 layer1 gate", "0x1817347b1..831 counter destination and modulo advance", "0x181734a08..a61 layer2/8 base destination", "ActorComponent.OnRecvEvent0x18169e9b9..9fe event63 and ResetVeloAll", "ActorComponent.warpProc0x18169e51e..654 applies pending position and zero velocity"]
+  },
+  "world01_01": {
+    "sourceStageId":"st_w_01_01",
+    "sourceIndex":10,
+    "actorType":41,
+    "actorName":"",
+    "position":{"x":768,"y":1056},
+    "rect":{"height":96,"width":240,"x":0,"y":0},
+    "globalBounds":{"left":768,"top":1056,"right":1008,"bottom":1152},
+    "destination":{"x":720,"y":432},
+    "destinationOffset":{"x":0,"y":-50},
+    "playerCounterSequence2":[{"x":720,"y":432},{"x":720,"y":382}],
+    "integration":"Detect contact against player collision rect before a custom out-of-map death check. Set player actor anchor to destination, or collision top-left to(destinationX-16,destinationY-47); reset velocity and contacts. Source map height960 does not invalidate this original Warp at y1056.",
+    "evidence":"installed-stage-decoded.local.json st_w_01_01 actorCreateParamList index10, plus native methods and quantum-field-offsets.json"
+  },
+  "limits":["Original DLL only read and disassembled, never loaded or executed", "Schema does not establish complete native collision notification order, camera clamp behavior or fixed timestep integration fidelity", "Runtime implementation belongs to first-stage adapter"]
+}

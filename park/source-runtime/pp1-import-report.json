@@ -1,0 +1,1314 @@
+{
+  "source": "Installed PICO PARK ONLINE embedded plaintext Lua resources",
+  "nativeCodeExecuted": false,
+  "luaExecuted": false,
+  "bruteForceUsed": false,
+  "embeddedStageResources": 104,
+  "menuCatalogCounts": {
+    "world": 48,
+    "battle": 4,
+    "endless": 5
+  },
+  "visibleEndlessMenuCount": 4,
+  "worlds": [
+    [
+      "HELLO PICO PARK",
+      1,
+      0,
+      3,
+      [
+        0,
+        1,
+        2,
+        44
+      ]
+    ],
+    [
+      "GO TOGETHER",
+      0,
+      0,
+      1,
+      [
+        5,
+        4,
+        7,
+        6
+      ]
+    ],
+    [
+      "TIME LIMIT",
+      0,
+      2,
+      1,
+      [
+        24,
+        25,
+        26,
+        27
+      ]
+    ],
+    [
+      "GIMMICK GIMMICK",
+      0,
+      2,
+      3,
+      [
+        16,
+        41,
+        18,
+        17
+      ]
+    ],
+    [
+      "ALL FOR ONE",
+      0,
+      0,
+      2,
+      [
+        8,
+        9,
+        10,
+        11
+      ],
+      1
+    ],
+    [
+      "PUSH OR JUMP",
+      0,
+      0,
+      0,
+      [
+        3,
+        40,
+        46,
+        45
+      ]
+    ],
+    [
+      "MOVE AND STOP",
+      0,
+      2,
+      2,
+      [
+        32,
+        33,
+        34,
+        35
+      ]
+    ],
+    [
+      "RETRO GAME",
+      0,
+      1,
+      3,
+      [
+        29,
+        28,
+        31,
+        30
+      ]
+    ],
+    [
+      "BALL PARK",
+      0,
+      1,
+      1,
+      [
+        38,
+        36,
+        37,
+        39
+      ]
+    ],
+    [
+      "TWO PLAYERS",
+      0,
+      2,
+      0,
+      [
+        21,
+        23,
+        20,
+        22
+      ]
+    ],
+    [
+      "HAND GIMMICK",
+      0,
+      1,
+      2,
+      [
+        12,
+        13,
+        14,
+        15
+      ]
+    ],
+    [
+      "LAST PARK",
+      0,
+      1,
+      0,
+      [
+        19,
+        47,
+        43,
+        42
+      ]
+    ]
+  ],
+  "entries": [
+    {
+      "index": 0,
+      "stageId": "stage_jump01",
+      "mode": "world",
+      "file": "stage/stage_jump01.lua",
+      "sourceOffset": 9875844,
+      "actorCount": 17,
+      "mapWidth": 62,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 1,
+      "stageId": "stage_push02",
+      "mode": "world",
+      "file": "stage/stage_push02.lua",
+      "sourceOffset": 11914268,
+      "actorCount": 13,
+      "mapWidth": 39,
+      "mapHeight": 17,
+      "variantRules": []
+    },
+    {
+      "index": 2,
+      "stageId": "stage_jump02",
+      "mode": "world",
+      "file": "stage/stage_jump02.lua",
+      "sourceOffset": 12043880,
+      "actorCount": 42,
+      "mapWidth": 45,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 3,
+      "stageId": "stage_push01",
+      "mode": "world",
+      "file": "stage/stage_push01.lua",
+      "sourceOffset": 9822640,
+      "actorCount": 23,
+      "mapWidth": 62,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 4,
+      "stageId": "stage_fall01",
+      "mode": "world",
+      "file": "stage/stage_fall01.lua",
+      "sourceOffset": 4777728,
+      "actorCount": 74,
+      "mapWidth": 64,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 5,
+      "stageId": "stage_constraint01",
+      "mode": "world",
+      "file": "stage/stage_constraint01.lua",
+      "sourceOffset": 11984616,
+      "actorCount": 17,
+      "mapWidth": 68,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 6,
+      "stageId": "stage_fall02",
+      "mode": "world",
+      "file": "stage/stage_fall02.lua",
+      "sourceOffset": 5351196,
+      "actorCount": 42,
+      "mapWidth": 59,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 7,
+      "stageId": "stage_constraint02",
+      "mode": "world",
+      "file": "stage/stage_constraint02.lua",
+      "sourceOffset": 6911256,
+      "actorCount": 13,
+      "mapWidth": 27,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 8,
+      "stageId": "stage_majo01",
+      "mode": "world",
+      "file": "stage/stage_majo01.lua",
+      "sourceOffset": 4729488,
+      "actorCount": 14,
+      "mapWidth": 60,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 9,
+      "stageId": "stage_multijump01",
+      "mode": "world",
+      "file": "stage/stage_multijump01.lua",
+      "sourceOffset": 5325524,
+      "actorCount": 10,
+      "mapWidth": 59,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 10,
+      "stageId": "stage_majo02",
+      "mode": "world",
+      "file": "stage/stage_majo02.lua",
+      "sourceOffset": 5303484,
+      "actorCount": 13,
+      "mapWidth": 56,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 11,
+      "stageId": "stage_multijump02",
+      "mode": "world",
+      "file": "stage/stage_multijump02.lua",
+      "sourceOffset": 4724272,
+      "actorCount": 7,
+      "mapWidth": 54,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 12,
+      "stageId": "stage_gun01",
+      "mode": "world",
+      "file": "stage/stage_gun01.lua",
+      "sourceOffset": 10038044,
+      "actorCount": 15,
+      "mapWidth": 49,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 13,
+      "stageId": "stage_magnet01",
+      "mode": "world",
+      "file": "stage/stage_magnet01.lua",
+      "sourceOffset": 10062744,
+      "actorCount": 16,
+      "mapWidth": 36,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 14,
+      "stageId": "stage_gun02",
+      "mode": "world",
+      "file": "stage/stage_gun02.lua",
+      "sourceOffset": 5437420,
+      "actorCount": 16,
+      "mapWidth": 51,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 15,
+      "stageId": "stage_magnet02",
+      "mode": "world",
+      "file": "stage/stage_magnet02.lua",
+      "sourceOffset": 5482728,
+      "actorCount": 19,
+      "mapWidth": 54,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 16,
+      "stageId": "stage_thunder01",
+      "mode": "world",
+      "file": "stage/stage_thunder01.lua",
+      "sourceOffset": 5080696,
+      "actorCount": 28,
+      "mapWidth": 56,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 17,
+      "stageId": "stage_big_and_small",
+      "mode": "world",
+      "file": "stage/stage_big_and_small.lua",
+      "sourceOffset": 3220292,
+      "actorCount": 20,
+      "mapWidth": 47,
+      "mapHeight": 14,
+      "variantRules": []
+    },
+    {
+      "index": 18,
+      "stageId": "stage_stopwatch01",
+      "mode": "world",
+      "file": "stage/stage_stopwatch01.lua",
+      "sourceOffset": 9999648,
+      "actorCount": 15,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_stopwatch01_many"
+        ]
+      ]
+    },
+    {
+      "index": 19,
+      "stageId": "stage_thunder02",
+      "mode": "world",
+      "file": "stage/stage_thunder02.lua",
+      "sourceOffset": 3860560,
+      "actorCount": 16,
+      "mapWidth": 28,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 20,
+      "stageId": "stage_darkness01",
+      "mode": "world",
+      "file": "stage/stage_darkness01.lua",
+      "sourceOffset": 12092168,
+      "actorCount": 12,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 21,
+      "stageId": "stage_jump07",
+      "mode": "world",
+      "file": "stage/stage_jump07.lua",
+      "sourceOffset": 4735900,
+      "actorCount": 34,
+      "mapWidth": 88,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 22,
+      "stageId": "stage_darkness02",
+      "mode": "world",
+      "file": "stage/stage_darkness02.lua",
+      "sourceOffset": 9927240,
+      "actorCount": 16,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 23,
+      "stageId": "stage_jump04",
+      "mode": "world",
+      "file": "stage/stage_jump04.lua",
+      "sourceOffset": 5108708,
+      "actorCount": 17,
+      "mapWidth": 52,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 24,
+      "stageId": "stage_coin01",
+      "mode": "world",
+      "file": "stage/stage_coin01.lua",
+      "sourceOffset": 11619276,
+      "actorCount": 82,
+      "mapWidth": 36,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 25,
+      "stageId": "stage_time_limit02",
+      "mode": "world",
+      "file": "stage/stage_time_limit02.lua",
+      "sourceOffset": 4716505,
+      "actorCount": 45,
+      "mapWidth": 39,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 26,
+      "stageId": "stage_coin02",
+      "mode": "world",
+      "file": "stage/stage_coin02.lua",
+      "sourceOffset": 6861824,
+      "actorCount": 91,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 27,
+      "stageId": "stage_time_limit01",
+      "mode": "world",
+      "file": "stage/stage_time_limit01.lua",
+      "sourceOffset": 5331533,
+      "actorCount": 63,
+      "mapWidth": 51,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 28,
+      "stageId": "stage_breakout01",
+      "mode": "world",
+      "file": "stage/stage_breakout01.lua",
+      "sourceOffset": 12007616,
+      "actorCount": 12,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 29,
+      "stageId": "stage_switch_puzzle01",
+      "mode": "world",
+      "file": "stage/stage_switch_puzzle01.lua",
+      "sourceOffset": 6824118,
+      "actorCount": 20,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 30,
+      "stageId": "stage_breakout02",
+      "mode": "world",
+      "file": "stage/stage_breakout02.lua",
+      "sourceOffset": 9891932,
+      "actorCount": 12,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 31,
+      "stageId": "stage_switch_puzzle02",
+      "mode": "world",
+      "file": "stage/stage_switch_puzzle02.lua",
+      "sourceOffset": 10072502,
+      "actorCount": 21,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 32,
+      "stageId": "stage_bowwow01",
+      "mode": "world",
+      "file": "stage/stage_bowwow01.lua",
+      "sourceOffset": 5364416,
+      "actorCount": 11,
+      "mapWidth": 25,
+      "mapHeight": 17,
+      "variantRules": []
+    },
+    {
+      "index": 33,
+      "stageId": "stage_traffic_light01",
+      "mode": "world",
+      "file": "stage/stage_traffic_light01.lua",
+      "sourceOffset": 11966996,
+      "actorCount": 46,
+      "mapWidth": 88,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 34,
+      "stageId": "stage_ghost01",
+      "mode": "world",
+      "file": "stage/stage_ghost01.lua",
+      "sourceOffset": 12095756,
+      "actorCount": 14,
+      "mapWidth": 74,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 35,
+      "stageId": "stage_move01",
+      "mode": "world",
+      "file": "stage/stage_move01.lua",
+      "sourceOffset": 5309704,
+      "actorCount": 18,
+      "mapWidth": 74,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 36,
+      "stageId": "stage_seesaw01",
+      "mode": "world",
+      "file": "stage/stage_seesaw01.lua",
+      "sourceOffset": 5379280,
+      "actorCount": 18,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 37,
+      "stageId": "stage_breakout03",
+      "mode": "world",
+      "file": "stage/stage_breakout03.lua",
+      "sourceOffset": 6819656,
+      "actorCount": 11,
+      "mapWidth": 36,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 38,
+      "stageId": "stage_laser_ball01",
+      "mode": "world",
+      "file": "stage/stage_laser_ball01.lua",
+      "sourceOffset": 9829680,
+      "actorCount": 11,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_laser_ball01_many"
+        ]
+      ]
+    },
+    {
+      "index": 39,
+      "stageId": "stage_bound01",
+      "mode": "world",
+      "file": "stage/stage_bound01.lua",
+      "sourceOffset": 10125488,
+      "actorCount": 14,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_bound01_many"
+        ],
+        [],
+        [
+          5,
+          "stage_bound01_net_many"
+        ]
+      ]
+    },
+    {
+      "index": 40,
+      "stageId": "stage_auto_scroll01",
+      "mode": "world",
+      "file": "stage/stage_auto_scroll01.lua",
+      "sourceOffset": 5101004,
+      "actorCount": 21,
+      "mapWidth": 67,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 41,
+      "stageId": "stage_plane01",
+      "mode": "world",
+      "file": "stage/stage_plane01.lua",
+      "sourceOffset": 6874652,
+      "actorCount": 16,
+      "mapWidth": 120,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 42,
+      "stageId": "stage_auto_scroll02",
+      "mode": "world",
+      "file": "stage/stage_auto_scroll02.lua",
+      "sourceOffset": 3837852,
+      "actorCount": 22,
+      "mapWidth": 94,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 43,
+      "stageId": "stage_plane02",
+      "mode": "world",
+      "file": "stage/stage_plane02.lua",
+      "sourceOffset": 11601084,
+      "actorCount": 17,
+      "mapWidth": 178,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 44,
+      "stageId": "stage_weight01",
+      "mode": "world",
+      "file": "stage/stage_weight01.lua",
+      "sourceOffset": 9981660,
+      "actorCount": 15,
+      "mapWidth": 57,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 45,
+      "stageId": "stage_jump06",
+      "mode": "world",
+      "file": "stage/stage_jump06.lua",
+      "sourceOffset": 3854124,
+      "actorCount": 17,
+      "mapWidth": 57,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 46,
+      "stageId": "stage_weight02",
+      "mode": "world",
+      "file": "stage/stage_weight02.lua",
+      "sourceOffset": 12059560,
+      "actorCount": 17,
+      "mapWidth": 49,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 47,
+      "stageId": "stage_jump05",
+      "mode": "world",
+      "file": "stage/stage_jump05.lua",
+      "sourceOffset": 5087524,
+      "actorCount": 22,
+      "mapWidth": 44,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 48,
+      "stageId": "stage_battle_height",
+      "mode": "battle",
+      "file": "stage/stage_battle_height.lua",
+      "sourceOffset": 12066020,
+      "actorCount": 12,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 49,
+      "stageId": "stage_battle_region",
+      "mode": "battle",
+      "file": "stage/stage_battle_region.lua",
+      "sourceOffset": 9931272,
+      "actorCount": 10,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 50,
+      "stageId": "stage_battle_jump",
+      "mode": "battle",
+      "file": "stage/stage_battle_jump.lua",
+      "sourceOffset": 9990812,
+      "actorCount": 10,
+      "mapWidth": 27,
+      "mapHeight": 15,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_battle_jump_many"
+        ]
+      ]
+    },
+    {
+      "index": 51,
+      "stageId": "stage_battle_stopwatch",
+      "mode": "battle",
+      "file": "stage/stage_battle_stopwatch.lua",
+      "sourceOffset": 5479612,
+      "actorCount": 13,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_battle_stopwatch_m"
+        ]
+      ]
+    },
+    {
+      "index": 52,
+      "stageId": "stage_el_laser_ball01",
+      "mode": "endless",
+      "file": "stage/stage_el_laser_ball01.lua",
+      "sourceOffset": 5434508,
+      "actorCount": 10,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": [
+        "",
+        [
+          5,
+          "stage_el_laser_ball01_m"
+        ]
+      ]
+    },
+    {
+      "index": 53,
+      "stageId": "stage_el_switch_puzzle01",
+      "mode": "endless",
+      "file": "stage/stage_el_switch_puzzle01.lua",
+      "sourceOffset": 5041734,
+      "actorCount": 18,
+      "mapWidth": 40,
+      "mapHeight": 23,
+      "variantRules": []
+    },
+    {
+      "index": 54,
+      "stageId": "stage_el_scroll",
+      "mode": "endless",
+      "file": "stage/stage_el_scroll.lua",
+      "sourceOffset": 4790844,
+      "actorCount": 4,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 55,
+      "stageId": "stage_el_plane",
+      "mode": "endless",
+      "file": "stage/stage_el_plane.lua",
+      "sourceOffset": 10067416,
+      "actorCount": 12,
+      "mapWidth": 20,
+      "mapHeight": 10,
+      "variantRules": []
+    },
+    {
+      "index": 56,
+      "stageId": "stage_el_scroll_net",
+      "mode": "endless",
+      "file": "stage/stage_el_scroll_net.lua",
+      "sourceOffset": 5012196,
+      "actorCount": 12,
+      "mapWidth": 18,
+      "mapHeight": 10,
+      "variantRules": []
+    }
+  ],
+  "mapChecks": [
+    {
+      "stageId": "stage_jump01",
+      "expectedCells": 620,
+      "variantCellCounts": [
+        620
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_push02",
+      "expectedCells": 663,
+      "variantCellCounts": [
+        663
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_jump02",
+      "expectedCells": 450,
+      "variantCellCounts": [
+        450
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_push01",
+      "expectedCells": 620,
+      "variantCellCounts": [
+        620
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_fall01",
+      "expectedCells": 640,
+      "variantCellCounts": [
+        640
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_constraint01",
+      "expectedCells": 680,
+      "variantCellCounts": [
+        680
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_fall02",
+      "expectedCells": 590,
+      "variantCellCounts": [
+        590
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_constraint02",
+      "expectedCells": 270,
+      "variantCellCounts": [
+        280
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_majo01",
+      "expectedCells": 600,
+      "variantCellCounts": [
+        600
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_multijump01",
+      "expectedCells": 590,
+      "variantCellCounts": [
+        590
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_majo02",
+      "expectedCells": 560,
+      "variantCellCounts": [
+        590
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_multijump02",
+      "expectedCells": 540,
+      "variantCellCounts": [
+        540
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_gun01",
+      "expectedCells": 490,
+      "variantCellCounts": [
+        490
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_magnet01",
+      "expectedCells": 360,
+      "variantCellCounts": [
+        360
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_gun02",
+      "expectedCells": 510,
+      "variantCellCounts": [
+        510
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_magnet02",
+      "expectedCells": 540,
+      "variantCellCounts": [
+        540
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_thunder01",
+      "expectedCells": 560,
+      "variantCellCounts": [
+        560
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_big_and_small",
+      "expectedCells": 658,
+      "variantCellCounts": [
+        658
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_stopwatch01",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_thunder02",
+      "expectedCells": 280,
+      "variantCellCounts": [
+        280
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_darkness01",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_jump07",
+      "expectedCells": 880,
+      "variantCellCounts": [
+        880
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_darkness02",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_jump04",
+      "expectedCells": 520,
+      "variantCellCounts": [
+        520
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_coin01",
+      "expectedCells": 360,
+      "variantCellCounts": [
+        370
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_time_limit02",
+      "expectedCells": 390,
+      "variantCellCounts": [
+        390
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_coin02",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_time_limit01",
+      "expectedCells": 510,
+      "variantCellCounts": [
+        510
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_breakout01",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_switch_puzzle01",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_breakout02",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_switch_puzzle02",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_bowwow01",
+      "expectedCells": 425,
+      "variantCellCounts": [
+        425
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_traffic_light01",
+      "expectedCells": 880,
+      "variantCellCounts": [
+        880
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_ghost01",
+      "expectedCells": 740,
+      "variantCellCounts": [
+        740
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_move01",
+      "expectedCells": 740,
+      "variantCellCounts": [
+        740
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_seesaw01",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_breakout03",
+      "expectedCells": 360,
+      "variantCellCounts": [
+        370
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_laser_ball01",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_bound01",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_auto_scroll01",
+      "expectedCells": 670,
+      "variantCellCounts": [
+        670
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_plane01",
+      "expectedCells": 1200,
+      "variantCellCounts": [
+        1200
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_auto_scroll02",
+      "expectedCells": 940,
+      "variantCellCounts": [
+        950
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_plane02",
+      "expectedCells": 1780,
+      "variantCellCounts": [
+        1780
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_weight01",
+      "expectedCells": 570,
+      "variantCellCounts": [
+        570
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_jump06",
+      "expectedCells": 570,
+      "variantCellCounts": [
+        570
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_weight02",
+      "expectedCells": 490,
+      "variantCellCounts": [
+        490
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_jump05",
+      "expectedCells": 440,
+      "variantCellCounts": [
+        440
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_battle_height",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_battle_region",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920,
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_battle_jump",
+      "expectedCells": 405,
+      "variantCellCounts": [
+        405
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_battle_stopwatch",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_el_laser_ball01",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        180
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_el_switch_puzzle01",
+      "expectedCells": 920,
+      "variantCellCounts": [
+        920
+      ],
+      "allMapsHaveExpectedCells": true
+    },
+    {
+      "stageId": "stage_el_scroll",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        190
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_el_plane",
+      "expectedCells": 200,
+      "variantCellCounts": [
+        210
+      ],
+      "allMapsHaveExpectedCells": false
+    },
+    {
+      "stageId": "stage_el_scroll_net",
+      "expectedCells": 180,
+      "variantCellCounts": [
+        190
+      ],
+      "allMapsHaveExpectedCells": false
+    }
+  ],
+  "remaining": "Actor runtime behavior and conditional Lua code are preserved as expressions, not executed or claimed ported."
+}

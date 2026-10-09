@@ -1,0 +1,899 @@
+{
+  "date": "2026-10-09",
+  "scope": "PICO PARK 1 and 2, all visible modes plus original resource variants retained locally",
+  "world": {
+    "pico1": 48,
+    "pico2": 60,
+    "total": 108,
+    "sourceDataRecovered": 108,
+    "runtimeConnected": 1,
+    "originalFidelityReviewed": 0
+  },
+  "otherModes": {
+    "pico1": {
+      "battle": 4,
+      "endlessVisible": 4,
+      "endlessResources": 5,
+      "note": "stage_el_scroll_net is an online alternative, not a fifth visible round"
+    },
+    "pico2": {
+      "dark": 16,
+      "battle": 8,
+      "endless": 7
+    }
+  },
+  "visibleCatalogueEntries": 147,
+  "notice": "1편·2편 전체가 이관 대상이다. 2편 60개만으로 범위를 줄인 과거 계획을 대체한다. 데이터 확보·실행 연결·원본 일치 검수는 서로 다른 상태다.",
+  "pending": [
+    "1편 Lua의 동적 인원·장치 규칙 이관",
+    "2편 126종 장치 동작 연결",
+    "1편·2편 전체 온라인 연결",
+    "전체 이관 후 단계별 2~8인 경로/실패복구/재미 검수"
+  ],
+  "stages": [
+    {
+      "id": "pico1/world/01-01",
+      "sourceStageId": "stage_jump01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/01-02",
+      "sourceStageId": "stage_push02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/01-03",
+      "sourceStageId": "stage_jump02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/01-04",
+      "sourceStageId": "stage_weight01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/02-01",
+      "sourceStageId": "stage_constraint01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/02-02",
+      "sourceStageId": "stage_fall01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/02-03",
+      "sourceStageId": "stage_constraint02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/02-04",
+      "sourceStageId": "stage_fall02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/03-01",
+      "sourceStageId": "stage_coin01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/03-02",
+      "sourceStageId": "stage_time_limit02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/03-03",
+      "sourceStageId": "stage_coin02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/03-04",
+      "sourceStageId": "stage_time_limit01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/04-01",
+      "sourceStageId": "stage_thunder01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/04-02",
+      "sourceStageId": "stage_plane01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/04-03",
+      "sourceStageId": "stage_stopwatch01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/04-04",
+      "sourceStageId": "stage_big_and_small",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/05-01",
+      "sourceStageId": "stage_majo01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/05-02",
+      "sourceStageId": "stage_multijump01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/05-03",
+      "sourceStageId": "stage_majo02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/05-04",
+      "sourceStageId": "stage_multijump02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/06-01",
+      "sourceStageId": "stage_push01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/06-02",
+      "sourceStageId": "stage_auto_scroll01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/06-03",
+      "sourceStageId": "stage_weight02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/06-04",
+      "sourceStageId": "stage_jump06",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/07-01",
+      "sourceStageId": "stage_bowwow01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/07-02",
+      "sourceStageId": "stage_traffic_light01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/07-03",
+      "sourceStageId": "stage_ghost01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/07-04",
+      "sourceStageId": "stage_move01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/08-01",
+      "sourceStageId": "stage_switch_puzzle01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/08-02",
+      "sourceStageId": "stage_breakout01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/08-03",
+      "sourceStageId": "stage_switch_puzzle02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/08-04",
+      "sourceStageId": "stage_breakout02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/09-01",
+      "sourceStageId": "stage_laser_ball01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/09-02",
+      "sourceStageId": "stage_seesaw01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/09-03",
+      "sourceStageId": "stage_breakout03",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/09-04",
+      "sourceStageId": "stage_bound01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/10-01",
+      "sourceStageId": "stage_jump07",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/10-02",
+      "sourceStageId": "stage_jump04",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/10-03",
+      "sourceStageId": "stage_darkness01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/10-04",
+      "sourceStageId": "stage_darkness02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/11-01",
+      "sourceStageId": "stage_gun01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/11-02",
+      "sourceStageId": "stage_magnet01",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/11-03",
+      "sourceStageId": "stage_gun02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/11-04",
+      "sourceStageId": "stage_magnet02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/12-01",
+      "sourceStageId": "stage_thunder02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/12-02",
+      "sourceStageId": "stage_jump05",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/12-03",
+      "sourceStageId": "stage_plane02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico1/world/12-04",
+      "sourceStageId": "stage_auto_scroll02",
+      "sourceKind": "installed_lua_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/01-01",
+      "sourceStageId": "st_w_01_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": true,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/01-02",
+      "sourceStageId": "st_w_01_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/01-03",
+      "sourceStageId": "st_w_01_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/01-04",
+      "sourceStageId": "st_w_01_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/02-01",
+      "sourceStageId": "st_w_02_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/02-02",
+      "sourceStageId": "st_w_02_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/02-03",
+      "sourceStageId": "st_w_02_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/02-04",
+      "sourceStageId": "st_w_02_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/03-01",
+      "sourceStageId": "st_w_03_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/03-02",
+      "sourceStageId": "st_w_03_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/03-03",
+      "sourceStageId": "st_w_03_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/03-04",
+      "sourceStageId": "st_w_03_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/04-01",
+      "sourceStageId": "st_w_04_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/04-02",
+      "sourceStageId": "st_w_04_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/04-03",
+      "sourceStageId": "st_w_04_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/04-04",
+      "sourceStageId": "st_w_04_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/05-01",
+      "sourceStageId": "st_w_05_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/05-02",
+      "sourceStageId": "st_w_05_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/05-03",
+      "sourceStageId": "st_w_05_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/05-04",
+      "sourceStageId": "st_w_05_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/06-01",
+      "sourceStageId": "st_w_06_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/06-02",
+      "sourceStageId": "st_w_06_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/06-03",
+      "sourceStageId": "st_w_06_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/06-04",
+      "sourceStageId": "st_w_06_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/07-01",
+      "sourceStageId": "st_w_07_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/07-02",
+      "sourceStageId": "st_w_07_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/07-03",
+      "sourceStageId": "st_w_07_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/07-04",
+      "sourceStageId": "st_w_07_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/08-01",
+      "sourceStageId": "st_w_08_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/08-02",
+      "sourceStageId": "st_w_08_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/08-03",
+      "sourceStageId": "st_w_08_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/08-04",
+      "sourceStageId": "st_w_08_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/09-01",
+      "sourceStageId": "st_w_09_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/09-02",
+      "sourceStageId": "st_w_09_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/09-03",
+      "sourceStageId": "st_w_09_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/09-04",
+      "sourceStageId": "st_w_09_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/10-01",
+      "sourceStageId": "st_w_10_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/10-02",
+      "sourceStageId": "st_w_10_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/10-03",
+      "sourceStageId": "st_w_10_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/10-04",
+      "sourceStageId": "st_w_10_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/11-01",
+      "sourceStageId": "st_w_11_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/11-02",
+      "sourceStageId": "st_w_11_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/11-03",
+      "sourceStageId": "st_w_11_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/11-04",
+      "sourceStageId": "st_w_11_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/12-01",
+      "sourceStageId": "st_w_12_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/12-02",
+      "sourceStageId": "st_w_12_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/12-03",
+      "sourceStageId": "st_w_12_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/12-04",
+      "sourceStageId": "st_w_12_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/13-01",
+      "sourceStageId": "st_w_13_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/13-02",
+      "sourceStageId": "st_w_13_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/13-03",
+      "sourceStageId": "st_w_13_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/13-04",
+      "sourceStageId": "st_w_13_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/14-01",
+      "sourceStageId": "st_w_14_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/14-02",
+      "sourceStageId": "st_w_14_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/14-03",
+      "sourceStageId": "st_w_14_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/14-04",
+      "sourceStageId": "st_w_14_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/15-01",
+      "sourceStageId": "st_w_15_01",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/15-02",
+      "sourceStageId": "st_w_15_02",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/15-03",
+      "sourceStageId": "st_w_15_03",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    },
+    {
+      "id": "pico2/world/15-04",
+      "sourceStageId": "st_w_15_04",
+      "sourceKind": "installed_stage_static",
+      "dataRecovered": true,
+      "runtimeConnected": false,
+      "originalFidelityReviewed": false
+    }
+  ]
+}
