@@ -216,7 +216,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
     <div class="row">
       <div class="opt">속도 <button data-act="spd-">−</button><b id="spdV">×6.0</b><button data-act="spd+">+</button></div>
       <div class="opt">싱크 <button data-act="off-">−</button><b id="offV">0ms</b><button data-act="off+">+</button></div>
-      <div class="opt"><label><input type="checkbox" id="hitSnd"> 타격음</label></div>
+      <div class="opt"><label><input type="checkbox" id="hitSnd"> 타격음</label></div><div class="opt"><label><input type="checkbox" id="animeBga" checked> 배경 애니메이션</label></div>
       <div class="opt"><label><input type="checkbox" id="noFail"> 노페일</label></div>
     </div>
     <div class="row">
@@ -365,6 +365,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="o2jam/bga.js"></script>
 <script>
 'use strict';
 /* 오투잼 — 7키 세로 스크롤 리듬게임.
@@ -1368,7 +1369,7 @@ function renderMenu() {
   $('offV').textContent = (SET.offset > 0 ? '+' : '') + SET.offset + 'ms';
   document.querySelectorAll('.spdV').forEach(el => el.textContent = $('spdV').textContent);
   document.querySelectorAll('.offV').forEach(el => el.textContent = $('offV').textContent);
-  $('hitSnd').checked = !!SET.hitSound; $('noFail').checked = !!SET.noFail;
+  $('animeBga').checked = SET.bga !== false; $('hitSnd').checked = !!SET.hitSound; $('noFail').checked = !!SET.noFail;
   $('startBtn').disabled = !(s && s.ok);
   $('autoBtn').disabled = !(s && s.ok);
   if ((!run || run.ended) && !ED) setMode(SET.mode);
@@ -1409,6 +1410,7 @@ document.addEventListener('click', e => {
 });
 $('startBtn').onclick = () => startSelected();
 $('autoBtn').onclick = () => startSelected({ auto: true });
+$('animeBga').onchange = e => { SET.bga = e.target.checked; saveSet(); };
 $('hitSnd').onchange = e => { SET.hitSound = e.target.checked; saveSet(); };
 $('noFail').onchange = e => { SET.noFail = e.target.checked; saveSet(); };
 
@@ -2108,6 +2110,7 @@ function drawEditor(tNow) {
 function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
 function txt(s, x, y, size, color, align = 'center', font = 'Jua') { ctx.font = `${size}px ${font}, 'Malgun Gothic', sans-serif`; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = color; ctx.fillText(s, x, y); }
 function drawBg(now) {
+  if (typeof drawAnimeBga === "function" && drawAnimeBga(ctx, run, SET, run ? songNow() : 0, W, H)) return;
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0b1230'); g.addColorStop(1, '#05070f');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // The atmosphere follows the music beat, outside the dark note highway.
@@ -3147,7 +3150,7 @@ function shellKeydown(e) {
   if (!$('menu').hidden && e.code === 'Backspace' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { e.preventDefault(); e.stopImmediatePropagation(); showTitle(); }
 }
 function initializeShell() {
-  for (const id of ['offV','hitSnd','noFail','keyBoxes','recordPlay','recordQuality']) { const option = $(id).closest('.opt'); if (option) $('settingsSolo').appendChild(option); }
+  for (const id of ['offV','animeBga','hitSnd','noFail','keyBoxes','recordPlay','recordQuality']) { const option = $(id).closest('.opt'); if (option) $('settingsSolo').appendChild(option); }
   for (const option of [...$('roomOv').querySelectorAll('.opt')]) if (!option.querySelector('[data-act^="spd"]')) $('settingsRoom').appendChild(option);
   $('settingsRoom').hidden = true;
   document.addEventListener('click', e => {
