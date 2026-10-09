@@ -110,6 +110,25 @@ h1 { font-family: 'Black Han Sans', 'Jua', sans-serif; font-size: 42px; letter-s
 .edhelp b { color: var(--ink); font-weight: normal; }
 .diff.my { border-style: dashed; }
 .diff.on[data-d^="MY"] { border-color: #b58cff; border-style: solid; box-shadow: 0 0 0 3px rgba(181,140,255,.2); }
+.diff.sh { border-style: dotted; }
+.diff.on[data-d^="SH"] { border-color: #67e8f9; border-style: solid; box-shadow: 0 0 0 3px rgba(103,232,249,.2); }
+#rmDiffs .diff.on { border-color: #ffcb3d; border-style: solid; box-shadow: 0 0 0 3px rgba(255,203,61,.18); }
+#shareRow { margin-top: 12px; }
+#shareRow .shead { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 14px; }
+#shareRow .shead b { color: var(--ink); font-weight: 700; }
+#shareRow .sacts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+#shareRow .sacts .btn, .prow .btn { font-size: 14px; padding: 7px 12px; }
+#shareRow .slist { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; max-height: 230px; overflow: auto; padding: 2px; }
+#shareRow .diff, #rmDiffs .diff.sh, #rmDiffs .diff.my { min-width: 0; max-width: 270px; text-align: left; }
+#shareRow .diff small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+#loadDialog { margin: auto; width: min(760px, 94vw); max-height: 88vh; overflow: auto; background: #0d1729; color: #eef3ff; border: 1px solid #31516a; border-radius: 18px; padding: 24px; }
+#loadDialog .lsec { margin-top: 16px; }
+#loadDialog .lsec h3 { font-size: 15px; color: var(--cyan); margin-bottom: 6px; }
+#loadDialog .lrow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: #101c2e; border: 1px solid #22314a; margin-top: 6px; }
+#loadDialog .lrow .nm { flex: 1; min-width: 0; }
+#loadDialog .lrow .nm small { display: block; color: var(--dim); font-size: 12px; margin-top: 2px; }
+#loadDialog .lrow .btn { font-size: 14px; padding: 7px 14px; }
 /* PULSE skin: keep the note highway quiet and let music selection lead. */
 :root { --bg: #060912; --panel: rgba(10,16,30,.97); --line: #25334a; --ink: #f1f6ff; --dim: #9baac0; --cyan: #67e8f9; }
 html, body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; }
@@ -170,6 +189,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 <p class="hint">떨어지는 노트를 판정선에 맞춰 누르세요. 긴 노트는 끝까지 누릅니다.</p>
 <div class="stats" style="margin:18px 0;font-size:14px"><div>↑↓ / ←→ <b>곡 / 난이도</b></div><div>4~7 <b>키 모드</b></div><div>Enter <b>시작 / 준비</b></div><div>백틱(1 왼쪽) <b>일시정지</b></div><div>F7 / F8 <b>온라인 / 전체화면</b></div><div>F9 <b>녹화 켜기</b></div><div>R / Backspace <b>재시도 / 돌아가기</b></div><div>Tab / Enter <b>버튼 이동 / 선택</b></div></div>
 <details><summary>판정과 설정</summary><p class="hint">EXCELLENT → COOL → GOOD → BAD → MISS 순입니다. 쉬움·보통·어려움은 같은 곡의 서로 다른 노트 배치이며 별은 1~8단계입니다.<br>속도는 노트가 떨어지는 빠르기, 싱크는 음악과 노트의 시간 보정입니다. 노페일을 켜면 체력이 없어져도 끝까지 연습할 수 있습니다.</p></details>
+<details style="margin-top:14px"><summary>채보 만들기 · 공유 · 불러오기</summary><p class="hint">제작 → 채보 만들기에서 곡을 들으며 녹화하거나 마우스로 찍어 만들고 💾 저장하면 ‘내 채보’가 돼요. 🌐 공유를 켜고 저장하면 다른 사람의 곡 선택 화면 ‘공유 채보’에 올라가요.<br>남이 만든 채보는 공유 채보에서 바로 플레이하거나 💾 내 채보로 저장해 두고, 편집기의 📂 불러오기로 지금 게임 채보(쉬움·보통·어려움) · 내 채보 · 공유 채보 · 파일을 불러와 조금씩 고칠 수 있어요. 📤 파일로 저장하면 다른 곳에 보관하거나 보낼 수 있어요.</p></details>
 <details style="margin-top:14px"><summary>온라인과 녹화</summary><p class="hint">방장이 곡과 난이도를 고르고 모두 준비하면 시작합니다. 전체화면에서 Esc는 브라우저가 창 모드로 전환합니다. 혼자 하기에서는 백틱으로 일시정지하며, 온라인에서는 백틱이 이번 곡 포기입니다.<br>녹화는 게임 화면과 소리를 저장합니다. 압축은 최대 720p, 원본 화질은 화면 해상도를 유지합니다. 저장 형식은 브라우저 지원에 따라 MP4 또는 WebM입니다.</p></details>
 </dialog>
 <button class="btn ghost" id="screenBtn" title="전체화면 · F8" aria-label="전체화면 전환">⛶</button>
@@ -181,6 +201,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
 <style>.setting-group[hidden] {display:none;}</style>
 <dialog id="settingsDialog" aria-labelledby="settingsHeading"><div class="row"><h2 id="settingsHeading">플레이 설정</h2><button class="btn ghost" data-shell="close-settings" style="margin-left:auto">닫기</button></div><div id="settingsSolo" class="setting-group"></div><div id="settingsRoom" class="setting-group" hidden></div><div class="hint">Tab 이동 · Enter 선택 · ←→ 속도/싱크 조절 · Backspace 닫기</div></dialog>
 <dialog id="productionDialog" aria-labelledby="productionHeading"><div class="row"><h2 id="productionHeading">제작</h2><button class="btn ghost" data-shell="close-production" style="margin-left:auto">닫기</button></div><p class="hint" id="productionSong"></p><div id="productionEntries"></div></dialog>
+<dialog id="loadDialog" aria-labelledby="loadHeading"><div class="row"><h2 id="loadHeading">📂 채보 불러오기</h2><button class="btn ghost" data-ldclose style="margin-left:auto">닫기</button></div><p class="hint" id="loadSong"></p><div id="loadEntries"></div></dialog>
 <div id="menu" class="ov" hidden>
   <div class="box">
     <div class="brand-line">참치코드 · RHYTHM</div>
@@ -191,6 +212,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
     <div class="song-browser"><div class="songs" id="songList"></div><aside class="song-preview" id="songPreview" aria-label="선택한 곡"></aside></div>
     <div class="row" id="modeRow"></div>
     <div class="row" id="diffRow"></div>
+    <div id="shareRow"></div>
     <div class="row">
       <div class="opt">속도 <button data-act="spd-">−</button><b id="spdV">×6.0</b><button data-act="spd+">+</button></div>
       <div class="opt">싱크 <button data-act="off-">−</button><b id="offV">0ms</b><button data-act="off+">+</button></div>
@@ -304,6 +326,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
   <div class="row">
     <input class="inp" id="edName" maxlength="20" placeholder="채보 이름" style="flex:1;min-width:0">
     <button class="btn" data-ed="save">💾 저장 <small>Ctrl+S</small></button>
+    <label class="lbl" id="edShareLbl" title="저장할 때 다른 사람의 곡 선택 화면 ‘공유 채보’에도 올려요 (끄고 저장하면 내려요)"><input type="checkbox" id="edShare"> 🌐 공유</label>
     <button class="sb" data-ed="del" id="edDel" title="이 채보를 지워요">🗑 삭제</button>
   </div>
   <div class="row">
@@ -328,8 +351,8 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
     <button class="sb" data-ed="mirror" title="선택한 노트(없으면 전체)를 좌우로 뒤집기">⇋ 좌우 반전</button>
     <button class="sb" data-ed="clear">🧹 전부 지우기</button>
   </div>
-  <div class="row"><span class="lbl">자동 채보로 시작</span><button class="sb" data-ed="auto" data-v="EX">EX</button><button class="sb" data-ed="auto" data-v="NX">NX</button><button class="sb" data-ed="auto" data-v="HX">HX</button>
-    <span class="lbl" style="margin-left:10px">BPM</span><input class="inp" id="edBpm" type="number" step="0.01" min="40" max="400" style="width:92px" title="박자선이 음악과 어긋나면 고치세요">
+  <div class="row"><span class="lbl">📂 불러오기</span><button class="sb" data-ed="auto" data-v="EX" title="지금 게임에 있는 쉬움 채보를 불러와서 고쳐요">쉬움</button><button class="sb" data-ed="auto" data-v="NX" title="지금 게임에 있는 보통 채보를 불러와서 고쳐요">보통</button><button class="sb" data-ed="auto" data-v="HX" title="지금 게임에 있는 어려움 채보를 불러와서 고쳐요">어려움</button><button class="sb" data-ed="load" title="내가 저장한 채보 · 다른 사람이 공유한 채보 · 채보 파일">✏️ 내 채보 · 🌐 공유 채보 · 📥 파일…</button></div>
+  <div class="row"><span class="lbl">BPM</span><input class="inp" id="edBpm" type="number" step="0.01" min="40" max="400" style="width:92px" title="박자선이 음악과 어긋나면 고치세요">
     <span class="lbl">첫 박</span><input class="inp" id="edOff" type="number" step="1" style="width:84px" title="첫 박(마디선) 위치 — 박자선이 음악보다 앞서거나 늦으면 고치세요"><span class="lbl">ms</span></div>
   <div class="edhelp">
     <b>녹화</b> R = 한 마디 앞부터 곡이 나오고(카운트), 레인 키를 치는 대로 기록돼요 (길게 누르면 롱노트) · 녹화 중 R = 기록 켜기/끄기 · 멈추면 녹화 시작 자리로 돌아와요<br>
@@ -1186,6 +1209,7 @@ function finish() {
   const r = run; if (!r || r.ended) return;
   r.ended = true;
   r.achievement = achievementOf(r);
+  if (/^SH:/.test(r.diff) && !r.auto && !r.fromEditor && r.judged > 0) shBumpPlays(r.diff.slice(3));
   keysoundStop(r, AU.ctx.currentTime + (r.failed ? .6 : 1.2));
   recordingStop(1800);
   try { r.src.stop(AU.ctx.currentTime + (r.failed ? .6 : 1.2)); } catch (e) {}
@@ -1223,7 +1247,7 @@ function showResult(r) {
     } else progress.push('다음 판부터 이번 기록과 비교해요.');
   } else progress.push(r.auto ? '감상 모드 / 최고 기록에 저장하지 않아요.' : '기록은 곡을 끝까지 연주하면 저장돼요.');
   const col = { SS: '#ffe066', S: '#ffcb3d', A: '#7fe9ff', B: '#9cff7a', C: '#b58cff', D: '#8e9cc4', F: '#ff5a6e' }[rank];
-  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : ({EX:'쉬움',NX:'보통',HX:'어려움'}[r.diff] || '커스텀')} ${levelLabel(r.level)}${r.auto ? ' · 자동 연주' : ''}`;
+  $('resSong').textContent = `${r.song.title} · ${r.mode}키 ${/^MY:/.test(r.diff) ? `내 채보 「${r.label}」` : /^SH:/.test(r.diff) ? `공유 채보 「${r.label}」${r.data && r.data.by ? ' by ' + r.data.by : ''}` : ({EX:'쉬움',NX:'보통',HX:'어려움'}[r.diff] || '커스텀')} ${levelLabel(r.level)}${r.auto ? ' · 자동 연주' : ''}`;
   $('resRank').textContent = rank; $('resRank').style.color = col; $('resRank').style.textShadow = `0 0 30px ${col}88`;
   $('resScore').textContent = String(r.score).padStart(7, '0');
   $('resBest').textContent = nb || (old ? `최고 ${old.score.toLocaleString()} (${old.rank})` : '');
@@ -1265,6 +1289,15 @@ async function startSelected(opt) {
     if (c && c.song === s.id) return startRun(s, SET.diff, Object.assign({ data: myData(c), mode: c.keys, label: c.name }, opt));
     SET.diff = 'NX';
   }
+  if (/^SH:/.test(SET.diff)) {   // 공유 채보 (노트는 고를 때 받아 둠)
+    const m = shMeta(SET.diff.slice(3));
+    if (m && m.song === s.id) {
+      $('loading').hidden = false;
+      try { const notes = await shNotes(m.id); $('loading').hidden = true; return startRun(s, SET.diff, Object.assign({ data: shData(m, notes), mode: m.keys, label: m.name }, opt)); }
+      catch (e) { $('loading').hidden = true; $('menuMsg').textContent = '⚠️ 공유 채보를 받지 못했어요 — 인터넷 연결을 확인하거나 💾 내 채보로 저장해 두세요'; return; }
+    }
+    SET.diff = 'NX';
+  }
   if (!s.data.charts[SET.diff]) SET.diff = 'NX';
   startRun(s, SET.diff, opt);
 }
@@ -1273,7 +1306,7 @@ async function startSelected(opt) {
 let waitKey = -1;
 addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
-  if (e.defaultPrevented || $('helpDialog').open) return;
+  if (e.defaultPrevented || $('helpDialog').open || $('loadDialog').open) return;
   if (waitKey >= 0) { e.preventDefault(); if (e.code !== 'Escape') { const km = SET.keymap[SET.mode], i = km.indexOf(e.code); if (i >= 0) km[i] = km[waitKey]; km[waitKey] = e.code; saveSet(); } waitKey = -1; renderKeys(); return; }
   if (!(run && !run.ended && !run.paused) && (e.code === 'Enter' || e.code === 'Space') && e.target.closest && e.target.closest('button,a,summary')) return;
   if (ED && !run) { edKey(e); return; }
@@ -1327,9 +1360,10 @@ function renderMenu() {
     return `<button class="diff${SET.diff === d ? ' on' : ''}" data-d="${d}" ${s && s.ok ? '' : 'disabled'}>${{ EX: '쉬움', NX: '보통', HX: '어려움' }[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}<small>${b ? '최고 ' + b.rank : ''}</small></button>`;
   }).join('') + mine.map(c => {
     const b = BEST[recordKey(s, 'MY:' + c.id, SET.mode)];
-    return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보 — 고른 뒤 ✏️ 이 채보 편집 으로 고칠 수 있어요">✏️ ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
+    return `<button class="diff my${SET.diff === 'MY:' + c.id ? ' on' : ''}" data-d="MY:${c.id}" title="내 채보${c.shared ? ' (🌐 공유 중)' : ''}${c.from && c.from.by ? ' — 원본 by ' + escH(c.from.by) : ''} — 고르면 아래에 ✏️ 편집 · 🌐 공유 · 📤 파일 버튼이 나와요">${c.shared ? '🌐' : '✏️'} ${escH(c.name.slice(0, 10))} <span style="font-size:14px">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span><small>${c.notes.length} 노트${b ? ' · ' + b.rank : ''}</small></button>`;
   }).join('') + `<button class="btn ghost" data-act="ed-new" style="font-size:14px;padding:8px 14px" ${s && s.ok ? '' : 'disabled'} title="곡을 들으며 녹화하거나 마우스로 찍어서 ${SET.mode}키 채보 만들기">＋ 채보 만들기</button>`
     + (/^MY:/.test(SET.diff) ? '<button class="btn ghost" data-act="ed-edit" style="font-size:14px;padding:8px 14px">✏️ 이 채보 편집</button>' : '');
+  renderShareRow(s);
   $('spdV').textContent = '×' + SET.speed.toFixed(2).replace(/0$/, '');
   $('offV').textContent = (SET.offset > 0 ? '+' : '') + SET.offset + 'ms';
   document.querySelectorAll('.spdV').forEach(el => el.textContent = $('spdV').textContent);
@@ -1345,7 +1379,7 @@ document.addEventListener('click', e => {
   if (pk) { e.stopPropagation(); pickFor = pk.dataset.pick; picker.click(); return; }
   const km = e.target.closest('[data-kmode],[data-mmode]');
   if (km) {
-    if (km.dataset.mmode) { if (MP.isHost && MP.room && MP.room.status === 'wait') roomRef().update({ keys: validMode(km.dataset.mmode) }); else toast('대기 중 방장이 키 모드를 골라요'); return; }
+    if (km.dataset.mmode) { if (MP.isHost && MP.room && MP.room.status === 'wait') { const nk = validMode(km.dataset.mmode); roomRef().update(nk === validMode(MP.room.keys) ? { keys: nk } : mpResetCustom({ keys: nk }, MP.room)); } else toast('대기 중 방장이 키 모드를 골라요'); return; }
     SET.mode = validMode(km.dataset.kmode); setMode(SET.mode); waitKey = -1; saveSet(); renderMenu(); return;
   }
   const mt = e.target.closest('[data-tab],[data-room],[data-msong],[data-mdiff],[data-kick]');
@@ -1370,6 +1404,7 @@ document.addEventListener('click', e => {
   else if (a === 'retry') { if (run) { const s = run.song, d = run.diff, au = run.auto; if (AU.ctx.state === 'suspended') AU.ctx.resume(); startRun(s, d, { auto: au, data: run.data, mode: run.mode, label: run.label }); } return; }
   else if (a === 'quit') { quitToMenu(); return; }
   else if (a === 'ed-new' || a === 'ed-edit') { edOpen(a === 'ed-edit' ? SET.diff.slice(3) : null); return; }
+  else if (a && a.startsWith('sh-')) { shAct(a, t.dataset.v); return; }
   saveSet(); renderMenu();
 });
 $('startBtn').onclick = () => startSelected();
@@ -1386,7 +1421,7 @@ $('noFail').onchange = e => { SET.noFail = e.target.checked; saveSet(); };
 //   ③ 버릇 보정 — 최근 누른 시각들의 박자 위상 원형 평균이 한쪽으로 쏠려 있으면(늘 늦게/빨리) 그만큼 빼기
 //   ④ 한 마디 앞부터 들려주고 카운트   ⑤ 덮어쓰기 — 다시 녹화한 구간의 예전 노트는 판정선을 지나면 사라짐   ⑥ 한 번 녹화 = 되돌리기 한 번
 let ED = null;
-const EDSET = Object.assign({ zoom: 220, metro: false, tick: true, fixSnd: true, fixBias: true, overwrite: true }, load('o2jam_edset', {}));
+const EDSET = Object.assign({ zoom: 220, metro: false, tick: true, fixSnd: true, fixBias: true, overwrite: true, share: true }, load('o2jam_edset', {}));
 const saveEdSet = () => save('o2jam_edset', EDSET);
 const EDZ = [80, 110, 150, 220, 300, 400, 540, 720, 960];   // 확대 단계 (초당 px)
 const STRIP_R = 474;                                        // 오른쪽 '소리 모양' 띠의 오른쪽 끝 x
@@ -1503,6 +1538,7 @@ async function edOpen(id) {
     held: new Array(keys).fill(null), down: new Array(keys).fill(false), flash: new Array(keys).fill(0),
     presses: [], bias: 0, env: envOf(s.buffer), ons: s.buffer._ons || null, infoAt: 0, testFrom: null,
   };
+  ED.share = c ? !!c.shared : EDSET.share !== false; ED.from = c && c.from ? c.from : null;   // 공유: 새 채보는 지난번 선택대로 · 원본: 남의 채보를 고친 것이면 표시
   if (!ED.ons) onsetsOf(s.buffer).then(o => { if (ED && ED.song === s) ED.ons = o; }).catch(() => {});
   // 저장 안 한 임시 작업이 있으면 이어서
   const d = load('o2jam_draft', null), sig = a => JSON.stringify(a.map(n => [+(+n[0]).toFixed(4), n[1], +(+(n[2] || 0)).toFixed(4)]));
@@ -1521,6 +1557,7 @@ function edRenderPanel() {
   $('edSnap').innerHTML = [[1, '1박'], [2, '1/2'], [3, '1/3'], [4, '1/4'], [6, '1/6'], [8, '1/8'], [0, '끔']].map(([v, t]) => `<button class="sb${ED.snap === v ? ' on' : ''}" data-ed="snap" data-v="${v}">${t}</button>`).join(' ');
   $('edRate').innerHTML = [.5, .75, 1].map(v => `<button class="sb${ED.rate === v ? ' on' : ''}" data-ed="rate" data-v="${v}">×${v}</button>`).join(' ');
   $('edOw').innerHTML = [[1, '덮어쓰기', '다시 녹화한 구간의 예전 노트는 지워져요'], [0, '겹쳐 쓰기', '예전 노트 위에 더해요 (한 손씩 나눠서 녹화할 때)']].map(([v, t, tip]) => `<button class="sb${!!EDSET.overwrite === !!v ? ' on' : ''}" data-ed="ow" data-v="${v}" title="${tip}">${t}</button>`).join(' ');
+  $('edShare').checked = !!ED.share; $('edShareLbl').title = `저장할 때 다른 사람의 곡 선택 화면 ‘공유 채보’에도 올려요 — 만든 사람: ${(($('nick').value || '').trim()) || '온라인 탭 닉네임 (비어 있으면 자동)'} · 끄고 저장하면 내려요${ED.from && ED.from.by ? ` · 원본: ${ED.from.by}` : ''}`;
   $('edMetro').checked = !!EDSET.metro; $('edTick').checked = !!EDSET.tick; $('edFixSnd').checked = !!EDSET.fixSnd; $('edFixBias').checked = !!EDSET.fixBias;
   if (document.activeElement !== $('edBpm')) $('edBpm').value = +ED.bpm.toFixed(3);
   if (document.activeElement !== $('edOff')) $('edOff').value = Math.round(ED.offset * 1000);
@@ -1764,12 +1801,12 @@ function edCmd(cmd, v) {
       break;
     }
     case 'clear': if (ED.notes.length && confirm('노트를 전부 지울까요? (Ctrl+Z 로 되돌릴 수 있어요)')) { edPush(); ED.notes = []; ED.sel.clear(); } break;
-    case 'auto': {
+    case 'auto': {   // 지금 게임에 있는 채보 (쉬움·보통·어려움)
       const base = ED.song.chartData || ED.song.data, ch = base && chartFor(base, v, ED.keys); if (!ch) break;
-      if (ED.notes.length && !confirm(`지금 노트를 지우고 자동 채보 ${v} (${ch.notes.length}개)로 바꿀까요? (Ctrl+Z 로 되돌릴 수 있어요)`)) break;
-      edPush(); ED.notes = ch.notes.map(n => [n[0], n[1], n[2] || 0]); ED.bpm = base.bpm; ED.offset = base.offset || 0; ED.sel.clear(); edSort(); edRenderPanel();
-      toast(`자동 채보 ${v} 를 불러왔어요 — 마음대로 고쳐 보세요`, 2000); break;
+      edLoadNotes(ch.notes, { label: `${base.auto ? '자동 채보' : '지금 게임 채보'} · ${DIFF_KO[v] || v}`, bpm: base.bpm, offset: base.offset || 0, keys: ED.keys, from: null });
+      break;
     }
+    case 'load': edLoadDialog(); break;
     case 'copy': case 'cut': {
       if (!ED.sel.size) { toast('먼저 Shift+끌기로 노트를 선택하세요', 1600); break; }
       const g = [...ED.sel].sort((a, b) => a[0] - b[0]), t0 = g[0][0]; ED.clip = g.map(n => [n[0] - t0, n[1], n[2]]);
@@ -1813,18 +1850,26 @@ function edSave() {
   if (ED.playing) edStop();
   const notes = edExport();
   if (!notes.length) { toast('노트가 하나도 없어요', 1600); return; }
-  const list = myCharts(), id = ED.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
-  const name = (ED.name || '').trim().slice(0, 20) || '내 채보';
-  const c = { id, song: ED.song.id, keys: ED.keys, name, bpm: +ED.bpm.toFixed(4), offset: +ED.offset.toFixed(4), length: +ED.length.toFixed(2), notes, level: chartLevel(notes, ED.length), updatedAt: Date.now() };
+  const list = myCharts(), id = ED.id || newChartId();
+  const name = (ED.name || '').trim().slice(0, 20) || '내 채보', old = list.find(x => x.id === id);
+  const c = { id, song: ED.song.id, keys: ED.keys, name, bpm: +ED.bpm.toFixed(4), offset: +ED.offset.toFixed(4), length: +ED.length.toFixed(2), notes, level: chartLevel(notes, ED.length, ED.keys), updatedAt: Date.now() };
+  if (ED.from) c.from = ED.from;
+  if (old && old.shared) c.shared = true;
   const i = list.findIndex(x => x.id === id); if (i >= 0) list[i] = c; else list.push(c);
   if (!saveMy(list)) { toast('⚠️ 저장 공간이 부족해요 — 안 쓰는 내 채보를 지워 주세요', 3200); return; }
   ED.id = id; ED.name = name; ED.dirty = false; try { localStorage.removeItem('o2jam_draft'); } catch (e) {}
   SET.song = ED.song.id; SET.mode = ED.keys; SET.diff = 'MY:' + id; saveSet();
-  edRenderPanel(); toast(`💾 저장했어요 — 곡 선택 화면 난이도 줄에 "${name}" 이 생겨요`, 2600);
+  edRenderPanel();
+  const said = m => toast(`💾 저장했어요${m}`, 3400);
+  if (ED.share) { toast('💾 저장했어요 · 🌐 올리는 중…', 1600); shPublish(c).then(() => { said(` · 🌐 공유됨 — 다른 사람 곡 선택 화면에 by ${getNick()} 로 떠요`); if (ED) edRenderPanel(); }).catch(e => said(` · ⚠️ 공유는 실패: ${e.message || e}`)); }
+  else if (c.shared) shUnpublish(c).then(() => said(' · 🌐 공유는 내렸어요')).catch(() => said(''));
+  else said(` — 곡 선택 화면 난이도 줄에 "${name}" 이 생겨요`);
 }
 function edDelete() {
   if (!ED || !ED.id) return;
-  if (!confirm(`"${ED.name}" 채보를 지울까요? 되돌릴 수 없어요.`)) return;
+  const mc = myChart(ED.id);
+  if (!confirm(`"${ED.name}" 채보를 지울까요? 되돌릴 수 없어요.${mc && mc.shared ? '\n(공유한 채보라 공유 목록에서도 내려요)' : ''}`)) return;
+  if (mc && mc.shared) shUnpublish(mc).catch(() => {});
   const id = ED.id, pre = ED.song.id + ':MY:' + id;
   saveMy(myCharts().filter(c => c.id !== id));
   let ch = false; for (const k of Object.keys(BEST)) if (k === pre || k.startsWith(pre + ':')) { delete BEST[k]; ch = true; }
@@ -1940,6 +1985,7 @@ cv.addEventListener('wheel', e => {
 // ── 패널
 $('edPanel').addEventListener('click', e => { const b = e.target.closest('[data-ed]'); if (!b || !ED) return; b.blur(); audioInit(); edCmd(b.dataset.ed, b.dataset.v); });
 $('edName').oninput = e => { if (ED) { ED.name = e.target.value; ED.dirty = true; } };
+$('edShare').onchange = e => { if (!ED) return; ED.share = e.target.checked; EDSET.share = ED.share; saveEdSet(); toast(ED.share ? '🌐 저장하면 공유돼요' : '저장하면 공유하지 않아요 (이미 올린 건 내려요)', 1600); };
 for (const id of ['edName', 'edBpm', 'edOff']) $(id).addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); });
 $('edBpm').onchange = e => { const v = parseFloat(e.target.value); if (ED && v >= 40 && v <= 400 && Math.abs(v - ED.bpm) > 1e-6) { ED.bpm = v; ED.dirty = true; } edRenderPanel(); };
 $('edOff').onchange = e => { const v = parseFloat(e.target.value); if (ED && isFinite(v) && Math.abs(v / 1000 - ED.offset) > 1e-6) { ED.offset = clamp(v / 1000, -5, 30); ED.dirty = true; } edRenderPanel(); };
@@ -2308,7 +2354,7 @@ function draw() {
     // 오른쪽 정보
     const px = 480, s = r.song;
     txt(s.title, px, 58, 36, '#ffffff', 'left', 'Black Han Sans');
-    txt(`${r.label ? '✏️ ' + r.label + (r.fromEditor ? ' (테스트)' : '') + '  ·  ' : ''}${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 92, 17, '#8e9cc4', 'left');
+    txt(`${r.label ? (/^SH:/.test(r.diff) ? '🌐 ' : '✏️ ') + r.label + (/^SH:/.test(r.diff) && r.data && r.data.by ? ' by ' + r.data.by : '') + (r.fromEditor ? ' (테스트)' : '') + '  ·  ' : ''}${s.sub ? s.sub + ' · ' : ''}${s.artist}`, px, 92, 17, '#8e9cc4', 'left');
     const dc = { EX: '#6cf09a', NX: '#ffcb3d', HX: '#ff5a6e' }[r.diff] || '#b58cff';
     ctx.fillStyle = dc; rr(px, 110, 176, 28, 8); ctx.fill(); txt(`${r.mode}키 ${levelLabel(r.level)}`, px + 88, 124, 13, '#0b1230', 'center', 'Black Han Sans');
     txt(`BPM ${Math.round(r.bpm)}  ·  SPEED ×${SET.speed}${r.auto ? '  ·  AUTO' : ''}`, px + 190, 124, 15, '#8e9cc4', 'left');
@@ -2350,7 +2396,7 @@ function draw() {
         ctx.fillStyle = L.failed || e2.p.left ? 'rgba(60,10,20,.75)' : 'rgba(13,20,48,.9)'; rr(cx0, cy0, CW, CH, 10); ctx.fill();
         ctx.strokeStyle = fk || (rank === 1 ? '#ffcb3d' : '#26345f'); ctx.lineWidth = fk ? 3 : 2; rr(cx0, cy0, CW, CH, 10); ctx.stroke();
         txt(`#${rank}`, cx0 + 12, cy0 + 20, 18, rank === 1 ? '#ffcb3d' : '#ffffff', 'left', 'Black Han Sans');
-        txt(String(e2.p.nick || '').slice(0, 10) + ' · ' + ({EX:'쉬움',NX:'보통',HX:'어려움'}[L.diff || mpPlayerDiff(e2.p, MP.room)]), cx0 + 52, cy0 + 20, 14, '#eef3ff', 'left');
+        txt(String(e2.p.nick || '').slice(0, 10) + ' · ' + mpDiffName(L.diff || mpPlayerDiff(e2.p, MP.room), e2.p), cx0 + 52, cy0 + 20, 14, '#eef3ff', 'left');
         txt((L.s || 0).toLocaleString(), cx0 + CW - 12, cy0 + 21, 24, '#ffffff', 'right', 'Black Han Sans');
         const acc = L.co != null ? (mpLiveAccuracy(L) * 100).toFixed(1) + '%' : '-';
         const st = e2.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? '끝' : `${L.c || 0} 콤보  ·  JAM ×${L.j || 0}`;
@@ -2503,6 +2549,9 @@ function mpOnRoom(r) {
     renderRoom(r); mpPreload(r.song);
     if (r.loadFailure) $('rmMsg').textContent = r.loadFailure + ' · 다시 준비하고 시작하세요.';
     if (JSON.stringify(me.has || {}) !== JSON.stringify(myHas())) meRef().update({ has: myHas() });
+    const md = me.diff || '', rk0 = validMode(r.keys);
+    if (/^MY:/.test(md)) { const c = myChart(md.slice(3)); if (!c || c.song !== r.song || c.keys !== rk0) meRef().update({ diff: null, dlab: null }); }
+    else if (/^SH:/.test(md) && SH.list[r.song]) { const m = shMeta(md.slice(3)); if (!m || m.song !== r.song || m.keys !== rk0) meRef().update({ diff: null, dlab: null }); }
   } else if (r.status === 'loading') {
     $('roomOv').hidden = false; $('mpResult').hidden = true; renderRoom(r);
     const members = mpLoadingMembers(r), loaded = members.filter(([,p]) => p.loadedRound === r.round).length;
@@ -2539,7 +2588,7 @@ function renderRoom(r) {
     const [k, p] = e, has = p.has && p.has[r.song], host = k === r.host;
     html += `<div class="seat full${k === MP.key ? ' me' : ''}${p.ready || host ? ' ready' : ''}">`
       + (MP.isHost && k !== MP.key ? `<button class="kick" data-kick="${esc(k)}" title="내보내기">✕</button>` : '')
-      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'} · ${{EX:'쉬움',NX:'보통',HX:'어려움'}[mpPlayerDiff(p,r)]}<br>${has ? '♪' : '<span style="color:#ff8a70">⚠ 음원 필요</span>'}</div></div>`;
+      + `<div class="nk">${host ? '👑 ' : ''}${esc(p.nick)}</div><div class="st">${host ? '방장' : p.ready ? '✅ 준비 완료' : '대기 중'} · ${esc(mpDiffName(mpPlayerDiff(p, r), p))}<br>${has ? '♪' : '<span style="color:#ff8a70">⚠ 음원 필요</span>'}</div></div>`;
   }
   $('rmSeats').innerHTML = html;
   $('rmSongs').innerHTML = SONGS.map(x => `<div class="msong${x.id === r.song ? ' on' : ''}" data-msong="${x.id}">${songCover(x)}<span class="song-title">${esc(x.title)}${x.ok ? '' : ' <span class="sm">(내 음원 없음)</span>'}</span>${!x.synth && !x.ok ? ` <button class="btn ghost" data-pick="${x.id}" style="font-size:12px;padding:5px 9px">🎵 파일 선택</button>` : ''}</div>`).join('');
@@ -2547,7 +2596,12 @@ function renderRoom(r) {
   if (SET.mode !== rk) { SET.mode = rk; saveSet(); }   // 내 키 설정 칸도 방의 키 모드로
   $('rmModes').innerHTML = '<span class="sub" style="margin-right:4px">키 모드</span>' + MODE_KEYS.map(n => `<button class="diff${rk === n ? ' on' : ''}" data-d="${n <= 5 ? 'EX' : n === 6 ? 'NX' : 'HX'}" data-mmode="${n}" ${MP.isHost ? '' : 'disabled'} style="min-width:86px">${n}키</button>`).join('');
   const personalDiff = mpPlayerDiff(r.players[MP.key], r);
-  $('rmDiffs').innerHTML = '<span class="sub">내 난이도</span>' + ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${personalDiff === d ? ' on' : ''}" data-mdiff="${d}" aria-pressed="${personalDiff === d}" ${r.status === 'wait' ? '' : 'disabled'}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('');
+  const rmMine = myCharts().filter(c => c.song === r.song && c.keys === rk), rmSh = (SH.list[r.song] || []).filter(m => m.keys === rk && !rmMine.some(c => c.id === m.id));
+  if (!SH.list[r.song] && !SH.loading[r.song]) shLoad(r.song).then(() => { if (MP.room && MP.room.status === 'wait') renderRoom(MP.room); });
+  const wd = r.status === 'wait' ? '' : 'disabled';
+  $('rmDiffs').innerHTML = '<span class="sub">내 난이도</span>' + ['EX', 'NX', 'HX'].map(d => { const ch = data && chartFor(data, d, rk); return `<button class="diff${personalDiff === d ? ' on' : ''}" data-mdiff="${d}" aria-pressed="${personalDiff === d}" ${wd}>${{EX:'쉬움',NX:'보통',HX:'어려움'}[d]}${ch ? '<span class="stars" aria-label="난이도 ' + ch.level + ' / 8">' + levelLabel(ch.level) + '</span>' : ''}</button>`; }).join('')
+    + rmMine.map(c => `<button class="diff my${personalDiff === 'MY:' + c.id ? ' on' : ''}" data-mdiff="MY:${c.id}" aria-pressed="${personalDiff === 'MY:' + c.id}" ${wd} title="내 채보 — 나만 이 채보로 쳐요">✏️ ${escH(c.name.slice(0, 10))}<span class="stars">${levelLabel(chartLevel(c.notes, c.length, c.keys))}</span></button>`).join('')
+    + rmSh.map(m => `<button class="diff sh${personalDiff === 'SH:' + m.id ? ' on' : ''}" data-mdiff="SH:${m.id}" aria-pressed="${personalDiff === 'SH:' + m.id}" ${wd} title="공유 채보 by ${escH(m.by)} — 나만 이 채보로 쳐요">🌐 ${escH(m.name.slice(0, 10))}<span class="stars">${levelLabel(m.level)}</span><small>by ${escH(m.by)}</small></button>`).join('');
   const me = r.players[MP.key] || {};
   $('rmReady').disabled = false;
   $('rmReady').hidden = MP.isHost; $('rmStart').hidden = !MP.isHost;
@@ -2567,10 +2621,19 @@ function mpPickSong(id) {
   if (!MP.isHost) return toast('곡은 방장이 골라요');
   const x = songById(id); if (!x || !x.ok) return toast('방장도 음원이 있는 곡만 고를 수 있어요');
   const upd = { song: id }; for (const k of Object.keys(r.players || {})) upd[`players/${k}/ready`] = false;
-  roomRef().update(upd);
+  roomRef().update(mpResetCustom(upd, r));
 }
-function mpPlayerDiff(player, room) { return ['EX','NX','HX'].includes(player && player.diff) ? player.diff : ['EX','NX','HX'].includes(room.diff) ? room.diff : 'NX'; }
-function mpPickDiff(d) { if (MP.room && MP.room.status === 'wait' && ['EX','NX','HX'].includes(d)) meRef().update({ diff: d, ready: false }); }
+function mpPlayerDiff(player, room) { const d = player && player.diff; return ['EX','NX','HX'].includes(d) || /^(MY|SH):[0-9a-z]{4,40}$/.test(d || '') ? d : ['EX','NX','HX'].includes(room.diff) ? room.diff : 'NX'; }
+function mpDiffName(d, p) { return DIFF_KO[d] || (/^MY:/.test(d) ? '✏️ ' : '🌐 ') + ((p && p.dlab) || (/^MY:/.test(d) ? '내 채보' : '공유 채보')); }
+function mpPickDiff(d) {
+  if (!(MP.room && MP.room.status === 'wait')) return;
+  if (['EX','NX','HX'].includes(d)) { meRef().update({ diff: d, dlab: null, ready: false }); return; }
+  const c = /^MY:/.test(d) ? myChart(d.slice(3)) : null, m = /^SH:/.test(d) ? shMeta(d.slice(3)) : null;
+  if (!c && !m) return;
+  meRef().update({ diff: d, dlab: (c || m).name, ready: false });
+  if (m) shNotes(m.id).catch(() => toast('⚠️ 공유 채보를 받지 못했어요'));   // 미리 받아 둠
+}
+function mpResetCustom(upd, r) { for (const [k, p] of Object.entries(r.players || {})) if (/^(MY|SH):/.test(p.diff || '')) { upd[`players/${k}/diff`] = null; upd[`players/${k}/dlab`] = null; } return upd; }   // 곡·키 모드가 바뀌면 각자 고른 채보는 무효
 function mpLiveAccuracy(live) { const count = (live.ex || 0) + (live.co || 0) + (live.go || 0) + (live.ba || 0) + (live.mi || 0); return ((live.ex || 0) + (live.co || 0) * .9 + (live.go || 0) * .6 + (live.ba || 0) * .2) / Math.max(1, live.done || live.failed ? live.tot || count : count); }
 function mpComparePlayers(a, b) { const aFailed = !!(a.p.left || a.L.failed), bFailed = !!(b.p.left || b.L.failed); return Number(aFailed) - Number(bFailed) || mpLiveAccuracy(b.L) - mpLiveAccuracy(a.L) || a.k.localeCompare(b.k); }
 function mpKick(k) {
@@ -2617,6 +2680,8 @@ async function mpPrepareRound(r) {
     await meRef().update({ loadToken: token, loadError: null });
     const song = songById(r.song); if (!song || !song.ok) throw new Error('음원 파일이 없습니다');
     await loadSong(song, { mp: true }); await audioInit().resume();
+    const myD = mpPlayerDiff(r.players[MP.key], r);
+    if (/^SH:/.test(myD)) { await shLoad(r.song); const m = shMeta(myD.slice(3)); if (m) await shNotes(m.id).catch(() => {}); }
     if (AU.ctx.state !== 'running') throw new Error('오디오를 켠 뒤 다시 준비하세요');
     if (MP.code === code && MP.room && MP.room.status === 'loading' && MP.room.round === round) await meRef().update({ loadedRound: round, loadError: null });
   } catch (e) { if (MP.code === code && MP.room && MP.room.status === 'loading' && MP.room.round === round) await meRef().update({ loadError: String(e.message || '음원 로딩 오류').slice(0,120) }); }
@@ -2643,12 +2708,15 @@ async function mpBeginRound(r) {
   catch (e) { MP.loading = false; $('loading').hidden = true; toast('음원을 불러오지 못해 이번 곡은 관전해요'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
   MP.loading = false; $('loading').hidden = true;
   if (!MP.room || MP.room.status !== 'playing' || (MP.room.round || 0) !== r.round) return;
-  const data = x.chartData || x.data;   // 멀티는 모두 같은 공식 채보
+  let data = x.chartData || x.data, label = '';   // 곡 · 시작 시각은 모두 같고, 채보는 각자 고른 것 (기본 = 공식 채보)
   if (x.chartData && Math.abs((x.chartData.length || 0) - x.buffer.duration) > 1.5) toast('⚠️ 내 음원 길이가 채보와 달라서 싱크가 안 맞을 수 있어요', 4000);
-  const selectedDiff = mpPlayerDiff(me, r), diff = data.charts[selectedDiff] ? selectedDiff : 'NX';
+  const selectedDiff = mpPlayerDiff(me, r), rk = validMode(r.keys);
+  let diff = ['EX','NX','HX'].includes(selectedDiff) && data.charts[selectedDiff] ? selectedDiff : 'NX';
+  if (/^MY:/.test(selectedDiff)) { const c = myChart(selectedDiff.slice(3)); if (c && c.song === x.id && c.keys === rk) { data = myData(c); diff = selectedDiff; label = c.name; } else toast('고른 내 채보가 없어서 보통으로 해요'); }
+  else if (/^SH:/.test(selectedDiff)) { const m = shMeta(selectedDiff.slice(3)), ns = m && SH.notes[m.id]; if (m && ns && m.song === x.id && m.keys === rk) { data = shData(m, ns); diff = selectedDiff; label = m.name; } else toast('공유 채보를 받지 못해서 보통으로 해요'); }
   const delay = (r.startAt - srvNow()) / 1000;
   if (delay < -.15) { toast('시작 준비가 늦어 이번 곡은 관전합니다.'); meRef().update({ spec: true }); mpShowBoard(r, 'watch'); return; }
-  startRun(x, diff, { mp: true, delay, data, mode: +(r.keys || 4) });
+  startRun(x, diff, { mp: true, delay, data, mode: +(r.keys || 4), label });
   clearInterval(MP.liveT); MP.liveT = setInterval(mpPushLive, 250); mpPushLive();
 }
 function mpPushLive() {
@@ -2674,7 +2742,7 @@ function mpShowBoard(r, mode) {
   const rows = pl.map((e, i) => {
     const L = e.L, acc = L.tot ? (mpLiveAccuracy(L) * 100).toFixed(1) + '%' : '-';
     const st = e.p.left ? '나감' : L.failed ? 'FAILED' : L.done ? (L.rank || '✓') : L.p != null ? Math.round(L.p * 100) + '%' : '준비 중';
-    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}<small style="display:block;color:#8e9cc4">${{EX:'쉬움',NX:'보통',HX:'어려움'}[L.diff || mpPlayerDiff(e.p,r)]}</small></td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#ffe7a0">${L.ex || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
+    return `<tr class="${e.k === MP.key ? 'me' : ''}"><td class="rk" style="color:${i === 0 && mode === 'result' ? '#ffcb3d' : '#fff'}">${i + 1}</td><td>${esc(e.p.nick)}<small style="display:block;color:#8e9cc4">${esc(mpDiffName(L.diff || mpPlayerDiff(e.p, r), e.p))}</small></td><td>${(L.s || 0).toLocaleString()}</td><td>${L.mc || 0}</td><td style="color:#ffe7a0">${L.ex || 0}</td><td style="color:#7fe9ff">${L.co || 0}</td><td style="color:#9cff7a">${L.go || 0}</td><td style="color:#ffb347">${L.ba || 0}</td><td style="color:#ff5a6e">${L.mi || 0}</td><td>${acc}</td><td style="color:${L.failed || e.p.left ? '#ff5a6e' : '#ffcb3d'}">${st}</td></tr>`;
   }).join('');
   $('mrTable').innerHTML = '<tr><th>#</th><th>닉네임</th><th>점수</th><th>최대 콤보</th><th>EXCELLENT</th><th>COOL</th><th>GOOD</th><th>BAD</th><th>MISS</th><th>정확도</th><th>상태</th></tr>' + rows
     + (specs.length ? `<tr><td colspan="11" style="text-align:left;color:#8e9cc4">👀 관전: ${specs.map(e => esc(e.p.nick)).join(', ')}</td></tr>` : '');
@@ -2724,11 +2792,250 @@ addEventListener('pagehide', () => { if (MP.code && MP.key) { try { meRef().upda
 try { $('nick').value = localStorage.getItem('oj_nick') || ''; } catch (e) {}
 setTab((() => { try { return localStorage.getItem('oj_tab') === 'online' ? 'online' : 'solo'; } catch (e) { return 'solo'; } })());
 
+// ═══════════ 채보 공유 · 내 채보로 저장 · 불러오기 · 파일 ═══════════
+// 공유 목록 = games/oj_chartlist/<곡>/<id> { name, by, keys, level, n, bpm, offset, length, at, up, owner, likes, plays, from? } — 곡 고를 때 가볍게 받음
+// 공유 노트 = games/oj_chartdata/<id> { song, keys, notes: JSON 문자열, up } — 플레이·저장·불러올 때만 받음
+// 내 채보(o2jam_my): shared:true = 내가 올린 것(공유 id = 내 채보 id) · from:{id,by,name} = 남의 채보를 저장하거나 불러와 고친 것
+// owner = 이 브라우저 표식(oj_device) — '공유 내리기'는 올린 브라우저에서만 보여 줌
+const DIFF_KO = { EX: '쉬움', NX: '보통', HX: '어려움' };
+const SH = { list: {}, at: {}, loading: {}, notes: {} };
+const DEVICE = (() => { let d = load('oj_device', null); if (typeof d !== 'string' || d.length < 8) { d = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); save('oj_device', d); } return d; })();
+const LIKED = new Set((v => Array.isArray(v) ? v.filter(okIdSafe) : [])(load('oj_liked', [])));
+const newChartId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const okId = id => typeof id === 'string' && /^[0-9a-z]{4,40}$/.test(id);
+function okIdSafe(id) { return typeof id === 'string' && /^[0-9a-z]{4,40}$/.test(id); }
+function validChartData(o) {   // 공유·파일 채보 검사 → { keys, bpm, offset, length, notes } | null
+  if (!o || typeof o !== 'object') return null;
+  const keys = validMode(o.keys); if (+o.keys !== keys) return null;
+  const bpm = +o.bpm, offset = +o.offset || 0, length = +o.length;
+  if (!(bpm >= 30 && bpm <= 500) || !(length > 1 && length < 1800) || !isFinite(offset)) return null;
+  let notes = o.notes;
+  if (typeof notes === 'string') { if (notes.length > 800000) return null; try { notes = JSON.parse(notes); } catch (e) { return null; } }
+  if (!Array.isArray(notes) || !notes.length || notes.length > 20000) return null;
+  const out = [];
+  for (const n of notes) {
+    if (!Array.isArray(n)) return null;
+    const t = +n[0], l = +n[1], len = Math.max(0, +n[2] || 0);
+    if (!isFinite(t) || t < 0 || t > length + 5 || !Number.isInteger(l) || l < 0 || l >= keys || !isFinite(len) || len > 60) return null;
+    out.push([+t.toFixed(4), l, +len.toFixed(4)]);
+  }
+  out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return { keys, bpm, offset, length, notes: out };
+}
+function shClean(id, songId, m) {   // 받은 목록 한 줄 → 화면에 쓸 값 (모르는 사람이 쓴 값이라 다 걸러냄)
+  if (!okId(id) || !m || typeof m !== 'object') return null;
+  const keys = validMode(m.keys); if (+m.keys !== keys) return null;
+  const f = m.from && typeof m.from === 'object' ? { id: String(m.from.id || '').slice(0, 40), by: String(m.from.by || '').slice(0, 12), name: String(m.from.name || '').slice(0, 20) } : null;
+  return { id, song: songId, name: String(m.name || '이름 없음').slice(0, 20), by: String(m.by || '익명').slice(0, 12), keys, level: clamp(Math.round(+m.level || 1), 1, 8), n: Math.max(0, m.n | 0),
+    bpm: +m.bpm || 120, offset: +m.offset || 0, length: +m.length || 0, at: +m.at || 0, up: +m.up || 0, owner: String(m.owner || ''), likes: Math.max(0, m.likes | 0), plays: Math.max(0, m.plays | 0), from: f };
+}
+function shLoad(songId, force) {   // 곡의 공유 목록 (1분 동안은 받은 걸 씀, ↻ 로 새로)
+  if (!songId) return Promise.resolve([]);
+  if (!force && SH.list[songId] && Date.now() - SH.at[songId] < 60000) return Promise.resolve(SH.list[songId]);
+  if (SH.loading[songId]) return SH.loading[songId];
+  const p = fdb.ref('games/oj_chartlist/' + songId).once('value').then(sn => {
+    const v = sn.val() || {}, arr = [];
+    for (const [id, m] of Object.entries(v)) { const x = shClean(id, songId, m); if (x) arr.push(x); }
+    arr.sort((a, b) => b.likes - a.likes || b.plays - a.plays || b.up - a.up);
+    SH.list[songId] = arr; SH.at[songId] = Date.now(); return arr;
+  }).catch(() => { SH.list[songId] = SH.list[songId] || []; SH.at[songId] = Date.now(); return SH.list[songId]; }).finally(() => { SH.loading[songId] = null; });   // 실패해도 빈 목록으로 두고 1분 뒤 다시 (계속 다시 부르지 않게)
+  SH.loading[songId] = p; return p;
+}
+function shMeta(id) { for (const arr of Object.values(SH.list)) { const m = arr.find(x => x.id === id); if (m) return m; } return null; }
+async function shNotes(id) {
+  if (SH.notes[id]) return SH.notes[id];
+  const m = shMeta(id); if (!m) throw new Error('공유 목록에 없어요');
+  const v = (await fdb.ref('games/oj_chartdata/' + id).once('value')).val();
+  const d = v && validChartData({ keys: m.keys, bpm: m.bpm, offset: m.offset, length: m.length || 600, notes: v.notes });
+  if (!d) throw new Error('채보가 비었거나 망가졌어요');
+  return (SH.notes[id] = d.notes);
+}
+function shData(m, notes) { return { title: m.name, by: m.by, bpm: m.bpm, offset: m.offset || 0, length: m.length, keys: m.keys, charts: { ['SH:' + m.id]: { level: chartLevel(notes, m.length, m.keys), notes } } }; }
+function shSetLocal(id, patch) { const list = myCharts(), c = list.find(x => x.id === id); if (!c) return; Object.assign(c, patch); for (const k of Object.keys(patch)) if (patch[k] == null) delete c[k]; saveMy(list); }
+async function shPublish(c) {   // 내 채보 → 공유 (같은 id 로 다시 올리면 고친 내용으로 바뀜, 좋아요·플레이 수는 그대로)
+  const by = getNick(), now = Date.now(), lref = fdb.ref(`games/oj_chartlist/${c.song}/${c.id}`);
+  const prev = (await lref.once('value')).val();
+  if (prev && prev.owner && prev.owner !== DEVICE) throw new Error('같은 이름표의 다른 채보가 있어요');
+  const meta = { name: c.name, by, keys: c.keys, level: chartLevel(c.notes, c.length, c.keys), n: c.notes.length, bpm: c.bpm, offset: c.offset || 0, length: c.length, up: now, owner: DEVICE, from: c.from ? { id: c.from.id || '', by: c.from.by || '', name: c.from.name || '' } : null };
+  if (!prev) Object.assign(meta, { at: now, likes: 0, plays: 0 });
+  await fdb.ref('games/oj_chartdata/' + c.id).set({ song: c.song, keys: c.keys, notes: JSON.stringify(c.notes), up: now });   // 노트 먼저 → 목록 (목록에 있는데 노트가 없는 순간이 없게)
+  await lref.update(meta);
+  shSetLocal(c.id, { shared: true });
+  const x = shClean(c.id, c.song, Object.assign({}, prev || {}, meta));
+  const arr = SH.list[c.song] || (SH.list[c.song] = []), i = arr.findIndex(y => y.id === c.id);
+  if (i >= 0) arr[i] = x; else arr.push(x);
+  SH.notes[c.id] = c.notes.map(n => n.slice());
+  renderMenu(); if ($('productionDialog').open) renderProduction();
+}
+async function shUnpublish(c) {
+  await fdb.ref(`games/oj_chartlist/${c.song}/${c.id}`).remove();
+  await fdb.ref('games/oj_chartdata/' + c.id).remove();
+  shSetLocal(c.id, { shared: null });
+  if (SH.list[c.song]) SH.list[c.song] = SH.list[c.song].filter(x => x.id !== c.id);
+  delete SH.notes[c.id];
+  if (SET.diff === 'SH:' + c.id) { SET.diff = 'NX'; saveSet(); }
+  renderMenu(); if ($('productionDialog').open) renderProduction();
+}
+async function shSaveLocal(m) {   // 공유 채보 → 내 채보 (인터넷 없이도 쓰고, 편집기로 고칠 수 있게)
+  let notes; try { notes = await shNotes(m.id); } catch (e) { toast('⚠️ 채보를 받지 못했어요 — 잠시 후 다시'); return null; }
+  const list = myCharts(), had = list.find(c => (c.from && c.from.id === m.id) || c.id === m.id);
+  if (had) { SET.diff = 'MY:' + had.id; saveSet(); renderMenu(); toast(`이미 내 채보에 있어요 — 「${had.name}」로 골랐어요`, 2400); return had; }
+  const own = m.owner === DEVICE, id = own ? m.id : newChartId();
+  const c = { id, song: m.song, keys: m.keys, name: m.name, bpm: m.bpm, offset: m.offset || 0, length: m.length, notes: notes.map(n => n.slice()), level: chartLevel(notes, m.length, m.keys), updatedAt: Date.now() };
+  if (own) c.shared = true; else c.from = { id: m.id, by: m.by, name: m.name };
+  list.push(c);
+  if (!saveMy(list)) { toast('⚠️ 저장 공간이 부족해요 — 안 쓰는 내 채보를 지워 주세요', 3200); return null; }
+  SET.diff = 'MY:' + id; saveSet(); renderMenu();
+  toast(`💾 「${m.name}」을(를) 내 채보로 저장했어요 — 난이도 줄에서 고르고, ✏️ 편집으로 고칠 수 있어요`, 3400);
+  return c;
+}
+function shLike(m) {
+  const on = !LIKED.has(m.id);
+  fdb.ref(`games/oj_chartlist/${m.song}/${m.id}`).transaction(v => v === null ? null : Object.assign(v, { likes: Math.max(0, (v.likes | 0) + (on ? 1 : -1)) })).catch(() => {});
+  if (on) LIKED.add(m.id); else LIKED.delete(m.id); save('oj_liked', [...LIKED]);
+  m.likes = Math.max(0, m.likes + (on ? 1 : -1)); renderMenu();
+  toast(on ? '👍 좋아요! 많이 받은 채보가 목록 앞에 와요' : '좋아요를 취소했어요', 1600);
+}
+function shBumpPlays(id) {   // 한 판 칠 때마다 +1 (내려간 채보면 아무것도 안 함)
+  const m = shMeta(id); if (!m) return;
+  m.plays++;
+  fdb.ref(`games/oj_chartlist/${m.song}/${id}`).transaction(v => v === null ? null : Object.assign(v, { plays: (v.plays | 0) + 1 })).catch(() => {});
+}
+function renderShareRow(s) {   // 곡 선택 화면: 고른 채보의 버튼들 + 공유 채보 목록
+  const el = $('shareRow'); if (!el) return;
+  if (!s || !s.ok) { el.innerHTML = ''; return; }
+  const list = SH.list[s.id], mode = SET.mode;
+  if (!list && !SH.loading[s.id]) shLoad(s.id).then(() => { if (SET.song === s.id) renderMenu(); });
+  const mine = myCharts().filter(c => c.song === s.id && c.keys === mode);
+  const others = (list || []).filter(m => m.keys === mode && !mine.some(c => c.id === m.id));
+  if (/^SH:/.test(SET.diff) && list && !others.some(m => 'SH:' + m.id === SET.diff)) { SET.diff = 'NX'; saveSet(); }   // 내려간 채보 · 다른 키 모드
+  let acts = '';
+  if (/^MY:/.test(SET.diff)) {
+    const c = mine.find(x => 'MY:' + x.id === SET.diff);
+    if (c) acts = `<button class="btn ghost" data-act="ed-edit">✏️ 이 채보 편집</button><button class="btn ghost" data-act="sh-toggle" data-v="${c.id}">${c.shared ? '🌐 공유 중 · 내리기' : '🌐 공유하기'}</button><button class="btn ghost" data-act="sh-export" data-v="${c.id}">📤 파일로 저장</button>${c.from && c.from.by ? `<span class="sub">원본 by ${escH(c.from.by)}</span>` : ''}`;
+  } else if (/^SH:/.test(SET.diff)) {
+    const m = others.find(x => 'SH:' + x.id === SET.diff);
+    if (m) { const had = myCharts().some(c => c.from && c.from.id === m.id);
+      acts = `<button class="btn ghost" data-act="sh-save" data-v="${m.id}">${had ? '✓ 내 채보에 있어요 (고르기)' : '💾 내 채보로 저장'}</button><button class="btn ghost" data-act="sh-like" data-v="${m.id}">${LIKED.has(m.id) ? '💙 좋아요 취소' : '👍 좋아요'} ${m.likes}</button>${m.owner === DEVICE ? `<button class="btn ghost" data-act="sh-down" data-v="${m.id}">🗑 공유 내리기</button>` : ''}<span class="sub">by ${escH(m.by)}${m.from && m.from.by ? ` · 원본 by ${escH(m.from.by)}` : ''}</span>`; }
+  }
+  const chips = others.map(m => { const b = BEST[recordKey(s, 'SH:' + m.id, mode)];
+    return `<button class="diff sh${SET.diff === 'SH:' + m.id ? ' on' : ''}" data-d="SH:${m.id}" title="${escH(m.name)} — by ${escH(m.by)}${m.from && m.from.by ? ` (원본 by ${escH(m.from.by)})` : ''}">🌐 ${escH(m.name.slice(0, 12))}<span class="stars">${levelLabel(m.level)}</span><small>by ${escH(m.by)} · ${m.n}노트 · 👍${m.likes} ▶${m.plays}${b ? ' · ' + b.rank : ''}</small></button>`; }).join('');
+  el.innerHTML = (acts ? `<div class="sacts">${acts}</div>` : '')
+    + `<div class="shead"><b>🌐 공유 채보</b><span>${list ? `다른 사람이 만든 ${mode}키 채보 ${others.length}개` : '불러오는 중…'}</span><button class="btn ghost" data-act="sh-refresh" style="font-size:13px;padding:4px 10px" title="새로 불러오기">↻</button></div>`
+    + (others.length ? `<div class="slist">${chips}</div>` : list ? `<div class="hint" style="margin-top:4px">아직 공유된 ${mode}키 채보가 없어요 — 제작 → 채보 만들기에서 🌐 공유를 켜고 저장하면 여기에 떠요</div>` : '');
+}
+async function shAct(a, v) {
+  if (a === 'sh-refresh') { const s = songById(SET.song); if (s) { await shLoad(s.id, true); renderMenu(); toast('공유 채보를 새로 불러왔어요', 1200); } return; }
+  if (a === 'sh-import') { chartPicker._to = 'mine'; chartPicker.click(); return; }
+  if (a === 'sh-export') { const c = myChart(v); if (c) exportChartFile(c); return; }
+  if (a === 'sh-toggle') {
+    const c = myChart(v); if (!c) return;
+    try {
+      if (c.shared) { if (!confirm(`「${c.name}」 공유를 내릴까요? (내 채보는 그대로 남아요)`)) return; await shUnpublish(c); toast('🌐 공유를 내렸어요', 1800); }
+      else { await shPublish(c); toast(`🌐 공유했어요 — 다른 사람 곡 선택 화면에 by ${getNick()} 로 떠요`, 2600); }
+    } catch (e) { toast('⚠️ ' + (e.message || '공유하지 못했어요'), 2600); }
+    return;
+  }
+  const m = shMeta(v); if (!m) return;
+  if (a === 'sh-save') { await shSaveLocal(m); return; }
+  if (a === 'sh-like') { shLike(m); return; }
+  if (a === 'sh-down') { if (m.owner !== DEVICE || !confirm(`「${m.name}」 공유를 내릴까요?`)) return; try { await shUnpublish(m); toast('🌐 공유를 내렸어요', 1800); } catch (e) { toast('⚠️ 내리지 못했어요'); } }
+}
+
+// ── 채보 파일 (📤 내보내기 / 📥 불러오기)
+function chartFileObject(c) { const s = songById(c.song); return { format: 'pulse-chart', v: 1, song: c.song, songTitle: s ? s.title : c.song, keys: c.keys, name: c.name, by: (c.from && c.from.by) || getNick(), bpm: c.bpm, offset: c.offset || 0, length: c.length, notes: c.notes }; }
+function exportChartFile(c) {
+  const o = chartFileObject(c), safe = v => String(v).replace(/[\\/:*?"<>|]+/g, '_').trim().slice(0, 40) || 'chart';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(o)], { type: 'application/json' }));
+  a.download = `${safe(o.songTitle)} ${c.keys}키 ${safe(c.name)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(`📤 「${c.name}」 채보 파일을 저장했어요 — 📥 불러오기로 다시 넣을 수 있어요`, 2800);
+}
+const chartPicker = Object.assign(document.createElement('input'), { type: 'file', accept: '.json,application/json', hidden: true });
+document.body.appendChild(chartPicker);
+chartPicker.onchange = async () => {
+  const f = chartPicker.files && chartPicker.files[0], to = chartPicker._to; chartPicker.value = '';
+  if (!f) return;
+  if (f.size > 3e6) return toast('파일이 너무 커요');
+  let o = null; try { o = JSON.parse(await f.text()); } catch (e) {}
+  importChartObject(o, to);
+};
+function importChartObject(o, to) {   // to: 'editor' = 지금 편집기에 불러오기 · 그 밖 = 내 채보에 추가
+  const d = o && validChartData(o), s = o && songById(o.song);
+  if (!d || o.format !== 'pulse-chart') { toast('⚠️ PULSE 채보 파일이 아니에요', 2400); return false; }
+  if (!s) { toast(`⚠️ 이 채보의 곡(${String(o.songTitle || o.song).slice(0, 40)})이 여기에 없어요`, 2800); return false; }
+  const name = String(o.name || '파일 채보').slice(0, 20), by = String(o.by || '').slice(0, 12);
+  if (to === 'editor' && ED) {
+    if (ED.song.id !== s.id) { toast(`⚠️ 「${s.title}」 곡 채보예요 — 지금 편집 중인 곡과 달라요`, 2800); return false; }
+    $('loadDialog').close();
+    edLoadNotes(d.notes, { label: name, bpm: d.bpm, offset: d.offset, keys: d.keys, from: by && by !== getNick() ? { id: '', by, name } : null });
+    return true;
+  }
+  const list = myCharts(), id = newChartId();
+  const c = { id, song: s.id, keys: d.keys, name, bpm: d.bpm, offset: d.offset, length: d.length, notes: d.notes, level: chartLevel(d.notes, d.length, d.keys), updatedAt: Date.now() };
+  if (by && by !== getNick()) c.from = { id: '', by, name };
+  list.push(c);
+  if (!saveMy(list)) { toast('⚠️ 저장 공간이 부족해요 — 안 쓰는 내 채보를 지워 주세요', 3200); return false; }
+  SET.song = s.id; SET.mode = d.keys; SET.diff = 'MY:' + id; saveSet(); renderMenu(); if ($('productionDialog').open) renderProduction();
+  toast(`📥 「${name}」(${s.title} · ${d.keys}키)을(를) 내 채보에 넣었어요`, 3000);
+  return true;
+}
+
+// ── 편집기 📂 불러오기: 지금 게임 채보 · 내 채보 · 공유 채보 · 파일 → 지금 노트를 바꿈 (Ctrl+Z 로 되돌리기)
+function edLoadNotes(notes, src) {
+  if (!ED) return false;
+  if (ED.playing) edStop();
+  let ns = notes.map(n => [n[0], n[1], n[2] || 0]);
+  if (src.keys && src.keys !== ED.keys) {
+    if (src.keys === 7 && ED.keys < 7) ns = reduceLanes(ns, ED.keys, src.bpm || ED.bpm);   // 7키 채보 → 지금 키 수로 (게임의 4·6키 채보와 같은 방식)
+    else { toast(`⚠️ ${src.keys}키 채보는 ${ED.keys}키로 바꿀 수 없어요`, 2400); return false; }
+  }
+  if (ED.notes.length && !confirm(`지금 노트 ${ED.notes.length}개를 지우고 「${src.label}」(${ns.length}개)로 바꿀까요?\n(Ctrl+Z 로 되돌릴 수 있어요)`)) return false;
+  edPush();
+  ED.notes = ns; if (src.bpm) ED.bpm = src.bpm; if (src.offset != null) ED.offset = src.offset;
+  ED.from = src.from || null;
+  if (!ED.id && /^내 채보 \d+$/.test(ED.name)) { const nm = src.label.replace(/^(지금 게임 채보|자동 채보) · /, ''); ED.name = (/수정$/.test(nm) ? nm : nm + ' 수정').slice(0, 20); }   // 새 채보 이름: '보통 수정'처럼
+  ED.sel.clear(); edSort(); edClean(); edRenderPanel();
+  toast(`📂 「${src.label}」을(를) 불러왔어요 — 고친 뒤 💾 저장 (마음에 안 들면 Ctrl+Z)`, 2600);
+  return true;
+}
+function edLoadDialog() {
+  if (!ED) return;
+  if (ED.playing) edStop();
+  const s = ED.song, base = s.chartData || s.data, list = SH.list[s.id];
+  if (!list && !SH.loading[s.id]) shLoad(s.id).then(() => { if ($('loadDialog').open) edLoadDialog(); });
+  const fits = k => k === ED.keys || (k === 7 && ED.keys < 7), conv = k => k !== ED.keys ? ` · 7키 → ${ED.keys}키로 바꿔서` : '';
+  const mine = myCharts().filter(c => c.song === s.id && c.id !== ED.id && fits(c.keys));
+  const shs = (list || []).filter(m => fits(m.keys) && !myCharts().some(c => c.id === m.id));
+  const row = (title, sub, k, v) => `<div class="lrow"><div class="nm">${title}<small>${sub}</small></div><button class="btn ghost" data-ld="${k}" data-v="${escH(v)}">불러오기</button></div>`;
+  $('loadSong').textContent = `${s.title} · ${ED.keys}키 — 불러오면 지금 노트가 그 채보로 바뀌어요 (Ctrl+Z 로 되돌리기)`;
+  $('loadEntries').innerHTML =
+    `<div class="lsec"><h3>🎮 지금 게임 채보</h3>${['EX', 'NX', 'HX'].map(d => { const ch = base && chartFor(base, d, ED.keys); return ch ? row(`${DIFF_KO[d]} <span class="stars" style="display:inline">${levelLabel(ch.level)}</span>`, `${ch.notes.length}노트${base.auto ? ' · 음원 분석으로 만든 자동 채보' : ''}`, 'game', d) : ''; }).join('')}</div>`
+    + `<div class="lsec"><h3>✏️ 내 채보</h3>${mine.length ? mine.map(c => row(escH(c.name), `${c.notes.length}노트 · ${levelLabel(chartLevel(c.notes, c.length, c.keys))}${conv(c.keys)}${c.from && c.from.by ? ' · 원본 by ' + escH(c.from.by) : ''}`, 'mine', c.id)).join('') : '<div class="hint">이 곡으로 저장한 다른 내 채보가 없어요</div>'}</div>`
+    + `<div class="lsec"><h3>🌐 공유 채보</h3>${list ? (shs.length ? shs.map(m => row(`${escH(m.name)} <span class="sub">by ${escH(m.by)}</span>`, `${m.n}노트 · ${levelLabel(m.level)} · 👍${m.likes} ▶${m.plays}${conv(m.keys)}`, 'shared', m.id)).join('') : '<div class="hint">아직 다른 사람이 공유한 채보가 없어요</div>') : '<div class="hint">불러오는 중…</div>'}</div>`
+    + `<div class="lsec"><h3>📥 파일</h3><div class="lrow"><div class="nm">채보 파일 (.json)<small>📤 파일로 저장해 둔 채보를 불러와요</small></div><button class="btn ghost" data-ld="file">파일 고르기</button></div></div>`;
+  if (!$('loadDialog').open) $('loadDialog').showModal();
+}
+$('loadDialog').addEventListener('click', async e => {
+  if (e.target.closest('[data-ldclose]')) { $('loadDialog').close(); return; }
+  const b = e.target.closest('[data-ld]'); if (!b || !ED) return;
+  const k = b.dataset.ld, v = b.dataset.v;
+  if (k === 'file') { chartPicker._to = 'editor'; chartPicker.click(); return; }
+  if (k === 'game') { $('loadDialog').close(); edCmd('auto', v); return; }
+  if (k === 'mine') { const c = myChart(v); if (!c) return; $('loadDialog').close(); edLoadNotes(c.notes, { label: c.name, bpm: c.bpm, offset: c.offset || 0, keys: c.keys, from: c.from || null }); return; }
+  if (k === 'shared') {
+    const m = shMeta(v); if (!m) return;
+    b.disabled = true; b.textContent = '받는 중…';
+    try { const ns = await shNotes(m.id); $('loadDialog').close(); edLoadNotes(ns, { label: m.name, bpm: m.bpm, offset: m.offset, keys: m.keys, from: m.owner === DEVICE ? null : { id: m.id, by: m.by, name: m.name } }); }
+    catch (e2) { b.disabled = false; b.textContent = '불러오기'; toast('⚠️ 채보를 받지 못했어요 — 잠시 후 다시', 2400); }
+  }
+});
+
 // ═══════════ 디버그 ═══════════
 window.o2jam = {
   get run() { return run; }, SONGS, SET, analyzeAudio, normalizeNotes, chartLevel, MP,
   auto: (id = SET.song, d = SET.diff) => { SET.song = id; SET.diff = d; return startSelected({ auto: true }); },
-  get ed() { return ED; }, edOpen, myCharts,
+  get ed() { return ED; }, edOpen, myCharts, SH, shLoad, shNotes, shPublish, shUnpublish, shSaveLocal, importChartObject, chartFileObject, validChartData,
   exportChart: id => { const s = songById(id || SET.song); return s && s.data ? JSON.stringify(s.data) : null; },
 };
 
@@ -2795,13 +3102,18 @@ function openSettings() {
 function closeShellDialog(dialog) { waitKey = -1; dialog.close(); renderKeys(); shellReturnFocus?.focus(); }
 function openProduction() {
   shellReturnFocus = document.activeElement;
+  renderProduction();
+  $('productionDialog').showModal();
+}
+function renderProduction() {
   const song = songById(SET.song); $('productionSong').textContent = song ? song.title + ' · ' + SET.mode + '키' : '곡을 먼저 선택하세요.';
   const charts = myCharts().filter(c => c.song === SET.song && c.keys === SET.mode);
   $('productionEntries').innerHTML = `<button class="btn" data-act="ed-new" ${song && song.ok ? '' : 'disabled'}>채보 만들기</button>`
-    + charts.map(c => `<button class="btn ghost" data-production-chart="${escH(c.id)}">내 채보 편집 · ${escH(c.name)}</button>`).join('')
+    + charts.map(c => `<div class="prow"><button class="btn ghost" data-production-chart="${escH(c.id)}">✏️ 편집 · ${escH(c.name)}</button><button class="btn ghost" data-act="sh-toggle" data-v="${escH(c.id)}">${c.shared ? '🌐 공유 중 · 내리기' : '🌐 공유하기'}</button><button class="btn ghost" data-act="sh-export" data-v="${escH(c.id)}">📤 파일로 저장</button></div>`).join('')
     + (!charts.length ? '<div class="hint">저장된 내 채보가 없습니다.</div>' : '')
-    + (song && !song.synth ? `<button class="btn ghost" data-pick="${escH(song.id)}">곡 음원 교체</button>` : '');
-  $('productionDialog').showModal();
+    + '<button class="btn ghost" data-act="sh-import">📥 채보 파일 불러오기</button>'
+    + (song && !song.synth ? `<button class="btn ghost" data-pick="${escH(song.id)}">곡 음원 교체</button>` : '')
+    + '<div class="hint">🌐 공유한 채보는 다른 사람 곡 선택 화면의 ‘공유 채보’에 떠요. 남이 만든 채보는 거기서 바로 플레이하거나 💾 내 채보로 저장할 수 있고, 편집기의 📂 불러오기로 불러와 고칠 수 있어요.</div>';
 }
 function shellKeydown(e) {
   if ($('helpDialog').open) return;

@@ -29,7 +29,7 @@
 <script>
 // 참스코드 보드게임 멀티 테스트 벤치: 폰 크기 iframe 여러 개 + 자동 방 만들기/참가.
 // 주소: tools/board/bench.html?game=codenames&n=4&w=390&h=844&s=.6
-const GAMES = ['codenames', 'davinci', 'rummikub', 'liar', 'telephone', 'avalon', 'wavelength'];
+const GAMES = ['codenames', 'davinci', 'rummikub', 'liar', 'telephone', 'avalon', 'wavelength', 'root'];
 const NICKS = ['방장', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째'];
 const q = new URLSearchParams(location.search);
 const cfg = { game: q.get('game') || 'codenames', n: +(q.get('n') || 4), w: +(q.get('w') || 390), h: +(q.get('h') || 844), s: +(q.get('s') || .6) };
@@ -79,6 +79,7 @@ async function cleanup() {
     const W = frames[i].contentWindow; if (!W) continue;
     const ok = W.confirm; W.confirm = () => true;
     for (const id of ['btnLeaveGame', 'btnLeaveLobby', 'btnLeaveEnd']) { const b = W.document.getElementById(id); if (b && b.offsetParent) { b.click(); break; } }
+    await sleep(80); const lv = W.document.querySelector('.lb-sheet:not([hidden]) [data-s="leave"]'); if (lv) lv.click();   // 게임 중 ⏸ 메뉴 → 나가기
     W.confirm = ok; await sleep(120);
   }
   st('정리 완료');

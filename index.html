@@ -576,6 +576,17 @@ const GAMES = [
   "g": "board"
  },
  {
+  "k": "root",
+  "ic": "🌲",
+  "nm": "루트",
+  "tt": "루트 (ROOT)",
+  "ds": "숲의 패권을 다투는 비대칭 전략<br>2~4명 · 고양이·독수리·동맹·방랑자",
+  "bd": "NEW",
+  "src": "root.html",
+  "allow": "fullscreen; clipboard-write; autoplay; screen-wake-lock",
+  "g": "board"
+ },
+ {
   "k": "drawquiz",
   "ic": "🎨",
   "nm": "그림퀴즈",
@@ -683,6 +694,17 @@ const GAMES = [
   "bd": "NEW",
   "src": "shell.html",
   "allow": "clipboard-write",
+  "g": "solo"
+ },
+ {
+  "k": "bottom",
+  "ic": "🪨",
+  "nm": "바위 밑바닥",
+  "tt": "바위 밑바닥",
+  "ds": "좌우로 달리며 파고 내려가기<br>8개 지역 · 스킬트리 194칸",
+  "bd": "NEW",
+  "src": "bottom.html",
+  "allow": "clipboard-write; fullscreen",
   "g": "solo"
  },
  {
@@ -839,7 +861,7 @@ function cardOf(g, box) {
 let currentPage = 'home';
 // 테스트용 배속: 게임은 iframe 안이라 허브 콘솔에선 tuna 가 안 보임 → 열린 게임으로 연결
 const activeGameWin = () => { const fr = document.getElementById(`iframe-${currentPage}`); try { return fr && fr.getAttribute('src') ? fr.contentWindow : null; } catch (e) { return null; } };
-['tuna', 'rock', 'mine', 'shelldiver', 'rhythm', 'o2jam'].forEach(k => Object.defineProperty(window, k, { configurable: true, get: () => { const w = activeGameWin(); return w && w[k]; } }));
+['tuna', 'rock', 'mine', 'shelldiver', 'rhythm', 'o2jam', 'bottom'].forEach(k => Object.defineProperty(window, k, { configurable: true, get: () => { const w = activeGameWin(); return w && w[k]; } }));
 window.speed = n => { const w = activeGameWin(); return w && w.__gameSpeed ? w.__gameSpeed.set(n) : '배속은 참치 타이쿤·스페이스 록·킵 온 마이닝·쉘다이버 화면에서만 돼요'; };
 addEventListener('keydown', e => {
   if (e.code !== 'BracketRight' && e.code !== 'BracketLeft') return;
