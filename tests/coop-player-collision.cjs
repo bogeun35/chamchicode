@@ -15,9 +15,9 @@ test('A player lands on a teammate head',()=>{
  assert.equal(a.y+a.h,b.y);assert.equal(a.ground,true);assert.equal(E.overlap(a,b),false);
 });
 test('A jump stops at a teammate underside',()=>{
- const s=scene(2),[a,b]=s.players;a.x=b.x;a.y=562;b.y=480;b.ground=false;
+ const s=scene(2),[a,b]=s.players;a.x=b.x;a.y=562;b.y=a.y-b.h;b.ground=false;
  step(s,{},1);E.step(s,{p0:{jump:true}},1/60);
- assert.equal(E.overlap(a,b),false);
+ assert.equal(a.y,562);assert.equal(a.vy,0);assert.equal(E.overlap(a,b),false);
 });
 test('Entered teammate no longer blocks the doorway',()=>{
  const s=scene(2),[a,b]=s.players;b.x=200;b.exit=true;step(s,{p0:{right:true}},50);assert(a.x>200+b.w);
