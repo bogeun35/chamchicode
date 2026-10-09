@@ -214,7 +214,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
     <div class="row" id="diffRow"></div>
     <div id="shareRow"></div>
     <div class="row">
-      <div class="opt">속도 <button data-act="spd-">−</button><b id="spdV">×3.0</b><button data-act="spd+">+</button></div>
+      <div class="opt">속도 <button data-act="spd-">−</button><b id="spdV">×6.0</b><button data-act="spd+">+</button></div>
       <div class="opt">싱크 <button data-act="off-">−</button><b id="offV">0ms</b><button data-act="off+">+</button></div>
       <div class="opt"><label><input type="checkbox" id="hitSnd"> 타격음</label></div>
       <div class="opt"><label><input type="checkbox" id="noFail"> 노페일</label></div>
@@ -257,7 +257,7 @@ dialog::backdrop {background:#020612d9;} #helpDialog .stats b{font-size:14px;}
     <div class="row" id="rmModes"></div>
     <div class="row" id="rmDiffs"></div></section></div>
     <div class="row">
-      <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×3.0</b><button data-act="spd+">+</button></div>
+      <div class="opt">내 속도 <button data-act="spd-">−</button><b class="spdV">×6.0</b><button data-act="spd+">+</button></div>
       <div class="opt">내 싱크 <button data-act="off-">−</button><b class="offV">0ms</b><button data-act="off+">+</button></div>
       <div class="opt">내 키 <div class="keys" id="rmKeys"></div></div>
       <label class="opt"><input type="checkbox" id="recordRoom"> 플레이 녹화</label><label class="opt">영상 <select id="recordRoomQuality" class="inp" style="padding:3px;font-size:12px"><option value="compressed">압축 · 최대 720p</option><option value="original">원본 화질 · 화면 해상도</option></select></label>
@@ -403,7 +403,7 @@ const JUDGE_W = { excellent: 100, cool: 90, good: 60, bad: 20, miss: 0 };
 const LIFE = { EX: [4, 3, -5, -18], NX: [3, 2, -6, -24], HX: [2, 1, -8, -30] };     // COOL GOOD BAD MISS (MISS 감소를 줄여 완화)
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-const SET = Object.assign({ speed: 3, offset: 0, hitSound: true, noFail: true, mode: 4, keymap: null, song: 'practice', diff: 'EX' }, load('o2jam_set', {}));
+const SET = Object.assign({ speed: 6, offset: 0, hitSound: true, noFail: true, mode: 4, keymap: null, song: 'practice', diff: 'EX' }, load('o2jam_set', {}));
 if (!SET.keymap || typeof SET.keymap !== 'object') SET.keymap = {};
 for (const n of MODE_KEYS) if (!Array.isArray(SET.keymap[n]) || SET.keymap[n].length !== n || SET.keymap[n].some(k => typeof k !== 'string') || new Set(SET.keymap[n]).size !== n) SET.keymap[n] = (n === 7 && Array.isArray(SET.keys) && SET.keys.length === 7) ? SET.keys.slice() : MODES[n].keys.slice();
 delete SET.keys;
