@@ -1,16 +1,27 @@
 {
-  "release": "20261009-01",
-  "label": "데모 0.4",
+  "release": "20261009-03",
+  "label": "이관 진행판",
+  "sourceRounds": {
+    "connected": 5,
+    "ids": [
+      "st_w_01_01",
+      "st_w_01_02",
+      "st_w_01_03",
+      "st_w_01_04",
+      "st_w_04_01"
+    ],
+    "originalFidelityVerified": 0,
+    "note": "설치된 원작의 타일·액터 데이터에서 그대로 복원한 라운드. 2~8인 온라인 협동 가능."
+  },
+  "mechanicDemos": {
+    "count": 94,
+    "note": "원작 배치가 아닌 공통 평지 한 장 위에 기믹만 재현한 데모. 원작 라운드로 세지 말 것."
+  },
+  "catalogueEntries": 147,
   "features": [
-    "다양한 장치·미니게임 로컬 데모",
-    "2~8인 캐릭터 선택과 키보드 진행",
-    "가시 모양에 맞춘 여유 있는 충돌 판정"
+    "원작 라운드 5개 · 2~8인 온라인 협동",
+    "추락은 전원 패배 후 같은 라운드 즉시 재시작",
+    "나머지 라운드는 장치 구현 대기"
   ],
-  "referenceEntries": 147,
-  "playableMechanicDemos": 94,
-  "platformDemos": 65,
-  "miniDemos": 29,
-  "pending": 53,
-  "sourceFidelityVerified": 0,
-  "unfinished": "전체 완성판 아님. 원작 배치·수치, 개별 전체 경로, 실제 온라인 및 재미 검수 진행 중."
+  "unfinished": "전체 완성판 아님. 피코파크 1·2 전체 이관 중이며 원작 일치 검수는 아직 0건."
 }
