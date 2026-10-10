@@ -101,11 +101,11 @@ class SourceParkOnlineController{
    // A restart replaces the state mid-frame, so publish what the app holds now:
    // re-sending the captured lost round would push the party back through the
    // defeat it has already left.
-   if(this.publishTime>=1/12&&!this.restarting&&!this.deadAt){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(pack(current,this.runId,this.app.isPaused()));}
+   if(this.publishTime>=1/12&&!this.restarting){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(pack(current,this.runId,this.app.isPaused()));}
   }else if(this.target){const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
   if(s.status!=='play'&&this.endStatus!==s.status){this.endStatus=s.status;this.app.endOnline(s.status,this.net.host);
-   // Announce the lost round exactly once, then stay quiet until the restart:
-   // a repeat publish can land after the restart and replay the defeat.
+   // Announce the lost round immediately so every peer sees it, and keep
+   // publishing it until the restart; one packet is not a reliable observation.
    if(s.status==='dead'&&this.net.host){this.deadAt=now;this.publishTime=0;this.net.publish(pack(s,this.runId,this.app.isPaused()));}
   }
   if(this.net.host&&this.deadAt){if(s.status!=='dead')this.deadAt=0;else if(now-this.deadAt>=RESTART_DELAY_MS){this.deadAt=0;this.restartRound();}}
