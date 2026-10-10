@@ -52,7 +52,11 @@ class SourceParkOnlineController{
   if(r.status==='lobby'){this.runId='';this.target=null;this.panelOpen=true;this.app.pause();$('online-panel').hidden=false;this.app.showOnlineLobby();if(r.restartPending)await this.prepareRestart(r);return;}
   const p=r.snapshot;if(!p||!p.ids||!p.relays)return;
   if(this.net.host&&p.ids.slice().sort().join('|')!==ids.slice().sort().join('|')){if(!this.returning){this.returning=true;await this.net.lobby();this.returning=false;this.message('인원이 바뀌었습니다. 다시 준비해주세요.');}return;}
-  if(this.runId!==p.runId||!this.app.getState()||this.app.getState().players[0]?.id!==p.ids[0]){
+  // The host is authoritative over its own run. After it publishes a restart,
+  // the room still delivers the superseded snapshot once; adopting it would
+  // replay the lost round before the new one takes hold.
+  const superseded=this.net.host&&!!this.runId&&p.runId!==this.runId&&!this.net.justBecameHost;
+  if(!superseded&&(this.runId!==p.runId||!this.app.getState()||this.app.getState().players[0]?.id!==p.ids[0])){
    const c=await this.getCompiled(p.count,p.stageId||'st_w_01_01');if(!this.active||this.net.room?.snapshot?.runId!==p.runId)return;
    this.runId=p.runId;this.endStatus='';this.panelOpen=false;const s=apply(SourceStageRuntime.create(c,{ids:p.ids}),p);this.app.replaceState(s,p.ids.indexOf(this.net.id),!!p.paused);this.jumpSeen=Object.fromEntries(Object.entries(r.inputs||{}).map(([id,v])=>[id,v.jumpSeq||0]));
   }else if(this.net.justBecameHost){this.target=null;this.app.replaceState(apply(this.app.getState(),p),p.ids.indexOf(this.net.id),!!p.paused);}
@@ -93,10 +97,16 @@ class SourceParkOnlineController{
     }
     inputs[this.net.id]=own;SourceStageRuntime.step(s,inputs,dt);
    }
-   this.publishTime+=dt;if(this.publishTime>=1/12){this.publishTime=0;this.net.publish(pack(s,this.runId,this.app.isPaused()));}
+   this.publishTime+=dt;
+   // A restart replaces the state mid-frame, so publish what the app holds now:
+   // re-sending the captured lost round would push the party back through the
+   // defeat it has already left.
+   if(this.publishTime>=1/12&&!this.restarting&&!this.deadAt){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(pack(current,this.runId,this.app.isPaused()));}
   }else if(this.target){const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
   if(s.status!=='play'&&this.endStatus!==s.status){this.endStatus=s.status;this.app.endOnline(s.status,this.net.host);
-   if(s.status==='dead'&&this.net.host)this.deadAt=now;
+   // Announce the lost round exactly once, then stay quiet until the restart:
+   // a repeat publish can land after the restart and replay the defeat.
+   if(s.status==='dead'&&this.net.host){this.deadAt=now;this.publishTime=0;this.net.publish(pack(s,this.runId,this.app.isPaused()));}
   }
   if(this.net.host&&this.deadAt){if(s.status!=='dead')this.deadAt=0;else if(now-this.deadAt>=RESTART_DELAY_MS){this.deadAt=0;this.restartRound();}}
  }

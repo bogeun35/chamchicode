@@ -7,9 +7,12 @@
   common?require('./source-devices-runtime.js'):root.SourceDevicesRuntime,
   common?require('./source-motion-devices.js'):root.SourceMotionDevices,
   common?require('./source-gate-devices.js'):root.SourceGateDevices,
-  common?require('./source-bridge-devices.js'):root.SourceBridgeDevices);
+  common?require('./source-bridge-devices.js'):root.SourceBridgeDevices,
+  common?require('./source-blink-devices.js'):root.SourceBlinkDevices,
+  common?require('./source-blinkthunder-devices.js'):root.SourceBlinkThunderDevices,
+  common?require('./source-warpinit-devices.js'):root.SourceWarpInitDevices);
  if(common)module.exports=api;root.SourceStageRuntime=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges){
+})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit){
  'use strict';
  const clone=x=>JSON.parse(JSON.stringify(x));
  const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -17,7 +20,7 @@
  const box=r=>({x:r.x,y:r.y,w:r.width,h:r.height});
  const NATIVE=Object.freeze({walk:3,jump:-334234/65536,gravity:42598/65536,terminal:19.5,holdFactor:13107/65536,holdFrames:14});
  function compile({source,geometry,count,stageId='st_w_01_01',nativeTickRate=60}={}){
-  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
+  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_10_02'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
   const relays=Relay.create(t.actors,count);
@@ -25,6 +28,9 @@
   const motion=Motion.compile(t.actors,count);
   const gates=Gates.compile(t.actors,count);
   const bridges=Bridges.compile(t.actors,count);
+  const blink=Blink.compile(t.actors,count);
+  const blinkThunders=BlinkThunders.compile(t.actors,count);
+  const warpInit=WarpInit.compile(t.actors,count);
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
   const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch').map(r=>({...r,x:r.x-9,y:r.y-9,w:18,h:9}));
   const goal=t.actors.find(a=>a.typeName==='Goal'),key=t.actors.find(a=>a.typeName==='Key');
@@ -38,40 +44,49 @@
    return {id:'warp:'+i,type:'Warp',x:a.x,y:a.y,w:n(0),h:n(1),
     destination:{x:n(2),y:n(3)},ordinalOffset:{x:n(4),y:n(5)},counter:0};
   });
-  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes]);
+  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes]);
   const unsupported=[...new Set(t.actors.filter(a=>!supported.has(a.typeName)).map(a=>a.typeName))];
   const missingMechanics=['Native tick frequency (60 Hz explicit prototype calibration)',
    'Native collision pushback and update ordering equivalence',
    'Key attach, transfer and goal-opening state machine (overlap pickup used)'];
   for(const type of unsupported)missingMechanics.push(type+' handler ('+t.actors.filter(a=>a.typeName===type).length+' source actor)');
-  missingMechanics.push(...devices.warnings);
+  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]));
   if(unsupported.length||devices.warnings.length)throw Error('Unsupported source devices: '+[...unsupported,...devices.warnings].join(', '));
   if(t.cells.some(c=>(c.flags&~1)!==0))missingMechanics.push('Dynamic tile attributes');
   const map={id:stageId,count,width:t.width,height:t.height,tileSize:t.tileSize,variant:t.variant,
    platforms:t.platforms.map((p,i)=>({...p,id:'terrain:'+i})),springs,switches,warps,
    spawns:Actor.playerSpawns(t.actors,count).map(p=>({x:p.collision.x,y:p.collision.y-0.5})),
    key:key?{...box(Actor.collisionRect(key)),id:'key'}:null,
-   exit:{...box(Actor.collisionRect(goal)),id:'goal'},killY:t.height,
+   exit:{...box(Actor.collisionRect(goal)),id:'goal'},
+   // StageComponent.prepare3 0x18170aad0 writes FailFallY = mapHeight*chipSize +
+   // stageInitParam.failDownY. failDownY is 0.0 for every World stage, so the
+   // QGameDefine..cctor 0x181780720 default applies: statics+0x10 = 0x9600000 =
+   // 2400. killY is compared against the collision box top, and the native anchor
+   // sits 47 below it (PlayerComponent.CreateEntity 0x1816bd4e8), hence -47.
+   // A margin of 144 leaves 7 of the 16 authored Warp volumes unreachable; 2400
+   // makes 15 of 16 reachable, which is what the shipped level data expects.
+   failFallY:t.height+2400,killY:t.height+2400-47,
    devices:[],coins:[],hazards:[],timers:[],movingPlatforms:[],crates:[],requiredCoins:0,
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
    coordinateSystem:'Y-down'};
-  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,status:{state:'calibration_pending',missingMechanics,
+  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
  function create(compiled,options={}){
   if(!compiled||compiled.schemaVersion!==1)throw new Error('Compiled source stage required');
   const map=clone(compiled.map),count=compiled.count,ids=options.ids||Array.from({length:count},(_,i)=>'p'+(i+1));
   if(ids.length!==count||new Set(ids).size!==count||ids.some(id=>typeof id!=='string'||!id))throw new Error('Unique IDs must match player count');
-  return {map,players:ids.map((id,i)=>({id,...map.spawns[i],w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
+  const initPositions=(compiled.warpInit&&compiled.warpInit.initPositions)||[];
+  return {map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
    supportId:null,jump:false,jumpFrame:0,exit:false,visible:true,playerState:1})),
-   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
+   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
    status:'play',elapsed:0,ticks:0,accumulator:0,keyTaken:!map.key,coinsTaken:0,deaths:0,failure:null,
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
  }
  function active(s){return s.players.filter(p=>!p.exit);}
  // Switch.InitCollision 0x18171484c creates type0/attribute5 sensors, not type2 solids.
- function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState)];}
+ function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState),...Blink.solids(s.blinkState),...BlinkThunders.solids(s.blinkThunderState)];}
  function solids(s){return [...baseSolids(s),...Devices.solids(s.deviceState)];}
  function ridersOf(p,players){
   const ids=new Set([p.id]);let added=true;
@@ -111,6 +126,8 @@
   const hz=s.physics.nativeTickRate,players=active(s);
   Bridges.beforeStep(s.bridgeState,{players,platforms:s.map.platforms,keyTaken:s.keyTaken,dt:h,nativeTickRate:hz});
   Gates.beforeStep(s.gateState,{players,platforms:s.map.platforms,dt:h,nativeTickRate:hz});
+  Blink.beforeStep(s.blinkState,{players,dt:h});
+  BlinkThunders.beforeStep(s.blinkThunderState,{dt:h,platforms:s.map.platforms,width:s.map.width,height:s.map.height});
   const oldMotion=Motion.solids(s.motionState);Motion.step(s.motionState,h);
   const movingSolids=Motion.solids(s.motionState);
   for(const p of players){
@@ -169,14 +186,15 @@
   for(const spring of s.map.springs){const r=s.relayState.relays.find(r=>r.id===spring.id);spring.phase=r.phase;spring.visible=r.visible;}
   const deviceResult=Devices.afterStep(s.deviceState,{players,platforms:baseSolids(s),dt:h,nativeTickRate:hz,width:s.map.width,height:s.map.height});
   const bridgeResult=Bridges.afterStep(s.bridgeState,{players,platforms:s.map.platforms,width:s.map.width,height:s.map.height,events:[...relay.events,...deviceResult.events]});
-  s.map.hazards=bridgeResult.hazards;
+  const blinkThunderResult=BlinkThunders.afterStep(s.blinkThunderState,{players,platforms:s.map.platforms,width:s.map.width,height:s.map.height});
+  s.map.hazards=[...bridgeResult.hazards,...blinkThunderResult.hazards];
+  if(blinkThunderResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:blinkThunderResult.deadPlayerIds[0],reason:'전기에 닿았어요'};return;}
+  // Native OnPost1 0x18169e260 applies a pending warp before CheckOutMap, so
+  // every warp resolves ahead of the out-of-map test below.
+  WarpInit.afterStep(s.warpInitState,{players,boxes:Devices.solids(s.deviceState),dt:h,nativeTickRate:hz});
   if(bridgeResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:bridgeResult.deadPlayerIds[0],reason:'전기에 닿았어요'};return;}
   if(deviceResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:deviceResult.deadPlayerIds[0],reason:'가시에 닿았어요'};return;}
   for(const p of players){
-   // Out of bounds is resolved before any device. The round is lost for
-   // everyone, so a warp below the floor must not rescue a single player
-   // while the rest keep playing.
-   if(p.y>s.map.killY){s.status='dead';s.failure={playerId:p.id,reason:'fall'};s.deaths++;return;}
    for(const warp of s.map.warps||[])if(overlap(p,warp)){
     const ordinal=warp.counter;
     p.x=warp.destination.x+warp.ordinalOffset.x*ordinal-16;
@@ -186,6 +204,10 @@
     for(const q of players)if(q.supportId===p.id){q.supportId=null;q.grounded=false;q.ground=false;}
     break;
    }
+   // ActorComponent.OnPost1 0x18169e260 applies warpProc 0x18169e460 and only
+   // then runs CheckOutMap 0x1816a1cb0, which additionally early-outs while a
+   // warp is pending. A warped player is therefore never out of the map.
+   if(p.y>s.map.killY){s.status='dead';s.failure={playerId:p.id,reason:'fall'};s.deaths++;return;}
    if(!s.keyTaken&&s.keyActive&&s.map.key&&overlap(p,s.map.key)){s.keyTaken=true;s.map.key.taken=true;}
    if(Actor.canEnterGoal({open:s.keyTaken,overlapping:overlap(p,s.map.exit),upPressed:!!inputs[p.id]?.up,cleared:p.exit,playerState:p.playerState})){
     p.exit=true;p.visible=false;p.playerState=5;p.vx=0;p.vy=0;p.grounded=false;p.ground=false;p.supportId=null;
