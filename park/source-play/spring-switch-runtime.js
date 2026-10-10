@@ -39,7 +39,7 @@ function create(actors,count){
   }
   return r;
  });
- const named=new Set(relays.filter(r=>r.name).map(r=>r.name));
+ const named=new Set(selected.filter(r=>r.name).map(r=>r.name));
  for(const r of relays)if(r.parent&&!named.has(r.parent)||r.target&&!named.has(r.target))throw new Error('Missing source relay target '+(r.parent||r.target));
  return {count,sourceActorCount:selected.length,relays};
 }
@@ -65,14 +65,14 @@ function step(state,dt,facts={}){
    for(const spring of state.relays.filter(x=>x.type==='JumpStand'))deliver(spring,true,r);
   }else if(r.type==='JumpStand'&&on&&sender.type==='JumpStandMediator'&&sender.name===r.parent&&r.visible&&r.phase===0)r.phase=1;
  };
- const notify=(r,on)=>{for(const name of [r.target,r.subtarget])if(name)for(const t of state.relays.filter(x=>x.name===name))deliver(t,on,r);};
+ const notify=(r,on)=>{for(const name of [r.target,r.subtarget])if(name){const targets=state.relays.filter(x=>x.name===name);if(!targets.length)events.push({targetName:name,senderId:r.id,on,eventType:on?61:60});for(const t of targets)deliver(t,on,r);}};
  for(const e of facts.externalEvents||[]){const t=byId.get(e.targetId);if(!t)throw new Error('Unknown relay '+e.targetId);deliver(t,e.on,{id:e.senderId,type:e.senderType,name:e.senderName});}
  // Delay countdown precedes the common switch update in the native handler.
  for(const r of state.relays.filter(x=>x.type==='Switch'||x.type==='DelaySwitch')){
   if(r.type==='DelaySwitch'&&r.remaining>0){r.remaining-=dt;if(r.remaining<=0){r.remaining=0;notify(r,true);r.forceOff=true;}}
   const contact=(facts.switchContacts||[]).some(c=>c.relayId===r.id&&(c.attributeFlags&2)!==0&&[1,2,3,8].includes(c.layer));
   if(contact&&!r.latched){r.latched=true;r.pressed=true;if(r.type==='DelaySwitch')r.remaining=r.delay;else notify(r,true);}
-  if(!contact&&r.pressed){r.pressed=false;if(r.type==='Switch')notify(r,false);}
+  if(!contact&&r.pressed&&(r.type!=='Switch'||r.repeat)){r.pressed=false;if(r.type==='Switch')notify(r,false);}
   if(r.repeat)r.latched=false;
   if(r.forceOff){r.latched=false;r.forceOff=false;}
  }

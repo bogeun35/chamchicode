@@ -1,0 +1,25 @@
+{
+  "stages": [
+    {
+      "id": "st_w_01_01",
+      "title": "2편 1–1"
+    },
+    {
+      "id": "st_w_01_02",
+      "title": "2편 1–2"
+    },
+    {
+      "id": "st_w_01_03",
+      "title": "2편 1–3"
+    },
+    {
+      "id": "st_w_01_04",
+      "title": "2편 1–4"
+    },
+    {
+      "id": "st_w_04_01",
+      "title": "2편 4–1"
+    }
+  ],
+  "originalFidelityVerified": false
+}

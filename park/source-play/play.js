@@ -2,16 +2,19 @@
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d');
 const colors=['#ffb36b','#74e4db','#afa4ff','#ff93b8','#b5e47b','#7abaff','#f4d475','#e2a2ff'];
+const catalogue=await fetch('catalogue.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('catalogue');return r.json();}).catch(()=>({stages:[{id:'st_w_01_01',title:'2편 1–1'}]}));
+for(const item of catalogue.stages){if([...$('stage').options].some(o=>o.value===item.id))continue;const option=document.createElement('option');option.value=item.id;option.textContent=item.title;$('stage').append(option);}
+const stageTitle=()=>catalogue.stages.find(s=>s.id===$('stage').value)?.title||'원본 라운드';
 let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0,replay=null,replayLoading=false,replaySpeed=1;
 const keys=new Set();
 const onlineControl=new SourceParkOnlineController({
  getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW')}),
  clearKeys:()=>keys.clear(),pause:()=>overlay('온라인 협동','방을 만들거나 코드로 참가하세요.'),togglePause:()=>{paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');},
- replaceState:(s,i)=>{state=s;selected=Math.max(0,i);camera=null;paused=false;keys.clear();last=performance.now();$('start').disabled=false;canvas.focus();},
+ replaceState:(s,i,remotePaused=false)=>{state=s;selected=Math.max(0,i);camera=null;paused=remotePaused;keys.clear();last=performance.now();$('start').disabled=false;canvas.focus();},
  showOnlineLobby:()=>{state=null;paused=true;keys.clear();$('cover').hidden=true;music.pause();$('progress').textContent='대기실';},
  showOnlineGame:(remotePaused,host,status)=>{if(!host)paused=remotePaused;if(status==='play'){$('start').disabled=!host;$('cover').hidden=!paused;if(paused){$('headline').textContent='잠깐 쉬어가기';$('detail').textContent='방장이 일시정지를 제어합니다.';}syncMusic();}},
- endOnline:(status,host)=>{overlay(status==='clear'?'모두 함께 해냈어요':'다시 함께',host?'대기실에서 다시 준비할 수 있습니다.':'방장을 기다리고 있습니다.','대기실 · Enter');$('start').disabled=!host;},
- onlineMode:active=>{$('count').disabled=active;$('replay').disabled=active;$('retry').disabled=active&&!onlineControl.net?.host;$('limitations').textContent=active?'온라인 협동 · 원본 첫 라운드 · 전체 이관 및 원본 물리 검수 중':'원본 지형·스프링·워프 연결 · 물리·열쇠 동작 일치 검수 중';},local:()=>load()
+ endOnline:(status,host)=>{status==='dead'?overlay('다시 한번','모두 함께 처음부터 다시 시작합니다.','바로 시작 · Enter'):overlay('모두 함께 해냈어요',host?'대기실에서 다시 준비할 수 있습니다.':'방장을 기다리고 있습니다.','대기실 · Enter');$('start').disabled=!host;},
+ onlineMode:active=>{$('count').disabled=active;$('stage').disabled=active;$('replay').disabled=active;$('retry').disabled=active&&!onlineControl.net?.host;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';},local:()=>load()
 });window.SourceParkOnline=onlineControl;
 const testMuted=new URLSearchParams(location.search).has('mute');
 const music=new Audio('audio/park-together.wav');music.loop=true;music.volume=.35;music.preload='none';
@@ -27,12 +30,12 @@ async function runReplay(){if(replayLoading)return;replayLoading=true;$('replay'
  if(onlineControl.active){replayLoading=false;return;}
  try{const res=await fetch('whole-route-input-replay.json',{cache:'no-store'});if(!res.ok)throw Error('재생 기록을 준비하고 있습니다.');const data=await res.json();
   if(data.schemaVersion!==1||data.count!==8||!Array.isArray(data.commands)||!data.commands.length||data.commands.some(c=>!Number.isInteger(c.frames)||c.frames<1||c.frames>36000))throw Error('입력 기록 형식을 확인해주세요.');
-  $('count').value=String(data.count);await load();if(!compiled||compiled.count!==data.count)throw Error('8인 지형을 불러오지 못했습니다.');
+  $('stage').value='st_w_01_01';$('count').value=String(data.count);await load();if(!compiled||compiled.count!==data.count)throw Error('8인 지형을 불러오지 못했습니다.');
   replay={data,index:0,remaining:data.commands[0].frames,accumulator:0};$('replay-speed').hidden=false;start();
  }catch(e){overlay('입력 재생 준비 중',e.message);}finally{replayLoading=false;$('replay').disabled=false;}
 }
 async function load(){const token=++loadVersion;compiled=null;state=null;overlay('불러오는 중','원본 지형과 장치를 준비합니다.');$('start').disabled=true;
- try{const res=await fetch(`data/${$('count').value}.json`,{cache:'no-store'});if(!res.ok)throw Error('연결 데이터 준비 중');const data=await res.json();if(token!==loadVersion)return;compiled=data;$('limitations').textContent='원본 지형·스프링·워프 연결 · 물리·열쇠 동작 일치 검수 중';$('start').disabled=false;reset();}
+ try{const res=await fetch(`data/${encodeURIComponent($('stage').value)}/${$('count').value}.json`,{cache:'no-store'});if(!res.ok)throw Error('연결 데이터 준비 중');const data=await res.json();if(token!==loadVersion)return;compiled=data;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';$('start').disabled=false;reset();}
  catch(e){if(token===loadVersion)overlay('연결 준비 중',e.message);}
 }
 function box(r,color,radius=3){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(r.x,r.y,r.w,r.h,radius);ctx.fill();}
@@ -40,6 +43,13 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
  camera=ParkCamera.update(camera,state.players,state.map,{width:1200,height:675},1/60);
  ctx.save();ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
+ for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
+ for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
+ for(const b of state.gateState.gates){box(b,b.phase===1||b.phase===3?'#438c83':'#756184',3);ctx.strokeStyle='#ac92bd';ctx.lineWidth=2;for(let y=b.y+8;y<b.y+b.h;y+=12){ctx.beginPath();ctx.moveTo(b.x+3,y);ctx.lineTo(b.x+b.w-3,y);ctx.stroke();}}
+ for(const d of state.deviceState?.devices||[]){
+  if(d.type==='PushBox'){box(d,'#c48c55',4);ctx.strokeStyle='#785136';ctx.lineWidth=4;ctx.strokeRect(d.x+4,d.y+4,d.w-8,d.h-8);ctx.beginPath();ctx.moveTo(d.x+5,d.y+5);ctx.lineTo(d.x+d.w-5,d.y+d.h-5);ctx.moveTo(d.x+d.w-5,d.y+5);ctx.lineTo(d.x+5,d.y+d.h-5);ctx.stroke();for(let i=0;i<d.requiredPushers;i++){ctx.fillStyle=i<d.pushCount?'#89ffd1':'#775039';ctx.beginPath();ctx.arc(d.x+d.w/2+(i-(d.requiredPushers-1)/2)*6,d.y-7,2,0,Math.PI*2);ctx.fill();}}
+  else if(d.type==='Thorn'&&d.active){ctx.save();ctx.globalAlpha=d.alpha;ctx.translate(d.x,d.y);ctx.rotate([0,Math.PI,-Math.PI/2,Math.PI/2][d.direction]);ctx.fillStyle=d.phase==='move'?'#ff7f89':'#e9bec9';ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(0,-18);ctx.lineTo(12,-2);ctx.closePath();ctx.fill();ctx.fillStyle='#a15c79';ctx.fillRect(-12,-8,24,6);ctx.restore();}
+ }
  for(const b of state.map.switches||[]){
   ctx.save();ctx.shadowColor='#ffd876';ctx.shadowBlur=b.pressed?20:0;box(b,b.pressed?'#fff4ba':'#ffcd65');ctx.restore();
   if(b.remaining>0){const relay=state.relayState.relays.find(r=>r.id===b.id),x=b.x+b.w/2,y=b.y-24;
@@ -55,7 +65,7 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
   if(b.phase===3){ctx.strokeStyle='#ffd6f2';ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+4+i*12;ctx.moveTo(x,b.y-8);ctx.lineTo(x,b.y-28);}ctx.stroke();}
  }
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
- if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle='#ffdb72';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();}
+ if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle=state.keyActive?'#ffdb72':'#586270';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();for(const o of state.gateState.observers)for(let i=0;i<o.total;i++){ctx.fillStyle=i<o.pushedCount?'#7ef0bc':'#586270';ctx.beginPath();ctx.arc(k.x+k.w/2+(i-(o.total-1)/2)*10,k.y-12,3,0,Math.PI*2);ctx.fill();}}
  state.players.forEach((p,i)=>{if(p.exit)return;box(p,colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
  $('progress').textContent=`${state.keyTaken?'🔑 ✓':'🔑'}　${state.players.filter(p=>p.exit).length} / ${state.players.length}`;
 }
@@ -72,18 +82,18 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   if(p&&!p.exit)SourceStageRuntime.step(state,{[p.id]:input},dt);
   else SourceStageRuntime.step(state,{},dt);
   }
-  if(state.status==='clear')overlay('함께 해냈어요','원본 첫 라운드 연결 검수 완료','다시 · Enter');
+  if(state.status==='clear')overlay('함께 해냈어요',stageTitle()+' 클리어','다시 · Enter');
   else if(state.status==='dead')overlay('다시 한번',state.failure?.reason||'처음부터 다시 확인해요','다시 · Enter');
  }render();requestAnimationFrame(frame);
 }
 document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName)||e.code==='Enter'&&e.target.tagName==='BUTTON')return;
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();
- if(e.code==='Enter'&&paused){if(onlineControl.active){if(onlineControl.net?.host){state?.status==='play'?start():onlineControl.start();}return;}if(state&&state.status!=='play')reset();start();return;}
+ if(e.code==='Enter'&&paused){if(onlineControl.active){if(onlineControl.net?.host){state?.status==='play'?start():onlineControl.restartRound();}return;}if(state&&state.status!=='play')reset();start();return;}
  if(e.code.startsWith('Digit')&&state&&!onlineControl.active){const i=Number(e.code.slice(5))-1;if(i>=0&&i<state.players.length)selected=i;return;}
- if(e.code==='KeyR'&&!e.repeat){onlineControl.active?onlineControl.start():reset();return;}if(e.code==='KeyV'&&!e.repeat){toggleReplaySpeed();return;}if(e.code==='KeyT'&&!e.repeat){runReplay();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
+ if(e.code==='KeyR'&&!e.repeat){onlineControl.active?onlineControl.restartRound():reset();return;}if(e.code==='KeyV'&&!e.repeat){toggleReplaySpeed();return;}if(e.code==='KeyT'&&!e.repeat){runReplay();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
  if(e.code==='Backspace'&&!e.repeat){if(onlineControl.active)onlineControl.pause();else paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');return;}keys.add(e.code);
 });document.addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>{keys.clear();if(!onlineControl.active&&state&&state.status==='play'&&!paused)overlay('잠깐 쉬어가기','','계속 · Enter');});
- $('start').onclick=()=>{if(onlineControl.active){state?.status==='play'?start():onlineControl.start();return;}if(state&&state.status!=='play')reset();start();};$('retry').onclick=()=>onlineControl.active?onlineControl.start():reset();$('count').onchange=load;$('music').onclick=toggleMusic;$('replay').onclick=runReplay;$('replay-speed').onclick=toggleReplaySpeed;
+ $('start').onclick=()=>{if(onlineControl.active){state?.status==='play'?start():onlineControl.restartRound();return;}if(state&&state.status!=='play')reset();start();};$('retry').onclick=()=>onlineControl.active?onlineControl.restartRound():reset();$('count').onchange=load;$('stage').onchange=()=>onlineControl.active?onlineControl.selectStage($('stage').value):load();$('music').onclick=toggleMusic;$('replay').onclick=runReplay;$('replay-speed').onclick=toggleReplaySpeed;
  $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
  await load();requestAnimationFrame(frame);const roomCode=new URLSearchParams(location.search).get('room');if(roomCode){$('room-code').value=roomCode;$('online-panel').hidden=false;onlineControl.enter(false);}
 })();

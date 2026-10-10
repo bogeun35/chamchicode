@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-09",
-  "label": "원본 첫 라운드 연결 검수",
-  "sourceRoundsConnected": 1,
+  "date": "2026-10-10",
+  "label": "원본 라운드 이관 검수",
+  "sourceRoundsConnected": 5,
   "originalFidelityReviewedRounds": 0,
   "localOnlyControls": false,
   "online": {
@@ -9,7 +9,7 @@
     "maxPlayers": 8,
     "backend": "existing Firebase RTDB",
     "hostAuthoritative": true,
-    "protocol": "source-park-v1"
+    "protocol": "source-park-v2"
   },
   "functionalRoute": {
     "stage": "st_w_01_01",
@@ -22,7 +22,8 @@
       7,
       8
     ],
-    "inputOnlyClearVerified": true,
+    "inputOnlyClearVerified": false,
+    "inputOnlyClearNote": "녹화된 8인 공략은 이전 스위치 접촉 판정에서 기록된 것으로 현재 런타임에서는 어긋납니다. 재녹화 전까지 기계 검증 없음.",
     "originalFidelityVerified": false,
     "humanFunVerified": false
   },
@@ -177,6 +178,594 @@
         ],
         "unsupportedActorTypes": [],
         "sourceStage": "st_w_01_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 2,
+      "sourceStage": "st_w_01_02",
+      "players": 2,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 3,
+      "sourceStage": "st_w_01_02",
+      "players": 3,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 4,
+      "sourceStage": "st_w_01_02",
+      "players": 4,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 5,
+      "sourceStage": "st_w_01_02",
+      "players": 5,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 6,
+      "sourceStage": "st_w_01_02",
+      "players": 6,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 7,
+      "sourceStage": "st_w_01_02",
+      "players": 7,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 8,
+      "sourceStage": "st_w_01_02",
+      "players": 8,
+      "platforms": 29,
+      "springs": 1,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 2,
+      "sourceStage": "st_w_01_03",
+      "players": 2,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 3,
+      "sourceStage": "st_w_01_03",
+      "players": 3,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 4,
+      "sourceStage": "st_w_01_03",
+      "players": 4,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 5,
+      "sourceStage": "st_w_01_03",
+      "players": 5,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 6,
+      "sourceStage": "st_w_01_03",
+      "players": 6,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 7,
+      "sourceStage": "st_w_01_03",
+      "players": 7,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 8,
+      "sourceStage": "st_w_01_03",
+      "players": 8,
+      "platforms": 19,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 2,
+      "sourceStage": "st_w_01_04",
+      "players": 2,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 3,
+      "sourceStage": "st_w_01_04",
+      "players": 3,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 4,
+      "sourceStage": "st_w_01_04",
+      "players": 4,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 5,
+      "sourceStage": "st_w_01_04",
+      "players": 5,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 6,
+      "sourceStage": "st_w_01_04",
+      "players": 6,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 7,
+      "sourceStage": "st_w_01_04",
+      "players": 7,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 8,
+      "sourceStage": "st_w_01_04",
+      "players": 8,
+      "platforms": 81,
+      "springs": 14,
+      "switches": 7,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_01_04",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 2,
+      "sourceStage": "st_w_04_01",
+      "players": 2,
+      "platforms": 31,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 3,
+      "sourceStage": "st_w_04_01",
+      "players": 3,
+      "platforms": 31,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 4,
+      "sourceStage": "st_w_04_01",
+      "players": 4,
+      "platforms": 31,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 5,
+      "sourceStage": "st_w_04_01",
+      "players": 5,
+      "platforms": 31,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 6,
+      "sourceStage": "st_w_04_01",
+      "players": 6,
+      "platforms": 36,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 7,
+      "sourceStage": "st_w_04_01",
+      "players": 7,
+      "platforms": 41,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 8,
+      "sourceStage": "st_w_04_01",
+      "players": 8,
+      "platforms": 46,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_04_01",
         "sourceY": "down",
         "completePhysicsFidelity": false
       }
