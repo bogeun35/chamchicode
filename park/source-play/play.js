@@ -39,8 +39,20 @@ async function load(){const token=++loadVersion;compiled=null;state=null;overlay
  catch(e){if(token===loadVersion)overlay('연결 준비 중',e.message);}
 }
 function box(r,color,radius=3){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(r.x,r.y,r.w,r.h,radius);ctx.fill();}
-function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRect(0,0,1200,675);if(!state)return;
- camera=ParkCamera.update(camera,state.players,state.map,{width:1200,height:675},1/60);
+// park-art.js draws the round; it only reads state. If it ever throws, the
+// plain renderer below takes over so the loop never stops on a drawing error.
+const debugBoxes=new URLSearchParams(location.search).has('boxes');let artFailed=false;
+function render(){
+ if(!state){if(window.ParkArt)ParkArt.blank(ctx,canvas);else{ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRect(0,0,1200,675);}return;}
+ // The view keeps a fixed logical height and takes the screen's shape, so the
+ // camera gets the real width instead of a stretched 1200x675 picture.
+ const view=window.ParkArt?ParkArt.viewport(canvas):{width:1200,height:675,scale:canvas.height/675};
+ camera=ParkCamera.update(camera,state.players,state.map,{width:view.width,height:view.height},1/60);
+ if(window.ParkArt&&!artFailed){try{ParkArt.render(ctx,state,camera,{canvas,viewport:view,selected,time:performance.now()/1000,debugBoxes});}catch(e){artFailed=true;console.error('ParkArt',e);renderFlat();}}
+ else renderFlat();
+ $('progress').textContent=`${state.keyTaken?'🔑 ✓':'🔑'}　${state.players.filter(p=>p.exit).length} / ${state.players.length}`;
+}
+function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,w,675);ctx.fillStyle='#0c1c2b';ctx.fillRect(0,0,w,675);
  ctx.save();ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
@@ -83,7 +95,6 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
   });
   ctx.restore();
  }
- $('progress').textContent=`${state.keyTaken?'🔑 ✓':'🔑'}　${state.players.filter(p=>p.exit).length} / ${state.players.length}`;
 }
 function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
  if(onlineControl.active)onlineControl.frame(dt,now);
