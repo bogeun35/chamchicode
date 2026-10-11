@@ -11,9 +11,10 @@
   common?require('./source-blink-devices.js'):root.SourceBlinkDevices,
   common?require('./source-blinkthunder-devices.js'):root.SourceBlinkThunderDevices,
   common?require('./source-warpinit-devices.js'):root.SourceWarpInitDevices,
-  common?require('./source-switchtimer-devices.js'):root.SourceSwitchTimerDevices);
+  common?require('./source-switchtimer-devices.js'):root.SourceSwitchTimerDevices,
+  common?require('./source-thorn-ceiling-devices.js'):root.SourceThornCeilingDevices);
  if(common)module.exports=api;root.SourceStageRuntime=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers){
+})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,ThornCeilings){
  'use strict';
  const clone=x=>JSON.parse(JSON.stringify(x));
  const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -21,7 +22,7 @@
  const box=r=>({x:r.x,y:r.y,w:r.width,h:r.height});
  const NATIVE=Object.freeze({walk:3,jump:-334234/65536,gravity:42598/65536,terminal:19.5,holdFactor:13107/65536,holdFrames:14});
  function compile({source,geometry,count,stageId='st_w_01_01',nativeTickRate=60}={}){
-  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_10_02'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
+  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_10_02','st_w_11_04'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
   const relays=Relay.create(t.actors,count);
@@ -33,6 +34,7 @@
   const blinkThunders=BlinkThunders.compile(t.actors,count);
   const warpInit=WarpInit.compile(t.actors,count);
   const switchTimers=SwitchTimers.compile(t.actors,count);
+  const thornCeilings=ThornCeilings.compile(t.actors,count);
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
   const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch').map(r=>({...r,x:r.x-9,y:r.y-9,w:18,h:9}));
   const goal=t.actors.find(a=>a.typeName==='Goal'),key=t.actors.find(a=>a.typeName==='Key');
@@ -46,13 +48,13 @@
    return {id:'warp:'+i,type:'Warp',x:a.x,y:a.y,w:n(0),h:n(1),
     destination:{x:n(2),y:n(3)},ordinalOffset:{x:n(4),y:n(5)},counter:0};
   });
-  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes]);
+  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...ThornCeilings.supportedTypes]);
   const unsupported=[...new Set(t.actors.filter(a=>!supported.has(a.typeName)).map(a=>a.typeName))];
   const missingMechanics=['Native tick frequency (60 Hz explicit prototype calibration)',
    'Native collision pushback and update ordering equivalence',
    'Key attach, transfer and goal-opening state machine (overlap pickup used)'];
   for(const type of unsupported)missingMechanics.push(type+' handler ('+t.actors.filter(a=>a.typeName===type).length+' source actor)');
-  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]));
+  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]),...(thornCeilings.warnings||[]));
   if(unsupported.length||devices.warnings.length)throw Error('Unsupported source devices: '+[...unsupported,...devices.warnings].join(', '));
   if(t.cells.some(c=>(c.flags&~1)!==0))missingMechanics.push('Dynamic tile attributes');
   const map={id:stageId,count,width:t.width,height:t.height,tileSize:t.tileSize,variant:t.variant,
@@ -72,7 +74,7 @@
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
    coordinateSystem:'Y-down'};
-  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,status:{state:'calibration_pending',missingMechanics,
+  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,thornCeilings,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
  function create(compiled,options={}){
@@ -82,7 +84,7 @@
   const initPositions=(compiled.warpInit&&compiled.warpInit.initPositions)||[];
   return {map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
    supportId:null,jump:false,jumpFrame:0,exit:false,visible:true,playerState:1})),
-   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
+   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
    status:'play',elapsed:0,ticks:0,accumulator:0,keyTaken:!map.key,coinsTaken:0,deaths:0,failure:null,
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
  }
@@ -133,6 +135,7 @@
   for(const e of timerResult.events){Gates.signal(s.gateState,e);Devices.signal(s.deviceState,e);BlinkThunders.signal(s.blinkThunderState,e);}
   Gates.beforeStep(s.gateState,{players,platforms:s.map.platforms,dt:h,nativeTickRate:hz});
   Blink.beforeStep(s.blinkState,{players,dt:h});
+  ThornCeilings.beforeStep(s.thornCeilingState,{dt:h});
   BlinkThunders.beforeStep(s.blinkThunderState,{dt:h,platforms:s.map.platforms,width:s.map.width,height:s.map.height});
   const oldMotion=Motion.solids(s.motionState);Motion.step(s.motionState,h);
   const movingSolids=Motion.solids(s.motionState);
@@ -194,7 +197,10 @@
   SwitchTimers.afterStep(s.switchTimerState,{events:[...relay.events,...deviceResult.events]});
   const bridgeResult=Bridges.afterStep(s.bridgeState,{players,platforms:s.map.platforms,width:s.map.width,height:s.map.height,events:[...relay.events,...deviceResult.events]});
   const blinkThunderResult=BlinkThunders.afterStep(s.blinkThunderState,{players,platforms:s.map.platforms,width:s.map.width,height:s.map.height});
-  s.map.hazards=[...bridgeResult.hazards,...blinkThunderResult.hazards];
+  const thornCeilingResult=ThornCeilings.afterStep(s.thornCeilingState,{players,platforms:baseSolids(s),dt:h,nativeTickRate:hz,width:s.map.width,height:s.map.height});
+  for(const e of thornCeilingResult.events)if(e.event===61){Gates.signal(s.gateState,e);Devices.signal(s.deviceState,e);BlinkThunders.signal(s.blinkThunderState,e);Bridges.signal(s.bridgeState,e);}
+  s.map.hazards=[...bridgeResult.hazards,...blinkThunderResult.hazards,...thornCeilingResult.hazards];
+  if(thornCeilingResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:thornCeilingResult.deadPlayerIds[0],reason:'가시에 닿았어요'};return;}
   if(blinkThunderResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:blinkThunderResult.deadPlayerIds[0],reason:'전기에 닿았어요'};return;}
   // Native OnPost1 0x18169e260 applies a pending warp before CheckOutMap, so
   // every warp resolves ahead of the out-of-map test below.
