@@ -9,11 +9,11 @@ let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVers
 const keys=new Set();
 const onlineControl=new SourceParkOnlineController({
  getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW')}),
- clearKeys:()=>keys.clear(),pause:()=>overlay('온라인 협동','방을 만들거나 코드로 참가하세요.'),togglePause:()=>{paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');},
+ clearKeys:()=>keys.clear(),resume:()=>start(),pause:()=>overlay('온라인 협동','방을 만들거나 코드로 참가하세요.'),togglePause:()=>{paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');},
  replaceState:(s,i,remotePaused=false)=>{state=s;selected=Math.max(0,i);camera=null;paused=remotePaused;keys.clear();last=performance.now();$('start').disabled=false;canvas.focus();},
  showOnlineLobby:()=>{state=null;paused=true;keys.clear();$('cover').hidden=true;music.pause();$('progress').textContent='대기실';},
  showOnlineGame:(remotePaused,host,status)=>{if(!host)paused=remotePaused;if(status==='play'){$('start').disabled=!host;$('cover').hidden=!paused;if(paused){$('headline').textContent='잠깐 쉬어가기';$('detail').textContent='방장이 일시정지를 제어합니다.';}syncMusic();}},
- endOnline:(status,host)=>{status==='dead'?overlay('다시 한번','모두 함께 처음부터 다시 시작합니다.','바로 시작 · Enter'):overlay('모두 함께 해냈어요',host?'대기실에서 다시 준비할 수 있습니다.':'방장을 기다리고 있습니다.','대기실 · Enter');$('start').disabled=!host;},
+ endOnline:(status,host)=>{status==='dead'?overlay('다시 한번','모두 함께 처음부터 다시 시작합니다.','바로 시작 · Enter'):overlay('모두 함께 해냈어요',host?'대기실에서 다시 준비할 수 있습니다.':'방장을 기다리고 있습니다.','대기실 · Enter');$('start').disabled=!host&&status!=='dead';},
  onlineMode:active=>{$('count').disabled=active;$('stage').disabled=active;$('replay').disabled=active;$('retry').disabled=active&&!onlineControl.net?.host;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';},local:()=>load()
 });window.SourceParkOnline=onlineControl;
 const testMuted=new URLSearchParams(location.search).has('mute');
@@ -115,12 +115,12 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
 }
 document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName)||e.code==='Enter'&&e.target.tagName==='BUTTON')return;
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();
- if(e.code==='Enter'&&paused){if(onlineControl.active){if(onlineControl.net?.host){state?.status==='play'?start():onlineControl.restartRound();}return;}if(state&&state.status!=='play')reset();start();return;}
+ if(e.code==='Enter'&&paused){if(onlineControl.active){onlineControl.cover();return;}if(state&&state.status!=='play')reset();start();return;}
  if(e.code.startsWith('Digit')&&state&&!onlineControl.active){const i=Number(e.code.slice(5))-1;if(i>=0&&i<state.players.length)selected=i;return;}
  if(e.code==='KeyR'&&!e.repeat){onlineControl.active?onlineControl.restartRound():reset();return;}if(e.code==='KeyV'&&!e.repeat){toggleReplaySpeed();return;}if(e.code==='KeyT'&&!e.repeat){runReplay();return;}if(e.code==='KeyM'&&!e.repeat){toggleMusic();return;}if(e.code==='KeyF'&&!e.repeat){$('fullscreen').click();return;}if(e.code==='KeyH'&&!e.repeat){$('help-button').click();return;}
  if(e.code==='Backspace'&&!e.repeat){if(onlineControl.active)onlineControl.pause();else paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');return;}keys.add(e.code);
 });document.addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>{keys.clear();if(!onlineControl.active&&state&&state.status==='play'&&!paused)overlay('잠깐 쉬어가기','','계속 · Enter');});
- $('start').onclick=()=>{if(onlineControl.active){state?.status==='play'?start():onlineControl.restartRound();return;}if(state&&state.status!=='play')reset();start();};$('retry').onclick=()=>onlineControl.active?onlineControl.restartRound():reset();$('count').onchange=load;$('stage').onchange=()=>onlineControl.active?onlineControl.selectStage($('stage').value):load();$('music').onclick=toggleMusic;$('replay').onclick=runReplay;$('replay-speed').onclick=toggleReplaySpeed;
+ $('start').onclick=()=>{if(onlineControl.active){onlineControl.cover();return;}if(state&&state.status!=='play')reset();start();};$('retry').onclick=()=>onlineControl.active?onlineControl.restartRound():reset();$('count').onchange=load;$('stage').onchange=()=>onlineControl.active?onlineControl.selectStage($('stage').value):load();$('music').onclick=toggleMusic;$('replay').onclick=runReplay;$('replay-speed').onclick=toggleReplaySpeed;
  $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
  await load();requestAnimationFrame(frame);const roomCode=new URLSearchParams(location.search).get('room');if(roomCode){$('room-code').value=roomCode;$('online-panel').hidden=false;onlineControl.enter(false);}
 })();

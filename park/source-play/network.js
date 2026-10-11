@@ -1,7 +1,14 @@
 /* Source-stage co-op: the host simulates; peers send inputs through Firebase RTDB. */
 (function (root) {
   'use strict';
-  const PROTOCOL = 'source-park-v2';
+  // v3 moved inputs out of the room node. In v2 every peer's input write landed
+  // under the room the host publishes with a root transaction, and the host's own
+  // input set() aborted that transaction ("set"): the host's keys worked while
+  // the peer's screen froze and the peer's keys never reached the simulation.
+  const PROTOCOL = 'source-park-v3';
+  const roomPath = code => 'games/park_source_' + code;
+  // Room codes are upper-case letters and digits, so this can never be a room.
+  const inputPath = code => 'games/park_source_inputs_' + code;
   const CONFIG = {
     apiKey: 'AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM',
     authDomain: 'rolling2-17a8f.firebaseapp.com',
@@ -69,9 +76,14 @@
       this.ref = null;
       this.code = null;
       this.inputs = {};
+      this.rawInputs = {};
+      this.inputArrival = {};
+      this.inputRef = null;
       this.justBecameHost = false;
       this.seq = 0;
       this.jumpSeq = 0;
+      this.restartSeq = 0;
+      this.lastInput = {};
       this.lastJump = false;
       this.disconnects = [];
       this.pending = new Map();
@@ -81,6 +93,12 @@
       try { if (this.onError) this.onError(error && error.message || String(error)); } catch (_) { /* UI errors must not escape listeners. */ }
     }
     connected(id) { return online(this.room, id) && (id !== this.id || this.localOnline); }
+    // Only inputs from members who are online on their current connection count.
+    refreshInputs() {
+      const room = this.room;
+      this.inputs = room && room.players ? Object.fromEntries(Object.entries(this.rawInputs || {})
+        .filter(([id, input]) => input && room.players[id] && online(room, id) && input.connectionId === room.players[id].connectionId)) : {};
+    }
     connectedIds() { return onlineIds(this.room).filter(id => id !== this.id || this.localOnline); }
     async init() {
       if (this.db) return;
@@ -94,7 +112,8 @@
       if (this.leaving) await this.leaving;
       if (this.ref) await this.leave();
       await this.init();
-      const ref = this.db.ref('games/park_source_' + code);
+      const ref = this.db.ref(roomPath(code));
+      const inputRef = this.db.ref(inputPath(code));
       const connectionId = randomId('c');
       // A live subscription warms the local transaction cache before joining.
       const warm = () => {};
@@ -121,14 +140,20 @@
         });
         if (!result.committed) throw Error('참가할 수 없어요. 방 코드·인원·진행 상태를 확인해주세요');
         this.ref = ref;
+        this.inputRef = inputRef;
         this.code = code;
         this.connectionId = connectionId;
         this.localOnline = true;
-        const joinedRoom = result.snapshot && result.snapshot.val ? result.snapshot.val() : (await ref.once('value')).val();
-        const previousInput = joinedRoom && joinedRoom.inputs && joinedRoom.inputs[this.id];
+        // A returning player continues its counters so the host never mistakes
+        // an old jump or restart request for a new one (or ignores a new one).
+        const previousInput = (await inputRef.child(this.id).once('value')).val();
         this.seq = previousInput && previousInput.seq || 0;
         this.jumpSeq = previousInput && previousInput.jumpSeq || 0;
+        this.restartSeq = previousInput && previousInput.restartSeq || 0;
+        this.lastInput = {};
         this.lastJump = false;
+        this.rawInputs = {};
+        this.inputArrival = {};
         this.player = ref.child('players/' + this.id);
         this.disconnects = [];
         await this.armPresence(ref, connectionId);
@@ -143,11 +168,21 @@
           }
           this.host = room.host === this.id && this.connected(this.id);
           this.justBecameHost = this.host && !wasHost;
-          this.inputs = Object.fromEntries(Object.entries(room.inputs || {}).filter(([id, input]) => online(room, id) && input.connectionId === room.players[id].connectionId));
+          this.refreshInputs();
           try { if (this.onRoom) this.onRoom(room); } catch (error) { this.error(error); }
           if (!online(room, room.host)) this.elect(ref, room);
         };
         ref.on('value', this.listener, error => this.error(error));
+        this.inputListener = snap => {
+          if (this.inputRef !== inputRef) return;
+          this.rawInputs = snap.val() || {};
+          const now = Date.now();
+          for (const [id, input] of Object.entries(this.rawInputs)) {
+            if (input && (!this.inputArrival[id] || this.inputArrival[id].seq !== input.seq)) this.inputArrival[id] = { seq: input.seq, at: now };
+          }
+          this.refreshInputs();
+        };
+        inputRef.on('value', this.inputListener, error => this.error(error));
         this.infoRef = this.db.ref('.info/connected');
         this.infoListener = snap => {
           if (this.ref !== ref) return;
@@ -178,9 +213,10 @@
     revoked(ref, reason) {
       if (this.ref !== ref) return;
       this.detach(ref);
-      this.ref = this.player = this.code = null;
+      this.ref = this.player = this.code = this.inputRef = null;
       this.host = this.justBecameHost = false;
       this.inputs = {};
+      this.rawInputs = {};
       const disconnects = this.disconnects;
       this.disconnects = [];
       Promise.allSettled([...this.pending.get(ref) || []]).then(async () => {
@@ -192,8 +228,9 @@
     }
     detach(ref) {
       if (this.listener) ref.off('value', this.listener);
+      if (this.inputRef && this.inputListener) this.inputRef.off('value', this.inputListener);
       if (this.infoRef && this.infoListener) this.infoRef.off('value', this.infoListener);
-      this.infoRef = this.infoListener = null;
+      this.infoRef = this.infoListener = this.inputListener = null;
     }
     elect(ref, room) {
       if (this.ref !== ref) return;
@@ -226,13 +263,23 @@
       return this.track(ref, operation).then(() => true, error => { this.error(error); return false; });
     }
     input(input) {
-      if (!this.ref || !this.localOnline) return Promise.resolve(false);
+      if (!this.ref || !this.inputRef || !this.localOnline) return Promise.resolve(false);
       const jump = !!input.jump;
       if (jump && !this.lastJump) this.jumpSeq++;
       this.lastJump = jump;
-      const packet = { left: !!input.left, right: !!input.right, jump, up: !!input.up, connectionId: this.connectionId, jumpSeq: this.jumpSeq, seq: ++this.seq, at: Date.now() };
-      const ref = this.ref;
-      return this.write(ref, () => ref.child('inputs/' + this.id).set(packet));
+      this.lastInput = { left: !!input.left, right: !!input.right, jump, up: !!input.up };
+      const packet = { ...this.lastInput, connectionId: this.connectionId, jumpSeq: this.jumpSeq, restartSeq: this.restartSeq, seq: ++this.seq, at: Date.now() };
+      // Inputs live outside the room node so they never contend with the host's
+      // room transactions (publish, lobby, kick) - see PROTOCOL above.
+      const ref = this.ref, inputRef = this.inputRef;
+      return this.write(ref, () => inputRef.child(this.id).set(packet));
+    }
+    // Any member may ask for the round to restart; the host applies it. The
+    // request rides on the input packet as a counter, like a jump edge.
+    requestRestart() {
+      if (!this.ref || !this.inputRef || !this.localOnline) return Promise.resolve(false);
+      this.restartSeq++;
+      return this.input(this.lastInput || {});
     }
     publish(snapshot) {
       if (!this.host || !this.ref) return Promise.resolve(false);
@@ -309,12 +356,13 @@
         room.kicked = room.kicked || {};
         room.kicked[id] = { at: Date.now(), by: this.id };
         delete room.players[id];
-        if (room.inputs) delete room.inputs[id];
         for (const key of Object.keys(room.connections || {})) if (room.connections[key].playerId === id) delete room.connections[key];
         resetRoster(room);
         return room;
       }));
       if (!result.committed) throw Error('강퇴할 참가자를 확인해주세요');
+      const inputRef = this.inputRef;
+      if (inputRef) this.write(ref, () => inputRef.child(id).remove());
       return true;
     }
     async unblock(id) {
@@ -333,16 +381,18 @@
       const ref = this.ref;
       const disconnects = this.disconnects;
       const connectionId = this.connectionId;
+      const inputRef = this.inputRef;
       if (ref) this.detach(ref);
-      this.ref = this.room = this.player = this.code = null;
+      this.ref = this.room = this.player = this.code = this.inputRef = null;
       this.host = this.justBecameHost = false;
       this.inputs = {};
+      this.rawInputs = {};
       this.disconnects = [];
       if (!ref) return Promise.resolve();
-      this.leaving = this.finishLeave(ref, disconnects, connectionId).finally(() => { this.leaving = null; });
+      this.leaving = this.finishLeave(ref, disconnects, connectionId, inputRef).finally(() => { this.leaving = null; });
       return this.leaving;
     }
-    async finishLeave(ref, disconnects, connectionId) {
+    async finishLeave(ref, disconnects, connectionId, inputRef) {
       // Keep a listener while the transaction runs, then detach only our listener.
       const warm = () => {};
       ref.on('value', warm);
@@ -353,14 +403,14 @@
         // Remove our membership with an acknowledged atomic update first. Root
         // transactions can contend with an active host's snapshot writes; that
         // contention must never prevent a peer from actually leaving the room.
-        await ref.update({ ['players/' + this.id]: null, ['inputs/' + this.id]: null, ['connections/' + connectionId]: null });
+        await ref.update({ ['players/' + this.id]: null, ['connections/' + connectionId]: null });
+        if (inputRef) await inputRef.child(this.id).remove();
         await ref.once('value');
         const result = await ref.transaction(room => {
           // A cold cache can be null while the server still has members. Returning
           // null submits a compare-and-set so Firebase fetches/retries server data.
           if (!room) return null;
           if (room.players) delete room.players[this.id];
-          if (room.inputs) delete room.inputs[this.id];
           const remaining = Object.keys(room.players || {}).sort();
           if (!remaining.length) return null;
           if (!online(room, room.host)) {
@@ -371,6 +421,9 @@
           return room;
         });
         if (!result.committed) throw Error('방 나가기 처리가 완료되지 않았어요');
+        // The last one out also clears the room's input node.
+        const left = result.snapshot && typeof result.snapshot.val === 'function' ? result.snapshot.val() : undefined;
+        if (inputRef && left === null) await inputRef.remove();
         await Promise.all(disconnects.map(disconnect => disconnect.cancel()));
       } catch (error) { this.error(error); } finally { ref.off('value', warm); }
     }

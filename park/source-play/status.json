@@ -9,7 +9,7 @@
     "maxPlayers": 8,
     "backend": "existing Firebase RTDB",
     "hostAuthoritative": true,
-    "protocol": "source-park-v2"
+    "protocol": "source-park-v3"
   },
   "functionalRoute": {
     "stage": "st_w_01_01",
@@ -23,7 +23,7 @@
       8
     ],
     "inputOnlyClearVerified": false,
-    "inputOnlyClearNote": "녹화된 8인 공략은 이전 스위치 접촉 판정에서 기록된 것으로 현재 런타임에서는 어긋납니다. 재녹화 전까지 기계 검증 없음.",
+    "inputOnlyClearNote": "2026-10-11 현재 런타임 기준 8인 재녹화: 10라운드 중 9라운드가 입력만으로 클리어되고 5회 재생 결과가 틱 단위로 같다. 실패: st_w_04_03(현재 런타임에서 클리어 불가: 열쇠가 지형 안). 근거 whole-route-replay-report.json, 재녹화 whole-route-record.cjs.",
     "originalFidelityVerified": false,
     "humanFunVerified": false
   },

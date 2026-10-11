@@ -46,7 +46,7 @@ function apply(s,p,positions=true){
  s.players=p.players.map(p=>({...p}));return s;
 }
 class SourceParkOnlineController{
- constructor(app){this.app=app;this.active=false;this.busy=false;this.runId='';this.compiled=new Map();this.sentAt=0;this.publishTime=0;this.lastText='';this.jumpSeen={};this.inputArrival={};this.target=null;this.panelOpen=false;this.deadAt=0;this.restarting=false;
+ constructor(app){this.app=app;this.active=false;this.busy=false;this.runId='';this.compiled=new Map();this.sentAt=0;this.publishTime=0;this.lastText='';this.jumpSeen={};this.restartSeen={};this.target=null;this.panelOpen=false;this.deadAt=0;this.restarting=false;
   $('online').onclick=()=>{if(!this.active){app.pause();$('online-panel').hidden=!$('online-panel').hidden;}else{this.panelOpen=!this.panelOpen;$('online-panel').hidden=!this.panelOpen;app.clearKeys();}};
   $('room-create').onclick=()=>this.enter(true);$('room-join').onclick=()=>this.enter(false);$('room-ready').onclick=()=>this.ready();
   $('room-start').onclick=()=>this.start();$('room-leave').onclick=()=>this.leave();$('room-close').onclick=()=>{this.panelOpen=false;$('online-panel').hidden=true;};
@@ -65,7 +65,7 @@ class SourceParkOnlineController{
   const offline=ids.filter(id=>!this.net.connected(id));$('connection-status').textContent=offline.length?`${offline.length}명 재접속 대기`:'';
   $('room-label').textContent=`${this.net.code} · ${ids.length}/8`;$('room-ready').hidden=this.net.host;$('room-ready').textContent=r.players[this.net.id]?.ready?'준비 취소':'준비';
   $('room-start').hidden=!this.net.host;$('room-start').disabled=this.net.connectedIds().length<2||ids.some(id=>this.net.connected(id)&&id!==r.host&&!r.players[id].ready);
-  $('stage').value=r.stageId||'st_w_01_01';$('stage').disabled=!this.net.host||r.status!=='lobby'||!!r.restartPending;$('retry').disabled=!this.net.host;
+  $('stage').value=r.stageId||'st_w_01_01';$('stage').disabled=!this.net.host||r.status!=='lobby'||!!r.restartPending;$('retry').disabled=!this.net.host&&r.status==='lobby';
   $('room-join-form').hidden=true;$('room-lobby').hidden=false;
  }
  async getCompiled(n,stageId='st_w_01_01'){const key=stageId+':'+n;if(!this.compiled.has(key))this.compiled.set(key,fetch(`data/${encodeURIComponent(stageId)}/${n}.json`).then(r=>{if(!r.ok)throw Error('라운드를 불러오지 못했습니다.');return r.json();}).catch(e=>{this.compiled.delete(key);throw e;}));return this.compiled.get(key);}
@@ -76,7 +76,6 @@ class SourceParkOnlineController{
   if(net===this.net&&net.host&&net.room?.restartPending&&net.connectedIds().length>=2&&net.connectedIds().every(id=>net.room.players[id]?.ready))await this.start();
  }
  async room(r){if(!this.active)return;this.roster(r);const ids=memberIds(r);
-  for(const [id,input] of Object.entries(r.inputs||{})){if(this.inputArrival[id]?.seq!==input.seq)this.inputArrival[id]={seq:input.seq,at:Date.now()};}
   if(r.status==='lobby'){this.runId='';this.target=null;this.panelOpen=true;this.app.pause();$('online-panel').hidden=false;this.app.showOnlineLobby();if(r.restartPending)await this.prepareRestart(r);return;}
   const p=r.snapshot;if(!p||!p.ids||!p.relays)return;
   if(this.net.host&&p.ids.slice().sort().join('|')!==ids.slice().sort().join('|')){if(!this.returning){this.returning=true;await this.net.lobby();this.returning=false;this.message('인원이 바뀌었습니다. 다시 준비해주세요.');}return;}
@@ -86,23 +85,27 @@ class SourceParkOnlineController{
   const superseded=this.net.host&&!!this.runId&&p.runId!==this.runId&&!this.net.justBecameHost;
   if(!superseded&&(this.runId!==p.runId||!this.app.getState()||this.app.getState().players[0]?.id!==p.ids[0])){
    const c=await this.getCompiled(p.count,p.stageId||'st_w_01_01');if(!this.active||this.net.room?.snapshot?.runId!==p.runId)return;
-   this.runId=p.runId;this.endStatus='';this.panelOpen=false;const s=apply(SourceStageRuntime.create(c,{ids:p.ids}),p);this.app.replaceState(s,p.ids.indexOf(this.net.id),!!p.paused);this.jumpSeen=Object.fromEntries(Object.entries(r.inputs||{}).map(([id,v])=>[id,v.jumpSeq||0]));
+   this.runId=p.runId;this.endStatus='';this.panelOpen=false;const s=apply(SourceStageRuntime.create(c,{ids:p.ids}),p);this.app.replaceState(s,p.ids.indexOf(this.net.id),!!p.paused);this.target=null;this.jumpSeen=Object.fromEntries(Object.entries(this.net.rawInputs||{}).map(([id,v])=>[id,v.jumpSeq||0]));
   }else if(this.net.justBecameHost){this.target=null;this.app.replaceState(apply(this.app.getState(),p),p.ids.indexOf(this.net.id),!!p.paused);}
   else if(!this.net.host){this.target=copy(p);if(p.status!=='play')apply(this.app.getState(),p);}
   $('online-panel').hidden=!this.panelOpen;this.app.showOnlineGame(!!p.paused,this.net.host,p.status);
  }
  async restartRound(){
+  // Every member may restart; a peer's request travels to the host, which applies it.
+  if(this.net&&!this.net.host){if(this.net.room&&this.net.room.status!=='lobby')await this.net.requestRestart();return;}
   if(!this.net?.host||this.busy||this.restarting)return;
   const room=this.net.room;if(!room)return;
   if(room.status==='lobby')return this.start();
   this.restarting=true;
   try{
-   const ids=this.net.connectedIds().filter(id=>room.players&&room.players[id]);
+   const ids=memberIds(room).filter(id=>this.net.connected(id));
    if(ids.length<2){await this.net.lobby();this.message('인원이 부족해 대기실로 돌아갔습니다.');return;}
    const c=await this.getCompiled(ids.length,room.stageId||'st_w_01_01');
    const s=SourceStageRuntime.create(c,{ids});
    this.runId=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
-   this.endStatus='';this.deadAt=0;this.panelOpen=false;$('online-panel').hidden=true;this.jumpSeen={};
+   // Baseline every member's jump counter at the restart; an empty map would
+   // turn each earlier jump into a phantom jump on the new round's first tick.
+   this.endStatus='';this.deadAt=0;this.panelOpen=false;$('online-panel').hidden=true;this.jumpSeen=Object.fromEntries(Object.entries(this.net.rawInputs||{}).map(([id,v])=>[id,v.jumpSeq||0]));
    this.app.replaceState(s,ids.indexOf(this.net.id),false);
    // publish keeps the room in play; net.start would require the lobby again.
    await this.net.publish(pack(s,this.runId,false));
@@ -114,12 +117,25 @@ class SourceParkOnlineController{
    await this.net.start(pack(s,run,false));
   }catch(e){this.message(e.message);$('online-panel').hidden=false;}finally{this.busy=false;}
  }
+ cover(){const s=this.app.getState();if(!this.net)return;
+  if(!this.net.host){if(s&&s.status==='dead')this.restartRound();return;}
+  if(!s||s.status==='play')return this.app.resume();
+  if(s.status==='clear')return this.toLobby();
+  return this.restartRound();
+ }
+ async toLobby(){if(!this.net?.host||this.busy)return;this.busy=true;try{await this.net.lobby();}catch(e){this.message(e.message);}finally{this.busy=false;}}
+ // Restart requests ride on each member's input packet as a counter. The first
+ // value seen from a member is its baseline, so a new host never replays old ones.
+ restartRequests(){let asked=false;for(const [id,v] of Object.entries(this.net.inputs||{})){const seq=v.restartSeq||0;if(id!==this.net.id&&seq>(this.restartSeen[id]??seq))asked=true;this.restartSeen[id]=seq;}return asked;}
  controls(){const s=this.app.getState();return !s||s.status!=='play'||this.app.isPaused()?{}:this.app.input();}
- frame(dt,now){if(!this.active||!this.net?.room)return;const s=this.app.getState();if(this.net.room.status==='lobby'||!s)return;
-  const own=this.controls(),text=JSON.stringify(own);if(text!==this.lastText||now-this.sentAt>120){this.net.input(own);this.lastText=text;this.sentAt=now;}
+ frame(dt,now){if(!this.active||!this.net?.room)return;const asked=this.restartRequests(),s=this.app.getState();if(this.net.room.status==='lobby'||!s)return;
+  if(this.net.host&&asked){this.restartRound();return;}
+  // The host simulates its own keys directly. Writing them to the database as
+  // well only added contention with its own snapshot publishing.
+  const own=this.controls(),text=JSON.stringify(own);if(!this.net.host&&(text!==this.lastText||now-this.sentAt>120)){this.net.input(own);this.lastText=text;this.sentAt=now;}
   if(this.net.host){
    if(!this.app.isPaused()&&s.status==='play'){
-    const inputs={};for(const p of s.players){let v=this.net.inputs[p.id]||{};if(!this.net.connected(p.id)||!this.inputArrival[p.id]||Date.now()-this.inputArrival[p.id].at>1000)v={};inputs[p.id]={...v};
+    const inputs={},arrival=this.net.inputArrival||{};for(const p of s.players){let v=this.net.inputs[p.id]||{};if(!this.net.connected(p.id)||!arrival[p.id]||Date.now()-arrival[p.id].at>1000)v={};inputs[p.id]={...v};
      // Preserve a short press even when press/release arrive between ticks.
      if((v.jumpSeq||0)>(this.jumpSeen[p.id]||0)){inputs[p.id].jump=!p.jump;if(!p.jump)this.jumpSeen[p.id]=v.jumpSeq;}
     }
@@ -130,7 +146,7 @@ class SourceParkOnlineController{
    // re-sending the captured lost round would push the party back through the
    // defeat it has already left.
    if(this.publishTime>=1/12&&!this.restarting){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(pack(current,this.runId,this.app.isPaused()));}
-  }else if(this.target){const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
+  }else if(this.target&&this.target.runId===this.runId){const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
   if(s.status!=='play'&&this.endStatus!==s.status){this.endStatus=s.status;this.app.endOnline(s.status,this.net.host);
    // Announce the lost round immediately so every peer sees it, and keep
    // publishing it until the restart; one packet is not a reliable observation.
@@ -140,7 +156,7 @@ class SourceParkOnlineController{
  }
  pause(){if(!this.net?.host){this.message('방장이 일시정지를 제어합니다.');return;}this.app.togglePause();}
  async removed(reason){await this.leave();this.message(reason==='kicked'?'방장이 내보냈습니다.':reason==='replaced'?'다른 창에서 같은 자리로 접속했습니다.':'방에서 나왔습니다.');$('online-panel').hidden=false;}
- async leave(){this.active=false;if(this.net)await this.net.leave();this.net=null;this.runId='';this.target=null;this.rosterKey='';this.endStatus='';this.preparing='';const url=new URL(location.href);url.searchParams.delete('room');history.replaceState(null,'',url);$('room-join-form').hidden=false;$('room-lobby').hidden=true;$('online-panel').hidden=true;$('connection-status').textContent='';this.app.onlineMode(false);await this.app.local();}
+ async leave(){this.active=false;if(this.net)await this.net.leave();this.net=null;this.runId='';this.target=null;this.rosterKey='';this.endStatus='';this.preparing='';this.restartSeen={};this.lastText='';const url=new URL(location.href);url.searchParams.delete('room');history.replaceState(null,'',url);$('room-join-form').hidden=false;$('room-lobby').hidden=true;$('online-panel').hidden=true;$('connection-status').textContent='';this.app.onlineMode(false);await this.app.local();}
 }
 root.SourceParkOnlineController=SourceParkOnlineController;
 })(window);
