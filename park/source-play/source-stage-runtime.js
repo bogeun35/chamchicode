@@ -25,6 +25,19 @@
   if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_10_02','st_w_11_04'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
+  // The original frames a fixed window, not the whole map: mapInitParam carries
+  // displayTileHeight (10 tiles on world01-01, i.e. 480px of a 960px map) and the
+  // stage carries its scroll mode. Record them so the camera can match the
+  // source framing instead of inventing one.
+  const sourceStage=(source&&source.stages||[]).find(entry=>entry.stageId===stageId);
+  const sourceVariant=sourceStage&&sourceStage.json&&sourceStage.json.stageInitParamList[t.variant.index];
+  const mapInit=sourceVariant&&sourceVariant.mapInitParam||{};
+  const view={displayTileHeight:Number(mapInit.displayTileHeight)||0,
+   displayHeight:(Number(mapInit.displayTileHeight)||0)*t.tileSize,
+   startTileX:Number(mapInit.startTileX)||0,startTileY:Number(mapInit.startTileY)||0,
+   scrollType:sourceVariant?Number(sourceVariant.scrollType)||0:0,
+   zoomOut:sourceVariant?Number(sourceVariant.zoomOut)||0:0,
+   scrollingPorted:false};
   const relays=Relay.create(t.actors,count);
   const devices=Devices.compile(t.actors,count);
   const motion=Motion.compile(t.actors,count);
@@ -73,7 +86,7 @@
    devices:[],coins:[],hazards:[],timers:[],movingPlatforms:[],crates:[],requiredCoins:0,
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
-   coordinateSystem:'Y-down'};
+   view,coordinateSystem:'Y-down'};
   return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,thornCeilings,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
