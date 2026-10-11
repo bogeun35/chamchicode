@@ -144,7 +144,14 @@ function step(state,dt,facts={}){
    for(const spring of state.relays.filter(x=>x.type==='JumpStand'))deliver(spring,true,r);
   }else if(r.type==='JumpStand'&&on&&sender.type==='JumpStandMediator'&&sender.name===r.parent&&r.visible&&r.phase===0)r.phase=1;
  };
- const notify=(r,on)=>{for(const name of [r.target,r.subtarget])if(name){const targets=state.relays.filter(x=>x.name===name);if(!targets.length)events.push({targetName:name,senderId:r.id,on,eventType:on?61:60});for(const t of targets)deliver(t,on,r);}};
+ // NormalSwitchComponent.ParseParameter 0x181888a15 reads datas[4] and stores
+ // its raw FP value at component+0x20 (m_TimerAddSecond, il2cpp 48) without a
+ // sar, and SwitchComponent.NotifyTarget 0x181714e02 loads that field right
+ // after GetEventParam and hands it to Frame.NotifyEvent. The payload has to
+ // travel with the event: a timer that receives event 61 with payload 0 reads
+ // it as 'stop' (OnRecvEvent 0x18172e35e), which froze st_w_05_02's DeadTimer
+ // on the first switch instead of extending it.
+ const notify=(r,on)=>{for(const name of [r.target,r.subtarget])if(name){const targets=state.relays.filter(x=>x.name===name);if(!targets.length)events.push({targetName:name,senderId:r.id,on,eventType:on?61:60,event:on?61:60,timerAddSecond:r.timerAddSeconds||0});for(const t of targets)deliver(t,on,r);}};
  for(const e of facts.externalEvents||[]){const t=byId.get(e.targetId);if(!t)throw new Error('Unknown relay '+e.targetId);deliver(t,e.on,{id:e.senderId,type:e.senderType,name:e.senderName});}
  // Delay countdown precedes the common switch update in the native handler.
  for(const r of state.relays.filter(x=>x.type==='Switch'||x.type==='DelaySwitch')){
