@@ -22,7 +22,7 @@
  const box=r=>({x:r.x,y:r.y,w:r.width,h:r.height});
  const NATIVE=Object.freeze({walk:3,jump:-334234/65536,gravity:42598/65536,terminal:19.5,holdFactor:13107/65536,holdFrames:14});
  function compile({source,geometry,count,stageId='st_w_01_01',nativeTickRate=60}={}){
-  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_10_02','st_w_11_04'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
+  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_05_02','st_w_10_02','st_w_11_04'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
   // The original frames a fixed window, not the whole map: mapInitParam carries
@@ -49,7 +49,12 @@
   const switchTimers=SwitchTimers.compile(t.actors,count);
   const thornCeilings=ThornCeilings.compile(t.actors,count);
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
-  const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch').map(r=>({...r,x:r.x-9,y:r.y-9,w:18,h:9}));
+  // The sensor rectangle is the one SwitchComponent.GetCollisionByDirection
+  // 0x1817145a0 picks for this switch's direction byte; spring-switch-runtime
+  // decodes the table out of SwitchComponent..cctor 0x181715330 and carries it on
+  // the relay. Direction 0 keeps the previous 18x9 box above the anchor.
+  const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch')
+   .map(r=>({...r,x:r.x+r.rect.x,y:r.y+r.rect.y,w:r.rect.w,h:r.rect.h}));
   const goal=t.actors.find(a=>a.typeName==='Goal'),key=t.actors.find(a=>a.typeName==='Key');
   if(!goal)throw new Error('Original stage Goal is missing');
   // WarpComponent.ParseParameter 0x181734390 + OnCollided 0x181734a00:
@@ -102,7 +107,29 @@
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
  }
  function active(s){return s.players.filter(p=>!p.exit);}
- // Switch.InitCollision 0x18171484c creates type0/attribute5 sensors, not type2 solids.
+ // Native switch contact rule, recovered from SwitchComponent.OnCollided
+ // 0x181714f80: the handler is entered for ANY overlap with the direction's
+ // sensor rectangle and then inspects only the collided Collision.m_PushBackTarget
+ // (bit1, 0x18171502a) and Collision.m_Layer (1,2,3 or 8,
+ // 0x181715034..0x181715042). Nothing in it reads a contact normal, a relative
+ // velocity or a grounded flag, and the direction byte is used only to pick the
+ // rectangle (GetCollisionByDirection 0x1817145a0) plus two direction-0-only side
+ // effects: the flags bit5/bit6 jump impulse at 0x181715116 (never set on a
+ // shipped Switch) and the cosmetic m_OffsetDrawPos.y = ACTOR_DRAW_OFFSET_Y (-3)
+ // write at 0x181715244. Plain overlap is therefore the rule.
+ function switchSensorOverlap(body,button){return overlap(body,button);}
+ // Exception, deliberately kept: for direction 0 the player test stays the
+ // narrower "landed on the sensor's top face" condition this runtime has used
+ // since the first round was connected. Widening it would change all 101
+ // direction-0 World switches, which is out of scope for this change; it is
+ // listed as a known deviation in switch-direction-report.json.
+ function playerPressesSwitch(p,button){
+  if(button.direction!==0)return switchSensorOverlap(p,button);
+  return p.grounded&&horizontal(p,button)&&p.y<button.y&&p.y+p.h>=button.y&&p.y+p.h<=button.y+button.h+0.01;
+ }
+ // Switch.InitCollision 0x181714790 creates a sensor, not a solid: CreateCollision
+ // gets 0 for m_PushBackTarget (0x1817147fa) and m_CollisionType stays 0
+ // (0x18169f586), then 0x18171486e sets m_Layer 5. Switches never block anybody.
  function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState),...Blink.solids(s.blinkState),...BlinkThunders.solids(s.blinkThunderState)];}
  function solids(s){return [...baseSolids(s),...Devices.solids(s.deviceState)];}
  function ridersOf(p,players){
@@ -143,9 +170,15 @@
   const hz=s.physics.nativeTickRate,players=active(s);
   // TimerComponent.onTimeUp 0x18172e0cb sends event 61 to the single actor named
   // in slot5. Route it to every device signal handler in the same tick.
-  const timerResult=SwitchTimers.beforeStep(s.switchTimerState,{dt:h});
+  // The DeadTimer kills by broadcasting QEventType.Dead 19 to every actor
+  // (TimerComponent.onTimeUp 0x18172e132..0x18172e168) and the receiving
+  // PlayerComponent.OnRecvEvent 0x1816c174e is what actually dies, so the module
+  // needs the player list and reports the casualties. Only a DeadTimer can fill
+  // deadPlayerIds; a SwitchTimer time-up never does.
+  const timerResult=SwitchTimers.beforeStep(s.switchTimerState,{dt:h,players});
   Bridges.beforeStep(s.bridgeState,{players,platforms:s.map.platforms,keyTaken:s.keyTaken,dt:h,nativeTickRate:hz,events:timerResult.events});
   for(const e of timerResult.events){Gates.signal(s.gateState,e);Devices.signal(s.deviceState,e);BlinkThunders.signal(s.blinkThunderState,e);}
+  if(timerResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:timerResult.deadPlayerIds[0],reason:'시간이 다 됐어요'};return;}
   Gates.beforeStep(s.gateState,{players,platforms:s.map.platforms,dt:h,nativeTickRate:hz});
   Blink.beforeStep(s.blinkState,{players,dt:h});
   ThornCeilings.beforeStep(s.thornCeilingState,{dt:h});
@@ -193,9 +226,21 @@
    for(const spring of s.map.springs)if(p.grounded&&horizontal(p,spring)&&Math.abs(p.y+p.h-spring.y)<0.01){
     facts.springContacts.push({relayId:spring.id,actorId:p.id,layer:1,upContactCount,velocityX:p.vx/hz});
    }
-   for(const button of s.map.switches)if(p.grounded&&horizontal(p,button)&&p.y<button.y&&p.y+p.h>=button.y&&p.y+p.h<=button.y+button.h+0.01){
-    facts.switchContacts.push({relayId:button.id,actorId:p.id,layer:1,attributeFlags:2});
+   // Player collision is m_Layer 1 / m_PushBackTarget 3: PlayerComponent
+   // InitCollision passes 3 to ActorComponent.CreateCollision at 0x1816bdf4b
+   // (stored to m_PushBackTarget by Collision.initialize 0x181690b08) and writes
+   // `mov byte [rax+1],1` at 0x1816bdf87.
+   for(const button of s.map.switches)if(playerPressesSwitch(p,button)){
+    facts.switchContacts.push({relayId:button.id,actorId:p.id,layer:1,attributeFlags:3});
    }
+  }
+  // PushBox collision is m_Layer 2 / m_PushBackTarget 3 (argument 3 at
+  // 0x1816db625, `mov word [rax],0x202` at 0x1816db651) - inside the accepted set, so a
+  // box resting against a button holds it down in the original too. None of the
+  // nine already-connected rounds contains a PushBox and a Switch at once, so
+  // this cannot move them.
+  for(const box of Devices.solids(s.deviceState))for(const button of s.map.switches){
+   if(switchSensorOverlap(box,button))facts.switchContacts.push({relayId:button.id,actorId:box.id,layer:2,attributeFlags:3});
   }
   const relay=Relay.step(s.relayState,h,facts);
   const gateResult=Gates.afterStep(s.gateState,{relayState:s.relayState,events:relay.events,keyTaken:s.keyTaken});s.keyActive=gateResult.keyActive;

@@ -67,6 +67,22 @@ function render(){ctx.clearRect(0,0,1200,675);ctx.fillStyle='#0c1c2b';ctx.fillRe
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
  if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle=state.keyActive?'#ffdb72':'#586270';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();for(const o of state.gateState.observers)for(let i=0;i<o.total;i++){ctx.fillStyle=i<o.pushedCount?'#7ef0bc':'#586270';ctx.beginPath();ctx.arc(k.x+k.w/2+(i-(o.total-1)/2)*10,k.y-12,3,0,Math.PI*2);ctx.fill();}}
  state.players.forEach((p,i)=>{if(p.exit)return;box(p,colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
+ // A DeadTimer ends the round for everyone when it reaches zero, so the
+ // countdown has to be on screen. TimerView.updateTimer renders floor(m_Sec) as
+ // m:ss and TimerComponent.WARNING_SECOND is 10, which turns the readout red.
+ const timers=state.switchTimerState&&window.SourceSwitchTimerDevices
+  ?window.SourceSwitchTimerDevices.displays(state.switchTimerState):[];
+ if(timers.length){
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='top';
+  timers.forEach((t,i)=>{
+   const text=`${t.minutes}:${String(t.seconds).padStart(2,'0')}`;
+   const y=14+i*44;
+   ctx.font='bold 38px system-ui';
+   ctx.lineWidth=6;ctx.strokeStyle='#081421bf';ctx.strokeText(text,600,y);
+   ctx.fillStyle=t.warning?'#ff8d9c':'#f3f9ff';ctx.fillText(text,600,y);
+  });
+  ctx.restore();
+ }
  $('progress').textContent=`${state.keyTaken?'🔑 ✓':'🔑'}　${state.players.filter(p=>p.exit).length} / ${state.players.length}`;
 }
 function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;

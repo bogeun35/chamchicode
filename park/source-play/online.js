@@ -5,12 +5,40 @@ const $=id=>document.getElementById(id),copy=x=>JSON.parse(JSON.stringify(x));
 // after a short beat; it never returns the party to the waiting room.
 const RESTART_DELAY_MS=1100;
 const memberIds=room=>Object.keys(room.players||{}).sort((a,b)=>(room.players[a].joined-room.players[b].joined)||a.localeCompare(b));
-const pack=(s,runId,paused)=>({runId,stageId:s.map.id,count:s.players.length,ids:s.players.map(p=>p.id),status:s.status,paused,players:s.players,elapsed:s.elapsed,ticks:s.ticks,accumulator:s.accumulator,keyTaken:s.keyTaken,keyActive:s.keyActive,deaths:s.deaths,failure:s.failure,relays:s.relayState,devices:s.deviceState,motion:s.motionState,gates:s.gateState});
+// Only the host simulates, so every device state a peer renders has to travel
+// in the snapshot. A state left out of this list is frozen on every peer screen
+// at the values it had when the round was created.
+const DEVICE_STATES=[['devices','deviceState'],['motion','motionState'],['gates','gateState'],
+ ['bridges','bridgeState'],['blink','blinkState'],['blinkThunders','blinkThunderState'],
+ ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['thornCeilings','thornCeilingState']];
+// The thorn ceiling draws its rows from a PCG32 generator whose state is a
+// BigInt pair; JSON and the database both refuse those, so they travel as
+// decimal strings and are rebuilt on arrival.
+const BIG=v=>typeof v==='bigint'?{__big:v.toString()}:v;
+const UNBIG=v=>v&&typeof v==='object'&&typeof v.__big==='string'?BigInt(v.__big):v;
+const packState=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v,(_k,x)=>BIG(x)));
+const unpackState=v=>{
+ const walk=x=>{if(Array.isArray(x))return x.map(walk);
+  if(x&&typeof x==='object'){const big=UNBIG(x);if(typeof big==='bigint')return big;
+   const out={};for(const k of Object.keys(x))out[k]=walk(x[k]);return out;}
+  return x;};
+ return walk(v);
+};
+const pack=(s,runId,paused)=>{
+ const snapshot={runId,stageId:s.map.id,count:s.players.length,ids:s.players.map(p=>p.id),status:s.status,paused,players:s.players,elapsed:s.elapsed,ticks:s.ticks,accumulator:s.accumulator,keyTaken:s.keyTaken,keyActive:s.keyActive,deaths:s.deaths,failure:s.failure,relays:s.relayState};
+ for(const [key,field] of DEVICE_STATES)if(s[field]!==undefined)snapshot[key]=packState(s[field]);
+ return snapshot;
+};
 function apply(s,p,positions=true){
  for(const k of ['status','elapsed','ticks','accumulator','keyTaken','deaths','failure'])s[k]=p[k];
- if(p.devices)s.deviceState={...copy(p.devices),devices:copy(p.devices.devices||[]),warnings:copy(p.devices.warnings||[])};
- if(p.motion)s.motionState={...copy(p.motion),rects:copy(p.motion.rects||[]),dashBoards:copy(p.motion.dashBoards||[]),walls:copy(p.motion.walls||[])};
- if(p.gates)s.gateState={...copy(p.gates),gates:copy(p.gates.gates||[]),observers:copy(p.gates.observers||[]),keys:copy(p.gates.keys||[])};
+ // Firebase drops empty arrays and objects, so a state that arrives without one
+ // of its lists must keep the shape the runtime expects rather than lose it.
+ for(const [key,field] of DEVICE_STATES){
+  if(p[key]===undefined||s[field]===undefined)continue;
+  const incoming=unpackState(p[key]),merged={...s[field],...incoming};
+  for(const name of Object.keys(s[field]))if(Array.isArray(s[field][name])&&!Array.isArray(incoming[name]))merged[name]=[];
+  s[field]=merged;
+ }
  s.keyActive=p.keyActive!==false;
  s.relayState={...copy(p.relays),relays:copy(p.relays.relays||[])};if(s.map.key)s.map.key.taken=s.keyTaken;
  for(const b of s.map.switches){const r=s.relayState.relays.find(r=>r.id===b.id);b.pressed=r.pressed;b.remaining=r.remaining||0;}
