@@ -78,7 +78,15 @@
   const map={id:stageId,count,width:t.width,height:t.height,tileSize:t.tileSize,variant:t.variant,
    platforms:t.platforms.map((p,i)=>({...p,id:'terrain:'+i})),springs,switches,warps,
    spawns:Actor.playerSpawns(t.actors,count).map(p=>({x:p.collision.x,y:p.collision.y-0.5})),
-   key:key?{...box(Actor.collisionRect(key)),id:'key'}:null,
+   // KeyComponent.ParseParameter 0x18186b780 moves the key off its authored
+   // anchor before ActorFactoryComponent.CreateActor 0x1816a3658 reads the
+   // position back for ActorSceneComponent.AddActor 0x1816a3687, so the key box
+   // has to be built at the population-dependent spawn anchor, not at posX/posY.
+   // Without this, st_w_04_03's key stayed at (240,480) - its 32x56 box
+   // (224,452) sat inside the floor tiles at gridY 9 and half of it below the
+   // map, so no player could overlap it. See actor-runtime.js keySpawnOffset
+   // and key-reach-report.json.
+   key:key?{...box(Actor.collisionRect(key,1,count)),id:'key'}:null,
    exit:{...box(Actor.collisionRect(goal)),id:'goal'},
    // StageComponent.prepare3 0x18170aad0 writes FailFallY = mapHeight*chipSize +
    // stageInitParam.failDownY. failDownY is 0.0 for every World stage, so the

@@ -18,6 +18,13 @@ function compile(actors,count){
   }else if(a.typeName==='SwitchObserver'){
    const nameFilter=str(1),switchNames=rows.filter(r=>r.typeName==='Switch'&&(!nameFilter||(r.name||'').startsWith(nameFilter))).map(r=>r.name);
    observers.push({id:a.id,name:a.name,type:'SwitchObserver',target:str(0),nameFilter,switchNames,pushedCount:0,total:switchNames.length,allOn:false,display:{x:n(2),y:n(3)+416,scale:Math.abs(n(4))<4/65536?10:n(4)*10},playCompleteSound:n(5)===1});
+  // Key slot 2 is m_Inactive (KeyComponent raw +4, il2cpp 20): ParseParameter
+  // 0x18186bbd1 compares the sar'd datas[2] against 0 and 0x18186bbe7 writes 1
+  // when it is positive. InitPost 0x18186bec9 then branches on that field and
+  // 0x18186bef9 calls setActive 0x18186d170, which turns both the view
+  // (ActorComponent.SetVisible 0x18186d1e4) and the collision
+  // (ActorComponent.SetCollisionActive 0x18186d1fc) off - so an inactive key
+  // is not collidable at all until an event re-activates it.
   }else if(a.typeName==='Key')keys.push({name:a.name||'',active:!(n(2)>0),taken:false});
  }
  return {schemaVersion:1,count,gates,observers,keys,warnings,completePhysicsFidelity:false};
