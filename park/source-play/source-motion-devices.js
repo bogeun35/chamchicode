@@ -5,11 +5,23 @@
  const fixed=x=>Math.floor(x*F)/F;
  const clone=x=>JSON.parse(JSON.stringify(x));
  function n(a,i){const p=a.datas?.[i];if(!p||p.t===0)return 0;if(p.t!==1||!Number.isFinite(p.f))throw new Error('Unsupported '+a.typeName+' numeric slot '+i);return fixed(p.f);}
- function zeroOffset(a,i){const p=a.datas?.[i];if(!p||p.t===0)return 0;
-  // Native generic FP-seven decoder 0x18096f80c subtracts 0x21 from every byte.
-  // All 56 zero bytes are exactly seven zero FP64 values. Other encodings are gated.
-  if(p.t===2&&p.s==='!'.repeat(56))return 0;
-  throw new Error('Rect population offset encoding requires further verification: '+a.name+' slot '+i);
+ // QPlayerCountParam, the same grammar already decoded for SwitchTimer
+ // (switchtimer-device-report.json) and BlinkBlock (blink-device-report.json):
+ // the native generic decoder 0x18096f720, byte loop 0x18096f80c, subtracts 0x21
+ // from the low byte of every UTF-16 unit and reads the 56 bytes as seven
+ // little-endian raw longs, one per player count 2..8. For Rect they are FP raws
+ // (st_w_07_03's Rect at 1752,505 carries 0xC0000 and 0x180000 = 12 and 24 px).
+ // This used to accept only the all-zero table and refuse everything else; the
+ // refusal was right while the grammar was unverified, and is now unnecessary.
+ function populationOffset(a,i,count){
+  const p=a.datas?.[i];
+  if(!p||p.t===0)return 0;
+  if(p.t!==2||typeof p.s!=='string')throw new Error('Unsupported '+a.typeName+' offset slot '+i);
+  if(p.s.length!==56)throw new Error('Population offset table must be 56 units: '+a.name+' slot '+i+' had '+p.s.length);
+  const index=count-2,at=k=>(p.s.charCodeAt(index*8+k)-0x21)&0xFF;
+  let v=0n;for(let k=7;k>=0;k--)v=(v<<8n)|BigInt(at(k));
+  if(v>=(1n<<63n))v-=(1n<<64n);
+  return Number(v)/F;
  }
  function compile(actors,count){
   if(!Number.isInteger(count)||count<2||count>8)throw new Error('Count must be 2..8');
@@ -21,7 +33,7 @@
    if(!Number.isFinite(base.x)||!Number.isFinite(base.y))throw new Error('Invalid actor position');
    if(a.typeName==='Rect'){
     let w=n(a,0)+n(a,2)*(count-2),h=n(a,1)+n(a,3)*(count-2);
-    let x=base.x+n(a,4)*(count-2)+zeroOffset(a,6),y=base.y+n(a,5)*(count-2)+zeroOffset(a,7)-h;
+    let x=base.x+n(a,4)*(count-2)+populationOffset(a,6,count),y=base.y+n(a,5)*(count-2)+populationOffset(a,7,count)-h;
     if(w<0){x+=w;w=-w;}if(h<0)throw new Error('Negative Rect height unverified');
     out.rects.push({...base,x,y,w,h,solid:true});
    }else if(a.typeName==='DashBoard'){
