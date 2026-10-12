@@ -202,6 +202,15 @@
   }
   Devices.beforeStep(s.deviceState,{players,inputs,platforms:baseSolids(s),dt:h,nativeTickRate:hz,width:s.map.width});
   const terrain=solids(s);
+  // A box resting on someone's head has to travel with them: st_w_01_02 is
+  // carried-box-as-a-shield and the thorns only stop at the box's own rect.
+  // The engine moves contact actors generically (ActorComponent
+  // MoveContactActor 0x1816a0980, MoveByContactActor 0x1816a10e0,
+  // IsEnableMoveContactActor 0x1816a15c0, GetMoveContactOption 0x18169dc90);
+  // that whole system is not decoded, so this reproduces only the one case
+  // the connected rounds need, with the same one-frame lag the other carries
+  // in this runtime already have.
+  const carriedBefore=new Map(players.map(p=>[p.id,{x:p.x,y:p.y}]));
   for(const p of [...players].sort((a,b)=>b.y-a.y||a.id.localeCompare(b.id))){
    const input=inputs[p.id]||{},held=!!input.jump,edge=held&&!p.jump,riders=ridersOf(p,players);
    p.jumpBlocked=!!(edge&&p.grounded&&riders.length);
@@ -227,6 +236,12 @@
    const board=s.motionState.dashBoards.find(b=>overlap(p,b));
    if(board&&p.lastDashBoardId!==board.id){const impulse=Motion.triggerDash(board);p.forcedVx=impulse.vx*hz;p.vx=p.forcedVx;p.vy=impulse.vy*hz;p.grounded=false;p.supportId=null;p.jumpFrame=0;}
    p.lastDashBoardId=board?.id||null;
+  }
+  for(const box of Devices.solids(s.deviceState)){
+   const base=box.supportId&&carriedBefore.get(box.supportId);if(!base)continue;
+   const carrier=players.find(q=>q.id===box.supportId);if(!carrier)continue;
+   box.x=Math.max(0,Math.min(s.map.width-box.w,box.x+carrier.x-base.x));
+   box.y+=carrier.y-base.y;
   }
   const facts={switchContacts:[],springContacts:[]};
   for(const p of players){

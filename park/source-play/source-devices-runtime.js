@@ -67,8 +67,8 @@ function signal(state,event){
 function moveBox(b,dx,dy,obstacles){
  let x=b.x+dx;
  for(const o of obstacles)if(b.y<o.y+o.h&&b.y+b.h>o.y){if(dx>0&&b.x+b.w<=o.x+.001)x=Math.min(x,o.x-b.w);if(dx<0&&b.x>=o.x+o.w-.001)x=Math.max(x,o.x+o.w);}
- b.x=x;let y=b.y+dy;b.grounded=false;
- for(const o of obstacles)if(b.x<o.x+o.w&&b.x+b.w>o.x){if(dy>=0&&b.y+b.h<=o.y+.001&&y+b.h>=o.y){y=Math.min(y,o.y-b.h);b.vy=0;b.grounded=true;}if(dy<0&&b.y>=o.y+o.h-.001&&y<o.y+o.h){y=Math.max(y,o.y+o.h);b.vy=0;}}
+ b.x=x;let y=b.y+dy;b.grounded=false;b.supportId=null;
+ for(const o of obstacles)if(b.x<o.x+o.w&&b.x+b.w>o.x){if(dy>=0&&b.y+b.h<=o.y+.001&&y+b.h>=o.y){y=Math.min(y,o.y-b.h);b.vy=0;b.grounded=true;b.supportId=o.id??null;}if(dy<0&&b.y>=o.y+o.h-.001&&y<o.y+o.h){y=Math.max(y,o.y+o.h);b.vy=0;}}
  b.y=y;
 }
 function pushers(b,players,inputs,dir){
