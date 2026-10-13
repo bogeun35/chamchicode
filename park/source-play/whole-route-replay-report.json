@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-13T13:07:33.960Z",
+  "generatedAt": "2026-10-13T14:25:16.692Z",
   "scope": "2편 연결 10라운드, 8인. 새 R.create 상태에 녹화된 틱별 입력만 넣는다(위치 지정·상태 수정 없음).",
   "replayFile": "play/whole-route-input-replay.json",
   "recorder": "whole-route-record.cjs",
   "recordedAt": "2026-10-11T13:41:35.721Z",
-  "runtimeSha256": "fbb5aa5781dd3f36e30ca3a95063b6927d5163d901aa8aed570241b2a38fd4d7",
+  "runtimeSha256": "4d20991df94293381da35b284359df481d59b8d7128114b58d4e3eb13793ca35",
   "recordedRuntimeSha256": "be3d824fed3a2847cfd305555efd7643c3aaae7aef8b01e9712eaceef9df8f34",
   "method": {
-    "repeats": 1,
+    "repeats": 5,
     "perTick": "매 틱 스냅샷(틱·상태·플레이어 x/y/vx/vy/접지/지지대/점프프레임/입장·스위치·릴레이·장치·타이머·가시천장 난수 상태)을 sha256 에 누적. 모든 반복의 누적 해시와 최종 상태 해시가 같아야 재현으로 판정.",
     "dt": "R.step 기본 dt=1/60 → 호출당 1틱. play.js 검수 재생(T)도 h=1/60 으로 1틱씩 같은 입력을 넣는다."
   },
@@ -38,7 +38,7 @@
   },
   "allRoundsInputOnlyClear": false,
   "randomness": {
-    "simModules": 39,
+    "simModules": 52,
     "modulesUsingClockOrMathRandom": [],
     "thornCeilingRng": {
       "algorithm": "PCG32 XSH-RR",
@@ -362,7 +362,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "0eceacec38a098e3dbf4a740ef074120c69fab6ffbeef65d33892aa20cd11179",
       "finalStateDigest": "5d0797485dfbab0e064fe37cc9457e0c4dd8b4eb125d79d850edde21638dd2d7",
       "matchesRecording": true
@@ -380,7 +380,7 @@
       "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "f8aeb32a9bbf28d84a51e75110901a3b5ff464923194b554912bae9abc0b4eab",
       "finalStateDigest": "3eb829a0271cd2a2738fff9df8fead12eb1ee557a8d797475d20a22bf116a96b",
       "matchesRecording": false,
@@ -448,7 +448,7 @@
       "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "49a8ac5aaad1a6444cc8d5d0d478510be7c892359685224b90d76c9eb5665626",
       "finalStateDigest": "fe38a69f9fdd1764ee406051195ca68b852ffc5289e4063a95a1a488a0c1f03b",
       "matchesRecording": false,
@@ -516,7 +516,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "18062e8a29eaf0c0cf14fc16de1ace1db363bfb2939dbac602a50c8a63916b32",
       "finalStateDigest": "b5d607944cce21624fb47186b74d0c2e76878636fdb942a6927066ee35436953",
       "matchesRecording": true
@@ -534,7 +534,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "c95e127672f1abe59056cf89da6a7c1e4af31127a68bf55daf987ab1e0b03240",
       "finalStateDigest": "d6361f0ada6448927058111d850b002814cd165549d237cf05783ae7ca4adc5c",
       "matchesRecording": true
@@ -712,7 +712,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "2483ec78822305a4fa820f5f4a974a1da75edca3e0df6dbf860bef9a6dd51d34",
       "finalStateDigest": "e8b63b3bc5cf79085861aa0d93e6af322b7741363c154ca4fc94b0e2b3fc4e1e",
       "matchesRecording": true
@@ -733,7 +733,7 @@
       "exited": 0,
       "unusedInputs": 6667,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "c2a69bbb4d3561ef88365c7a51b8c3facbb5422f82853bb27122dc438284626a",
       "finalStateDigest": "9593b973a5c4af1becd20d648b12d327e6a313eedb6de4f45f9efb07d2dd48c1",
       "matchesRecording": false,
@@ -801,7 +801,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "951699640fd1a6a70529a0f4346bf705c0104e7b3dc5c69029a477fb626fe24a",
       "finalStateDigest": "15be2529a031aabe9b177dc7aac306669425820615b054977bb60ef21a4b161f",
       "matchesRecording": true
@@ -819,7 +819,7 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 1,
+      "replays": 5,
       "perTickDigest": "9e9e36b04279bdc747f5cf5833a76461664d469a331badf66f829ab828fa7965",
       "finalStateDigest": "6371bbce51d958e00ebf8da62d16b6f9ea66eb68d71df90b6768c299601d9e22",
       "matchesRecording": true

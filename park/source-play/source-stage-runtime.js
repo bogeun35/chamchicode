@@ -224,7 +224,10 @@
   const F=65536,live=players.filter(p=>!p.exit&&!p.dead);
   const rect=d=>({x:(d.xRaw+d.rectRaw.x)/F,y:(d.yRaw+d.rectRaw.y)/F,w:d.rectRaw.width/F,h:d.rectRaw.height/F});
   const device=id=>s.linePathState.devices.find(d=>d.id===id);
-  const riders=id=>live.filter(p=>p.grounded&&p.supportId===id);
+  // Existing support graph adapter: include each stacked player once.
+  // Native getRideCount0x18187a341..361 passes face0, recursive=true(r9b1),
+  // mask6. The old direct-only count mistook recursive=true for face1.
+  const riders=id=>ridersOf({id},live);
   return {dt:h,
    isActorPaused:()=>false,
    // IsCollidedByPushBackTarget(mask 3) 0x18180e291: the rect arms itself the
@@ -235,14 +238,15 @@
    damageRectOwnContacts:id=>{const d=device(id);if(d.collisionInactive)return [];
     return live.filter(p=>overlap(p,rect(d))).map(p=>({collisionType:1,entityId:p.id}));},
    damageRectReversePlayers:()=>[],
-   // Collision.GetContactCount face 1 (getRideCount 0x18187a361): direct riders.
+   // Collision.GetContactCount Up/recursive/mask6 @0x18187a361.
    getRideCount:id=>riders(id).length,
    // IsEnableMoveContactActor is only partly reversed (codex brief 17). The
    // port refuses a move that would push a rider into terrain, and otherwise allows it.
    isEnableMoveContactActor:(id,vector)=>{const dy=Math.sign(vector.yRaw);if(dy>=0)return true;
     const solid=s.map.platforms;return !riders(id).some(p=>solid.some(b=>overlap({x:p.x,y:p.y-1,w:p.w,h:p.h},b)));},
    // MoveContactActor 0x1816a0b70 gets (0, deltaY) only: a line-path lift lifts
-   // and lowers its riders but never carries them sideways (0x18187a1dd..221).
+   // and lowers its riders (0x18187a1dd..221). Horizontal movement belongs
+   // to CollisionScene inertia, which this legacy host has not integrated.
    moveLinePathLiftContactActors:(id,delta)=>{for(const p of riders(id))p.y+=delta.yRaw/F;}};
  }
  function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState),...Blink.solids(s.blinkState),...BlinkThunders.solids(s.blinkThunderState),...Lifts.solids(s.liftState),...Winds.solids(s.windState),...LinePaths.solids(s.linePathState)];}

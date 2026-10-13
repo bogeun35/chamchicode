@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-13",
+  "date": "2026-10-10",
   "label": "원본 라운드 이관 검수",
   "sourceRoundsConnected": 17,
   "originalFidelityReviewedRounds": 0,
@@ -23,7 +23,7 @@
       8
     ],
     "inputOnlyClearVerified": false,
-    "inputOnlyClearNote": "2026-10-13 현재 런타임: 기존 10라운드 중 6라운드 입력 완주. 1-2/1-3 미완주, 5-2 시간초과, 4-3 기존 blocked. 5회 재생 결과 동일. 실패 3개는 변경 전 HEAD에서도 status/tick 동일. 인간 완주 검증 아님. 근거 whole-route-replay-report.json (저장 보고서는 추가 1회 실행).",
+    "inputOnlyClearNote": "2026-10-13 현재 런타임 기준 8인 재녹화: 10라운드 중 6라운드가 입력만으로 클리어되고 5회 재생 결과가 틱 단위로 같다. 실패: st_w_01_02(play), st_w_01_03(play), st_w_04_03(현재 런타임에서 클리어 불가: 열쇠가 지형 안), st_w_05_02(dead). 근거 whole-route-replay-report.json, 재녹화 whole-route-record.cjs.",
     "originalFidelityVerified": false,
     "humanFunVerified": false
   },

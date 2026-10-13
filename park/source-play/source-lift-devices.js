@@ -234,9 +234,10 @@
              MoveContactActor(actor, frame, (0, d.Y), true)         0x181738448
      }
    The vector handed to MoveContactActor has its X member written as a literal
-   zero (0x1817383cb stores the zero register) - riders are carried VERTICALLY
-   ONLY, and a purely horizontal lift drags nobody. This is not a WeightedLift
-   quirk: LinePathLiftComponent.MoveLift 0x18187a110, a lift that follows
+   zero (0x1817383cb stores the zero register). This particular call carries
+   vertically; the old inference that horizontal lifts carry nobody was wrong.
+   Horizontal transport is separate CollisionScene inertia @0x1817fc3ea.
+   The same vertical-only call occurs in: LinePathLiftComponent.MoveLift 0x18187a110, a lift that follows
    arbitrary 2-D paths, computes only the Y delta (0x18187a17d) and passes the
    same (0, deltaY) at 0x18187a221. motion-device-report.json already treats
    MoveContactActor as the carry mechanism (MoveWall 0x18184948e).
@@ -245,8 +246,9 @@
    Right 0x30.
 
    WHAT THIS MODULE PORTS
-   Only purely horizontal travel, because that is the only path with no
-   unreversed gate in it. compile() refuses a lift whose m_MoveDirection has a
+   Only horizontal root travel; horizontal rider inertia is still missing.
+   The vertical gate core is now in source-move-contact.js, but the native
+   collision cache adapter remains incomplete. compile() refuses a lift whose m_MoveDirection has a
    non-zero Y, with a message that names the missing piece, rather than guessing
    at ActorComponent.IsEnableMoveContactActor 0x1816a15c0. Every one of the 20
    WeightedLiftEx actors in the shipped worlds is axis aligned (never both
@@ -460,7 +462,7 @@ function beforeStep(state,{dt=1/60,nativeTickRate=60,players=[]}={}){
   targetX=Math.max(targetX,0);
   targetX*=signFp(lift.moveDirXFp);
   // 10. MoveLift. dY is zero here, so the only gate is |dX| >= QFP.Epsilon and
-  // MoveContactActor is never reached - a horizontal lift carries nobody.
+  // MoveContactActor is not reached here; separate horizontal inertia is unported.
   const dX=targetX-lift.offsetXFp;
   if(absFp(dX)<FP_EPSILON){lift.moved={x:0,y:0};continue;}
   lift.offsetXFp=targetX;
@@ -483,14 +485,14 @@ const integration=Object.freeze({
  solids:'Yes - the lift is a solid platform on CollisionLayer.Lift (InitCollision 0x181737b82 writes 13).',
  lethal:'No. afterStep() never returns deadPlayerIds; the component has no damage path.',
  events:'None in either direction. No OnRecvEvent on WeightedLiftComponent, and OnUpdate sends nothing.',
- carry:'Vertical only in the original (MoveLift 0x1817383cb writes a literal zero X into the MoveContactActor vector), so a horizontal lift needs no carry code at all. The runtime re-derives supportId from overlap every tick, so a player standing still simply slides off the back of the platform.',
+ carry:'Correction 2026-10-13: MoveLift 0x1817383cb sends only deltaY, but horizontal transport exists separately in CollisionScene.postPushBack/updateInertia (0x1817fc1c2..1d9, 0x1817fc3ea). Its MoveMap/UpdatePushBack/camera correction path is not integrated. The current runtime has no horizontal carry; that is a port limitation, not established original behavior. See move-contact-report.json.',
  renderer:'play/play.js has no loop for liftState. Add one next to the gateState loop (play.js:60), e.g. for(const b of state.liftState.lifts)box(b,...), plus the rider/threshold readout (lift.riders of lift.moveContactCount) - without it the platform is invisible and the population requirement is unguessable.',
  online:'Add [\'lifts\',\'liftState\'] to DEVICE_STATES in play/online.js:11. Only the host simulates, so every field the next update reads has to travel: lifts[].offsetXFp, offsetYFp, proc, procUpdates, waitTimer, x, y, moved, and the display-only riders/contactCount/moveContactCount. offsetXFp plus x are both required because x is what solids() hands the collision pass. packState() is a plain JSON round trip, so no BigInt handling is needed.',
  package:'source-lift-devices.js must be added to the copy list in package-source-play.cjs, the app list in deploy-source-play.cjs and a <script> tag in play/index.html, or the deploy check reports a missing page reference.'});
 
 const unresolved=Object.freeze([
  {id:'verticalTravel',severity:'blocks the 6 vertical WeightedLiftEx actors and all 3 WeightedLiftSingle actors',
-  detail:'MoveLift 0x181738170 only moves at all if ActorComponent.IsEnableMoveContactActor 0x1816a15c0 returns true for QFPVector2.Up (rising) or QFPVector2.Down (falling). That function normalises the direction, fetches the collision and walks the contact list recursively; it was not reversed. Porting the vertical carry without it would push riders through ceilings, so compile() refuses a lift whose m_MoveDirection has a non-zero Y instead. The rest of the vertical path IS established: m_OffsetPos advances exactly as the horizontal one does, and the riders move by MoveContactActor(actor, frame, (0, dY), false) plus a second call with true when EnableRideReversal (0x1817383fc / 0x181738448).'},
+  detail:'MoveLift 0x181738170 only moves at all if ActorComponent.IsEnableMoveContactActor 0x1816a15c0 returns true for QFPVector2.Up (rising) or QFPVector2.Down (falling). That function normalises the direction, fetches the collision and walks the contact list recursively; its axis-aligned core is now in source-move-contact.js, but the native contact cache adapter is missing. Porting the vertical carry without that adapter would push riders through ceilings, so compile() refuses a lift whose m_MoveDirection has a non-zero Y instead. The rest of the vertical path IS established: m_OffsetPos advances exactly as the horizontal one does, and the riders move by MoveContactActor(actor, frame, (0, dY), false) plus a second call with true when EnableRideReversal (0x1817383fc / 0x181738448).'},
  {id:'enableCountReversal',severity:'latent, affects no shipped WeightedLiftEx',
   detail:'datas[14] sets m_Flags bit2, and OnUpdate 0x181737d27 then adds the Down-face contact count to the Up-face one. No WeightedLiftEx or WeightedLiftSingle actor in either shipped world sets datas[14], so there is no real-data case to test and beforeStep() does not implement the second count. A stage that uses it must add it.'},
  {id:'oneFrameRaw',severity:'cosmetic for st_w_10_04',
