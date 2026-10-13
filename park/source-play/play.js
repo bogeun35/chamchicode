@@ -57,6 +57,21 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
+ if(state.landmines&&state.landmines.observer){
+  // A switch only shows whether it was a mine after RevealLandmine 0x1818708d0,
+  // so an unpressed one must look exactly like every other one.
+  for(const sw of state.landmines.switches){
+   const b=state.map.switches.find(x=>x.id===sw.id);if(!b)continue;
+   const fill=sw.revealedLandmine?'#d9534f':sw.exploding?'#f0ad4e':sw.pressed?'#7ef0bc':'#9aa7b8';
+   box(b,fill,2);
+   if(sw.exploding){ctx.strokeStyle='#ffd27f';ctx.lineWidth=2;ctx.strokeRect(b.x-3,b.y-3,b.w+6,b.h+6);}
+  }
+  const o=state.landmines.observer;
+  ctx.fillStyle=o.isGameOver?'#d9534f':o.isGameClear?'#7ef0bc':'#d8ecff';
+  ctx.font='bold 14px system-ui';ctx.textAlign='center';
+  ctx.fillText(o.pushedSwitchCount+' / '+o.clearSwitchCount,state.map.width/2,40);
+  ctx.textAlign='left';
+ }
  for(const b of state.liftState.lifts){
   // WeightedLiftComponent only moves once `riders` reaches `moveContactCount`
   // (CalcMoveContactCount 0x181738090), so the readout is the whole mechanic.
@@ -88,7 +103,10 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  }
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
  if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle=state.keyActive?'#ffdb72':'#586270';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();for(const o of state.gateState.observers)for(let i=0;i<o.total;i++){ctx.fillStyle=i<o.pushedCount?'#7ef0bc':'#586270';ctx.beginPath();ctx.arc(k.x+k.w/2+(i-(o.total-1)/2)*10,k.y-12,3,0,Math.PI*2);ctx.fill();}}
- state.players.forEach((p,i)=>{if(p.exit)return;box(p,colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
+ state.players.forEach((p,i)=>{if(p.exit)return;
+  // changeControlablePlayer 0x181872cc0 greys out everyone who cannot move, so
+  // the one-at-a-time rule has to be visible or the round is unreadable.
+  box(p,p.grayscale?'#6b7280':colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=p.grayscale?'#6b7280':colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
  // A DeadTimer ends the round for everyone when it reaches zero, so the
  // countdown has to be on screen. TimerView.updateTimer renders floor(m_Sec) as
  // m:ss and TimerComponent.WARNING_SECOND is 10, which turns the readout red.

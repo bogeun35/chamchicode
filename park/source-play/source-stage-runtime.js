@@ -15,9 +15,10 @@
   common?require('./source-enemy-devices.js'):root.SourceEnemyDevices,
   common?require('./source-thorn-ceiling-devices.js'):root.SourceThornCeilingDevices,
   common?require('./source-countup-devices.js'):root.SourceCountUpDevices,
-  common?require('./source-lift-devices.js'):root.SourceLiftDevices);
+  common?require('./source-lift-devices.js'):root.SourceLiftDevices,
+  common?require('./source-landmine-devices.js'):root.SourceLandmineDevices);
  if(common)module.exports=api;root.SourceStageRuntime=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts){
+})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts,Landmines){
  'use strict';
  const clone=x=>JSON.parse(JSON.stringify(x));
  const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -25,7 +26,7 @@
  const box=r=>({x:r.x,y:r.y,w:r.width,h:r.height});
  const NATIVE=Object.freeze({walk:3,jump:-334234/65536,gravity:42598/65536,terminal:19.5,holdFactor:13107/65536,holdFrames:14});
  function compile({source,geometry,count,stageId='st_w_01_01',nativeTickRate=60}={}){
-  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_05_02','st_w_10_02','st_w_11_04','st_w_07_02','st_w_10_01','st_w_10_04'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
+  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_05_02','st_w_10_02','st_w_11_04','st_w_07_02','st_w_10_01','st_w_10_04','st_w_13_01'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
   // The original frames a fixed window, not the whole map: mapInitParam carries
@@ -54,12 +55,13 @@
   const thornCeilings=ThornCeilings.compile(t.actors,count);
   const countUps=CountUps.compile(t.actors,count);
   const lifts=Lifts.compile(t.actors,count);
+  const landmines=Landmines.compile(t.actors,count);
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
   // The sensor rectangle is the one SwitchComponent.GetCollisionByDirection
   // 0x1817145a0 picks for this switch's direction byte; spring-switch-runtime
   // decodes the table out of SwitchComponent..cctor 0x181715330 and carries it on
   // the relay. Direction 0 keeps the previous 18x9 box above the anchor.
-  const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch')
+  const switches=relays.relays.filter(r=>r.type==='Switch'||r.type==='DelaySwitch'||r.type==='LandmineSwitch')
    .map(r=>({...r,x:r.x+r.rect.x,y:r.y+r.rect.y,w:r.rect.w,h:r.rect.h}));
   const goal=t.actors.find(a=>a.typeName==='Goal'),key=t.actors.find(a=>a.typeName==='Key');
   if(!goal)throw new Error('Original stage Goal is missing');
@@ -72,13 +74,13 @@
    return {id:'warp:'+i,type:'Warp',x:a.x,y:a.y,w:n(0),h:n(1),
     destination:{x:n(2),y:n(3)},ordinalOffset:{x:n(4),y:n(5)},counter:0};
   });
-  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes]);
+  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes,...Landmines.supportedTypes]);
   const unsupported=[...new Set(t.actors.filter(a=>!supported.has(a.typeName)).map(a=>a.typeName))];
   const missingMechanics=['Native tick frequency (60 Hz explicit prototype calibration)',
    'Native collision pushback and update ordering equivalence',
    'Key attach, transfer and goal-opening state machine (overlap pickup used)'];
   for(const type of unsupported)missingMechanics.push(type+' handler ('+t.actors.filter(a=>a.typeName===type).length+' source actor)');
-  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]),...(enemies.warnings||[]),...(thornCeilings.warnings||[]),...(countUps.warnings||[]),...(lifts.warnings||[]));
+  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]),...(enemies.warnings||[]),...(thornCeilings.warnings||[]),...(countUps.warnings||[]),...(lifts.warnings||[]),...(landmines.warnings||[]));
   if(unsupported.length||devices.warnings.length)throw Error('Unsupported source devices: '+[...unsupported,...devices.warnings].join(', '));
   if(t.cells.some(c=>(c.flags&~1)!==0))missingMechanics.push('Dynamic tile attributes');
   const map={id:stageId,count,width:t.width,height:t.height,tileSize:t.tileSize,variant:t.variant,
@@ -106,7 +108,7 @@
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
    view,coordinateSystem:'Y-down'};
-  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,status:{state:'calibration_pending',missingMechanics,
+  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,landmines,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
  function create(compiled,options={}){
@@ -116,7 +118,7 @@
   const initPositions=(compiled.warpInit&&compiled.warpInit.initPositions)||[];
   return {map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
    supportId:null,jump:false,jumpFrame:0,exit:false,visible:true,playerState:1})),
-   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
+   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),landmineState:Landmines.create(compiled.landmines||Landmines.compile([],count)),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
    status:'play',elapsed:0,ticks:0,accumulator:0,keyTaken:!map.key,coinsTaken:0,deaths:0,failure:null,
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
  }
@@ -222,7 +224,7 @@
   // in this runtime already have.
   const carriedBefore=new Map(players.map(p=>[p.id,{x:p.x,y:p.y}]));
   for(const p of [...players].sort((a,b)=>b.y-a.y||a.id.localeCompare(b.id))){
-   const input=inputs[p.id]||{},held=!!input.jump,edge=held&&!p.jump,riders=ridersOf(p,players);
+   const input=p.inputLocked?{}:(inputs[p.id]||{}),held=!!input.jump,edge=held&&!p.jump,riders=ridersOf(p,players);
    p.jumpBlocked=!!(edge&&p.grounded&&riders.length);
    const started=edge&&p.grounded&&!riders.length;
    if(started){p.vy=NATIVE.jump*hz;p.jumpFrame=1;p.grounded=false;p.supportId=null;}
@@ -281,7 +283,9 @@
   // recomputes whether the key can be touched. Its other outgoing event is the
   // lost-round broadcast 47, which no other module in scope reacts to.
   const countUpResult=CountUps.beforeStep(s.countUpState,{dt:h,events:relay.events});
-  const gateResult=Gates.afterStep(s.gateState,{relayState:s.relayState,events:[...relay.events,...countUpResult.events],keyTaken:s.keyTaken});s.keyActive=gateResult.keyActive;
+  const landmineResult=Landmines.beforeStep(s.landmineState,{dt:h,players,switchContacts:facts.switchContacts});
+  s.landmines=Landmines.displays(s.landmineState);
+  const gateResult=Gates.afterStep(s.gateState,{relayState:s.relayState,events:[...relay.events,...countUpResult.events,...landmineResult.events],keyTaken:s.keyTaken});s.keyActive=gateResult.keyActive;
   s.countUps=CountUps.displays(s.countUpState);
   s.lastContacts=facts;s.lastRelayEvents=relay.events;s.lastImpulses=relay.impulses;
   for(const impulse of relay.impulses){
@@ -298,6 +302,7 @@
   const thornCeilingResult=ThornCeilings.afterStep(s.thornCeilingState,{players,platforms:baseSolids(s),dt:h,nativeTickRate:hz,width:s.map.width,height:s.map.height});
   for(const e of thornCeilingResult.events)if(e.event===61){Gates.signal(s.gateState,e);Devices.signal(s.deviceState,e);BlinkThunders.signal(s.blinkThunderState,e);Bridges.signal(s.bridgeState,e);}
   s.map.hazards=[...bridgeResult.hazards,...blinkThunderResult.hazards,...enemyResult.hazards,...thornCeilingResult.hazards];
+  if(landmineResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:landmineResult.deadPlayerIds[0],reason:'지뢰를 밟았어요'};return;}
   if(enemyResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:enemyResult.deadPlayerIds[0],reason:'적에게 당했어요'};return;}
   if(thornCeilingResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:thornCeilingResult.deadPlayerIds[0],reason:'가시에 닿았어요'};return;}
   if(blinkThunderResult.deadPlayerIds.length){s.status='dead';s.deaths++;s.failure={playerId:blinkThunderResult.deadPlayerIds[0],reason:'전기에 닿았어요'};return;}
@@ -321,7 +326,7 @@
    // warp is pending. A warped player is therefore never out of the map.
    if(p.y>s.map.killY){s.status='dead';s.failure={playerId:p.id,reason:'fall'};s.deaths++;return;}
    if(!s.keyTaken&&s.keyActive&&s.map.key&&overlap(p,s.map.key)){s.keyTaken=true;s.map.key.taken=true;}
-   if(Actor.canEnterGoal({open:s.keyTaken,overlapping:overlap(p,s.map.exit),upPressed:!!inputs[p.id]?.up,cleared:p.exit,playerState:p.playerState})){
+   if(Actor.canEnterGoal({open:s.keyTaken,overlapping:overlap(p,s.map.exit),upPressed:!p.inputLocked&&!!inputs[p.id]?.up,cleared:p.exit,playerState:p.playerState})){
     p.exit=true;p.visible=false;p.playerState=5;p.vx=0;p.vy=0;p.grounded=false;p.ground=false;p.supportId=null;
     for(const q of players)if(q.supportId===p.id){q.supportId=null;q.grounded=false;q.ground=false;}
    }

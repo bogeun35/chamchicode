@@ -3,7 +3,15 @@
 // Static first-stage relay reconstruction. Native code is never loaded.
 // Input actors may be raw actorCreateParamList or imported source-world actors.
 // Contact generation and source-to-web velocity conversion belong to the caller.
-const TYPES=new Set(['JumpStand','JumpStandMediator','Switch','DelaySwitch']);
+// LandmineSwitch belongs here even though its own component is elsewhere: it
+// shares its entity with a SwitchComponent, which is what carries the contact
+// (LandmineSwitchComponent.GetSwitch 0x18186fba0 reads it through m_EntityRef,
+// and the Idle branch 0x18187054b tests that component's m_Flags bit2). Neither
+// LandmineSwitchComponent.ParseParameter 0x18186fde0 nor the observer's writes
+// m_Direction, so the zero default applies and the box is the plain
+// COLLISION_RECT. It has no target, no repeat and no timer of its own; the
+// landmine module reads the contact and decides everything else.
+const TYPES=new Set(['JumpStand','JumpStandMediator','Switch','DelaySwitch','LandmineSwitch']);
 const WINDUP=Math.trunc(0.2*65536)/65536;
 const RECOVERY=Math.trunc((1/12)*65536)/65536;
 const number=(a,i)=>a.datas[i]?.t===1?a.datas[i].f:0;
@@ -100,6 +108,9 @@ function create(actors,count){
    zeroOffsets(a,6,7);
    const direction=switchDirection(d(5));
    Object.assign(r,{direction,rect:switchRect(direction),target:s(0),subtarget:s(3),repeat:(nativeInteger(d(1))>>>0)>0,switchId:nativeInteger(d(2)),timerAddSeconds:d(4),pressed:false,latched:false});
+  }else if(a.typeName==='LandmineSwitch'){
+   Object.assign(r,{direction:0,rect:switchRect(0),target:'',subtarget:'',repeat:false,
+    switchId:0,timerAddSeconds:0,pressed:false,latched:false});
   }else if(a.typeName==='DelaySwitch'){
    zeroOffsets(a,3,4);
    const direction=switchDirection(d(2));
