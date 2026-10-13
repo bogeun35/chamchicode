@@ -485,6 +485,20 @@ function drawHud(c,state,time,sw){
 function heart(c,x,y,s){c.beginPath();c.moveTo(x,y+s*.9);c.bezierCurveTo(x-s*1.4,y-s*.1,x-s*.7,y-s*1.2,x,y-s*.45);c.bezierCurveTo(x+s*.7,y-s*1.2,x+s*1.4,y-s*.1,x,y+s*.9);c.closePath();}
 
 // ------------------------------------------------------------------ frame
+
+function drawRegisteredDevices(c,s){
+ c.save();
+ for(const coin of s.coinsState?.coins||[])if(!coin.collected){const r=root.SourceCoinDevices.nativeConstants.rect;c.fillStyle='#ffd65c';c.beginPath();c.ellipse(coin.x,coin.y,r.w/2,r.h/2,0,0,Math.PI*2);c.fill();}
+ for(const cp of s.checkpointsState?.checkpoints||[]){const r=root.SourceCheckpointDevices.nativeConstants.rect;c.strokeStyle=cp.checked?'#79e5a2':'#b8c7df';c.strokeRect(cp.x+r.x,cp.y+r.y,r.w,r.h);}
+ for(const label of s.textsState?.texts||[]){if(label.exitRequested||label.textId||!label.text)continue;c.fillStyle=label.color?'#ffffff':'#222222';c.textAlign='left';if(label.fontSize>0)c.font=label.fontSize+'px system-ui';c.fillText(label.text,label.x,label.y);}
+ c.restore();
+}
+function drawRegisteredHud(c,s){
+ c.save();
+ for(const e of s.touchEnergiesState?.devices||[]){if(!e.visible)continue;c.fillStyle='#ffffff';c.textAlign='left';c.fillText((e.energyRaw/65536).toFixed(1)+' / '+(e.maxRaw/65536).toFixed(1),e.uiPos.x,e.uiPos.y);}
+ c.restore();
+}
+
 function render(ctx,state,camera,opts={}){
  const canvas=opts.canvas||ctx.canvas,vp=opts.viewport||viewport(canvas),scale=vp.scale,sw=vp.width;
  const time=opts.time??(performance.now()/1000),map=state.map,theme=themeOf(map);
@@ -551,6 +565,7 @@ function render(ctx,state,camera,opts={}){
   }
  }
 
+ drawRegisteredDevices(ctx,state);
  // friends: the controlled one last so it is never hidden
  const deadId=state.status==='dead'&&state.failure?state.failure.playerId:null;
  const o={time,selected:opts.selected,zoom:z,deadId,flash:ceil&&ceil.flash};
@@ -566,6 +581,7 @@ function render(ctx,state,camera,opts={}){
  if(opts.debugBoxes)drawDebug(ctx,state,map);
  ctx.restore();
  drawHud(ctx,state,time,sw);
+ drawRegisteredHud(ctx,state);
 }
 // Review aid only (?boxes): collider outlines over the art.
 function drawDebug(c,state,map){
@@ -584,5 +600,5 @@ function drawDebug(c,state,map){
 }
 function blank(ctx,canvas){const vp=viewport(canvas||ctx.canvas),s=vp.scale;ctx.setTransform(s,0,0,s,0,0);const g=ctx.createLinearGradient(0,0,0,VH);g.addColorStop(0,'#16244a');g.addColorStop(1,'#3a2f63');ctx.fillStyle=g;ctx.fillRect(0,0,vp.width,VH);}
 
-root.ParkArt={render,blank,viewport,FRIENDS,THEMES,worldOf,VW,VH};
+root.ParkArt={render,drawRegisteredDevices,drawRegisteredHud,blank,viewport,FRIENDS,THEMES,worldOf,VW,VH};
 })(typeof window!=='undefined'?window:globalThis);

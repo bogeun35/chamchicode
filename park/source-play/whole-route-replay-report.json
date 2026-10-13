@@ -1,32 +1,44 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-11T13:42:23.096Z",
+  "generatedAt": "2026-10-13T13:07:33.960Z",
   "scope": "2편 연결 10라운드, 8인. 새 R.create 상태에 녹화된 틱별 입력만 넣는다(위치 지정·상태 수정 없음).",
   "replayFile": "play/whole-route-input-replay.json",
   "recorder": "whole-route-record.cjs",
   "recordedAt": "2026-10-11T13:41:35.721Z",
-  "runtimeSha256": "be3d824fed3a2847cfd305555efd7643c3aaae7aef8b01e9712eaceef9df8f34",
+  "runtimeSha256": "fbb5aa5781dd3f36e30ca3a95063b6927d5163d901aa8aed570241b2a38fd4d7",
   "recordedRuntimeSha256": "be3d824fed3a2847cfd305555efd7643c3aaae7aef8b01e9712eaceef9df8f34",
   "method": {
-    "repeats": 5,
+    "repeats": 1,
     "perTick": "매 틱 스냅샷(틱·상태·플레이어 x/y/vx/vy/접지/지지대/점프프레임/입장·스위치·릴레이·장치·타이머·가시천장 난수 상태)을 sha256 에 누적. 모든 반복의 누적 해시와 최종 상태 해시가 같아야 재현으로 판정.",
     "dt": "R.step 기본 dt=1/60 → 호출당 1틱. play.js 검수 재생(T)도 h=1/60 으로 1틱씩 같은 입력을 넣는다."
   },
   "summary": {
     "rounds": 10,
-    "clearedAndReproducible": 9,
+    "clearedAndReproducible": 6,
     "notCleared": [
+      {
+        "stage": "st_w_01_02",
+        "status": "play"
+      },
+      {
+        "stage": "st_w_01_03",
+        "status": "play"
+      },
       {
         "stage": "st_w_04_03",
         "status": "blocked"
+      },
+      {
+        "stage": "st_w_05_02",
+        "status": "dead"
       }
     ],
-    "totalTicks": 49423,
-    "deaths": 0
+    "totalTicks": 32593,
+    "deaths": 1
   },
   "allRoundsInputOnlyClear": false,
   "randomness": {
-    "simModules": 15,
+    "simModules": 39,
     "modulesUsingClockOrMathRandom": [],
     "thornCeilingRng": {
       "algorithm": "PCG32 XSH-RR",
@@ -57,7 +69,23 @@
       "identical": true
     },
     {
+      "file": "source-checkpoint-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-coin-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-countup-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-devices-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-enemy-devices.js",
       "identical": true
     },
     {
@@ -65,7 +93,27 @@
       "identical": true
     },
     {
+      "file": "source-landmine-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-lift-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-linepath-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-motion-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-movewall-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-pole-devices.js",
       "identical": true
     },
     {
@@ -77,11 +125,23 @@
       "identical": true
     },
     {
+      "file": "source-text-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-thorn-ceiling-devices.js",
       "identical": true
     },
     {
+      "file": "source-touchenergy-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-warpinit-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-wind-devices.js",
       "identical": true
     },
     {
@@ -253,8 +313,8 @@
       "firstPress": {
         "tick": 252,
         "secBefore": 10.817,
-        "secAfter": 10.8,
-        "stopped": true,
+        "secAfter": 15,
+        "stopped": false,
         "pressed": [
           "Switch9",
           "Switch10"
@@ -264,22 +324,26 @@
             "targetName": "DeadTimer1",
             "senderId": "source:a31",
             "on": true,
-            "eventType": 61
+            "eventType": 61,
+            "event": 61,
+            "timerAddSecond": 2
           },
           {
             "targetName": "DeadTimer1",
             "senderId": "source:a32",
             "on": true,
-            "eventType": 61
+            "eventType": 61,
+            "event": 61,
+            "timerAddSecond": 2
           }
         ]
       },
       "after1200IdleTicks": {
-        "sec": 10.8,
-        "stopped": true,
-        "status": "play"
+        "sec": 0,
+        "stopped": false,
+        "status": "dead"
       },
-      "finding": "타이머 스위치를 밟으면 +2초가 아니라 DeadTimer 가 멈춘다.",
+      "finding": "정상(시간 추가)",
       "cause": "spring-switch-runtime.js 의 notify() 가 만드는 이벤트 {targetName,senderId,on,eventType:61} 에 timerAddSecond 가 없다. source-switchtimer-devices.js signal() 은 add=0 을 \"정지(bit2)\"로 처리한다(0x18172e34f 주석 참조).",
       "impact": "현재 5-2 는 첫 타이머 스위치 이후 시간 제한이 사라진다. 녹화도 이 동작 기준이라(10529틱), 고치면 5-2 는 더 빠른 경로로 다시 녹화해야 한다."
     }
@@ -298,46 +362,146 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 1,
       "perTickDigest": "0eceacec38a098e3dbf4a740ef074120c69fab6ffbeef65d33892aa20cd11179",
-      "finalStateDigest": "fdb3bab6f0baeba6b592089522b374f5f1e34337545a59cf9b78c8a3075e3918",
+      "finalStateDigest": "5d0797485dfbab0e064fe37cc9457e0c4dd8b4eb125d79d850edde21638dd2d7",
       "matchesRecording": true
     },
     {
       "stage": "st_w_01_02",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 4451,
       "seconds": 74.183,
       "deaths": 0,
       "failure": null,
-      "keyTaken": true,
-      "exited": 8,
+      "keyTaken": false,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "9e104c9e4e2f7d4dde186cee1d86363ecfc7c5676f76dd72d7fb61e5e468570f",
-      "finalStateDigest": "b1a707333ca604b0d1a8b1a66e61022de0691b092ea34fe96243bce451da1e6b",
-      "matchesRecording": true
+      "replays": 1,
+      "perTickDigest": "f8aeb32a9bbf28d84a51e75110901a3b5ff464923194b554912bae9abc0b4eab",
+      "finalStateDigest": "3eb829a0271cd2a2738fff9df8fead12eb1ee557a8d797475d20a22bf116a96b",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 2346,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 2314,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 2282,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 2250,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 2218,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 2186,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2154,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2122,
+          "y": 434,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_01_03",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 1850,
       "seconds": 30.833,
       "deaths": 0,
       "failure": null,
-      "keyTaken": true,
-      "exited": 8,
+      "keyTaken": false,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "3291c2f663c5221acd1ee0a7c2c3b48cea7eda5b234704ffd7a77a2beb63c9ad",
-      "finalStateDigest": "2b20327a63045bc18163cd7360c1aa36ff4d4a0f5e9bfb6cc1bfab209ef37ea9",
-      "matchesRecording": true
+      "replays": 1,
+      "perTickDigest": "49a8ac5aaad1a6444cc8d5d0d478510be7c892359685224b90d76c9eb5665626",
+      "finalStateDigest": "fe38a69f9fdd1764ee406051195ca68b852ffc5289e4063a95a1a488a0c1f03b",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1808,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 1840,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 1872,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 1904,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 1936,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 1968,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2032,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2000,
+          "y": 386,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_01_04",
@@ -352,9 +516,9 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 1,
       "perTickDigest": "18062e8a29eaf0c0cf14fc16de1ace1db363bfb2939dbac602a50c8a63916b32",
-      "finalStateDigest": "19c9918027024ff5bc72ce236e414d7aef3c2e8b322124836326a5e9d8e03b2c",
+      "finalStateDigest": "b5d607944cce21624fb47186b74d0c2e76878636fdb942a6927066ee35436953",
       "matchesRecording": true
     },
     {
@@ -370,9 +534,9 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 1,
       "perTickDigest": "c95e127672f1abe59056cf89da6a7c1e4af31127a68bf55daf987ab1e0b03240",
-      "finalStateDigest": "f5048d08eca3306f017f895f5eaa506cc55e2eb114f6e585d6dab69f0fd55ae8",
+      "finalStateDigest": "d6361f0ada6448927058111d850b002814cd165549d237cf05783ae7ca4adc5c",
       "matchesRecording": true
     },
     {
@@ -548,28 +712,81 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 1,
       "perTickDigest": "2483ec78822305a4fa820f5f4a974a1da75edca3e0df6dbf860bef9a6dd51d34",
-      "finalStateDigest": "761589077988ccdd34bb0402cf9a1a684aaa95cd6bca3b5c29c8ea3b95261d55",
+      "finalStateDigest": "e8b63b3bc5cf79085861aa0d93e6af322b7741363c154ca4fc94b0e2b3fc4e1e",
       "matchesRecording": true
     },
     {
       "stage": "st_w_05_02",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
-      "ticks": 10529,
-      "seconds": 175.483,
-      "deaths": 0,
-      "failure": null,
+      "cleared": false,
+      "status": "dead",
+      "ticks": 3862,
+      "seconds": 64.367,
+      "deaths": 1,
+      "failure": {
+        "playerId": "p1",
+        "reason": "시간이 다 됐어요"
+      },
       "keyTaken": true,
-      "exited": 8,
-      "unusedInputs": 0,
+      "exited": 0,
+      "unusedInputs": 6667,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "1af085db162b5b44d006663cae81fc23ef144d2aff0121129aca64b4765a1d12",
-      "finalStateDigest": "19f8fb3b38e7759828a7b2e5aca8f285946c8d5b09619dd7e87ecb649eeb3b45",
-      "matchesRecording": true
+      "replays": 1,
+      "perTickDigest": "c2a69bbb4d3561ef88365c7a51b8c3facbb5422f82853bb27122dc438284626a",
+      "finalStateDigest": "9593b973a5c4af1becd20d648b12d327e6a313eedb6de4f45f9efb07d2dd48c1",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 104,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 136,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 244,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 707,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 341,
+          "y": 194,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 104,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 136,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 484,
+          "y": 290,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_10_02",
@@ -584,9 +801,9 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "00e7e5a88325a5c9d8fab0bba1f92f68b1f1690cb6d72d32fd754a7dc1c39950",
-      "finalStateDigest": "5a8ad0491eac5129541023c586c8ef43bce5457e894030c4591bd7201cad9e13",
+      "replays": 1,
+      "perTickDigest": "951699640fd1a6a70529a0f4346bf705c0104e7b3dc5c69029a477fb626fe24a",
+      "finalStateDigest": "15be2529a031aabe9b177dc7aac306669425820615b054977bb60ef21a4b161f",
       "matchesRecording": true
     },
     {
@@ -602,9 +819,9 @@
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 1,
       "perTickDigest": "9e9e36b04279bdc747f5cf5833a76461664d469a331badf66f829ab828fa7965",
-      "finalStateDigest": "00bd733ae3f7463e9bb4c21778a79bfbdee6c3267027fdd126abe3f7715b54ad",
+      "finalStateDigest": "6371bbce51d958e00ebf8da62d16b6f9ea66eb68d71df90b6768c299601d9e22",
       "matchesRecording": true
     }
   ]

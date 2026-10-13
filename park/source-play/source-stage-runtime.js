@@ -20,9 +20,13 @@
   common?require('./source-pole-devices.js'):root.SourcePoleDevices,
   common?require('./source-wind-devices.js'):root.SourceWindDevices,
   common?require('./source-movewall-devices.js'):root.SourceMoveWallDevices,
-  common?require('./source-linepath-devices.js'):root.SourceLinepathDevices);
+  common?require('./source-linepath-devices.js'):root.SourceLinepathDevices,
+  common?require('./source-text-devices.js'):root.SourceTextDevices,
+  common?require('./source-coin-devices.js'):root.SourceCoinDevices,
+  common?require('./source-checkpoint-devices.js'):root.SourceCheckpointDevices,
+  common?require('./source-touchenergy-devices.js'):root.SourceTouchEnergyDevices);
  if(common)module.exports=api;root.SourceStageRuntime=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts,Landmines,Poles,Winds,SpeedSwitches,LinePaths){
+})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts,Landmines,Poles,Winds,SpeedSwitches,LinePaths,Texts,Coins,Checkpoints,TouchEnergies){
  'use strict';
  const clone=x=>JSON.parse(JSON.stringify(x));
  const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -64,6 +68,10 @@
   const winds=Winds.compile(t.actors,count,{});
   const speedSwitches=SpeedSwitches.compile(t.actors,count,{});
   const linePaths=LinePaths.compile(t.actors,count,{});
+  const texts=Texts.compile(t.actors,count,{});
+  const coins=Coins.compile(t.actors,count,{});
+  const checkpoints=Checkpoints.compile(t.actors,count,{});
+  const touchEnergies=TouchEnergies.compile(t.actors,count,{});
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
   // The sensor rectangle is the one SwitchComponent.GetCollisionByDirection
   // 0x1817145a0 picks for this switch's direction byte; spring-switch-runtime
@@ -82,13 +90,14 @@
    return {id:'warp:'+i,type:'Warp',x:a.x,y:a.y,w:n(0),h:n(1),
     destination:{x:n(2),y:n(3)},ordinalOffset:{x:n(4),y:n(5)},counter:0};
   });
-  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes,...Landmines.supportedTypes,...Poles.supportedTypes,...Winds.supportedTypes,'SpeedSwitch',...LinePaths.supportedTypes]);
+  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes,...Landmines.supportedTypes,...Poles.supportedTypes,...Winds.supportedTypes,'SpeedSwitch',...LinePaths.supportedTypes,...Texts.supportedTypes,...Coins.supportedTypes,...Checkpoints.supportedTypes,...TouchEnergies.supportedTypes]);
   const unsupported=[...new Set(t.actors.filter(a=>!supported.has(a.typeName)).map(a=>a.typeName))];
   const missingMechanics=['Native tick frequency (60 Hz explicit prototype calibration)',
    'Native collision pushback and update ordering equivalence',
    'Key attach, transfer and goal-opening state machine (overlap pickup used)'];
   for(const type of unsupported)missingMechanics.push(type+' handler ('+t.actors.filter(a=>a.typeName===type).length+' source actor)');
-  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]),...(enemies.warnings||[]),...(thornCeilings.warnings||[]),...(countUps.warnings||[]),...(lifts.warnings||[]),...(landmines.warnings||[]),...(poles.warnings||[]),...(winds.warnings||[]),...(speedSwitches.warnings||[]),...(linePaths.warnings||[]));
+  missingMechanics.push(...devices.warnings,...(blink.warnings||[]),...(blinkThunders.warnings||[]),...(warpInit.warnings||[]),...(switchTimers.warnings||[]),...(enemies.warnings||[]),...(thornCeilings.warnings||[]),...(countUps.warnings||[]),...(lifts.warnings||[]),...(landmines.warnings||[]),...(poles.warnings||[]),...(winds.warnings||[]),...(speedSwitches.warnings||[]),...(linePaths.warnings||[]),...(texts.warnings||[]),...(coins.warnings||[]),...(checkpoints.warnings||[]),...(touchEnergies.warnings||[]));
+  if(texts.texts.some(t=>t.textId))missingMechanics.push('Text localization asset unresolved; authored textId retained without invented display string');
   if(unsupported.length||devices.warnings.length)throw Error('Unsupported source devices: '+[...unsupported,...devices.warnings].join(', '));
   if(t.cells.some(c=>(c.flags&~1)!==0))missingMechanics.push('Dynamic tile attributes');
   const map={id:stageId,count,width:t.width,height:t.height,tileSize:t.tileSize,variant:t.variant,
@@ -116,7 +125,7 @@
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
    view,coordinateSystem:'Y-down'};
-  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,landmines,poles,winds,speedSwitches,linePaths,status:{state:'calibration_pending',missingMechanics,
+  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,landmines,poles,winds,speedSwitches,linePaths,texts,coins,checkpoints,touchEnergies,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
  function create(compiled,options={}){
@@ -124,11 +133,26 @@
   const map=clone(compiled.map),count=compiled.count,ids=options.ids||Array.from({length:count},(_,i)=>'p'+(i+1));
   if(ids.length!==count||new Set(ids).size!==count||ids.some(id=>typeof id!=='string'||!id))throw new Error('Unique IDs must match player count');
   const initPositions=(compiled.warpInit&&compiled.warpInit.initPositions)||[];
-  return {map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},onPole:!!(compiled.poles&&compiled.poles.poles&&compiled.poles.poles.length),lookingRight:true,w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
+  const state={map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},onPole:!!(compiled.poles&&compiled.poles.poles&&compiled.poles.poles.length),lookingRight:true,w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
    supportId:null,jump:false,jumpFrame:0,exit:false,visible:true,playerState:1})),
-   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),landmineState:Landmines.create(compiled.landmines||Landmines.compile([],count)),poleState:Poles.create(compiled.poles||Poles.compile([],count,{})),windState:Winds.create(compiled.winds||Winds.compile([],count,{})),speedSwitchState:SpeedSwitches.create(compiled.speedSwitches||SpeedSwitches.compile([],count,{})),linePathState:LinePaths.create(compiled.linePaths||LinePaths.compile([],count,{})),keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
+   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),landmineState:Landmines.create(compiled.landmines||Landmines.compile([],count)),poleState:Poles.create(compiled.poles||Poles.compile([],count,{})),windState:Winds.create(compiled.winds||Winds.compile([],count,{})),speedSwitchState:SpeedSwitches.create(compiled.speedSwitches||SpeedSwitches.compile([],count,{})),linePathState:LinePaths.create(compiled.linePaths||LinePaths.compile([],count,{})),textsState:Texts.create(compiled.texts||Texts.compile([],count,{})),coinsState:Coins.create(compiled.coins||Coins.compile([],count,{})),checkpointsState:Checkpoints.create(compiled.checkpoints||Checkpoints.compile([],count,{})),touchEnergiesState:TouchEnergies.create(compiled.touchEnergies||TouchEnergies.compile([],count,{})),playTimeRaw:0,keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
    status:'play',elapsed:0,ticks:0,accumulator:0,keyTaken:!map.key,coinsTaken:0,deaths:0,failure:null,
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
+  if(options.checkpointInfo){
+   state.checkpointsState=Checkpoints.create({...compiled.checkpoints,checkpointInfo:clone(options.checkpointInfo)});
+   // Creator zeroes the local checked flag; global checkpoint info persists on retry.
+   for(const c of state.checkpointsState.checkpoints)c.checked=false;
+   if(state.checkpointsState.checkpointInfo.isActive){
+    state.players.forEach((p,i)=>{const r=Checkpoints.respawn(state.checkpointsState,i,i);p.x=r.actorPosition.x-16;p.y=r.actorPosition.y-47;});
+    state.playTimeRaw=state.checkpointsState.checkpointInfo.playTimeRaw;
+    state.elapsed=state.playTimeRaw/65536;
+   }
+  }
+  return state;
+ }
+ function restart(compiled,previous,options={}){
+  const info=previous&&previous.map.id===compiled.map.id?previous.checkpointsState?.checkpointInfo:null;
+  return create(compiled,{...options,checkpointInfo:info?.isActive?{...clone(info),gameOverCount:info.gameOverCount+(previous.status==='dead'?1:0)}:undefined});
  }
  function active(s){return s.players.filter(p=>!p.exit);}
  // Native switch contact rule, recovered from SwitchComponent.OnCollided
@@ -259,6 +283,8 @@
  }
  function tick(s,inputs,h){
   const hz=s.physics.nativeTickRate,players=active(s);
+  s.playTimeRaw+=Math.trunc(h*65536);
+  const coinUpdate=Coins.beforeStep(s.coinsState);
   // TimerComponent.onTimeUp 0x18172e0cb sends event 61 to the single actor named
   // in slot5. Route it to every device signal handler in the same tick.
   // The DeadTimer kills by broadcasting QEventType.Dead 19 to every actor
@@ -378,7 +404,7 @@
   const countUpResult=CountUps.beforeStep(s.countUpState,{dt:h,events:relay.events});
   const landmineResult=Landmines.beforeStep(s.landmineState,{dt:h,players,switchContacts:facts.switchContacts});
   s.landmines=Landmines.displays(s.landmineState);
-  const gateResult=Gates.afterStep(s.gateState,{relayState:s.relayState,events:[...relay.events,...countUpResult.events,...landmineResult.events],keyTaken:s.keyTaken});s.keyActive=gateResult.keyActive;
+  const gateResult=Gates.afterStep(s.gateState,{relayState:s.relayState,events:[...relay.events,...countUpResult.events,...landmineResult.events,...coinUpdate.events],keyTaken:s.keyTaken});s.keyActive=gateResult.keyActive;
   s.countUps=CountUps.displays(s.countUpState);
   s.lastContacts=facts;s.lastRelayEvents=relay.events;s.lastImpulses=relay.impulses;
   for(const impulse of relay.impulses){
@@ -387,6 +413,15 @@
   }
   for(const button of s.map.switches){const r=s.relayState.relays.find(r=>r.id===button.id);button.pressed=r.pressed;button.remaining=r.remaining||0;}
   for(const spring of s.map.springs){const r=s.relayState.relays.find(r=>r.id===spring.id);spring.phase=r.phase;spring.visible=r.visible;}
+  Texts.afterStep(s.textsState,{dt:h});
+  Coins.afterStep(s.coinsState,{players});
+  Checkpoints.afterStep(s.checkpointsState,{players,playTimeRaw:s.playTimeRaw});
+  // Existing port AABBs adapted to FP world bounds; native collision ordering remains unverified.
+  const energyResult=TouchEnergies.afterStep(s.touchEnergiesState,{dt:h,players:s.players.map((p,index)=>({index,nativeState:p.playerState,
+   collisionRectRaw:p.exit?null:{left:Math.trunc(p.x*65536),right:Math.trunc((p.x+p.w)*65536),top:Math.trunc(p.y*65536),bottom:Math.trunc((p.y+p.h)*65536)}}))});
+  if(energyResult.events.some(e=>e.eventType===43)){
+   const victim=players.find(p=>!p.immortal);if(victim){s.status='dead';s.deaths++;s.failure={playerId:victim.id,reason:'접촉 에너지가 다 됐어요'};return;}
+  }
   const deviceResult=Devices.afterStep(s.deviceState,{players,platforms:baseSolids(s),dt:h,nativeTickRate:hz,width:s.map.width,height:s.map.height});
   SwitchTimers.afterStep(s.switchTimerState,{events:[...relay.events,...deviceResult.events]});
   const bridgeResult=Bridges.afterStep(s.bridgeState,{players,platforms:s.map.platforms,width:s.map.width,height:s.map.height,events:[...relay.events,...deviceResult.events]});
@@ -440,5 +475,5 @@
   while(s.accumulator+1e-10>=h&&s.status==='play'){tick(s,inputs,h);s.accumulator-=h;s.elapsed+=h;s.ticks++;}
   return s;
  }
- return {compile,create,step,solids,overlap,NATIVE};
+ return {compile,create,restart,step,solids,overlap,NATIVE};
 });

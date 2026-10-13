@@ -24,7 +24,7 @@ function syncMusic(){musicLabel();if(!musicEnabled||testMuted||paused||replay){m
 function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('park-source-music',musicEnabled?'on':'off');syncMusic();}
 function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();syncMusic();}
 function start(){if(!state)return;paused=false;keys.clear();$('cover').hidden=true;last=performance.now();canvas.focus();syncMusic();}
-function reset(){if(!compiled)return;replay=null;replaySpeed=1;$('replay-speed').hidden=true;$('replay-speed').textContent='×1';state=SourceStageRuntime.create(compiled);selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
+function reset(){if(!compiled)return;replay=null;replaySpeed=1;$('replay-speed').hidden=true;$('replay-speed').textContent='×1';state=SourceStageRuntime.restart(compiled,state);selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
 function toggleReplaySpeed(){if(!replay)return;replaySpeed=replaySpeed===1?4:1;$('replay-speed').textContent='×'+replaySpeed;}
 async function runReplay(){if(replayLoading)return;replayLoading=true;$('replay').disabled=true;
  if(onlineControl.active){replayLoading=false;return;}
@@ -54,6 +54,7 @@ function render(){
 }
 function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,w,675);ctx.fillStyle='#0c1c2b';ctx.fillRect(0,0,w,675);
  ctx.save();ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);
+ if(window.ParkArt)ParkArt.drawRegisteredDevices(ctx,state);
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}

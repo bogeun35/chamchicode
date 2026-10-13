@@ -10,7 +10,7 @@ const memberIds=room=>Object.keys(room.players||{}).sort((a,b)=>(room.players[a]
 // at the values it had when the round was created.
 const DEVICE_STATES=[['devices','deviceState'],['motion','motionState'],['gates','gateState'],
  ['bridges','bridgeState'],['blink','blinkState'],['blinkThunders','blinkThunderState'],
- ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState'],['linePaths','linePathState']];
+ ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState'],['linePaths','linePathState'],['texts','textsState'],['coins','coinsState'],['checkpoints','checkpointsState'],['touchEnergies','touchEnergiesState']];
 // The thorn ceiling draws its rows from a PCG32 generator whose state is a
 // BigInt pair; JSON and the database both refuse those, so they travel as
 // decimal strings and are rebuilt on arrival.
@@ -25,12 +25,13 @@ const unpackState=v=>{
  return walk(v);
 };
 const pack=(s,runId,paused)=>{
- const snapshot={runId,stageId:s.map.id,count:s.players.length,ids:s.players.map(p=>p.id),status:s.status,paused,players:s.players,elapsed:s.elapsed,ticks:s.ticks,accumulator:s.accumulator,keyTaken:s.keyTaken,keyActive:s.keyActive,deaths:s.deaths,failure:s.failure,relays:s.relayState};
+ const snapshot={runId,stageId:s.map.id,count:s.players.length,ids:s.players.map(p=>p.id),status:s.status,paused,players:s.players,elapsed:s.elapsed,playTimeRaw:s.playTimeRaw,ticks:s.ticks,accumulator:s.accumulator,keyTaken:s.keyTaken,keyActive:s.keyActive,deaths:s.deaths,failure:s.failure,relays:s.relayState};
  for(const [key,field] of DEVICE_STATES)if(s[field]!==undefined)snapshot[key]=packState(s[field]);
  return snapshot;
 };
 function apply(s,p,positions=true){
  for(const k of ['status','elapsed','ticks','accumulator','keyTaken','deaths','failure'])s[k]=p[k];
+ if(p.playTimeRaw!==undefined)s.playTimeRaw=p.playTimeRaw;
  // Firebase drops empty arrays and objects, so a state that arrives without one
  // of its lists must keep the shape the runtime expects rather than lose it.
  for(const [key,field] of DEVICE_STATES){
@@ -101,7 +102,7 @@ class SourceParkOnlineController{
    const ids=memberIds(room).filter(id=>this.net.connected(id));
    if(ids.length<2){await this.net.lobby();this.message('인원이 부족해 대기실로 돌아갔습니다.');return;}
    const c=await this.getCompiled(ids.length,room.stageId||'st_w_01_01');
-   const s=SourceStageRuntime.create(c,{ids});
+   const s=SourceStageRuntime.restart(c,this.app.getState(),{ids});
    this.runId=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
    // Baseline every member's jump counter at the restart; an empty map would
    // turn each earlier jump into a phantom jump on the new round's first tick.
