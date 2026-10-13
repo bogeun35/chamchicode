@@ -267,7 +267,7 @@
       const jump = !!input.jump;
       if (jump && !this.lastJump) this.jumpSeq++;
       this.lastJump = jump;
-      this.lastInput = { left: !!input.left, right: !!input.right, jump, up: !!input.up };
+      this.lastInput = { left: !!input.left, right: !!input.right, jump, up: !!input.up, down: !!input.down };
       const packet = { ...this.lastInput, connectionId: this.connectionId, jumpSeq: this.jumpSeq, restartSeq: this.restartSeq, seq: ++this.seq, at: Date.now() };
       // Inputs live outside the room node so they never contend with the host's
       // room transactions (publish, lobby, kick) - see PROTOCOL above.

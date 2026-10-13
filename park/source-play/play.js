@@ -8,7 +8,7 @@ const stageTitle=()=>catalogue.stages.find(s=>s.id===$('stage').value)?.title||'
 let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0,replay=null,replayLoading=false,replaySpeed=1;
 const keys=new Set();
 const onlineControl=new SourceParkOnlineController({
- getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW')}),
+ getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS')}),
  clearKeys:()=>keys.clear(),resume:()=>start(),pause:()=>overlay('온라인 협동','방을 만들거나 코드로 참가하세요.'),togglePause:()=>{paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');},
  replaceState:(s,i,remotePaused=false)=>{state=s;selected=Math.max(0,i);camera=null;paused=remotePaused;keys.clear();last=performance.now();$('start').disabled=false;canvas.focus();},
  showOnlineLobby:()=>{state=null;paused=true;keys.clear();$('cover').hidden=true;music.pause();$('progress').textContent='대기실';},
@@ -57,6 +57,12 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
+ if(state.poleState&&state.poleState.poles.length){
+  const pv=SourcePoleDevices.displays(state.poleState);
+  for(const pole of pv.poles){ctx.fillStyle='#c9a46a';ctx.fillRect(pole.x-2,pole.y,4,pole.height);}
+  ctx.fillStyle='#e05a5a';
+  for(const t of pv.thorns)for(const r of t.collisionRects)ctx.fillRect(r.xRaw/65536,r.yRaw/65536,r.widthRaw/65536,r.heightRaw/65536);
+ }
  if(state.landmines&&state.landmines.observer){
   // A switch only shows whether it was a mine after RevealLandmine 0x1818708d0,
   // so an unpressed one must look exactly like every other one.
@@ -133,7 +139,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
     if(replay.remaining===0){replay.index++;if(replay.index>=replay.data.commands.length){replay=null;$('replay-speed').hidden=true;overlay('입력 재생 종료','출발부터 실제 입력으로 진행한 기록입니다. 전체 클리어와 게임성은 검수 중입니다.','직접 조작 · Enter');}else replay.remaining=replay.data.commands[replay.index].frames;}
    }
   }else{
-  const p=state.players[selected],input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW')};
+  const p=state.players[selected],input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS')};
   if(p&&!p.exit)SourceStageRuntime.step(state,{[p.id]:input},dt);
   else SourceStageRuntime.step(state,{},dt);
   }
