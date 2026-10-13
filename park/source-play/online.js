@@ -10,7 +10,7 @@ const memberIds=room=>Object.keys(room.players||{}).sort((a,b)=>(room.players[a]
 // at the values it had when the round was created.
 const DEVICE_STATES=[['devices','deviceState'],['motion','motionState'],['gates','gateState'],
  ['bridges','bridgeState'],['blink','blinkState'],['blinkThunders','blinkThunderState'],
- ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState']];
+ ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState'],['linePaths','linePathState']];
 // The thorn ceiling draws its rows from a PCG32 generator whose state is a
 // BigInt pair; JSON and the database both refuse those, so they travel as
 // decimal strings and are rebuilt on arrival.
