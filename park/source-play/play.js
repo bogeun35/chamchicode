@@ -57,6 +57,16 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
+ for(const b of state.liftState.lifts){
+  // WeightedLiftComponent only moves once `riders` reaches `moveContactCount`
+  // (CalcMoveContactCount 0x181738090), so the readout is the whole mechanic.
+  const ready=b.riders>=b.moveContactCount;
+  box(b,ready?'#6fa8dc':'#4a5a74',3);
+  ctx.strokeStyle='#9fc6ef';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(b.x+3,b.y+3);ctx.lineTo(b.x+b.w-3,b.y+3);ctx.stroke();
+  ctx.fillStyle=ready?'#d8ecff':'#8e9cb4';ctx.font='bold 11px system-ui';ctx.textAlign='center';
+  ctx.fillText(b.riders+'/'+b.moveContactCount,b.x+b.w/2,b.y-4);ctx.textAlign='left';
+ }
  for(const b of state.gateState.gates){box(b,b.phase===1||b.phase===3?'#438c83':'#756184',3);ctx.strokeStyle='#ac92bd';ctx.lineWidth=2;for(let y=b.y+8;y<b.y+b.h;y+=12){ctx.beginPath();ctx.moveTo(b.x+3,y);ctx.lineTo(b.x+b.w-3,y);ctx.stroke();}}
  for(const d of state.deviceState?.devices||[]){
   if(d.type==='PushBox'){box(d,'#c48c55',4);ctx.strokeStyle='#785136';ctx.lineWidth=4;ctx.strokeRect(d.x+4,d.y+4,d.w-8,d.h-8);ctx.beginPath();ctx.moveTo(d.x+5,d.y+5);ctx.lineTo(d.x+d.w-5,d.y+d.h-5);ctx.moveTo(d.x+d.w-5,d.y+5);ctx.lineTo(d.x+5,d.y+d.h-5);ctx.stroke();for(let i=0;i<d.requiredPushers;i++){ctx.fillStyle=i<d.pushCount?'#89ffd1':'#775039';ctx.beginPath();ctx.arc(d.x+d.w/2+(i-(d.requiredPushers-1)/2)*6,d.y-7,2,0,Math.PI*2);ctx.fill();}}
