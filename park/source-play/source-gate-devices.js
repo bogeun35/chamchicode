@@ -31,15 +31,26 @@ function compile(actors,count){
 }
 function create(compiled){return clone(compiled);}
 function solids(state){return state.gates;}
+// ActorComponent.m_ActorType 17 is Key (creator ordinal 17). A NotifyEvent keyed
+// on an actor type reaches every actor of that type whatever its name, which is
+// how CoopCountUpTimer phase 7 (0x1818086a9) switches an inactive key on.
+const ACTOR_TYPE_KEY=17;
 function signal(state,event){
  const type=event.eventType??event.event??(event.on===true?61:event.on===false?60:null),name=event.targetName??event.target;
- if(type!==60&&type!==61)return false;let found=false;
- for(const g of state.gates)if(g.name===name||g.id===event.targetId){
+ const byType=event.broadcastActorType;
+ // KeyComponent.OnRecvEvent 0x18186cf90 answers event 1 exactly like event 61:
+ // 0x18186cff4 and 0x18186cffd both jump to 0x18186d0e2 and setActive(true).
+ if(type!==60&&type!==61&&type!==1)return false;let found=false;
+ if(type!==1)for(const g of state.gates)if(byType===undefined&&(g.name===name||g.id===event.targetId)){
   if(type===61&&(g.phase===0||g.phase===2))g.phase=1;
   if(type===60&&(g.phase===1||g.phase===3))g.phase=2;
   found=true;
  }
- for(const k of state.keys)if(k.name===name&&!k.taken){k.active=type===61;found=true;}
+ for(const k of state.keys){
+  if(byType===undefined?k.name!==name:byType!==ACTOR_TYPE_KEY)continue;
+  if(k.taken)continue;
+  k.active=type!==60;found=true;
+ }
  return found;
 }
 function moveTowards(value,target,amount){return value<target?Math.min(value+amount,target):Math.max(value-amount,target);}

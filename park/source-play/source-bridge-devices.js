@@ -6,16 +6,49 @@ const THUNDER_FADE_SPEED=4;
 const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 const allowed=(v,c)=>!v||v<0&&c<=-v||v>0&&v<10&&c>=v||v>=10&&c>=Math.trunc(v/10)&&c<=v%10;
 const toward=(a,b,n)=>a<b?Math.min(b,a+n):Math.max(b,a-n);
+// BridgeComponent.ParseParameter 0x1817dd7df..0x1817dd89a. A positive datas[4]
+// gives the bridge a head start - it begins the round already extended - and the
+// head start is LONGER the smaller the party, so a short-handed group has less
+// gap left to close. The block is skipped entirely when datas[4] <= 0
+// (0x1817dd7e2 jle).
+//   count = Frame.GetPlayerActorCount 0x1817494b0 (call at 0x1817dd7f6), which
+//           returns the length of ActorSceneComponent's player-actor list
+//           (0x1816a8100, field +0x30). Player actors are themselves entries in
+//           actorCreateParamList and every stage lists them before its devices,
+//           so by the time a Bridge parses, that list already holds the party.
+//   raw   = ((8 - count) << 16) * (datas[4] << 16) >> 16      0x1817dd800..0x1817dd81b
+//   steps = (raw * 0x1999) >> 32                              0x1817dd81f, 0x1817dd826
+//           0x1999 = 6553 = the FP raw of 0.1 (truncated), so this is one FP
+//           multiply by 0.1 followed by an FP->int floor. 0.1 is NOT exact in
+//           FP: 70 * 0.1 comes out as 6.9998 and floors to 6, not 7.
+//   grow  = steps * unit                                      0x1817dd82c, 0x1817dd830
+// grow lands on the LIVE rect only - size at +0x28/+0x30 (0x1817dd83c,
+// 0x1817dd856) and, for a negative direction, position at +0x18/+0x20
+// (0x1817dd89a). The init rect (+0x38) and the target rect (+0x78) keep their
+// parsed values, so a retract still shrinks all the way back to one unit.
+function headStart(datas4,count,unit){
+ if(!(datas4>0))return 0;
+ const raw=(8-count)*Math.floor(datas4)*0x10000;
+ return Math.floor(raw*0x1999/0x100000000)*unit;
+}
 function compile(actors,count){const bridges=[],thunders=[],keyTargets=[],warnings=[];
  actors.forEach((raw,i)=>{const a=raw.properties||raw,pos=raw.position||{x:raw.x??raw.posX,y:raw.y??raw.posY},data=raw.datas||raw.parameters||[],n=i=>data[i]?.t===1?data[i].f:0,s=i=>data[i]?.t===2?data[i].s||'':'';
  if(!allowed(a.playerCount,count))return;
  const common={id:raw.id||'source:a'+i,name:a.name||'',type:a.typeName,x:pos.x,y:pos.y};
  if(a.typeName==='Bridge'){
  const unit=Math.floor(n(3))||32,segments=Math.floor(n(0)),horizontal=!!n(1),sign=Math.sign(n(1)||n(2));
- if(segments<1||unit<1||!sign||(n(1)&&n(2))||n(4)!==0||n(5)!==0)throw Error('Unverified Bridge geometry/count scaling/push mode');
- const init={x:pos.x,y:pos.y,w:unit,h:unit},target={...init};
- target[horizontal?'w':'h']=unit*segments;if(sign<0)target[horizontal?'x':'y']-=(segments-1)*unit;
- bridges.push({...common,...init,init,target,phase:0,keyEnabled:n(6)>0,blocked:false});
+ if(segments<1||unit<1||!sign||(n(1)&&n(2))||n(5)!==0)throw Error('Unverified Bridge geometry/count scaling/push mode');
+ const init={x:pos.x,y:pos.y,w:unit,h:unit},target={...init},live={...init};
+ const axis=horizontal?'w':'h',edge=horizontal?'x':'y';
+ target[axis]=unit*segments;if(sign<0)target[edge]-=(segments-1)*unit;
+ const grow=headStart(n(4),count,unit);
+ // The native adds grow unconditionally; nothing clamps it against the target.
+ // No shipped stage comes anywhere near (07_03 grows at most 160 of 380), so an
+ // overshoot would mean the decoding is wrong rather than that the stage wants
+ // a bridge that starts past its own end.
+ if(grow>target[axis]-unit)throw Error('Bridge head start longer than its own span');
+ if(grow>0){live[axis]+=grow;if(sign<0)live[edge]-=grow;}
+ bridges.push({...common,...live,init,target,phase:0,keyEnabled:n(6)>0,blocked:false,headStart:grow});
  }else if(a.typeName==='Thunder'){
  // ThunderComponent.m_Flags bit0 (0x18172c812): the move round trip. No Thunder
  // in the shipped stages sets it, so it stays rejected rather than guessed.
