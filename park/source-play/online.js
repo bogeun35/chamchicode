@@ -10,7 +10,7 @@ const memberIds=room=>Object.keys(room.players||{}).sort((a,b)=>(room.players[a]
 // at the values it had when the round was created.
 const DEVICE_STATES=[['devices','deviceState'],['motion','motionState'],['gates','gateState'],
  ['bridges','bridgeState'],['blink','blinkState'],['blinkThunders','blinkThunderState'],
- ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState'],['linePaths','linePathState'],['texts','textsState'],['coins','coinsState'],['checkpoints','checkpointsState'],['touchEnergies','touchEnergiesState']];
+ ['warpInit','warpInitState'],['switchTimers','switchTimerState'],['enemies','enemyState'],['thornCeilings','thornCeilingState'],['countUps','countUpState'],['lifts','liftState'],['landmines','landmineState'],['poles','poleState'],['winds','windState'],['speedSwitches','speedSwitchState'],['linePaths','linePathState'],['pitchers','pitcherState'],['keyBoxes','keyBoxState'],['ballActors','ballActors'],['boxActors','boxActors'],['ballMeta','ballMeta'],['texts','textsState'],['coins','coinsState'],['checkpoints','checkpointsState'],['touchEnergies','touchEnergiesState']];
 // The thorn ceiling draws its rows from a PCG32 generator whose state is a
 // BigInt pair; JSON and the database both refuse those, so they travel as
 // decimal strings and are rebuilt on arrival.
@@ -40,6 +40,8 @@ function apply(s,p,positions=true){
   for(const name of Object.keys(s[field]))if(Array.isArray(s[field][name])&&!Array.isArray(incoming[name]))merged[name]=[];
   s[field]=merged;
  }
+ // A Key created at runtime (BallKeyBox) is not in the static map peers built.
+ if(s.ballMeta&&s.ballMeta.key&&!s.map.key)s.map.key={...s.ballMeta.key};
  s.keyActive=p.keyActive!==false;
  s.relayState={...copy(p.relays),relays:copy(p.relays.relays||[])};if(s.map.key)s.map.key.taken=s.keyTaken;
  for(const b of s.map.switches){const r=s.relayState.relays.find(r=>r.id===b.id);b.pressed=r.pressed;b.remaining=r.remaining||0;}

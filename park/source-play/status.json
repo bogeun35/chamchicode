@@ -1,7 +1,7 @@
 {
   "date": "2026-10-10",
   "label": "원본 라운드 이관 검수",
-  "sourceRoundsConnected": 17,
+  "sourceRoundsConnected": 18,
   "originalFidelityReviewedRounds": 0,
   "localOnlyControls": false,
   "online": {
@@ -23,7 +23,7 @@
       8
     ],
     "inputOnlyClearVerified": false,
-    "inputOnlyClearNote": "2026-10-13 현재 런타임 기준 8인 재녹화: 10라운드 중 6라운드가 입력만으로 클리어되고 5회 재생 결과가 틱 단위로 같다. 실패: st_w_01_02(play), st_w_01_03(play), st_w_04_03(현재 런타임에서 클리어 불가: 열쇠가 지형 안), st_w_05_02(dead). 근거 whole-route-replay-report.json, 재녹화 whole-route-record.cjs.",
+    "inputOnlyClearNote": "녹화된 8인 공략은 이전 스위치 접촉 판정에서 기록된 것으로 현재 런타임에서는 어긋납니다. 재녹화 전까지 기계 검증 없음.",
     "originalFidelityVerified": false,
     "humanFunVerified": false
   },
@@ -2530,6 +2530,160 @@
         ],
         "unsupportedActorTypes": [],
         "sourceStage": "st_w_03_02",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 2,
+      "sourceStage": "st_w_10_03",
+      "players": 2,
+      "platforms": 50,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 3,
+      "sourceStage": "st_w_10_03",
+      "players": 3,
+      "platforms": 50,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 4,
+      "sourceStage": "st_w_10_03",
+      "players": 4,
+      "platforms": 50,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 5,
+      "sourceStage": "st_w_10_03",
+      "players": 5,
+      "platforms": 54,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 6,
+      "sourceStage": "st_w_10_03",
+      "players": 6,
+      "platforms": 54,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 7,
+      "sourceStage": "st_w_10_03",
+      "players": 7,
+      "platforms": 54,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
+        "sourceY": "down",
+        "completePhysicsFidelity": false
+      }
+    },
+    {
+      "count": 8,
+      "sourceStage": "st_w_10_03",
+      "players": 8,
+      "platforms": 54,
+      "springs": 0,
+      "switches": 0,
+      "warps": 0,
+      "status": {
+        "state": "calibration_pending",
+        "missingMechanics": [
+          "Native tick frequency (60 Hz explicit prototype calibration)",
+          "Native collision pushback and update ordering equivalence",
+          "Key attach, transfer and goal-opening state machine (overlap pickup used)",
+          "Text localization asset unresolved; authored textId retained without invented display string"
+        ],
+        "unsupportedActorTypes": [],
+        "sourceStage": "st_w_10_03",
         "sourceY": "down",
         "completePhysicsFidelity": false
       }

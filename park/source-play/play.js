@@ -58,6 +58,14 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
+ if(state.pitcherState&&state.pitcherState.pitchers.length){
+  const F=65536;
+  for(const p of state.pitcherState.pitchers){ctx.fillStyle='#7a6a9c';ctx.fillRect(p.positionRaw.xRaw/F-27,p.positionRaw.yRaw/F-40,54,40);}
+  for(const b of state.keyBoxState.boxes){const a=state.boxActors[b.id];if(!a)continue;const x=a.positionRaw.xRaw/F,y=a.positionRaw.yRaw/F;
+   ctx.fillStyle='#c88a3a';ctx.fillRect(x-22,y-56,44,56);ctx.fillStyle='#3a2a1a';ctx.fillRect(x-4,y-60,8,10);}
+  for(const a of Object.values(state.ballActors||{})){if(a.visible===false)continue;
+   ctx.fillStyle=a.collisionActive===false?'rgba(255,224,130,.4)':'#ffe082';ctx.beginPath();ctx.arc(a.positionRaw.xRaw/F,a.positionRaw.yRaw/F,12,0,Math.PI*2);ctx.fill();}
+ }
  if(state.poleState&&state.poleState.poles.length){
   const pv=SourcePoleDevices.displays(state.poleState);
   for(const pole of pv.poles){ctx.fillStyle='#c9a46a';ctx.fillRect(pole.x-2,pole.y,4,pole.height);}
