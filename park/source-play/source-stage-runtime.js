@@ -28,9 +28,11 @@
   common?require('./source-boundballpitcher-devices.js'):root.SourceBoundBallPitcherDevices,
   common?require('./source-boundball.js'):root.SourceBoundBall,
   common?require('./source-ballkeybox-devices.js'):root.SourceBallKeyBoxDevices,
-  common?require('./source-blackout-devices.js'):root.SourceBlackoutDevices);
+  common?require('./source-blackout-devices.js'):root.SourceBlackoutDevices,
+  common?require('./source-playerblock-devices.js'):root.SourcePlayerBlockDevices,
+  common?require('./source-dossun-devices.js'):root.SourceDossunDevices);
  if(common)module.exports=api;root.SourceStageRuntime=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts,Landmines,Poles,Winds,SpeedSwitches,LinePaths,Texts,Coins,Checkpoints,TouchEnergies,Pitchers,Balls,KeyBoxes,Blackouts){
+})(typeof globalThis!=='undefined'?globalThis:this,function(Terrain,Actor,Relay,Devices,Motion,Gates,Bridges,Blink,BlinkThunders,WarpInit,SwitchTimers,Enemies,ThornCeilings,CountUps,Lifts,Landmines,Poles,Winds,SpeedSwitches,LinePaths,Texts,Coins,Checkpoints,TouchEnergies,Pitchers,Balls,KeyBoxes,Blackouts,Players,Dossuns){
  'use strict';
  const clone=x=>JSON.parse(JSON.stringify(x));
  const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -38,7 +40,7 @@
  const box=r=>({x:r.x,y:r.y,w:r.width,h:r.height});
  const NATIVE=Object.freeze({walk:3,jump:-334234/65536,gravity:42598/65536,terminal:19.5,holdFactor:13107/65536,holdFrames:14});
  function compile({source,geometry,count,stageId='st_w_01_01',nativeTickRate=60}={}){
-  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_05_02','st_w_10_02','st_w_11_04','st_w_07_02','st_w_10_01','st_w_10_04','st_w_13_01','st_w_11_02','st_w_12_03','st_w_03_02','st_w_10_03','st_w_05_01','st_w_02_02','st_w_07_03'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
+  if(!['st_w_01_01','st_w_01_02','st_w_01_03','st_w_01_04','st_w_04_01','st_w_04_03','st_w_04_04','st_w_05_02','st_w_10_02','st_w_11_04','st_w_07_02','st_w_10_01','st_w_10_04','st_w_13_01','st_w_11_02','st_w_12_03','st_w_03_02','st_w_10_03','st_w_05_01','st_w_02_02','st_w_07_03','st_w_14_03'].includes(stageId))throw new Error('Source stage runtime does not support this stage yet');
   if(!Number.isFinite(nativeTickRate)||nativeTickRate<1||nativeTickRate>240)throw new Error('Invalid calibration tick rate');
   const t=Terrain.createTerrain({source,geometry,count,stageId});
   // The original frames a fixed window, not the whole map: mapInitParam carries
@@ -79,6 +81,13 @@
   const pitchers=Pitchers.compile(t.actors,count);
   const keyBoxes=KeyBoxes.compile(t.actors,count);
   const blackouts=Blackouts.compile(t.actors,count,{});
+  // StageComponent's actor scale (Actor.Initialize 0x18169cd02) is the selected
+  // variant's stageInitParam.scale, a stage float, so it goes through convertFP
+  // 0x180554310 like every other one. Only the Dossun family reads it so far.
+  const stageScaleRaw=sourceVariant&&Number.isFinite(sourceVariant.scale)?Math.trunc(Math.fround(Math.fround(sourceVariant.scale)*65536)):null;
+  const dossunActors=t.actors.filter(a=>['Dossun','PlayerBlockGun'].includes(a.typeName));
+  if(dossunActors.length&&stageScaleRaw===null)throw new Error('Dossun stage without stageInitParam.scale: '+stageId);
+  const dossuns=Dossuns.compile(t.actors,count,stageScaleRaw===null?{}:{actorScaleRaw:stageScaleRaw});
   const springs=relays.relays.filter(r=>r.type==='JumpStand').map(r=>({...r,x:r.x-16,y:r.y-(r.parent?38:34),w:32,h:r.parent?38:34}));
   // The sensor rectangle is the one SwitchComponent.GetCollisionByDirection
   // 0x1817145a0 picks for this switch's direction byte; spring-switch-runtime
@@ -97,7 +106,7 @@
    return {id:'warp:'+i,type:'Warp',x:a.x,y:a.y,w:n(0),h:n(1),
     destination:{x:n(2),y:n(3)},ordinalOffset:{x:n(4),y:n(5)},counter:0};
   });
-  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes,...Landmines.supportedTypes,...Poles.supportedTypes,...Winds.supportedTypes,'SpeedSwitch',...LinePaths.supportedTypes,...Texts.supportedTypes,...Coins.supportedTypes,...Checkpoints.supportedTypes,...TouchEnergies.supportedTypes,'BoundBallPitcher',...KeyBoxes.supportedTypes,...Blackouts.supportedTypes]);
+  const supported=new Set(['Player','Key','Goal','Warp','MapRect','TopViewMapRect','JumpStand','JumpStandMediator','Switch','DelaySwitch','Rect','DashBoard','FallingWall',...Devices.supportedTypes,...Gates.supportedTypes,...Bridges.supportedTypes,...Blink.supportedTypes,...BlinkThunders.supportedTypes,...WarpInit.supportedTypes,...SwitchTimers.supportedTypes,...Enemies.supportedTypes,...ThornCeilings.supportedTypes,...CountUps.supportedTypes,...Lifts.supportedTypes,...Landmines.supportedTypes,...Poles.supportedTypes,...Winds.supportedTypes,'SpeedSwitch',...LinePaths.supportedTypes,...Texts.supportedTypes,...Coins.supportedTypes,...Checkpoints.supportedTypes,...TouchEnergies.supportedTypes,'BoundBallPitcher',...KeyBoxes.supportedTypes,...Blackouts.supportedTypes,...Dossuns.supportedTypes]);
   const unsupported=[...new Set(t.actors.filter(a=>!supported.has(a.typeName)).map(a=>a.typeName))];
   const missingMechanics=['Native tick frequency (60 Hz explicit prototype calibration)',
    'Native collision pushback and update ordering equivalence',
@@ -132,7 +141,7 @@
    physics:{playerWidth:32,playerHeight:46,nativeTickRate,status:'calibration_pending'},
    unsupportedActors:t.actors.filter(a=>!supported.has(a.typeName)).map(a=>({type:a.typeName,x:a.x,y:a.y})),
    view,coordinateSystem:'Y-down'};
-  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,landmines,poles,winds,speedSwitches,linePaths,texts,coins,checkpoints,touchEnergies,pitchers,keyBoxes,blackouts,status:{state:'calibration_pending',missingMechanics,
+  return {schemaVersion:1,count,map,relays,devices,motion,gates,bridges,blink,blinkThunders,warpInit,switchTimers,enemies,thornCeilings,countUps,lifts,landmines,poles,winds,speedSwitches,linePaths,texts,coins,checkpoints,touchEnergies,pitchers,keyBoxes,blackouts,dossuns,status:{state:'calibration_pending',missingMechanics,
    unsupportedActorTypes:unsupported,sourceStage:stageId,sourceY:'down',completePhysicsFidelity:false}};
  }
  function create(compiled,options={}){
@@ -142,8 +151,9 @@
   const initPositions=(compiled.warpInit&&compiled.warpInit.initPositions)||[];
   const state={map,players:ids.map((id,i)=>({id,...map.spawns[i],initPos:initPositions[i]||{x:map.spawns[i].x+16,y:map.spawns[i].y+47.5},onPole:!!(compiled.poles&&compiled.poles.poles&&compiled.poles.poles.length),lookingRight:true,w:32,h:46,vx:0,vy:0,grounded:false,ground:false,
    supportId:null,jump:false,jumpFrame:0,exit:false,visible:true,playerState:1})),
-   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),landmineState:Landmines.create(compiled.landmines||Landmines.compile([],count)),poleState:Poles.create(compiled.poles||Poles.compile([],count,{})),windState:Winds.create(compiled.winds||Winds.compile([],count,{})),speedSwitchState:SpeedSwitches.create(compiled.speedSwitches||SpeedSwitches.compile([],count,{})),linePathState:LinePaths.create(compiled.linePaths||LinePaths.compile([],count,{})),textsState:Texts.create(compiled.texts||Texts.compile([],count,{})),coinsState:Coins.create(compiled.coins||Coins.compile([],count,{})),checkpointsState:Checkpoints.create(compiled.checkpoints||Checkpoints.compile([],count,{})),touchEnergiesState:TouchEnergies.create(compiled.touchEnergies||TouchEnergies.compile([],count,{})),pitcherState:Pitchers.create(compiled.pitchers||Pitchers.compile([],count)),keyBoxState:KeyBoxes.create(compiled.keyBoxes||KeyBoxes.compile([],count)),blackoutState:Blackouts.create(compiled.blackouts||Blackouts.compile([],count,{})),ballActors:{},boxActors:{},ballMeta:{serial:0,gone:{},key:null},playTimeRaw:0,keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
-   status:'play',elapsed:0,ticks:0,accumulator:0,keyTaken:!map.key,coinsTaken:0,deaths:0,failure:null,
+   relayState:clone(compiled.relays),deviceState:Devices.create(compiled.devices||{schemaVersion:1,count,devices:[],warnings:[]}),motionState:Motion.create(compiled.motion||{count,rects:[],dashBoards:[],walls:[]}),gateState:Gates.create(compiled.gates||{count,gates:[],observers:[],keys:[]}),bridgeState:Bridges.create(compiled.bridges||{count,bridges:[],thunders:[],keyTargets:[],keyTaken:false}),blinkState:Blink.create(compiled.blink||Blink.compile([],count)),blinkThunderState:BlinkThunders.create(compiled.blinkThunders||BlinkThunders.compile([],count)),warpInitState:WarpInit.create(compiled.warpInit||WarpInit.compile([],count)),switchTimerState:SwitchTimers.create(compiled.switchTimers||SwitchTimers.compile([],count)),enemyState:Enemies.create(compiled.enemies||Enemies.compile([],count)),thornCeilingState:ThornCeilings.create(compiled.thornCeilings||ThornCeilings.compile([],count)),countUpState:CountUps.create(compiled.countUps||CountUps.compile([],count)),liftState:Lifts.create(compiled.lifts||Lifts.compile([],count)),landmineState:Landmines.create(compiled.landmines||Landmines.compile([],count)),poleState:Poles.create(compiled.poles||Poles.compile([],count,{})),windState:Winds.create(compiled.winds||Winds.compile([],count,{})),speedSwitchState:SpeedSwitches.create(compiled.speedSwitches||SpeedSwitches.compile([],count,{})),linePathState:LinePaths.create(compiled.linePaths||LinePaths.compile([],count,{})),textsState:Texts.create(compiled.texts||Texts.compile([],count,{})),coinsState:Coins.create(compiled.coins||Coins.compile([],count,{})),checkpointsState:Checkpoints.create(compiled.checkpoints||Checkpoints.compile([],count,{})),touchEnergiesState:TouchEnergies.create(compiled.touchEnergies||TouchEnergies.compile([],count,{})),pitcherState:Pitchers.create(compiled.pitchers||Pitchers.compile([],count)),keyBoxState:KeyBoxes.create(compiled.keyBoxes||KeyBoxes.compile([],count)),blackoutState:Blackouts.create(compiled.blackouts||Blackouts.compile([],count,{})),dossunState:Dossuns.create(compiled.dossuns||Dossuns.compile([],count,{})),ballActors:{},boxActors:{},ballMeta:{serial:0,gone:{},key:null},playTimeRaw:0,keyActive:!compiled.gates||compiled.gates.keys.every(k=>k.active),sourceStatus:clone(compiled.status),physics:clone(map.physics),
+   status:'play',elapsed:0,ticks:0,accumulator:0,// A BallKeyBox creates the key later (createKeyAt), so its round starts locked.
+   keyTaken:!map.key&&!((compiled.keyBoxes&&compiled.keyBoxes.boxes)||[]).length,coinsTaken:0,deaths:0,failure:null,
    lastRelayEvents:[],lastImpulses:[],lastContacts:{switchContacts:[],springContacts:[]}};
   if(options.checkpointInfo){
    state.checkpointsState=Checkpoints.create({...compiled.checkpoints,checkpointInfo:clone(options.checkpointInfo)});
@@ -161,7 +171,7 @@
   const info=previous&&previous.map.id===compiled.map.id?previous.checkpointsState?.checkpointInfo:null;
   return create(compiled,{...options,checkpointInfo:info?.isActive?{...clone(info),gameOverCount:info.gameOverCount+(previous.status==='dead'?1:0)}:undefined});
  }
- function active(s){return s.players.filter(p=>!p.exit);}
+ function active(s){return s.players.filter(p=>!p.exit&&!p.asBlock);}
  // Native switch contact rule, recovered from SwitchComponent.OnCollided
  // 0x181714f80: the handler is entered for ANY overlap with the direction's
  // sensor rectangle and then inspects only the collided Collision.m_PushBackTarget
@@ -349,7 +359,104 @@
   for(const [id,a] of Object.entries(s.boxActors))if(a.flags&8192){delete s.boxActors[id];s.ballMeta.gone[id]=true;}
  }
  function keyBoxSolids(s){return s.boxActors?boxRects(s).filter(r=>r.index===0).map(r=>({id:'keybox:'+r.boxId,x:r.x,y:r.y,w:r.w,h:r.h})):[];}
- function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState),...Blink.solids(s.blinkState),...BlinkThunders.solids(s.blinkThunderState),...Lifts.solids(s.liftState),...Winds.solids(s.windState),...LinePaths.solids(s.linePathState),...keyBoxSolids(s)];}
+ // ---- 14-3: Dossun / PlayerBlockGun / PlayerBlock host ---------------------
+ // source-dossun-devices.js (+ source-playerblock-devices.js) make the native
+ // decisions; this answers what they ask, in FP raws. Named approximations:
+ //  - cameraAreaRaw: the native kills a bullet that leaves the CAMERA's stage
+ //    area. The host simulates for everyone, so the area here is the span of the
+ //    live players widened by half a 960px view on each side.
+ //  - moveDeviceActor: a straight move by the actor's velocity; the Dossun stops
+ //    on the first terrain or player below it, a bullet ends on terrain.
+ //  - a PlayerBlock does not fall: the module never gives it an acceleration and
+ //    nothing in it reads gravity.
+ const DS_F=65536,PLAYER_RECT_RAW={height:46*65536,width:32*65536,x:-16*65536,y:-47*65536};
+ const rawBox=r=>({x:r.x/DS_F,y:r.y/DS_F,w:r.width/DS_F,h:r.height/DS_F});
+ function dossunSnapshots(s,hz){
+  // players are actors too: Actor.Initialize gives them the same stage scale
+  const stageScale=(s.dossunState.devices[0]&&s.dossunState.devices[0].actorScaleRaw)||DS_F;
+  return s.players.map((p,i)=>({id:p.id,actorIndex:i,playerIndex:i,colorIndex:i,playerState:p.dead?3:1,sortingOrder:0,
+   xRaw:Math.round((p.x+16)*DS_F),yRaw:Math.round((p.y+47)*DS_F),
+   vxRaw:Math.round((p.vx||0)/hz*DS_F),vyRaw:Math.round((p.vy||0)/hz*DS_F),
+   flipH:!!p.facingLeft,flipV:false,scaleXRaw:DS_F,scaleYRaw:DS_F,actorScaleRaw:stageScale,rectRaw:{...PLAYER_RECT_RAW}}));
+ }
+ function applyDossunEvents(s,events,hz){
+  const dead=[];
+  for(const e of events||[]){const p=s.players.find(q=>q.id===e.targetId);if(!p)continue;
+   if(e.eventType===19){if(!p.immortal&&!p.asBlock)dead.push(p.id);}
+   // event 65: the hit player is paused and hidden while its PlayerBlock stands in
+   else if(e.eventType===65){p.asBlock=true;p.vx=0;p.vy=0;p.grounded=false;p.supportId=null;}
+   // event 66: Shot again returns the player at the block's position and velocity
+   else if(e.eventType===66){p.asBlock=false;
+    if(e.restorePosition){p.x=e.xRaw/DS_F-16;p.y=e.yRaw/DS_F-47;p.vx=e.vxRaw/DS_F*hz;p.vy=e.vyRaw/DS_F*hz;}}
+  }
+  return dead;
+ }
+ function dossunTick(s,inputs,hz){
+  const st=s.dossunState;if(!st||!st.devices.length)return [];
+  const live=s.players.filter(p=>!p.exit&&!p.asBlock&&!p.dead),terrain=s.map.platforms;
+  const xs=live.map(p=>p.x),lo=(xs.length?Math.min(...xs):0)-480,hi=(xs.length?Math.max(...xs):0)+512;
+  const snaps=dossunSnapshots(s,hz);
+  const input9=Object.fromEntries(s.players.map(p=>[p.id,!!(inputs[p.id]&&inputs[p.id].shot)]));
+  const before=Dossuns.beforeStep(st,{dt:1/hz,players:snaps,input9,
+   cameraAreaRaw:{x:Math.round(lo*DS_F),width:Math.round((hi-lo)*DS_F)},
+   // Map.Move of the Dossun body straight down: how far until terrain.
+   mapMoveDossunSensor:req=>{const b=rawBox(Players.rectAt(req.actor,req.rectRaw));let best=req.dyRaw/DS_F;
+    for(const t of terrain)if(t.x<b.x+b.w&&t.x+t.w>b.x&&t.y>=b.y+b.h-0.001)best=Math.min(best,t.y-(b.y+b.h));
+    return {moveYRaw:Math.round(Math.max(0,best)*DS_F)};}});
+  const dead=applyDossunEvents(s,before.events,hz);
+  const contacts=[];
+  Dossuns.moveActors(st,(actor)=>{
+   if(actor.type==='Dossun'){
+    if(!actor.vyRaw)return;
+    actor.yRaw+=actor.vyRaw;
+    const now=dossunBody(st,actor);if(!now)return;
+    // A standing PlayerBlock is collision kind 3, the same kind as terrain and
+    // the Dossun body, so the Dossun comes to rest on it (contact on layer 2,
+    // which contactDossun does not turn into a death).
+    const blockRects=Players.solids(st.playerBlocks).map(b=>({id:b.id,...rawBox(b)}));
+    const hit=t=>t.x<now.x+now.w&&t.x+t.w>now.x&&t.y<now.y+now.h&&t.y+t.h>now.y;
+    const ground=terrain.filter(hit),onBlocks=blockRects.filter(hit);
+    if(onBlocks.length&&!ground.length){const top=Math.min(...onBlocks.map(b=>b.y));actor.yRaw-=Math.round((now.y+now.h-top)*DS_F);
+     for(const b of onBlocks)contacts.push({actorId:actor.id,callback:'OnContacted',otherId:b.id,otherLayer:2,contactYRaw:DS_F});}
+    const under=live.filter(p=>p.x<now.x+now.w&&p.x+p.w>now.x&&p.y<now.y+now.h&&p.y+p.h>now.y);
+    if(ground.length){const top=Math.min(...ground.map(t=>t.y));actor.yRaw-=Math.round((now.y+now.h-top)*DS_F);
+     contacts.push({actorId:actor.id,callback:'OnContacted',otherId:null,otherLayer:0,contactYRaw:DS_F});}
+    for(const p of under)contacts.push({actorId:actor.id,callback:'OnContacted',otherId:p.id,otherLayer:1,contactYRaw:DS_F});
+   }else if(actor.type==='PlayerBlockGunBullet'){
+    actor.xRaw+=actor.vxRaw;actor.yRaw+=actor.vyRaw;
+    const b=rawBox(Players.rectAt(actor));
+    if(terrain.some(t=>t.x<b.x+b.w&&t.x+t.w>b.x&&t.y<b.y+b.h&&t.y+t.h>b.y))contacts.push({actorId:actor.id,callback:'OnContacted',otherId:null,otherLayer:0});
+   }
+  });
+  // collision phase: thorns (index 1) and the sensor (index 2) of the Dossun,
+  // bullets against players; a bullet ignores its own shooter in the module.
+  for(const d of Dossuns.solids(st)){const box=rawBox(d);
+   if(d.actorType===157&&(d.collisionIndex===1||d.collisionIndex===2)){
+    for(const p of live)if(overlap(p,box))contacts.push({actorId:d.actorId,callback:'OnCollided',collisionIndex:d.collisionIndex,otherLayer:1,otherId:p.id,otherActorType:27});
+    if(d.collisionIndex===2)for(const b of Players.solids(st.playerBlocks))if(overlap(rawBox(b),box))contacts.push({actorId:d.actorId,callback:'OnCollided',collisionIndex:2,otherLayer:2,otherId:b.id,otherActorType:163});
+   }else if(d.actorType===162){
+    // A bullet is born inside its shooter (muzzle +10px from the anchor), and
+    // collideBullet requests the disappear before it checks the owner - so the
+    // native collision must never report the shooter, or the gun could not work.
+    const bullet=st.bullets.find(b=>b.id===d.actorId),owner=bullet?s.players[bullet.playerIndex]:null;
+    for(const p of live)if(p!==owner&&overlap(p,box))contacts.push({actorId:d.actorId,callback:'OnCollided',otherLayer:1,otherId:p.id,otherActorType:27});
+   }
+  }
+  const after=Dossuns.afterStep(st,{players:dossunSnapshots(s,hz),contacts});
+  dead.push(...applyDossunEvents(s,after.events,hz));
+  return dead;
+ }
+ function dossunBody(st,actor){
+  const body=Dossuns.solids(st).find(x=>x.actorId===actor.id&&x.collisionIndex===0);
+  return body?rawBox(body):null;
+ }
+ // The Dossun body (collision kind 3) and standing PlayerBlocks are solids.
+ function dossunSolids(s){
+  if(!s.dossunState||!s.dossunState.devices.length)return [];
+  try{return Dossuns.solids(s.dossunState).filter(d=>(d.actorType===157&&d.collisionIndex===0)||d.actorType===163).map(d=>({id:d.id,...rawBox(d)}));}
+  catch(e){return [];}
+ }
+ function baseSolids(s){return [...s.map.platforms,...s.map.springs.filter(b=>s.relayState.relays.find(r=>r.id===b.id)?.visible),...Motion.solids(s.motionState),...Gates.solids(s.gateState),...Bridges.solids(s.bridgeState),...Blink.solids(s.blinkState),...BlinkThunders.solids(s.blinkThunderState),...Lifts.solids(s.liftState),...Winds.solids(s.windState),...LinePaths.solids(s.linePathState),...keyBoxSolids(s),...dossunSolids(s)];}
  function solids(s){return [...baseSolids(s),...Devices.solids(s.deviceState)];}
  function ridersOf(p,players){
   const ids=new Set([p.id]);let added=true;
@@ -453,6 +560,7 @@
    for(const p of players){const next=SpeedSwitches.applyPlayerSpeedEvent({stageBaseScaleRaw:s.map.stageScaleRaw||65536,iceSpeedUpRaw:s.map.iceSpeedUpRaw||65536},e);p.walkSpeed=next.walkSpeedRaw/65536;}
   for(const p of [...players].sort((a,b)=>b.y-a.y||a.id.localeCompare(b.id))){
    if(paused)continue;
+   {const inp=inputs[p.id]||{};if(inp.left&&!inp.right)p.facingLeft=true;else if(inp.right&&!inp.left)p.facingLeft=false;}
    if(p.onPole){poleMove(s,p,p.inputLocked?{}:(inputs[p.id]||{}),terrain);continue;}
    const input=p.inputLocked?{}:(inputs[p.id]||{}),held=!!input.jump,edge=held&&!p.jump,riders=ridersOf(p,players);
    p.jumpBlocked=!!(edge&&p.grounded&&riders.length);
@@ -486,6 +594,8 @@
    box.y+=carrier.y-base.y;
   }
   ballTick(s,players,hz);
+  const dossunDeaths=dossunTick(s,inputs,hz);
+  if(dossunDeaths.length){s.status='dead';s.deaths++;s.failure={playerId:dossunDeaths[0],reason:'쿵쿵 블록에 당했어요'};return;}
   const facts={switchContacts:[],springContacts:[]};
   for(const p of players){
    const upContactCount=players.filter(q=>q!==p&&q.grounded&&q.supportId===p.id).length;

@@ -58,45 +58,8 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  for(const p of state.map.platforms)box(p,p.flags&2?'#438798':p.flags&4?'#b17a49':'#39566a',0);
  for(const b of SourceMotionDevices.solids(state.motionState)){box(b,b.wallId?'#aa7c64':'#39566a',b.wallId?3:0);if(b.wallId){ctx.strokeStyle='#513c35';ctx.lineWidth=2;ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);}}
  for(const b of state.motionState.dashBoards){box(b,'#31cec1',3);ctx.strokeStyle='#efffff';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<3;i++){const x=b.x+12+i*18;ctx.moveTo(x,b.y+2);ctx.lineTo(x+6,b.y+b.h/2);ctx.lineTo(x,b.y+b.h-2);}ctx.stroke();}
- if(state.pitcherState&&state.pitcherState.pitchers.length){
-  const F=65536;
-  for(const p of state.pitcherState.pitchers){ctx.fillStyle='#7a6a9c';ctx.fillRect(p.positionRaw.xRaw/F-27,p.positionRaw.yRaw/F-40,54,40);}
-  for(const b of state.keyBoxState.boxes){const a=state.boxActors[b.id];if(!a)continue;const x=a.positionRaw.xRaw/F,y=a.positionRaw.yRaw/F;
-   ctx.fillStyle='#c88a3a';ctx.fillRect(x-22,y-56,44,56);ctx.fillStyle='#3a2a1a';ctx.fillRect(x-4,y-60,8,10);}
-  for(const a of Object.values(state.ballActors||{})){if(a.visible===false)continue;
-   ctx.fillStyle=a.collisionActive===false?'rgba(255,224,130,.4)':'#ffe082';ctx.beginPath();ctx.arc(a.positionRaw.xRaw/F,a.positionRaw.yRaw/F,12,0,Math.PI*2);ctx.fill();}
- }
- if(state.poleState&&state.poleState.poles.length){
-  const pv=SourcePoleDevices.displays(state.poleState);
-  for(const pole of pv.poles){ctx.fillStyle='#c9a46a';ctx.fillRect(pole.x-2,pole.y,4,pole.height);}
-  ctx.fillStyle='#e05a5a';
-  for(const t of pv.thorns)for(const r of t.collisionRects)ctx.fillRect(r.xRaw/65536,r.yRaw/65536,r.widthRaw/65536,r.heightRaw/65536);
- }
- if(state.landmines&&state.landmines.observer){
-  // A switch only shows whether it was a mine after RevealLandmine 0x1818708d0,
-  // so an unpressed one must look exactly like every other one.
-  for(const sw of state.landmines.switches){
-   const b=state.map.switches.find(x=>x.id===sw.id);if(!b)continue;
-   const fill=sw.revealedLandmine?'#d9534f':sw.exploding?'#f0ad4e':sw.pressed?'#7ef0bc':'#9aa7b8';
-   box(b,fill,2);
-   if(sw.exploding){ctx.strokeStyle='#ffd27f';ctx.lineWidth=2;ctx.strokeRect(b.x-3,b.y-3,b.w+6,b.h+6);}
-  }
-  const o=state.landmines.observer;
-  ctx.fillStyle=o.isGameOver?'#d9534f':o.isGameClear?'#7ef0bc':'#d8ecff';
-  ctx.font='bold 14px system-ui';ctx.textAlign='center';
-  ctx.fillText(o.pushedSwitchCount+' / '+o.clearSwitchCount,state.map.width/2,40);
-  ctx.textAlign='left';
- }
- for(const b of state.liftState.lifts){
-  // WeightedLiftComponent only moves once `riders` reaches `moveContactCount`
-  // (CalcMoveContactCount 0x181738090), so the readout is the whole mechanic.
-  const ready=b.riders>=b.moveContactCount;
-  box(b,ready?'#6fa8dc':'#4a5a74',3);
-  ctx.strokeStyle='#9fc6ef';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(b.x+3,b.y+3);ctx.lineTo(b.x+b.w-3,b.y+3);ctx.stroke();
-  ctx.fillStyle=ready?'#d8ecff':'#8e9cb4';ctx.font='bold 11px system-ui';ctx.textAlign='center';
-  ctx.fillText(b.riders+'/'+b.moveContactCount,b.x+b.w/2,b.y-4);ctx.textAlign='left';
- }
+ // every device park-art.js does not know is drawn by source-device-art.js
+ if(window.SourceDeviceArt)SourceDeviceArt.draw(ctx,state);
  for(const b of state.gateState.gates){box(b,b.phase===1||b.phase===3?'#438c83':'#756184',3);ctx.strokeStyle='#ac92bd';ctx.lineWidth=2;for(let y=b.y+8;y<b.y+b.h;y+=12){ctx.beginPath();ctx.moveTo(b.x+3,y);ctx.lineTo(b.x+b.w-3,y);ctx.stroke();}}
  for(const d of state.deviceState?.devices||[]){
   if(d.type==='PushBox'){box(d,'#c48c55',4);ctx.strokeStyle='#785136';ctx.lineWidth=4;ctx.strokeRect(d.x+4,d.y+4,d.w-8,d.h-8);ctx.beginPath();ctx.moveTo(d.x+5,d.y+5);ctx.lineTo(d.x+d.w-5,d.y+d.h-5);ctx.moveTo(d.x+d.w-5,d.y+5);ctx.lineTo(d.x+5,d.y+d.h-5);ctx.stroke();for(let i=0;i<d.requiredPushers;i++){ctx.fillStyle=i<d.pushCount?'#89ffd1':'#775039';ctx.beginPath();ctx.arc(d.x+d.w/2+(i-(d.requiredPushers-1)/2)*6,d.y-7,2,0,Math.PI*2);ctx.fill();}}
@@ -119,7 +82,7 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
  if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle=state.keyActive?'#ffdb72':'#586270';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();for(const o of state.gateState.observers)for(let i=0;i<o.total;i++){ctx.fillStyle=i<o.pushedCount?'#7ef0bc':'#586270';ctx.beginPath();ctx.arc(k.x+k.w/2+(i-(o.total-1)/2)*10,k.y-12,3,0,Math.PI*2);ctx.fill();}}
  const blackoutView=state.blackoutState&&state.blackoutState.blackouts.length?SourceBlackoutDevices.displays(state.blackoutState):null;
- state.players.forEach((p,i)=>{if(p.exit)return;
+ state.players.forEach((p,i)=>{if(p.exit||p.asBlock)return;
   // changeControlablePlayer 0x181872cc0 greys out everyone who cannot move, so
   // the one-at-a-time rule has to be visible or the round is unreadable.
   box(p,p.grayscale?'#6b7280':colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=p.grayscale?'#6b7280':colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);const bc=state.blackoutState&&state.blackoutState.controllers&&state.blackoutState.controllers[0];if(bc&&bc.visibleUI&&bc.playerIndex===i){ctx.fillStyle='#ffe082';ctx.font='bold 12px system-ui';ctx.fillText('X: 불 켜기',p.x+p.w/2,p.y-24);}});ctx.restore();if(blackoutView){for(const b of blackoutView.blackouts){const a=Math.max(0,Math.min(1,b.alpha*(b.darknessRaw/65536)));if(a>0){ctx.fillStyle='rgba(0,0,0,'+a+')';ctx.fillRect(0,0,view.width,view.height);}}}

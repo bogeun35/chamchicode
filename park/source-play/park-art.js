@@ -419,6 +419,8 @@ function drawFriend(c,p,i,o){
  const walking=grounded&&Math.abs(p.vx||0)>1,step=walking?Math.sin(t*16+i):0;
  const dead=o.deadId===p.id,flash=o.flash&&o.flash[p.id]>0;
  c.save();if(flash&&Math.floor(t*14)%2)c.globalAlpha*=.35;
+ // changeControlablePlayer 0x181872cc0 greys out everyone who cannot move
+ if(p.grayscale){c.filter='grayscale(1)';c.globalAlpha*=.75;}
  c.translate(p.x+p.w/2,p.y+p.h);
  if(grounded){c.fillStyle='rgba(30,20,40,.2)';ellipse(c,0,0,14,3);c.fill();}
  c.scale(sx*f,sy);
@@ -566,12 +568,15 @@ function render(ctx,state,camera,opts={}){
  }
 
  drawRegisteredDevices(ctx,state);
+ // devices registered after this file (lifts, poles, enemies, balls, Dossun, ...)
+ if(root.SourceDeviceArt)root.SourceDeviceArt.draw(ctx,state,{time});
  // friends: the controlled one last so it is never hidden
  const deadId=state.status==='dead'&&state.failure?state.failure.playerId:null;
  const o={time,selected:opts.selected,zoom:z,deadId,flash:ceil&&ceil.flash};
- const order=players.map((p,i)=>i).filter(i=>!players[i].exit).sort((a,b)=>(a===opts.selected)-(b===opts.selected));
+ const order=players.map((p,i)=>i).filter(i=>!players[i].exit&&!players[i].asBlock).sort((a,b)=>(a===opts.selected)-(b===opts.selected));
  for(const i of order){const p=players[i];if(p.x>view.x1+60||p.x+p.w<view.x0-60)continue;drawFriend(ctx,p,i,o);}
  for(const i of order){const p=players[i];drawBadge(ctx,p,i,o);}
+ if(root.SourceDeviceArt)root.SourceDeviceArt.drawAbove(ctx,state);
 
  // sparkles when the key is taken or a friend walks through the door
  if(state.keyTaken&&memo.lastKey===false&&map.key)sparkle(map.key.x+map.key.w/2,map.key.y+map.key.h/2,['#ffe066','#ffffff','#ffb020'],14,time);
@@ -580,6 +585,7 @@ function render(ctx,state,camera,opts={}){
  drawFx(ctx,time);
  if(opts.debugBoxes)drawDebug(ctx,state,map);
  ctx.restore();
+ if(root.SourceDeviceArt)root.SourceDeviceArt.overlay(ctx,state,{width:sw,height:VH});
  drawHud(ctx,state,time,sw);
  drawRegisteredHud(ctx,state);
 }
