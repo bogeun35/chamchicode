@@ -8,7 +8,7 @@ const stageTitle=()=>catalogue.stages.find(s=>s.id===$('stage').value)?.title||'
 let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0,replay=null,replayLoading=false,replaySpeed=1;
 const keys=new Set();
 const onlineControl=new SourceParkOnlineController({
- getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS')}),
+ getState:()=>state,isPaused:()=>paused,input:()=>({left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),shot:keys.has('KeyX')||keys.has('ShiftLeft')||keys.has('ShiftRight')}),
  clearKeys:()=>keys.clear(),resume:()=>start(),pause:()=>overlay('온라인 협동','방을 만들거나 코드로 참가하세요.'),togglePause:()=>{paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');},
  replaceState:(s,i,remotePaused=false)=>{state=s;selected=Math.max(0,i);camera=null;paused=remotePaused;keys.clear();last=performance.now();$('start').disabled=false;canvas.focus();},
  showOnlineLobby:()=>{state=null;paused=true;keys.clear();$('cover').hidden=true;music.pause();$('progress').textContent='대기실';},
@@ -118,10 +118,11 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
  }
  const door=state.map.exit;if(door){box(door,state.keyTaken?'#44bc91':'#5c6475',7);ctx.fillStyle='#091925';ctx.fillRect(door.x+7,door.y+7,door.w-14,Math.max(4,door.h-7));}
  if(state.map.key&&!state.keyTaken){const k=state.map.key;ctx.strokeStyle=state.keyActive?'#ffdb72':'#586270';ctx.lineWidth=4;ctx.beginPath();ctx.arc(k.x+k.w/2,k.y+12,8,0,Math.PI*2);ctx.moveTo(k.x+k.w/2,k.y+20);ctx.lineTo(k.x+k.w/2,k.y+k.h-3);ctx.lineTo(k.x+k.w-3,k.y+k.h-3);ctx.stroke();for(const o of state.gateState.observers)for(let i=0;i<o.total;i++){ctx.fillStyle=i<o.pushedCount?'#7ef0bc':'#586270';ctx.beginPath();ctx.arc(k.x+k.w/2+(i-(o.total-1)/2)*10,k.y-12,3,0,Math.PI*2);ctx.fill();}}
+ const blackoutView=state.blackoutState&&state.blackoutState.blackouts.length?SourceBlackoutDevices.displays(state.blackoutState):null;
  state.players.forEach((p,i)=>{if(p.exit)return;
   // changeControlablePlayer 0x181872cc0 greys out everyone who cannot move, so
   // the one-at-a-time rule has to be visible or the round is unreadable.
-  box(p,p.grayscale?'#6b7280':colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=p.grayscale?'#6b7280':colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);});ctx.restore();
+  box(p,p.grayscale?'#6b7280':colors[i%8],8);ctx.fillStyle='#0b2735';ctx.fillRect(p.x+p.w-11,p.y+12,4,6);ctx.fillRect(p.x+7,p.y+12,4,6);ctx.fillStyle=p.grayscale?'#6b7280':colors[i%8];ctx.beginPath();ctx.moveTo(p.x,p.y+12);ctx.lineTo(p.x-8,p.y+5);ctx.lineTo(p.x-8,p.y+25);ctx.fill();if(selected===i){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(p.x-4,p.y-4,p.w+8,p.h+8);}ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText(String(i+1),p.x+p.w/2,p.y-9);const bc=state.blackoutState&&state.blackoutState.controllers&&state.blackoutState.controllers[0];if(bc&&bc.visibleUI&&bc.playerIndex===i){ctx.fillStyle='#ffe082';ctx.font='bold 12px system-ui';ctx.fillText('X: 불 켜기',p.x+p.w/2,p.y-24);}});ctx.restore();if(blackoutView){for(const b of blackoutView.blackouts){const a=Math.max(0,Math.min(1,b.alpha*(b.darknessRaw/65536)));if(a>0){ctx.fillStyle='rgba(0,0,0,'+a+')';ctx.fillRect(0,0,view.width,view.height);}}}
  // A DeadTimer ends the round for everyone when it reaches zero, so the
  // countdown has to be on screen. TimerView.updateTimer renders floor(m_Sec) as
  // m:ss and TimerComponent.WARNING_SECOND is 10, which turns the readout red.
@@ -148,7 +149,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
     if(replay.remaining===0){replay.index++;if(replay.index>=replay.data.commands.length){replay=null;$('replay-speed').hidden=true;overlay('입력 재생 종료','출발부터 실제 입력으로 진행한 기록입니다. 전체 클리어와 게임성은 검수 중입니다.','직접 조작 · Enter');}else replay.remaining=replay.data.commands[replay.index].frames;}
    }
   }else{
-  const p=state.players[selected],input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS')};
+  const p=state.players[selected],input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:keys.has('ArrowUp')||keys.has('KeyW')||keys.has('Space'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),shot:keys.has('KeyX')||keys.has('ShiftLeft')||keys.has('ShiftRight')};
   if(p&&!p.exit)SourceStageRuntime.step(state,{[p.id]:input},dt);
   else SourceStageRuntime.step(state,{},dt);
   }
