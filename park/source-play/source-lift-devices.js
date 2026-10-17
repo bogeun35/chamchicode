@@ -286,7 +286,7 @@ const FP_EPSILON=4;
 const PROC_INTERVAL_UPDATES=6;
 const PROC_HOLD=0, PROC_EXTEND=1, PROC_RETURN=2;
 const POPULATION_TABLE_ENTRIES=7;
-const SUPPORTED=['WeightedLiftEx'];
+const SUPPORTED=['WeightedLiftEx','WeightedLift'];
 
 function slot(a,i){return a.datas[i];}
 function isNumeric(a,i){const s=slot(a,i);return !!s&&s.t===1;}
@@ -301,6 +301,12 @@ function slotFp(a,i,label){
  if(!Number.isSafeInteger(raw))throw Error('WeightedLift slot '+i+' ('+label+') outside exact range on '+a.id);
  return raw;
 }
+// Stage parameters reach ParseParameter through QStageFileConverter.convertFP
+// 0x180554310: the asset's float32 becomes a string and FP.FromString_UNSAFE
+// parses it (float32, times 65536.0f, truncated - cvttss2si). Used by the
+// WeightedLift path, whose authored -0.1 the older refusal above could not take.
+function stageFp(a,i){const v=numeric(a,i);return Math.trunc(Math.fround(Math.fround(v)*F));}
+const stageInt=(a,i)=>Math.floor(stageFp(a,i)/F);
 // `sar 0x10` truncates toward negative infinity, which is what floor does.
 function slotInt(a,i){return Math.floor(slotFp(a,i,'integer slot')/F);}
 // Shared create-param string reader 0x18096f720; an absent or non-string slot
@@ -333,11 +339,58 @@ const absFp=v=>v<0?-v:v;
 // ((v >> 63) & -0x20000) + 0x10000 at 0x181737fe6: +1 for v >= 0, -1 for v < 0.
 const signFp=v=>v<0?-1:1;
 
+// NormalWeightedLiftComponent.ParseParameter 0x181889b40 - the WeightedLift slot
+// map, which differs from WeightedLiftEx's in almost every index. Each byte field
+// is stored under its own guard, the same pattern as Ex:
+//   m_MovePercent <- [2] only if > 0 (0x181889eb5 jle, store 0x181889ec0)
+//   m_MoveMin     <- [3] only if > 0 (0x181889ecb, 0x181889ed6)
+//   m_MoveMax     <- [10] only if > 0 (0x181889edd, 0x181889ee8)
+//   m_MoveOffset  <- [7] only if != 0 (0x181889ef3 je, 0x181889efe)
+//   m_MoveDirection <- ([6], [0] + playerActorCount*[1]) (0x181889e7f..e8e,
+//                    store 0x181889ea9), the per-player term only above epsilon
+//   m_ReturnSpeed += [4] * max(0, count-2), only when |[4]| >= epsilon
+//                    (0x181889f10, factor clamped at 0x181889f23, add 0x181889f39).
+//                    Initialize 0x181737a36 seeded it with MOVE_SPEED_DEFAULT,
+//                    the same static m_Speed gets at 0x181737a1f.
+//   flags: [5] != 0 CLEARS EnableReturn (0x181889f5c btr 0) - the only slot in the
+//          family that does; [8] RideReversal (bts 1), [9] CountReversal (bts 2),
+//          [12] DisableWaitContactLower (bts 3)
+//   m_Width <- population table [11] (store 0x18188a0b5)
+// m_Speed is never written, so a WeightedLift always rises at MOVE_SPEED_DEFAULT.
+function compileNormal(a,count){
+ const baseY=stageFp(a,0),scaleY=stageFp(a,1),moveX=stageFp(a,6);
+ let dirX=DEFAULT_MOVE_X_FP,dirY=DEFAULT_MOVE_Y_FP;
+ if(absFp(baseY)>=FP_EPSILON||absFp(moveX)>=FP_EPSILON){
+  dirX=moveX;dirY=baseY+(absFp(scaleY)>=FP_EPSILON?count*scaleY:0);
+ }
+ const percentSlot=stageInt(a,2),minSlot=stageInt(a,3),maxSlot=stageInt(a,10),offsetSlot=stageInt(a,7);
+ const movePercent=percentSlot>0?percentSlot:DEFAULT_MOVE_PERCENT;
+ const moveMin=minSlot>0?minSlot:DEFAULT_MOVE_MIN;
+ const moveMax=maxSlot>0?maxSlot:DEFAULT_MOVE_MAX;
+ const moveOffset=offsetSlot!==0?offsetSlot:DEFAULT_MOVE_OFFSET;
+ const returnAdd=stageFp(a,4);
+ const returnSpeedFp=MOVE_SPEED_DEFAULT_FP+(absFp(returnAdd)>=FP_EPSILON?Math.floor(returnAdd*Math.max(0,count-2)*F/F):0);
+ const flags={enableReturn:stageInt(a,5)===0,enableRideReversal:stageInt(a,8)!==0,
+  enableCountReversal:stageInt(a,9)!==0,disableWaitContactLower:stageInt(a,12)!==0};
+ const widthOverride=tableLookup(populationTable(a,11,'m_Width'),count);
+ const widthFp=widthOverride>0?widthOverride:DEFAULT_WIDTH_FP;
+ if(widthFp<=0||!Number.isInteger(widthFp/F))throw Error('Unverified WeightedLift m_Width '+widthFp/F+' on '+a.id);
+ if(dirX===0&&dirY===0)throw Error('WeightedLift with a zero travel vector on '+a.id);
+ if(returnSpeedFp<0)throw Error('WeightedLift return speed below zero is not established on '+a.id);
+ const width=widthFp/F;
+ return {id:'lift:'+a.id,name:a.name||'',type:a.typeName,anchor:{x:a.x,y:a.y},
+  w:width,h:RECT_HEIGHT,rectX:-width/2,rectY:RECT_Y,x:a.x-width/2,y:a.y+RECT_Y,
+  moveDirXFp:dirX,moveDirYFp:dirY,speedFp:MOVE_SPEED_DEFAULT_FP,returnSpeedFp,
+  movePercent,moveMin,moveMax,moveOffset,flags,
+  offsetXFp:0,offsetYFp:0,proc:PROC_HOLD,procUpdates:0,waitTimer:0,
+  contactCount:0,moveContactCount:DEFAULT_MOVE_CONTACT_COUNT,riders:0,moved:{x:0,y:0}};
+}
 function compile(actors,count){
  if(!Number.isInteger(count)||count<2||count>8)throw Error('WeightedLift compile needs a population of 2..8');
  const rows=(actors||[]).map(normalize).filter(a=>allowed(a.playerCount,count)),lifts=[],warnings=[];
  for(const a of rows){
   if(!SUPPORTED.includes(a.typeName))continue;
+  if(a.typeName==='WeightedLift'){lifts.push(compileNormal(a,count));continue;}
   if(a.datas.length<19)throw Error('WeightedLiftEx needs 19 parameter slots (ParseParameter bounds check 0x18183b42e), got '+a.datas.length+' on '+a.id);
   // --- m_MoveDirection (0x18183b48a..0x18183b4e4) ---
   const baseY=slotFp(a,0,'moveDirection.Y base'),moveX=slotFp(a,12,'moveDirection.X');
@@ -378,8 +431,7 @@ function compile(actors,count){
   if(a.typeName==='WeightedLiftSingle')widthFp=SINGLE_WIDTH_FP;
   if(widthFp<=0||!Number.isInteger(widthFp/F))throw Error('Unverified WeightedLift m_Width '+widthFp/F+' on '+a.id);
   // --- the one path this module does not port ---
-  if(dirY!==0)throw Error('Unverified vertical WeightedLift travel: ActorComponent.IsEnableMoveContactActor 0x1816a15c0 gates MoveLift 0x181738170 on the vertical branch and is not reversed');
-  if(dirX===0)throw Error('WeightedLiftEx with a zero travel vector on '+a.id);
+  if(dirX===0&&dirY===0)throw Error('WeightedLiftEx with a zero travel vector on '+a.id);
   const width=widthFp/F;
   lifts.push({id:'lift:'+a.id,name:a.name||'',type:a.typeName,
    anchor:{x:a.x,y:a.y},
@@ -414,6 +466,13 @@ function calcMoveContactCount(lift,playerCount){
 // The de-duplicated recursive Up-face contact count (Collision.GetContactCount
 // 0x181694c70) as the transitive closure of "grounded on", which is what the
 // runtime's support chain expresses.
+function ridersOf(lift,players){
+ const ids=new Set();let added=true;
+ while(added){added=false;
+  for(const p of players){if(p.exit||!p.grounded||ids.has(p.id))continue;
+   if(p.supportId===lift.id||ids.has(p.supportId)){ids.add(p.id);added=true;}}}
+ return players.filter(p=>ids.has(p.id));
+}
 function riderCount(lift,players){
  const ids=new Set();
  let added=true;
@@ -427,13 +486,12 @@ function riderCount(lift,players){
  return ids.size;
 }
 
-function beforeStep(state,{dt=1/60,nativeTickRate=60,players=[]}={}){
+function beforeStep(state,{dt=1/60,nativeTickRate=60,players=[],platforms=[]}={}){
  if(!Number.isFinite(dt)||dt<0)throw Error('Invalid lift delta');
  if(!Number.isFinite(nativeTickRate)||nativeTickRate<=0)throw Error('Invalid lift tick rate');
  const updates=dt*nativeTickRate;
  const live=players.filter(p=>!p.exit);
  for(const lift of state.lifts){
-  if(lift.moveDirYFp!==0)throw Error('Vertical WeightedLift travel is not ported');
   // 1. the threshold is recomputed every update
   lift.moveContactCount=calcMoveContactCount(lift,state.count);
   // 3. riders. EnableCountReversal would add the Down face too; no shipped
@@ -445,6 +503,14 @@ function beforeStep(state,{dt=1/60,nativeTickRate=60,players=[]}={}){
   // DisableWaitContactLower skips the arming entirely, which is why
   // st_w_10_04's lift (datas[13] = 1) never freezes.
   if(lift.waitTimer>0)lift.waitTimer=Math.max(0,lift.waitTimer-dt);
+  // 5. Collision.IsContacted(Down, includeMap) 0x181737de3: anything touching the
+  //    underside - a player's head or terrain - re-arms WAIT_TIME, which is what
+  //    stops a lowering lift from crushing whoever is beneath it.
+  if(!lift.flags.disableWaitContactLower&&!lift.flags.enableRideReversal){
+   const under={x:lift.x,y:lift.y+lift.h,w:lift.w,h:0.5};
+   const touching=b=>b.x<under.x+under.w&&b.x+b.w>under.x&&b.y>=under.y-0.01&&b.y<=under.y+under.h;
+   if(live.some(p=>touching(p))||platforms.some(touching))lift.waitTimer=WAIT_TIME_FP/F;
+  }
   if(lift.waitTimer>0){lift.contactCount=riders;lift.moved={x:0,y:0};continue;}
   // 7..8. the m_Proc decision, throttled to one update in six
   lift.procUpdates-=updates;
@@ -464,11 +530,35 @@ function beforeStep(state,{dt=1/60,nativeTickRate=60,players=[]}={}){
   // 10. MoveLift. dY is zero here, so the only gate is |dX| >= QFP.Epsilon and
   // MoveContactActor is not reached here; separate horizontal inertia is unported.
   const dX=targetX-lift.offsetXFp;
-  if(absFp(dX)<FP_EPSILON){lift.moved={x:0,y:0};continue;}
-  lift.offsetXFp=targetX;
-  const before=lift.x;
-  lift.x=lift.anchor.x+lift.rectX+lift.offsetXFp/F;
-  lift.moved={x:lift.x-before,y:0};
+  lift.moved={x:0,y:0};
+  if(absFp(dX)>=FP_EPSILON){
+   lift.offsetXFp=targetX;
+   const before=lift.x;
+   lift.x=lift.anchor.x+lift.rectX+lift.offsetXFp/F;
+   lift.moved.x=lift.x-before;
+  }
+  // Vertical: the same clamped offset on Y, and MoveLift's MoveContactActor
+  // (0, dY) carries the riders (0x1817383fc / 0x181738448). The native gate is
+  // IsEnableMoveContactActor 0x1816a15c0, still only partly reversed; this
+  // refuses a rise that would push a rider into terrain and allows the rest.
+  if(lift.moveDirYFp!==0){
+   let targetY=absFp(lift.offsetYFp);
+   if(lift.proc===PROC_EXTEND)targetY+=lift.speedFp*updates;
+   else if(lift.proc===PROC_RETURN)targetY-=lift.returnSpeedFp*updates;
+   targetY=Math.max(0,Math.min(targetY,absFp(lift.moveDirYFp)))*signFp(lift.moveDirYFp);
+   const dY=targetY-lift.offsetYFp;
+   if(absFp(dY)>=FP_EPSILON){
+    const step=dY/F,carried=ridersOf(lift,live);
+    const blocked=step<0&&carried.some(p=>platforms.some(b=>b.x<p.x+p.w&&b.x+b.w>p.x&&b.y<p.y+step+p.h&&b.y+b.h>p.y+step));
+    if(!blocked){
+     lift.offsetYFp=targetY;
+     const before=lift.y;
+     lift.y=lift.anchor.y+lift.rectY+lift.offsetYFp/F;
+     lift.moved.y=lift.y-before;
+     for(const p of carried)p.y+=lift.moved.y;
+    }
+   }
+  }
  }
  return {solids:state.lifts};
 }
