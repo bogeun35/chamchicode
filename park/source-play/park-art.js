@@ -393,7 +393,8 @@ function drawWallBlock(c,b,wall){
 }
 
 // ------------------------------------------------------------------ friends
-function facingOf(p){const prev=memo.facing.get(p.id)||1;const f=p.vx>.5?1:p.vx<-.5?-1:prev;memo.facing.set(p.id,f);return f;}
+// the runtime keeps lookingRight from input (Player Update 0x1816c3060); others go by velocity
+function facingOf(p){const prev=memo.facing.get(p.id)||1;const f=typeof p.facingLeft==='boolean'?(p.facingLeft?-1:1):typeof p.lookingRight==='boolean'?(p.lookingRight?1:-1):p.vx>.5?1:p.vx<-.5?-1:prev;memo.facing.set(p.id,f);return f;}
 function accessory(c,kind,pal,behind){
  const dk=pal.dark;
  if(behind){
@@ -411,17 +412,30 @@ function accessory(c,kind,pal,behind){
  else if(kind==='antenna'){star(c,3,-52,4.8,2.1);fillStroke(c,'#ffe066','#a88512',1.2);}
 }
 function drawFriend(c,p,i,o){
- const pal=FRIENDS[i%8],t=o.time,f=facingOf(p),grounded=!!p.grounded;
+ const pal=o.palette||FRIENDS[((p.colorIndex??i))%8],t=o.time,f=facingOf(p),grounded=!!p.grounded;
  const wasAir=memo.air.get(p.id);memo.air.set(p.id,!grounded);if(wasAir&&grounded)memo.land.set(p.id,t);
  let sx=1,sy=1;const landAge=t-(memo.land.get(p.id)??-9);
  if(!grounded){if((p.vy||0)<0){sy=1.07;sx=.95;}else{sy=1.02;sx=.98;}}
  else if(landAge<.12){const k=1-landAge/.12;sy=1-.09*k;sx=1+.07*k;}
  const walking=grounded&&Math.abs(p.vx||0)>1,step=walking?Math.sin(t*16+i):0;
- const dead=o.deadId===p.id,flash=o.flash&&o.flash[p.id]>0;
+ const dead=o.deadId===p.id,flash=o.flash&&o.flash[p.id]>0||!!(p.tv&&p.tv.isFlashing);
  c.save();if(flash&&Math.floor(t*14)%2)c.globalAlpha*=.35;
  // changeControlablePlayer 0x181872cc0 greys out everyone who cannot move
  if(p.grayscale){c.filter='grayscale(1)';c.globalAlpha*=.75;}
  c.translate(p.x+p.w/2,p.y+p.h);
+ // stage scale (8-1, 8-3, 10-x 1.5, 9-4 3): the body is 32s x 46s, the friend drawn s times
+ {const ps=p.w/32;if(ps!==1)c.scale(ps,ps);}
+// a plane player (OnInitialize_Plane: animation 8, 9 when damaged) rides a little plane; the
+ // friend sits in its cockpit, the draw offset is OnUpdate_BattlePlane's hit shake
+ if(p.plane){const o=p.plane.life&&p.plane.life.offset;if(o)c.translate(o.xRaw/65536,o.yRaw/65536);
+  const dir=f,hurt=p.plane.life&&p.plane.life.anim===9;c.save();c.scale(dir,1);
+  c.beginPath();c.ellipse(0,-14,22,9,0,0,Math.PI*2);fillStroke(c,hurt&&Math.floor(t*10)%2?mix(pal.body,'#ffffff',.5):pal.body,pal.dark,2);
+  c.beginPath();c.moveTo(-6,-14);c.lineTo(-14,-2);c.lineTo(4,-2);c.closePath();fillStroke(c,mix(pal.body,pal.dark,.25),pal.dark,1.5);
+  c.beginPath();c.moveTo(-18,-16);c.lineTo(-24,-26);c.lineTo(-14,-18);c.closePath();fillStroke(c,mix(pal.body,pal.dark,.25),pal.dark,1.5);
+  c.beginPath();c.arc(22,-14,3,0,Math.PI*2);fillStroke(c,'#e8e3ff',pal.dark,1.2);c.restore();
+  c.translate(0,-18);c.scale(.62,.62);c.translate(0,0);}
+ // top-view fall (fallStep 0x1816caba0) shrinks the player to nothing
+ if(p.tvScale!==undefined&&p.tvScale<1){if(p.tvScale<=0){c.restore();return;}c.scale(p.tvScale,p.tvScale);}
  if(grounded){c.fillStyle='rgba(30,20,40,.2)';ellipse(c,0,0,14,3);c.fill();}
  c.scale(sx*f,sy);
  // tail (behind the body, a fork that barely leaves the box)
@@ -444,7 +458,7 @@ function drawFriend(c,p,i,o){
  c.restore();
 }
 function drawBadge(c,p,i,o){
- const pal=FRIENDS[i%8],k=Math.max(1,Math.min(1.8,.85/o.zoom)),cx=p.x+p.w/2,cy=p.y-12;
+ const pal=FRIENDS[((p.colorIndex??i))%8],k=Math.max(1,Math.min(1.8,.85/o.zoom)),cx=p.x+p.w/2,cy=p.y-12;
  c.save();c.translate(cx,cy);c.scale(k,k);
  rr(c,-8,-7,16,13,6.5);fillStroke(c,pal.dark,'#ffffff',1.5);
  c.fillStyle='#ffffff';c.font=`bold 10.5px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),0,0);
@@ -506,7 +520,7 @@ function render(ctx,state,camera,opts={}){
  const time=opts.time??(performance.now()/1000),map=state.map,theme=themeOf(map);
  ctx.setTransform(scale,0,0,scale,0,0);ctx.imageSmoothingEnabled=true;
  if(memo.layerKey!==theme.key+'|'+scale){memo.layers=buildLayers(theme,scale);memo.layerKey=theme.key+'|'+scale;}
- if(memo.stateRef!==state){memo.stateRef=state;memo.lastKey=state.keyTaken;memo.lastExit=new Map(state.players.map(p=>[p.id,p.exit]));memo.fx=[];memo.land.clear();memo.air.clear();}
+ if(memo.stateRef!==state){memo.stateRef=state;memo.lastKey=!!state.goalOpen;memo.lastExit=new Map(state.players.map(p=>[p.id,p.exit]));memo.fx=[];memo.land.clear();memo.air.clear();}
  drawSky(ctx,theme,camera,map,time,sw);
  const z=camera.zoom,view={x0:camera.x,y0:camera.y,x1:camera.x+sw/z,y1:camera.y+VH/z};
  const terrain=prepareTerrain(map,theme,scale);
@@ -526,9 +540,9 @@ function render(ctx,state,camera,opts={}){
 
  // door + key first so friends walk in front of them
  const players=state.players||[];
- const inside=players.map((p,i)=>p.exit?FRIENDS[i%8]:null).filter(Boolean);
- if(map.exit)drawDoor(ctx,map.exit,!!state.keyTaken,time,inside,players.length);
- if(map.key&&!state.keyTaken&&intersects(map.key,view,40))drawKey(ctx,map.key,state.keyActive!==false,time,state.gateState&&state.gateState.observers);
+ const inside=players.map((p,i)=>p.exit?FRIENDS[(p.colorIndex??i)%8]:null).filter(Boolean);
+ if(map.exit)drawDoor(ctx,map.exit,!!state.goalOpen,time,inside,players.length);
+ if(map.key&&!map.key.hidden&&intersects(map.key,view,40))drawKey(ctx,map.key,state.keyActive!==false,time,state.gateState&&state.gateState.observers);
  for(const g of (state.gateState&&state.gateState.gates)||[])if(intersects(g,view,10))drawGate(ctx,g);
  const bridges=(state.bridgeState&&state.bridgeState.bridges)||[];
  for(const b of bridges)if(intersects(b,view,10))drawBridge(ctx,b);
@@ -573,15 +587,15 @@ function render(ctx,state,camera,opts={}){
  // friends: the controlled one last so it is never hidden
  const deadId=state.status==='dead'&&state.failure?state.failure.playerId:null;
  const o={time,selected:opts.selected,zoom:z,deadId,flash:ceil&&ceil.flash};
- const order=players.map((p,i)=>i).filter(i=>!players[i].exit&&!players[i].asBlock).sort((a,b)=>(a===opts.selected)-(b===opts.selected));
+ const order=players.map((p,i)=>i).filter(i=>!players[i].exit&&!players[i].asBlock&&!players[i].hiddenByCardboard&&!players[i].fakeProxy).sort((a,b)=>(a===opts.selected)-(b===opts.selected));
  for(const i of order){const p=players[i];if(p.x>view.x1+60||p.x+p.w<view.x0-60)continue;drawFriend(ctx,p,i,o);}
  for(const i of order){const p=players[i];drawBadge(ctx,p,i,o);}
  if(root.SourceDeviceArt)root.SourceDeviceArt.drawAbove(ctx,state);
 
  // sparkles when the key is taken or a friend walks through the door
- if(state.keyTaken&&memo.lastKey===false&&map.key)sparkle(map.key.x+map.key.w/2,map.key.y+map.key.h/2,['#ffe066','#ffffff','#ffb020'],14,time);
- memo.lastKey=!!state.keyTaken;
- players.forEach((p,i)=>{if(p.exit&&memo.lastExit.get(p.id)===false&&map.exit)sparkle(map.exit.x+map.exit.w/2,map.exit.y,[FRIENDS[i%8].body,'#ffffff'],10,time);memo.lastExit.set(p.id,!!p.exit);});
+ if(state.goalOpen&&memo.lastKey===false&&map.exit)sparkle(map.exit.x+map.exit.w/2,map.exit.y,['#ffe066','#ffffff','#ffb020'],14,time);
+ memo.lastKey=!!state.goalOpen;
+ players.forEach((p,i)=>{if(p.exit&&memo.lastExit.get(p.id)===false&&map.exit)sparkle(map.exit.x+map.exit.w/2,map.exit.y,[FRIENDS[(p.colorIndex??i)%8].body,'#ffffff'],10,time);memo.lastExit.set(p.id,!!p.exit);});
  drawFx(ctx,time);
  if(opts.debugBoxes)drawDebug(ctx,state,map);
  ctx.restore();
@@ -606,5 +620,5 @@ function drawDebug(c,state,map){
 }
 function blank(ctx,canvas){const vp=viewport(canvas||ctx.canvas),s=vp.scale;ctx.setTransform(s,0,0,s,0,0);const g=ctx.createLinearGradient(0,0,0,VH);g.addColorStop(0,'#16244a');g.addColorStop(1,'#3a2f63');ctx.fillStyle=g;ctx.fillRect(0,0,vp.width,VH);}
 
-root.ParkArt={render,drawRegisteredDevices,drawRegisteredHud,blank,viewport,FRIENDS,THEMES,worldOf,VW,VH};
+root.ParkArt={render,drawRegisteredDevices,drawRegisteredHud,blank,viewport,drawFriend,mix,FRIENDS,THEMES,worldOf,VW,VH};
 })(typeof window!=='undefined'?window:globalThis);

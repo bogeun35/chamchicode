@@ -39,13 +39,14 @@ function compile(actors,count,options={}){
    x:(fpRaw(p.x)+(count-2)*fpRaw(n(0)))/FP,y:(fpRaw(p.y)+(count-2)*fpRaw(n(1)))/FP,
    direction:left?2:3,powerRaw:(left?-1:1)*fpRaw(n(count)),
    rangeRaw:n(11)>0?fpRaw(n(11)):DEFAULT_RANGE*FP,
-   strongScaleRaw:n(10)>0?fpRaw(n(10)):DEFAULT_STRONG_SCALE*FP,strong:false});
+   strongScaleRaw:n(10)>0?fpRaw(n(10)):DEFAULT_STRONG_SCALE*FP,strong:false,scale:options.scale||1});
  }
  return {schemaVersion:1,count,winds,pendingForces:[],completePhysicsFidelity:false};
 }
 const create=c=>JSON.parse(JSON.stringify(c));
-const solids=s=>s.winds.map(w=>({id:w.id,x:w.x-31,y:w.y-75,w:48,h:74}));
-function volumes(s){return s.winds.map(w=>({id:w.id,windId:w.id,x:w.direction===2?w.x-w.rangeRaw/FP:w.x,y:w.y-60,w:w.rangeRaw/FP,h:16,category:0,userTag:4}));}
+// both colliders x the stage scale (AddActor -> SetBaseScale, pivot 0); the power is not scaled
+const solids=s=>s.winds.map(w=>{const k=w.scale||1;return {id:w.id,x:w.x-31*k,y:w.y-75*k,w:48*k,h:74*k};});
+function volumes(s){return s.winds.map(w=>{const k=w.scale||1,len=w.rangeRaw/FP*k;return {id:w.id,windId:w.id,x:w.direction===2?w.x-len:w.x,y:w.y-60*k,w:len,h:16*k,category:0,userTag:4};});}
 function signal(s,e){let found=false;const type=e.eventType??e.event;
  for(const w of s.winds)if(e.broadcast===true||e.broadcastActorType===77||e.targetId===w.id||((e.targetName??e.target)!==undefined&&(e.targetName??e.target)===w.name)){
   if(type===60||type===61){w.strong=type===61;found=true;}

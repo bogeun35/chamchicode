@@ -46,6 +46,16 @@ function update(previous,players,map,viewport={width:1200,height:675},dt=1/60){
  y=Math.max(low-(H-bottom)/zoom,Math.min(high-top/zoom,y));
  return {x,y,zoom};
 }
+// Auto scroll (QScrollType 2): the original Camera.funcAuto view
+// (source-camera-native.js stage area, raw FP) fills the screen height; a
+// wider screen shows the same centre. Before the first update the camera has
+// not run yet, so a copy is moved onto the start scroll position for display.
+function fromAutoScroll(a,viewport={width:1200,height:675}){
+ const F=65536;let area=a.cameraAreaRaw;
+ if(!a.steps&&typeof SourceCameraNative!=='undefined')area=SourceCameraNative.updateAuto(JSON.parse(JSON.stringify(a.camera)),a.scroll.scrollPositionRaw).cameraAreaRaw;
+ const w=area.width/F,h=area.height/F,zoom=viewport.height/h;
+ return {x:area.x/F+(w-viewport.width/zoom)/2,y:area.y/F,zoom};
+}
 function point(camera,x,y){return {x:(x-camera.x)*camera.zoom,y:(y-camera.y)*camera.zoom};}
-const api={update,point,baseZoom};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.ParkCamera=api;
+const api={update,point,baseZoom,fromAutoScroll};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.ParkCamera=api;
 })(typeof window!=='undefined'?window:globalThis);

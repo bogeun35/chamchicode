@@ -11,7 +11,7 @@
 // m_Direction, so the zero default applies and the box is the plain
 // COLLISION_RECT. It has no target, no repeat and no timer of its own; the
 // landmine module reads the contact and decides everything else.
-const TYPES=new Set(['JumpStand','JumpStandMediator','Switch','DelaySwitch','LandmineSwitch']);
+const TYPES=new Set(['JumpStand','JumpStandMediator','Switch','DelaySwitch','LandmineSwitch','DeadSwitch']);
 const WINDUP=Math.trunc(0.2*65536)/65536;
 const RECOVERY=Math.trunc((1/12)*65536)/65536;
 const number=(a,i)=>a.datas[i]?.t===1?a.datas[i].f:0;
@@ -90,6 +90,12 @@ function normalize(a,index){
  return {id:a.id||'source:a'+index,sourceIndex:index,...a};
 }
 function populationAllowed(v,n){return v===0||v<0&&n<=-v||v>0&&v<10&&n>=v||v>=10&&n>=Math.trunc(v/10)&&n<=v%10;}
+// QPlayerCountParam (0x18096f720): 7 int64 LE, each char (code - 0x21) & 0xff.
+function countTable(a,i){const s=string(a,i);if(!s)return new Array(7).fill(0);if(s.length!==56)throw new Error('Undecoded population table length at '+a.id+':'+i);
+ const b=[...s].map(c=>(c.codePointAt(0)-0x21)&0xff),out=[];for(let e=0;e<7;e++){let v=0n;for(let k=7;k>=0;k--)v=(v<<8n)|BigInt(b[e*8+k]);if(v>=1n<<63n)v-=1n<<64n;out.push(Number(v));}return out;}
+// The pair search DeadSwitch.ParseParameter uses: count-2 downward to the first
+// index where either table is nonzero (0x181817e6a / 0x181817f56 / 0x181818045).
+function pairLookup(a,i,j,count){const A=countTable(a,i),B=countTable(a,j);for(let k=count-2;k>=0;k--)if(A[k]!==0||B[k]!==0)return [A[k],B[k]];return [0,0];}
 function zeroOffsets(a,x,y){
  // Exact first-stage encoded tables are 56 exclamation marks. Other grammar
  // remains undecoded; refusing it avoids fabricating population placement.
@@ -102,8 +108,14 @@ function create(actors,count){
   const d=i=>number(a,i),s=i=>string(a,i);
   const r={id:a.id,name:a.name||'',type:a.typeName,sourceIndex:a.sourceIndex,x:a.posX,y:a.posY};
   if(a.typeName==='JumpStand'){
-   if(d(4)!==0)throw new Error('Runtime scope supports original world01-01 switchType 0 only');
-   Object.assign(r,{velocity:{x:d(0),y:d(1)},affectAll:(nativeInteger(d(2))>>>0)>0,parent:s(3),keepVelocityX:nativeInteger(d(8))!==0,phase:0,timer:0,visible:true});
+   // JumpStandComponent.ParseParameter 0x181868400: slot4 switch type byte,
+   // slot5 delay, slot6 appear and slot7 disappear seconds (each kept only when
+   // > 0); InitPost 0x181868920: a switch type other than 0 starts visible unless
+   // it is type 1. The switch timer runs on FP raws like the native.
+   const raw=i=>Math.trunc(Math.fround(Math.fround(d(i))*65536)),switchType=((raw(4)>>>0)>>>16)&0xff;
+   if(switchType>3)throw new Error('JumpStand switch type outside 0..3');
+   Object.assign(r,{velocity:{x:d(0),y:d(1)},affectAll:(nativeInteger(d(2))>>>0)>0,parent:s(3),keepVelocityX:nativeInteger(d(8))!==0,phase:0,timer:0,
+    switchType,count:0,delayRaw:Math.max(0,raw(5)),appearRaw:Math.max(0,raw(6)),disappearRaw:Math.max(0,raw(7)),switchTimerRaw:0,visible:switchType!==1});
   }else if(a.typeName==='Switch'){
    zeroOffsets(a,6,7);
    const direction=switchDirection(d(5));
@@ -111,6 +123,16 @@ function create(actors,count){
   }else if(a.typeName==='LandmineSwitch'){
    Object.assign(r,{direction:0,rect:switchRect(0),target:'',subtarget:'',repeat:false,
     switchId:0,timerAddSeconds:0,pressed:false,latched:false});
+  }else if(a.typeName==='DeadSwitch'){
+   // DeadSwitchComponent.ParseParameter 0x181817b60: slot0 the switch direction
+   // byte, slots 1/2 a position offset pair, slots 4/5 and 6/7 the two
+   // movement vectors event 61 would use (OnRecvEvent 0x181818500), slot10 != 0
+   // sets bit1: kill every player instead of the one pressing it.
+   const [ox,oy]=pairLookup(a,1,2,count),[ax,ay]=pairLookup(a,4,5,count),[bx,by]=pairLookup(a,6,7,count);
+   if([ax,ay,bx,by].some(v=>Math.abs(v)>=4))throw new Error('DeadSwitch movement (event 61 velocity) is not ported: '+a.id);
+   const direction=switchDirection(d(0));
+   Object.assign(r,{x:a.posX+ox/65536,y:a.posY+oy/65536,direction,rect:switchRect(direction),target:'',subtarget:'',repeat:true,switchId:0,timerAddSeconds:0,
+    killAll:nativeInteger(d(10))!==0,pressed:false,latched:false});
   }else if(a.typeName==='DelaySwitch'){
    zeroOffsets(a,3,4);
    const direction=switchDirection(d(2));
@@ -154,6 +176,7 @@ function step(state,dt,facts={}){
   if(r.type==='JumpStandMediator'&&on){
    for(const spring of state.relays.filter(x=>x.type==='JumpStand'))deliver(spring,true,r);
   }else if(r.type==='JumpStand'&&on&&sender.type==='JumpStandMediator'&&sender.name===r.parent&&r.visible&&r.phase===0)r.phase=1;
+  else if(r.type==='JumpStand'&&sender.type!=='JumpStandMediator')jumpStandSignal(r,on?61:60);
  };
  // NormalSwitchComponent.ParseParameter 0x181888a15 reads datas[4] and stores
  // its raw FP value at component+0x20 (m_TimerAddSecond, il2cpp 48) without a
@@ -173,6 +196,15 @@ function step(state,dt,facts={}){
   if(r.repeat)r.latched=false;
   if(r.forceOff){r.latched=false;r.forceOff=false;}
  }
+ // DeadSwitch: SwitchComponent.OnUpdate turns it on when pressed and off when
+ // released; onChangeSwitchState 0x181818b90 acts on the rising edge only -
+ // event 26 to the last actor that collided with it, or (bit1) event 19 to
+ // every Player with a screen flash.
+ for(const r of state.relays.filter(x=>x.type==='DeadSwitch')){
+  const on=(facts.switchContacts||[]).filter(c=>c.relayId===r.id&&(c.attributeFlags&2)!==0&&[1,2,3,8].includes(c.layer));
+  if(on.length&&!r.pressed){r.pressed=true;events.push(r.killAll?{eventType:19,broadcastActorType:27,senderId:r.id,deadSwitch:true,flash:true}:{eventType:26,targetId:on[on.length-1].actorId,senderId:r.id,deadSwitch:true});}
+  else if(!on.length&&r.pressed)r.pressed=false;
+ }
  // Native updatePhase does one state transition per update, with no dt carry.
  for(const r of state.relays.filter(x=>x.type==='JumpStand')){
   let fire=false;
@@ -186,9 +218,24 @@ function step(state,dt,facts={}){
    impulses.push({relayId:r.id,actorId:c.actorId,eventType:36,velocity:{x:r.keepVelocityX?c.velocityX:(!r.affectAll&&c.layer===1?0:r.velocity.x),y:r.velocity.y},keepVelocityX:r.keepVelocityX});
   }
  }
+ // JumpStandComponent.switchProc 0x1818691a0, after the phase update: type 1
+ // appears while signalled and disappears a delay after release (not during a
+ // jump), type 2 the mirror, type 3 blinks by its appear/disappear seconds.
+ const dtRaw=Math.trunc(dt*65536);
+ for(const r of state.relays.filter(x=>x.type==='JumpStand'&&x.switchType)){
+  if(r.switchType===1){if(r.count>0){r.switchTimerRaw=r.delayRaw;if(!r.visible)r.visible=true;}
+   else if(r.visible){r.switchTimerRaw-=dtRaw;if(r.switchTimerRaw<=0&&r.phase===0)r.visible=false;}}
+  else if(r.switchType===2){if(r.count>0){r.switchTimerRaw=r.delayRaw;if(r.visible&&r.phase===0)r.visible=false;}
+   else if(!r.visible){r.switchTimerRaw-=dtRaw;if(r.switchTimerRaw<=0)r.visible=true;}}
+  else{r.switchTimerRaw-=dtRaw;if(r.switchTimerRaw<=0){if(!r.visible){r.visible=true;r.switchTimerRaw=r.appearRaw;}else if(r.phase===0){r.visible=false;r.switchTimerRaw=r.disappearRaw;}}}
+ }
  return {events,impulses};
 }
-const api={create,step,WINDUP,RECOVERY,SWITCH_RECTS,SWITCH_RECT_FOR_TOPVIEW,switchRect,switchDirection};
+// JumpStandComponent.OnRecvEvent 0x181869620: 61 from anything but its parent
+// JumpStandMediator (checkParentMediator 0x181869740 returns -1) counts up,
+// 60 counts down (not below 0).
+function jumpStandSignal(r,type){if(type===61){r.count=(r.count+1)<<24>>24;return true;}if(type===60){if(r.count>0)r.count--;return true;}return false;}
+const api={create,step,jumpStandSignal,WINDUP,RECOVERY,SWITCH_RECTS,SWITCH_RECT_FOR_TOPVIEW,switchRect,switchDirection};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.SourceSpringSwitch=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

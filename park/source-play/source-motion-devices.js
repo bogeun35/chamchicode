@@ -23,8 +23,10 @@
   if(v>=(1n<<63n))v-=(1n<<64n);
   return Number(v)/F;
  }
- function compile(actors,count){
-  if(!Number.isInteger(count)||count<2||count>8)throw new Error('Count must be 2..8');
+ // options.scale: the stage scale (AddActor -> SetBaseScale) multiplies every collider (pivot 0);
+ // the per-count offsets move the position (RectComponent.ParseParameter 0x1816e69a0), not the rect.
+ function compile(actors,count,options={}){
+  if(!Number.isInteger(count)||count<2||count>8)throw new Error('Count must be 2..8');const S=options.scale||1;
   const out={count,rects:[],dashBoards:[],walls:[],originalFidelityVerified:false};
   for(const a of actors){
    if(!['Rect','DashBoard','FallingWall'].includes(a.typeName))continue;
@@ -32,13 +34,13 @@
    const base={id:'motion:'+a.typeName+':'+a.name,type:a.typeName,x:a.x??a.posX,y:a.y??a.posY};
    if(!Number.isFinite(base.x)||!Number.isFinite(base.y))throw new Error('Invalid actor position');
    if(a.typeName==='Rect'){
-    let w=n(a,0)+n(a,2)*(count-2),h=n(a,1)+n(a,3)*(count-2);
+    let w=(n(a,0)+n(a,2)*(count-2))*S,h=(n(a,1)+n(a,3)*(count-2))*S;
     let x=base.x+n(a,4)*(count-2)+populationOffset(a,6,count),y=base.y+n(a,5)*(count-2)+populationOffset(a,7,count)-h;
     if(w<0){x+=w;w=-w;}if(h<0)throw new Error('Negative Rect height unverified');
     out.rects.push({...base,x,y,w,h,solid:true});
    }else if(a.typeName==='DashBoard'){
     // .cctor 0x1818175c2: native RectFP is height,width,x,y = 8,64,-32,-8.
-    out.dashBoards.push({...base,x:base.x-32,y:base.y-8,w:64,h:8,vx:n(a,0),vy:n(a,1)});
+    out.dashBoards.push({...base,x:base.x-32*S,y:base.y-8*S,w:64*S,h:8*S,vx:n(a,0),vy:n(a,1)});// the impulse is not scaled (OnCollided 0x181817xxx sends event 27 as parsed)
    }else{
     const blockSize=Math.trunc(n(a,0)),blockCount=Math.trunc(n(a,1));
     const hitsRequired=Math.trunc(n(a,count)),resilienceTime=n(a,count+7);

@@ -28,7 +28,7 @@ function calcMoveDistance(d,width,height){
  return Math.abs(axis)+MOVE_DISTANCE_MARGIN;
 }
 const supportedTypes=['Thorn','CollisionSwitch','PushBox'];
-function compile(actors,count){
+function compile(actors,count,options={}){const S=options.scale||1;
  if(!Number.isInteger(count)||count<2||count>8)throw Error('Device player count must be 2..8');
  const devices=[],warnings=[];
  for(const [i,a] of actors.entries()){
@@ -47,7 +47,9 @@ function compile(actors,count){
    // ParseParameter 0x1816db310 type29 custom width/height, ceil % + offset.
    const w=n(1),h=n(2);if(w<=0||h<=0)throw Error('Unsupported PushBox dimensions');
    const percent=n(0)?Math.abs(Math.floor(n(0))):100,offset=n(3)?Math.floor(n(3)):0;
-   devices.push({...base,x:pos.x-w/2,y:pos.y-h,w,h,percent,offset,requiredPushers:Math.ceil(count*percent/100)+offset,vx:0,vy:0,pushCount:0,grounded:false});
+   // InitCollision 0x1816db580: m_Rect (+0x28) inset 1 px on every side (H - 2, W - 2, X + 1, Y + 1), then
+   // x stage scale (AddActor -> SetBaseScale, pivot 0)
+   devices.push({...base,x:pos.x+(-w/2+1)*S,y:pos.y+(-h+1)*S,w:(w-2)*S,h:(h-2)*S,percent,offset,requiredPushers:Math.ceil(count*percent/100)+offset,vx:0,vy:0,pushCount:0,grounded:false});
   }
  }
  return {schemaVersion:1,count,devices,warnings,completePhysicsFidelity:false};

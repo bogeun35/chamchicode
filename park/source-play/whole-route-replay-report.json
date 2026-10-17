@@ -1,27 +1,35 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-13T14:25:16.692Z",
+  "generatedAt": "2026-10-17T12:30:06.586Z",
   "scope": "2편 연결 10라운드, 8인. 새 R.create 상태에 녹화된 틱별 입력만 넣는다(위치 지정·상태 수정 없음).",
   "replayFile": "play/whole-route-input-replay.json",
   "recorder": "whole-route-record.cjs",
-  "recordedAt": "2026-10-11T13:41:35.721Z",
-  "runtimeSha256": "4d20991df94293381da35b284359df481d59b8d7128114b58d4e3eb13793ca35",
-  "recordedRuntimeSha256": "be3d824fed3a2847cfd305555efd7643c3aaae7aef8b01e9712eaceef9df8f34",
+  "recordedAt": "2026-10-17T12:29:52.742Z",
+  "runtimeSha256": "041e960041bd4c39e8cd0bee144fff3cd4e705ba8b2d0ee6822c92c3fff3c6dc",
+  "recordedRuntimeSha256": "041e960041bd4c39e8cd0bee144fff3cd4e705ba8b2d0ee6822c92c3fff3c6dc",
   "method": {
-    "repeats": 5,
+    "repeats": 2,
     "perTick": "매 틱 스냅샷(틱·상태·플레이어 x/y/vx/vy/접지/지지대/점프프레임/입장·스위치·릴레이·장치·타이머·가시천장 난수 상태)을 sha256 에 누적. 모든 반복의 누적 해시와 최종 상태 해시가 같아야 재현으로 판정.",
     "dt": "R.step 기본 dt=1/60 → 호출당 1틱. play.js 검수 재생(T)도 h=1/60 으로 1틱씩 같은 입력을 넣는다."
   },
   "summary": {
-    "rounds": 10,
-    "clearedAndReproducible": 6,
+    "rounds": 58,
+    "clearedAndReproducible": 1,
     "notCleared": [
       {
         "stage": "st_w_01_02",
-        "status": "play"
+        "status": "dead"
       },
       {
         "stage": "st_w_01_03",
+        "status": "play"
+      },
+      {
+        "stage": "st_w_01_04",
+        "status": "play"
+      },
+      {
+        "stage": "st_w_04_01",
         "status": "play"
       },
       {
@@ -29,16 +37,220 @@
         "status": "blocked"
       },
       {
+        "stage": "st_w_04_04",
+        "status": "dead"
+      },
+      {
         "stage": "st_w_05_02",
         "status": "dead"
+      },
+      {
+        "stage": "st_w_10_02",
+        "status": "play"
+      },
+      {
+        "stage": "st_w_11_04",
+        "status": "play"
+      },
+      {
+        "stage": "st_w_07_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_10_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_10_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_13_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_11_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_12_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_03_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_10_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_05_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_02_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_07_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_14_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_03_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_15_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_05_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_14_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_05_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_03_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_12_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_15_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_12_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_02_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_04_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_07_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_09_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_09_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_09_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_09_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_02_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_07_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_15_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_02_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_12_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_13_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_13_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_08_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_08_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_03_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_14_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_14_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_08_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_08_04",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_06_03",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_06_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_06_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_13_02",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_11_01",
+        "status": "no-policy"
+      },
+      {
+        "stage": "st_w_11_03",
+        "status": "no-policy"
       }
     ],
-    "totalTicks": 32593,
-    "deaths": 1
+    "totalTicks": 11860,
+    "deaths": 3
   },
   "allRoundsInputOnlyClear": false,
   "randomness": {
-    "simModules": 52,
+    "simModules": 132,
     "modulesUsingClockOrMathRandom": [],
     "thornCeilingRng": {
       "algorithm": "PCG32 XSH-RR",
@@ -57,6 +269,26 @@
       "identical": true
     },
     {
+      "file": "source-apple-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-arrangement-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-ballkeybox-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-batenemy-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-blackout-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-blink-devices.js",
       "identical": true
     },
@@ -65,7 +297,27 @@
       "identical": true
     },
     {
+      "file": "source-boundball.js",
+      "identical": true
+    },
+    {
+      "file": "source-boundballpitcher-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-breakablerect-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-bridge-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-camera-native.js",
+      "identical": true
+    },
+    {
+      "file": "source-capturing-devices.js",
       "identical": true
     },
     {
@@ -77,7 +329,15 @@
       "identical": true
     },
     {
+      "file": "source-colorbox-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-countup-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-danmaku-runtime.js",
       "identical": true
     },
     {
@@ -85,11 +345,59 @@
       "identical": true
     },
     {
+      "file": "source-distanceconstraint-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-distanceconstraint-math.js",
+      "identical": true
+    },
+    {
+      "file": "source-dossun-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-enemy-devices.js",
       "identical": true
     },
     {
+      "file": "source-fake-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-fplut-math.js",
+      "identical": true
+    },
+    {
+      "file": "source-frontswitch-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-gate-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-gear-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-ghost-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-giant-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-gokart-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-graph-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-halfinput-devices.js",
       "identical": true
     },
     {
@@ -105,7 +413,23 @@
       "identical": true
     },
     {
+      "file": "source-linepathgear-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-linepathgear-path.js",
+      "identical": true
+    },
+    {
+      "file": "source-mole-runtime.js",
+      "identical": true
+    },
+    {
       "file": "source-motion-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-move-contact.js",
       "identical": true
     },
     {
@@ -113,11 +437,59 @@
       "identical": true
     },
     {
+      "file": "source-plane-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-planeobstacle-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-playerblock-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-playermagnet-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-playerwarpgun-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-pole-devices.js",
       "identical": true
     },
     {
+      "file": "source-rally-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-searchlight-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-shooting-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-sinelift-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-stage-autoscroll.js",
+      "identical": true
+    },
+    {
       "file": "source-stage-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-stepenemy-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-switchtargetgroup-devices.js",
       "identical": true
     },
     {
@@ -133,7 +505,23 @@
       "identical": true
     },
     {
+      "file": "source-throwball-runtime.js",
+      "identical": true
+    },
+    {
+      "file": "source-topviewplayer-devices.js",
+      "identical": true
+    },
+    {
       "file": "source-touchenergy-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-updownlift-devices.js",
+      "identical": true
+    },
+    {
+      "file": "source-updownlift-math.js",
       "identical": true
     },
     {
@@ -354,82 +742,85 @@
       "count": 8,
       "cleared": true,
       "status": "clear",
-      "ticks": 11624,
-      "seconds": 193.733,
+      "ticks": 11860,
+      "seconds": 197.667,
       "deaths": 0,
       "failure": null,
       "keyTaken": true,
       "exited": 8,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "0eceacec38a098e3dbf4a740ef074120c69fab6ffbeef65d33892aa20cd11179",
-      "finalStateDigest": "5d0797485dfbab0e064fe37cc9457e0c4dd8b4eb125d79d850edde21638dd2d7",
+      "replays": 2,
+      "perTickDigest": "7bc3164c2e6816eb98199a73bc5e2baa34c9d3a1c64e395a3643773f39c39cfb",
+      "finalStateDigest": "283b251eca04617a047dc3a5913f2e86fa3bf4fc27b65842c5433307b03e1b31",
       "matchesRecording": true
     },
     {
       "stage": "st_w_01_02",
       "count": 8,
       "cleared": false,
-      "status": "play",
-      "ticks": 4451,
-      "seconds": 74.183,
-      "deaths": 0,
-      "failure": null,
+      "status": "dead",
+      "ticks": 2409,
+      "seconds": 40.15,
+      "deaths": 1,
+      "failure": {
+        "playerId": "p1",
+        "reason": "가시에 닿았어요"
+      },
       "keyTaken": false,
       "exited": 0,
-      "unusedInputs": 0,
+      "unusedInputs": 2042,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "f8aeb32a9bbf28d84a51e75110901a3b5ff464923194b554912bae9abc0b4eab",
-      "finalStateDigest": "3eb829a0271cd2a2738fff9df8fead12eb1ee557a8d797475d20a22bf116a96b",
+      "replays": 2,
+      "perTickDigest": "575534ce3614811e37218657051284c23377d1ddc818624b6d286adc486edeea",
+      "finalStateDigest": "2fc08dab92ff73708095fecc5bdfe779d150d7c76f79c8c2cae3061acd3bc8c0",
       "matchesRecording": false,
       "terminalPlayers": [
         {
           "id": "p1",
-          "x": 2346,
+          "x": 607,
           "y": 434,
           "exit": false
         },
         {
           "id": "p2",
-          "x": 2314,
-          "y": 434,
+          "x": 563,
+          "y": 396,
           "exit": false
         },
         {
           "id": "p3",
-          "x": 2282,
-          "y": 434,
+          "x": 549,
+          "y": 350,
           "exit": false
         },
         {
           "id": "p4",
-          "x": 2250,
-          "y": 434,
+          "x": 515,
+          "y": 98,
           "exit": false
         },
         {
           "id": "p5",
-          "x": 2218,
-          "y": 434,
+          "x": 462,
+          "y": 98,
           "exit": false
         },
         {
           "id": "p6",
-          "x": 2186,
-          "y": 434,
+          "x": 427,
+          "y": 98,
           "exit": false
         },
         {
           "id": "p7",
-          "x": 2154,
-          "y": 434,
+          "x": 392,
+          "y": 98,
           "exit": false
         },
         {
           "id": "p8",
-          "x": 2122,
+          "x": 355,
           "y": 434,
           "exit": false
         }
@@ -448,9 +839,9 @@
       "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
+      "replays": 2,
       "perTickDigest": "49a8ac5aaad1a6444cc8d5d0d478510be7c892359685224b90d76c9eb5665626",
-      "finalStateDigest": "fe38a69f9fdd1764ee406051195ca68b852ffc5289e4063a95a1a488a0c1f03b",
+      "finalStateDigest": "b259da13b4baee1296b4ea0c915c0c983427dd5379a351be47a47d5b1ac05248",
       "matchesRecording": false,
       "terminalPlayers": [
         {
@@ -506,38 +897,138 @@
     {
       "stage": "st_w_01_04",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 8903,
       "seconds": 148.383,
       "deaths": 0,
       "failure": null,
       "keyTaken": true,
-      "exited": 8,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "18062e8a29eaf0c0cf14fc16de1ace1db363bfb2939dbac602a50c8a63916b32",
-      "finalStateDigest": "b5d607944cce21624fb47186b74d0c2e76878636fdb942a6927066ee35436953",
-      "matchesRecording": true
+      "replays": 2,
+      "perTickDigest": "1ab1a276be805a321085ad05b74fd528413d843413d77a8c5dd27688b8d3b65b",
+      "finalStateDigest": "7d80b62a021912d1be046adb4fded6229533e63f4af75b2c98eff31a4eadf5dc",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 2203,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 2171,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 2107,
+          "y": 100,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 2128,
+          "y": 146,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 2075,
+          "y": 100,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 2080,
+          "y": 194,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 2139,
+          "y": 98,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 2089,
+          "y": 146,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_04_01",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 5875,
       "seconds": 97.917,
       "deaths": 0,
       "failure": null,
       "keyTaken": true,
-      "exited": 8,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "c95e127672f1abe59056cf89da6a7c1e4af31127a68bf55daf987ab1e0b03240",
-      "finalStateDigest": "d6361f0ada6448927058111d850b002814cd165549d237cf05783ae7ca4adc5c",
-      "matchesRecording": true
+      "replays": 2,
+      "perTickDigest": "243964b0dcb7482353a37f7a3ad3fd332c4c3f8d86a65c7136259f23920b1ca3",
+      "finalStateDigest": "34be71593d34ad7d64ab15ddcfd9c9ca0fe046c2f35421fe41244b6260d7b082",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 1370,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 1402,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 1434,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 1466,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 1594,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 1562,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 1498,
+          "y": 386,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1530,
+          "y": 386,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_04_03",
@@ -702,20 +1193,73 @@
     {
       "stage": "st_w_04_04",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
-      "ticks": 2362,
-      "seconds": 39.367,
-      "deaths": 0,
-      "failure": null,
+      "cleared": false,
+      "status": "dead",
+      "ticks": 1416,
+      "seconds": 23.6,
+      "deaths": 1,
+      "failure": {
+        "playerId": "p5",
+        "reason": "전기에 닿았어요"
+      },
       "keyTaken": true,
-      "exited": 8,
-      "unusedInputs": 0,
+      "exited": 0,
+      "unusedInputs": 946,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "2483ec78822305a4fa820f5f4a974a1da75edca3e0df6dbf860bef9a6dd51d34",
-      "finalStateDigest": "e8b63b3bc5cf79085861aa0d93e6af322b7741363c154ca4fc94b0e2b3fc4e1e",
-      "matchesRecording": true
+      "replays": 2,
+      "perTickDigest": "b33e0d858455d0784ea60108c8827ada5da05ce030a9605802efd0061d7b7c50",
+      "finalStateDigest": "25be03966bf2b6c0a86f80fc1af7ad272ed32c7684e1506d558a51998080aae6",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 273,
+          "y": 164.199829,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 309,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 346,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 544,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 621,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 653,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 685,
+          "y": 434,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 717,
+          "y": 434,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_05_02",
@@ -729,24 +1273,24 @@
         "playerId": "p1",
         "reason": "시간이 다 됐어요"
       },
-      "keyTaken": true,
+      "keyTaken": false,
       "exited": 0,
       "unusedInputs": 6667,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "c2a69bbb4d3561ef88365c7a51b8c3facbb5422f82853bb27122dc438284626a",
-      "finalStateDigest": "9593b973a5c4af1becd20d648b12d327e6a313eedb6de4f45f9efb07d2dd48c1",
+      "replays": 2,
+      "perTickDigest": "65c3111ed12a35cba3eda8a4cc2c3cefa40a39f95e1e0d6d96ea44d1eb51c60f",
+      "finalStateDigest": "982f6883125c351bd936ec9e324db8817056c3e7b7deb215a04be2e0c6f4419e",
       "matchesRecording": false,
       "terminalPlayers": [
         {
           "id": "p1",
-          "x": 104,
+          "x": 103,
           "y": 386,
           "exit": false
         },
         {
           "id": "p2",
-          "x": 136,
+          "x": 135,
           "y": 386,
           "exit": false
         },
@@ -770,13 +1314,13 @@
         },
         {
           "id": "p6",
-          "x": 104,
+          "x": 103,
           "y": 98,
           "exit": false
         },
         {
           "id": "p7",
-          "x": 136,
+          "x": 135,
           "y": 98,
           "exit": false
         },
@@ -791,38 +1335,570 @@
     {
       "stage": "st_w_10_02",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 700,
       "seconds": 11.667,
       "deaths": 0,
       "failure": null,
       "keyTaken": true,
-      "exited": 8,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "951699640fd1a6a70529a0f4346bf705c0104e7b3dc5c69029a477fb626fe24a",
-      "finalStateDigest": "15be2529a031aabe9b177dc7aac306669425820615b054977bb60ef21a4b161f",
-      "matchesRecording": true
+      "replays": 2,
+      "perTickDigest": "403679cf3a9cd7748117c73e87d4ea332702b4d7d2abe41f0e4d05b849022fce",
+      "finalStateDigest": "a94d4d9966d74ae12b58d0392a359b9c4594255b498b7286daeb2e401c355c27",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 982.5,
+          "y": 938,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 1030.5,
+          "y": 938,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 462.5,
+          "y": 363,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 1508,
+          "y": 363,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 1968,
+          "y": 1529.427694,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 1556,
+          "y": 363,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 1140,
+          "y": 938,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1617.5,
+          "y": 363,
+          "exit": false
+        }
+      ]
     },
     {
       "stage": "st_w_11_04",
       "count": 8,
-      "cleared": true,
-      "status": "clear",
+      "cleared": false,
+      "status": "play",
       "ticks": 3129,
       "seconds": 52.15,
       "deaths": 0,
       "failure": null,
       "keyTaken": true,
-      "exited": 8,
+      "exited": 0,
       "unusedInputs": 0,
       "reproducible": true,
-      "replays": 5,
-      "perTickDigest": "9e9e36b04279bdc747f5cf5833a76461664d469a331badf66f829ab828fa7965",
-      "finalStateDigest": "6371bbce51d958e00ebf8da62d16b6f9ea66eb68d71df90b6768c299601d9e22",
-      "matchesRecording": true
+      "replays": 2,
+      "perTickDigest": "0fa733f1b8f995ca1898820fa198723bad35451178146120c843d5d683821f78",
+      "finalStateDigest": "0b8c01d3082640a7eb7843537b7b82fde6976d31222d63ad0701fe3450abc014",
+      "matchesRecording": false,
+      "terminalPlayers": [
+        {
+          "id": "p1",
+          "x": 888,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p2",
+          "x": 920,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p3",
+          "x": 856,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p4",
+          "x": 952,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p5",
+          "x": 824,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p6",
+          "x": 984,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p7",
+          "x": 792,
+          "y": 578,
+          "exit": false
+        },
+        {
+          "id": "p8",
+          "x": 1016,
+          "y": 578,
+          "exit": false
+        }
+      ]
+    },
+    {
+      "stage": "st_w_07_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_10_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_10_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_13_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_11_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_12_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_03_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_10_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_05_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_02_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_07_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_14_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_03_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_15_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_05_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_14_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_05_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_03_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_12_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_15_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_12_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_02_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_04_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_07_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_09_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_09_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_09_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_09_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_02_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_07_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_15_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_02_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_12_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_13_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_13_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_08_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_08_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_03_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_14_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_14_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_08_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_08_04",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_06_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_06_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_06_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_13_02",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_11_01",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
+    },
+    {
+      "stage": "st_w_11_03",
+      "count": 8,
+      "cleared": false,
+      "status": "no-policy",
+      "reproducible": null,
+      "blocked": null,
+      "note": null
     }
   ]
 }

@@ -54,11 +54,16 @@ const SQRT_TABLE={0:0,16848:2126641,17769:2183994,21893:2424223,22097:2435491,
  37359:3166778,39980:3275981,42690:3385190,45488:3494366,46921:3548980,
  50151:3669102,57571:3931170,57749:3937243,62136:4084055,62469:4094984};
 const mulRaw=(a,b)=>Number((BigInt(a)*BigInt(b))>>16n);
+function mathLib(){return (typeof require==='function'&&typeof module==='object'&&module.exports)?require('./source-distanceconstraint-math.js'):(typeof globalThis!=='undefined'?globalThis.SourceDistanceConstraintMath:null);}
 function nativeSqrtRaw(q){
  if(!Number.isSafeInteger(q)||q<0)throw Error('Invalid native sqrt input');
  const bits=q===0?0:BigInt(q).toString(2).length;
  const shift=q>FP_ONE?Math.floor((bits-1)/2)*2-14:0;
- const index=Number(BigInt(q)>>BigInt(shift)),entry=SQRT_TABLE[index];
+ const index=Number(BigInt(q)>>BigInt(shift));
+ // The sparse table above is a cross-checked subset of the full FPSqrt LUT in
+ // source-distanceconstraint-math.js (same asset bytes, same 0x181640c40);
+ // any other index reads the full table.
+ const full=mathLib(),entry=SQRT_TABLE[index]??(full?full.lookup(index):undefined);
  if(entry===undefined)throw Error('Unverified FPSqrt table index '+index);
  return Number((BigInt(entry)<<BigInt(shift>>1))>>6n);
 }
@@ -126,13 +131,12 @@ function compile(actors,count,options){
   d.id=raw.id||'source:a'+i;
   if(d.type==='DamageRect'){d.collisionInactive=true;d.collisionType=6;}
   else{
-   // OnRecvEvent 0x181879a85 chooses normalized fake paths when no riders.
-   // That separate mode remains refused rather than guessed.
-   if(d.externalStart)throw Error('Unverified LinePathLift external-start fake path normalization 0x181879c10');
+   // External start (slot 6 > 0, flag 8): only event 61 starts it - see receiveEvent.
    if(d.mode!==0)throw Error('Unverified LinePathLift loop mode '+d.mode);
    d.lengthsRaw=d.paths.map((p,j)=>segmentLengthRaw(j?d.paths[j-1]:{xRaw:0,yRaw:0},p,chipSize));
    if(d.lengthsRaw.some(n=>n<=0))throw Error('Unverified LinePathLift zero length segment');
    d.offsetRaw={xRaw:0,yRaw:0};d.moving=false;d.finished=false;d.collisionType=13;
+   d.reversed=false;d.fake=false;d.fakeBack=false;d.fakePoints=null;d.chipSize=chipSize;
   }
   devices.push(d);
  }
@@ -150,26 +154,73 @@ function hostCall(ctx,name,...args){
 // OnUpdate 0x181878d8e: startup and first moving tick are separate branches.
 // liftUpdate 0x1818791ac/22c/273: raw distance, truncated division and sar16.
 // End 0x1818792f7..39e discards overshoot, reverses index and stops mode0.
+// liftUpdate 0x181878ed0. Segment j runs from path[j-1] (origin for j=0) to
+// path[j]; with +0x14 set (reversed) the same segment is run backwards. At a
+// segment end (0x1818792f7..39e): index += reversed ? -1 : 1; past either end
+// +0x14 toggles, the index parks on the last/first point, and without the loop
+// flag bits 2/4/5 (started/fake/fakeBack) clear. Mode 0 never resets its ride
+// count, so a ride-started lift stays put; an external-start lift waits for
+// the next event 61 and then runs the path backwards.
+function segmentOf(d){const j=d.targetPathIndex,prev=j?d.paths[j-1]:{xRaw:0,yRaw:0},cur=d.paths[j];return d.reversed?{from:cur,to:prev}:{from:prev,to:cur};}
 function advanceLift(d,dtRaw,rideCount,canMove){
  if(d.disabled||d.finished)return null;
  if(!d.moving){
-  if(d.needRideCount>0){d.needRideCount=Math.max(0,d.moveContactCount-rideCount);if(!d.needRideCount)d.moving=true;}
+  if(!d.externalStart&&d.needRideCount>0){d.needRideCount=Math.max(0,d.moveContactCount-rideCount);if(!d.needRideCount)d.moving=true;}
   return null;
  }
+ if(d.fake)return advanceFake(d,dtRaw,canMove);
  if(!canMove)return null;
  d.timerRaw+=mulRaw(dtRaw,d.speedRaw);
  const index=d.targetPathIndex,length=d.lengthsRaw[index];
  const ratio=Number((BigInt(d.timerRaw)<<16n)/BigInt(length));
  const t=Math.max(0,Math.min(FP_ONE,ratio));
- const from=index?d.paths[index-1]:{xRaw:0,yRaw:0},to=d.paths[index];
+ const {from,to}=segmentOf(d);
  const next={xRaw:from.xRaw+mulRaw(to.xRaw-from.xRaw,t),yRaw:from.yRaw+mulRaw(to.yRaw-from.yRaw,t)};
  const deltaYRaw=next.yRaw-d.offsetRaw.yRaw;
  d.offsetRaw=next;
  if(ratio>=FP_ONE){
-  d.timerRaw=0;d.targetPathIndex++;
-  if(d.targetPathIndex===d.paths.length){d.returnDirection=1;d.targetPathIndex=d.paths.length-1;d.moving=false;d.finished=true;}
+  d.timerRaw=0;d.targetPathIndex+=d.reversed?-1:1;
+  const end=d.reversed?d.targetPathIndex===-1:d.targetPathIndex===d.paths.length;
+  if(end){const was=d.reversed;d.reversed=!was;d.returnDirection=d.reversed?1:0;d.targetPathIndex=was?0:d.paths.length-1;
+   if(!d.loop){d.moving=false;d.fake=false;d.fakeBack=false;if(!d.externalStart)d.finished=true;}}
  }
  return Math.abs(deltaYRaw)>=4?{deviceId:d.id,xRaw:0,yRaw:deltaYRaw}:null;
+}
+// fakeLiftUpdate 0x1818794b0: the 2-point fake path, swapped while fakeBack
+// (bit 5); length through the same camera scale + FP sqrt; at ratio > 0xffff
+// the timer resets and fakeBack toggles, and back at the start bits 2/4/5 clear.
+function advanceFake(d,dtRaw,canMove){
+ const [a,b]=d.fakeBack?[d.fakePoints[1],d.fakePoints[0]]:d.fakePoints;
+ if(canMove)d.timerRaw+=mulRaw(dtRaw,d.speedRaw);
+ const length=segmentLengthRaw(a,b,d.chipSize);
+ const ratio=length<1?0:Number((BigInt(d.timerRaw)<<16n)/BigInt(length));
+ let carry=null;
+ if(canMove){const t=Math.max(0,Math.min(FP_ONE,ratio));
+  const next={xRaw:a.xRaw+mulRaw(b.xRaw-a.xRaw,t),yRaw:a.yRaw+mulRaw(b.yRaw-a.yRaw,t)};
+  const deltaYRaw=next.yRaw-d.offsetRaw.yRaw;d.offsetRaw=next;
+  if(Math.abs(deltaYRaw)>=4)carry={deviceId:d.id,xRaw:0,yRaw:deltaYRaw};}
+ if(ratio>0xffff){d.timerRaw=0;d.fakeBack=!d.fakeBack;if(!d.fakeBack){d.moving=false;d.fake=false;}}
+ return carry;
+}
+// OnRecvEvent 0x1818798e0, event 61 (0x3d): only an external-start lift that is
+// not running starts. With nobody riding it builds the fake path instead
+// (0x181879a85..): from the end when reversed - last and last + normalize(last
+// - previous) * QFP._20 - otherwise origin and normalize(first) * QFP._20.
+const QFP_20=20*FP_ONE;
+function receiveEvent(d,eventType,rideCount){
+ if(eventType!==61||d.type!=='LinePathLift'||!d.externalStart||d.moving||d.disabled)return false;
+ d.moving=true;
+ if(rideCount===0){
+  const M=mathLib();if(!M)throw Error('LinePathLift fake path needs the native normalize (source-distanceconstraint-math.js)');
+  const scale=v=>({xRaw:mulRaw(v.xRaw,QFP_20),yRaw:mulRaw(v.yRaw,QFP_20)});
+  const norm=v=>(v.xRaw===0&&v.yRaw===0)?{xRaw:0,yRaw:0}:M.normalizeRaw(v);
+  if(d.reversed){const n=d.paths.length,last=d.paths[n-1],prev=n>=2?d.paths[n-2]:{xRaw:0,yRaw:0};
+   const s=scale(norm({xRaw:last.xRaw-prev.xRaw,yRaw:last.yRaw-prev.yRaw}));
+   d.fakePoints=[{...last},{xRaw:last.xRaw+s.xRaw,yRaw:last.yRaw+s.yRaw}];}
+  else d.fakePoints=[{xRaw:0,yRaw:0},scale(norm(d.paths[0]))];
+  d.fake=true;d.fakeBack=false;d.timerRaw=0;
+ }
+ return true;
 }
 // DamageRect OnUpdate 0x18180e208/242/291/2e1. bit0 means INACTIVE:
 // SetCollisionActive 0x1816a014d clears it on true, 0x1816a015f sets on false.
@@ -218,9 +269,10 @@ function beforeStep(state,ctx={}){
    events.push(...damageContactEvents(d,hostCall(ctx,'damageRectOwnContacts',d.id),hostCall(ctx,'damageRectReversePlayers',d.id)));
   }else if(!d.disabled&&!d.finished){
    const riders=hostCall(ctx,'getRideCount',d.id,1,6);
+   for(const e of ctx.events||[])if((e.target===d.name||e.targetName===d.name||e.targetId===d.id)&&(e.event??e.eventType)===61)receiveEvent(d,61,riders);
    // 0x18187914a..15d: negative segment Y substitutes (0,-65536),
    // static vector 0x182e88680; otherwise use the full segment vector.
-   const j=d.targetPathIndex,from=j?d.paths[j-1]:{xRaw:0,yRaw:0},to=d.paths[j];
+   const {from,to}=d.fake?(d.fakeBack?{from:d.fakePoints[1],to:d.fakePoints[0]}:{from:d.fakePoints[0],to:d.fakePoints[1]}):segmentOf(d);
    const vector=to.yRaw<from.yRaw?{xRaw:0,yRaw:-FP_ONE}:{xRaw:to.xRaw-from.xRaw,yRaw:to.yRaw-from.yRaw};
    const canMove=d.moving?hostCall(ctx,'isEnableMoveContactActor',d.id,vector):false;
    const carry=advanceLift(d,dtRaw,riders,canMove);
@@ -231,7 +283,7 @@ function beforeStep(state,ctx={}){
 }
 const afterStep=()=>({events:[],deadPlayerIds:[]});
 const displays=state=>({devices:state.devices.map(d=>({...d,x:(d.xRaw+(d.offsetRaw?.xRaw||0))/FP_ONE,y:(d.yRaw+(d.offsetRaw?.yRaw||0))/FP_ONE}))});
-return {compile,create,solids,beforeStep,afterStep,displays,supportedTypes,
+return {receiveEvent,advanceFake,segmentOf,compile,create,solids,beforeStep,afterStep,displays,supportedTypes,
  fpFromFloatRaw,stageFpRaw,decodeDamageRect,decodeLinePathLift,nativeSqrtRaw,segmentLengthRaw,
  advanceLift,updateDamageActivation,damageContactEvents,playerEvent43Outcome,completePhysicsFidelity:false};
 });
