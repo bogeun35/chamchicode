@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>참스코드 팀버 러시</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #1b2a1e; --panel: #2a3a2c; --panel2: #35473a; --line: #4f6a52; --ink: #f4f7ee; --dim: #b9c9b6; --gold: #ffd36b; --green: #8ee08f; --wood: #e6c89c; --red: #ff6b7a; --blue: #7fd8ff; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: 'Jua', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+button { font-family: inherit; cursor: pointer; }
+button:disabled { opacity: .45; cursor: default; }
+#cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-16px); z-index: 95; background: var(--panel); border: 2px solid var(--gold); color: var(--ink); padding: 8px 18px; border-radius: 12px; font-size: 15px; opacity: 0; transition: all .25s; pointer-events: none; max-width: 92vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.btn { border: 2px solid var(--line); border-radius: 12px; background: var(--panel2); color: var(--ink); font-size: 15px; padding: 8px 14px; }
+.btn:active { transform: translateY(2px); }
+.btn.gold { border-color: var(--gold); color: #3a2a00; background: var(--gold); }
+.btn.big { font-size: 22px; padding: 14px 34px; border-radius: 16px; }
+.dim { color: var(--dim); font-size: 14px; line-height: 1.6; }
+/* HUD */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; display: none; }
+#hud.on { display: block; } #hud > * { pointer-events: auto; }
+.top { position: absolute; left: 8px; right: 8px; top: 8px; display: flex; gap: 8px; align-items: flex-start; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.lvbox { display: flex; align-items: center; gap: 7px; background: rgba(26,42,30,.92); border: 2px solid var(--line); border-radius: 12px; padding: 4px 9px 4px 4px; }
+.lvbox .lv { min-width: 34px; height: 34px; border-radius: 9px; background: var(--green); color: #143018; display: grid; place-items: center; font-size: 16px; padding: 0 6px; }
+.xpbar { width: 130px; height: 14px; background: #0f1a12; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; position: relative; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, #6fd27a, #c9f06a); transition: width .15s; }
+.xpbar span { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 10px; color: #fff; text-shadow: 0 1px 0 #000; }
+.curs { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; align-items: center; }
+.cur { background: rgba(26,42,30,.92); border: 2px solid var(--line); border-radius: 10px; padding: 3px 9px; font-size: 15px; white-space: nowrap; }
+.cur.small { font-size: 12px; color: var(--dim); }
+#timer { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 34px; color: #fff; text-shadow: 0 2px 0 #000, 0 0 12px rgba(0,0,0,.4); background: rgba(26,42,30,.75); border: 2px solid var(--line); border-radius: 14px; padding: 2px 18px; }
+#timer.frz { color: var(--blue); border-color: var(--blue); } #timer.fin { color: var(--gold); border-color: var(--gold); }
+#buffs { position: absolute; left: 50%; top: 62px; transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 90vw; }
+.buff { background: rgba(26,42,30,.9); border: 2px solid var(--gold); border-radius: 10px; padding: 3px 8px; font-size: 12px; position: relative; overflow: hidden; display: flex; gap: 4px; align-items: center; }
+.buff em { font-style: normal; color: var(--gold); } .buff i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--gold); }
+#dash { position: absolute; right: 12px; bottom: 14px; width: 48px; height: 48px; border-radius: 12px; background: rgba(26,42,30,.9); border: 2px solid var(--line); display: grid; place-items: center; font-size: 24px; overflow: hidden; }
+#dash i { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(127,216,255,.35); height: 0; }
+#dash span { position: relative; }
+#finale { position: fixed; left: 50%; top: 32%; transform: translate(-50%, -50%); font-size: 30px; color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 20px rgba(255,211,107,.6); pointer-events: none; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+#finale.on { opacity: 1; }
+#btnPause { position: absolute; right: 8px; top: 8px; }
+.touch { position: fixed; inset: 0; pointer-events: none; z-index: 6; display: none; }
+body.tch #hud.on .touch { display: block; }
+.tb { position: absolute; width: 66px; height: 66px; border-radius: 50%; background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.4); color: #fff; font-size: 26px; display: grid; place-items: center; pointer-events: auto; touch-action: none; }
+.tb.on { background: rgba(255,211,107,.4); border-color: var(--gold); }
+#tLeft { left: 14px; bottom: 18px; } #tRight { left: 94px; bottom: 18px; } #tDash { right: 76px; bottom: 18px; } #tInt { right: 76px; bottom: 96px; width: 52px; height: 52px; font-size: 18px; }
+body.tch #dash { bottom: 160px; }
+/* 메뉴 */
+#menu { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; background: rgba(12,22,14,.86); backdrop-filter: blur(4px); }
+#menu.on { display: flex; }
+#mhead { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 2px solid var(--line); background: rgba(26,42,30,.9); flex-wrap: wrap; }
+#mhead h1 { font-size: 20px; color: var(--gold); margin-right: 6px; white-space: nowrap; }
+#tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+#tabs button { border: 2px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 10px; padding: 6px 10px; font-size: 14px; }
+#tabs button.on { background: var(--gold); color: #3a2a00; border-color: var(--gold); }
+#mcur { display: flex; gap: 6px; }
+.tab { display: none; flex: 1; overflow: auto; padding: 12px; } .tab.on { display: block; }
+#tab-tree.on { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+#treewrap { flex: 1; position: relative; min-height: 0; } #treecv { display: block; touch-action: none; cursor: grab; }
+#treeTop { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; align-items: center; } #treeCur { background: rgba(26,42,30,.9); border: 2px solid var(--line); border-radius: 10px; padding: 4px 10px; }
+#treeHint { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--dim); background: rgba(26,42,30,.8); padding: 4px 8px; border-radius: 8px; }
+#treetip { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); width: min(520px, 94vw); background: var(--panel); border: 2px solid var(--gold); border-radius: 14px; padding: 10px 14px; display: none; }
+#treetip.on { display: block; }
+#treetip .tthead { display: flex; align-items: center; gap: 8px; } #ttIcon { font-size: 28px; } #ttName { font-size: 19px; color: var(--gold); flex: 1; } #ttClose { background: none; border: 0; color: var(--dim); font-size: 18px; }
+#ttDesc { color: var(--dim); font-size: 13px; margin: 4px 0; line-height: 1.5; } #ttLv { font-size: 13px; } #ttStats { font-size: 14px; line-height: 1.5; margin: 4px 0; }
+#ttStats .cur { color: var(--green); background: none; border: 0; padding: 0; font-size: inherit; } #ttStats .nxt { color: var(--gold); }
+.req { font-size: 13px; color: var(--red); } .req.ok { color: var(--green); }
+.ttbtns { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; } #ttCost { color: var(--wood); margin-right: auto; font-size: 16px; }
+/* 플레이 탭 */
+#tab-play { display: none; } #tab-play.on { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-content: start; }
+#levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin: 8px 0 14px; }
+.lvcard { text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px; color: var(--ink); }
+.lvcard.sel { border-color: var(--gold); background: #3b4a2a; } .lvcard.lock { opacity: .6; } .lvname { font-size: 17px; } .lvdesc { font-size: 12px; color: var(--dim); line-height: 1.4; margin: 4px 0; } .lvstat { font-size: 13px; color: var(--green); } .lvreq { font-size: 12px; color: var(--red); margin-top: 4px; }
+#playbox { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#summary { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: 14px; }
+#summary div { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed var(--line); } #summary b { color: var(--gold); }
+h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
+/* 상점 */
+#tab-shop.on { display: grid; grid-template-columns: 1fr 280px; gap: 12px; align-content: start; }
+#slots { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.slot { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px; color: var(--ink); text-align: left; min-width: 120px; }
+.slot.on { border-color: var(--gold); background: #3b4a2a; } .slot.lock { opacity: .55; } .sname { font-size: 15px; } .sgear { font-size: 11px; color: var(--dim); line-height: 1.4; }
+.ilist { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.item { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 6px; color: var(--ink); } .item.on { border-color: var(--gold); } .item.own { background: #2f4433; } .item.lock { opacity: .55; }
+.ipic canvas { width: 56px; height: 56px; } .iname { font-size: 13px; } .imeta { font-size: 12px; color: var(--wood); } .imeta b { color: var(--green); }
+#info { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 12px; position: sticky; top: 0; }
+.iname2 { font-size: 19px; color: var(--gold); } .islot { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+.istat { display: flex; justify-content: space-between; font-size: 14px; padding: 2px 0; border-bottom: 1px dashed var(--line); } .istat b.up { color: var(--green); } .istat b.down { color: var(--red); }
+.ibtns { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; } .ibtns button { flex: 1; border: 2px solid var(--gold); background: var(--gold); color: #3a2a00; border-radius: 10px; padding: 8px; font-size: 15px; }
+.modal { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 12px; } .modal.on { display: flex; }
+.mbox { background: var(--panel); border: 2px solid var(--gold); border-radius: 16px; padding: 16px; width: min(560px, 96vw); max-height: 92vh; overflow: auto; }
+.mbox h3 { color: var(--gold); font-size: 20px; margin-bottom: 8px; }
+.adrow { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 14px; } .adrow em { font-style: normal; color: var(--dim); font-size: 12px; } .adrow button { width: 32px; height: 32px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel2); color: var(--ink); font-size: 18px; }
+/* 업적 */
+#achList { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.ach { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; } .ach.done { border-color: var(--gold); } .aname { font-size: 15px; } .adesc { font-size: 12px; color: var(--dim); margin: 2px 0 6px; line-height: 1.4; }
+.abar { height: 16px; background: #0f1a12; border-radius: 999px; overflow: hidden; position: relative; } .abar i { display: block; height: 100%; background: var(--green); } .abar span { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 16px; }
+/* 환생 */
+.prehead { font-size: 18px; margin-bottom: 6px; } .prehead b { color: var(--gold); } .presub { font-size: 13px; color: var(--green); margin-bottom: 6px; }
+.prelist { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; margin-top: 10px; }
+.pre { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; color: var(--ink); text-align: left; } .pre.on { border-color: var(--gold); background: #3b4a2a; } .pre.no { opacity: .5; }
+.pname { font-size: 15px; } .pname em { font-style: normal; color: var(--gold); font-size: 12px; } .pdesc { font-size: 12px; color: var(--dim); line-height: 1.4; margin-top: 2px; }
+#preBtns { display: flex; gap: 8px; margin-top: 12px; }
+/* 설정 */
+.setrow { display: flex; align-items: center; justify-content: space-between; background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; max-width: 420px; } .setrow input { width: 22px; height: 22px; }
+/* 카드 */
+#cards { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.55); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px; }
+#cards.on { display: flex; } #cTitle { font-size: 28px; color: var(--gold); text-shadow: 0 2px 0 #000; } #cStack { color: var(--blue); font-size: 15px; min-height: 18px; }
+#cList { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 96vw; }
+.card { width: 170px; background: var(--panel); border: 3px solid var(--rc); border-radius: 16px; padding: 10px; text-align: center; cursor: pointer; animation: pop .3s ease; position: relative; box-shadow: 0 0 18px color-mix(in srgb, var(--rc) 40%, transparent); }
+.card:hover { transform: translateY(-4px); } .card.myth { background: linear-gradient(160deg, #3b2a4a, var(--panel)); }
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.crar { font-size: 12px; } .cico { font-size: 40px; margin: 2px 0; } .cname { font-size: 17px; color: var(--ink); } .cval { font-size: 20px; color: var(--gold); } .ctype { font-size: 12px; color: var(--dim); } .cdesc { font-size: 11px; color: var(--dim); line-height: 1.4; margin: 4px 0; min-height: 30px; } .cnow { font-size: 12px; color: var(--green); }
+.cban { margin-top: 6px; border: 2px solid var(--red); background: none; color: var(--red); border-radius: 8px; padding: 3px 8px; font-size: 12px; }
+#cBtns { display: flex; gap: 10px; align-items: center; } #cBan { color: var(--dim); font-size: 13px; } #cReroll.no { opacity: .5; }
+/* 런 결과·일시정지 */
+.erow { display: flex; justify-content: space-between; font-size: 15px; padding: 4px 0; border-bottom: 1px dashed var(--line); } .erow.big { font-size: 20px; } .erow b { color: var(--gold); }
+.ebtns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; } .ebtns button { flex: 1; }
+.hrow { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; } .hrow span { font-size: 26px; } .hrow p { font-size: 14px; line-height: 1.5; color: var(--ink); }
+@media (max-width: 760px) { #tab-play.on, #tab-shop.on { grid-template-columns: 1fr; } #info { position: static; } .card { width: 140px; } .cdesc { display: none; } #timer { font-size: 26px; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="toast" class="toast"></div>
+<div id="finale">🔥 불멸의 수확! 10초 · 3배 🔥</div>
+
+<div id="hud">
+  <div class="top">
+    <div class="lvbox"><div class="lv" id="hLv">1</div><div class="xpbar"><i id="xpFill"></i><span id="xpTxt"></span></div></div>
+    <div class="curs"><div class="cur">🪵 <span id="hLogs">0</span></div><div class="cur">🪙 <span id="hCoins">0</span></div><div class="cur small" id="hRun"></div></div>
+    <button class="btn" id="btnPause">⏸</button>
+  </div>
+  <div id="timer">0:20</div>
+  <div id="buffs"></div>
+  <div id="dash"><i id="dashFill"></i><span>💨</span></div>
+  <div class="touch"><div class="tb" id="tLeft">◀</div><div class="tb" id="tRight">▶</div><div class="tb" id="tDash">💨</div><div class="tb" id="tInt">🤖</div></div>
+</div>
+
+<div id="menu">
+  <div id="mhead"><h1>🪓 팀버 러시</h1>
+    <div id="tabs"><button data-t="play" class="on">🏠 플레이</button><button data-t="tree">🌳 스킬 트리</button><button data-t="shop">🛒 상점·크루</button><button data-t="ach">🏆 업적</button><button data-t="pre">✨ 환생</button><button data-t="set">⚙️</button></div>
+    <div id="mcur"><div class="cur">🪵 <span id="mLogs">0</span></div><div class="cur">🪙 <span id="mCoins">0</span></div></div>
+  </div>
+  <div class="tab on" id="tab-play">
+    <div>
+      <h2>맵</h2><div id="levels"></div>
+      <div id="playbox"><button class="btn gold big" id="btnPlay">▶ 플레이</button><button class="btn" id="btnHow">❓ 어떻게 하나요?</button><button class="btn" id="btnPre" style="display:none" onclick="UI.setTab('pre')">✨ 환생</button><span class="dim" id="preInfo"></span></div>
+      <p class="dim" style="margin-top:10px">← → 또는 A D 로 이동 · Shift/Space 대시 · E 드론 방향 바꾸기 · Esc 일시정지</p>
+    </div>
+    <div><h2>현재 능력치</h2><div id="summary"></div></div>
+  </div>
+  <div class="tab" id="tab-tree">
+    <div id="treewrap"><canvas id="treecv"></canvas>
+      <div id="treeTop"><div id="treeCur"></div><button class="btn" id="treeHome">⌂</button></div><div id="treeHint">드래그로 이동 · 휠/핀치로 확대</div>
+      <div id="treetip"><div class="tthead"><span id="ttIcon"></span><span id="ttName"></span><button id="ttClose">✕</button></div><div id="ttDesc"></div><div id="ttLv"></div><div id="ttStats"></div><div id="ttReq"></div><div class="ttbtns"><span id="ttCost"></span><button class="btn gold" id="ttBuy">구매</button><button class="btn" id="ttMax">최대 구매</button></div></div>
+    </div>
+  </div>
+  <div class="tab" id="tab-shop">
+    <div><h2>크루</h2><div id="slots"></div><h2>도끼</h2><div class="ilist" id="axeList"></div><h2>캐릭터</h2><div class="ilist" id="charList"></div></div>
+    <div id="info"></div>
+  </div>
+  <div class="tab" id="tab-ach"><div id="achList"></div></div>
+  <div class="tab" id="tab-pre"><div id="preBody"></div><div id="preBtns" style="display:none"><button class="btn gold" id="preConfirm">✨ 환생 확정</button><button class="btn" id="preCancel">되돌리기</button></div></div>
+  <div class="tab" id="tab-set">
+    <label class="setrow"><span>업그레이드 자동 선택</span><input type="checkbox" id="setAuto"></label>
+    <label class="setrow"><span>화면 흔들림</span><input type="checkbox" id="setShake"></label>
+    <label class="setrow"><span>소리 끄기</span><input type="checkbox" id="setMute"></label>
+    <div class="setrow"><span>진행도 초기화 (설정 유지)</span><button class="btn" id="setReset">초기화</button></div>
+    <button class="btn gold" id="setBack">돌아가기</button>
+  </div>
+</div>
+
+<div id="cards"><div id="cTitle"></div><div id="cStack"></div><div id="cList"></div><div id="cBtns"><button class="btn" id="cReroll">🔄 리롤</button><span id="cBan"></span></div><p class="dim">숫자키로도 고를 수 있어요 · R 리롤</p></div>
+
+<div class="modal" id="endrun"><div class="mbox"><h3>런 결과</h3><div id="eBody"></div><div class="ebtns"><button class="btn gold" id="eAgain">▶ 새로운 런</button><button class="btn" id="eTree">🌳 스킬 트리</button><button class="btn" id="eMenu">메인 메뉴</button></div></div></div>
+<div class="modal" id="pause"><div class="mbox" style="width:320px"><h3>일시정지</h3><div class="ebtns" style="flex-direction:column"><button class="btn gold" id="pResume">계속</button><button class="btn" id="pSet">⚙️ 설정</button><button class="btn" id="pQuit">런 포기 → 메인 메뉴</button></div></div></div>
+<div class="modal" id="axedlg"><div class="mbox"><h3 id="adName"></h3><div id="adPts" class="dim"></div><div class="ebtns"><button class="btn gold" id="adBuy"></button><button class="btn" id="adMax"></button></div><div id="adRows" style="margin-top:8px"></div><div class="ebtns"><button class="btn" id="adClose">닫기</button></div></div></div>
+<div class="modal" id="howto"><div class="mbox"><h3>❓ 어떻게 하나요?</h3><div id="howList"></div><div class="ebtns"><button class="btn gold" id="howClose">알겠어요</button></div></div></div>
+<div class="modal" id="ending"><div class="mbox"><h3>🙏 공물을 바쳤습니다</h3><p class="dim">신들이 응답했어요. 이제 <b>환생</b> 탭에서 새로운 힘을 고르고 처음부터 다시 시작할 수 있어요.<br>플레이해 주셔서 고마워요!</p><div class="ebtns"><button class="btn gold" id="endClose">닫기</button></div></div></div>
+
+<script src="party-sound.js"></script><script>try { Sound.theme('playful'); } catch (e) {}</script>
+<script src="timber/data.js"></script>
+<script src="timber/core.js"></script>
+<script src="timber/run.js"></script>
+<script src="timber/ui.js"></script>
+</body>
+</html>
