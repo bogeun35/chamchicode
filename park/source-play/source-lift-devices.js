@@ -286,7 +286,7 @@ const FP_EPSILON=4;
 const PROC_INTERVAL_UPDATES=6;
 const PROC_HOLD=0, PROC_EXTEND=1, PROC_RETURN=2;
 const POPULATION_TABLE_ENTRIES=7;
-const SUPPORTED=['WeightedLiftEx','WeightedLift'];
+const SUPPORTED=['WeightedLiftEx','WeightedLift','WeightedLiftSingle'];
 
 function slot(a,i){return a.datas[i];}
 function isNumeric(a,i){const s=slot(a,i);return !!s&&s.t===1;}
