@@ -5,6 +5,42 @@ const colors=['#ffb36b','#74e4db','#afa4ff','#ff93b8','#b5e47b','#7abaff','#f4d4
 const catalogue=await fetch('catalogue.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('catalogue');return r.json();}).catch(()=>({stages:[{id:'st_w_01_01',title:'2편 1–1'}]}));
 for(const item of catalogue.stages){if([...$('stage').options].some(o=>o.value===item.id))continue;const option=document.createElement('option');option.value=item.id;option.textContent=item.title;$('stage').append(option);}
 const stageTitle=()=>catalogue.stages.find(s=>s.id===$('stage').value)?.title||'원본 라운드';
+const stageOf=id=>catalogue.stages.find(s=>s.id===id);
+const parseId=id=>{const m=/^st_w_(\d+)_(\d+)$/.exec(id||'');return m?{world:Number(m[1]),no:Number(m[2])}:{world:0,no:0};};
+// ---- round picker (cards) ----------------------------------------------------
+// A thumbnail is the 2-player map in tile units: the world's sky, every platform
+// as a flat block, the friends' start spots, the key and the door.
+function drawThumb(cv,stage){const th=stage&&stage.thumb;const c=cv.getContext('2d');const W=cv.width,H=cv.height;c.clearRect(0,0,W,H);
+ const theme=window.ParkArt&&ParkArt.THEMES[ParkArt.worldOf(stage&&stage.id)]||(window.ParkArt?ParkArt.THEMES[1]:null);
+ const g=c.createLinearGradient(0,0,0,H);if(theme){g.addColorStop(0,theme.sky[0]);g.addColorStop(.6,theme.sky[1]);g.addColorStop(1,theme.sky[2]);}else{g.addColorStop(0,'#a5dbff');g.addColorStop(1,'#fff4de');}
+ c.fillStyle=g;c.fillRect(0,0,W,H);if(!th)return;
+ const pad=4,s=Math.min((W-pad*2)/th.w,(H-pad*2)/th.h),ox=(W-th.w*s)/2,oy=(H-th.h*s)/2;
+ const soil=theme?theme.soil:'#e6bb8b',cap=theme?theme.cap:'#9edb82';
+ for(const [x,y,w,h,f] of th.rects){c.fillStyle=f&2?'#6fc3c9':f&4?'#c48c55':soil;c.fillRect(ox+x*s,oy+y*s,Math.max(1,w*s),Math.max(1,h*s));
+  if(!(f&6)&&h*s>=2){c.fillStyle=cap;c.fillRect(ox+x*s,oy+y*s,Math.max(1,w*s),Math.max(1,Math.min(2,s*.35)));}}
+ if(th.exit){const [x,y,w,h]=th.exit;c.fillStyle='#44bc91';c.fillRect(ox+x*s-1,oy+y*s-1,Math.max(3,w*s+2),Math.max(3,h*s+2));}
+ if(th.key){const [x,y]=th.key;c.fillStyle='#ffdb72';c.beginPath();c.arc(ox+x*s,oy+y*s,Math.max(2,s*.45),0,Math.PI*2);c.fill();}
+ th.spawns.forEach(([x,y],i)=>{c.fillStyle=colors[i%8];c.beginPath();c.arc(ox+x*s,oy+y*s-s*.3,Math.max(2.2,s*.55),0,Math.PI*2);c.fill();c.strokeStyle='#2a2240';c.lineWidth=1;c.stroke();});}
+const cards=new Map();
+function buildPicker(){const grid=$('picker-grid');grid.replaceChildren();const worlds=new Map();
+ for(const s of catalogue.stages){const {world}=parseId(s.id);if(!worlds.has(world))worlds.set(world,[]);worlds.get(world).push(s);}
+ for(const [world,list] of [...worlds.entries()].sort((a,b)=>a[0]-b[0])){const sec=document.createElement('section');sec.className='world';const h=document.createElement('h3');h.textContent=`2편 · 월드 ${world}`;sec.append(h);
+  const box=document.createElement('div');box.className='cards';
+  for(const s of list.sort((a,b)=>parseId(a.id).no-parseId(b.id).no)){const {world:w,no}=parseId(s.id);const b=document.createElement('button');b.className='card';b.type='button';b.dataset.id=s.id;b.setAttribute('aria-pressed','false');
+   const cv=document.createElement('canvas');cv.width=320;cv.height=180;drawThumb(cv,s);const t=document.createElement('div');t.className='card-title';const bb=document.createElement('b');bb.textContent=`${w}–${no}`;const tg=document.createElement('span');tg.className='tags';tg.textContent=(s.kinds||[]).join(' · ');t.append(bb,tg);b.append(cv,t);
+   b.onclick=()=>{if($('stage').disabled)return;if($('stage').value!==s.id){$('stage').value=s.id;$('stage').dispatchEvent(new Event('change'));}closePicker();};
+   cards.set(s.id,b);box.append(b);}
+  sec.append(box);grid.append(sec);}}
+function syncPicker(){const id=$('stage').value,s=stageOf(id),{world,no}=parseId(id),locked=$('stage').disabled;
+ $('chip-world').textContent='2편 · 월드 '+world;$('chip-title').textContent=`${world}–${no}`;$('chip-tags').textContent=(s&&s.kinds||[]).join(' · ');drawThumb($('chip-thumb'),s);
+ $('stage-pick').setAttribute('aria-disabled',String(locked));$('stage-pick').title=locked?'온라인에서는 방장이 대기실에서 고릅니다':'라운드 고르기';
+ for(const [k,b] of cards){b.setAttribute('aria-pressed',String(k===id));b.disabled=locked;}
+ const cv=$('cover-thumb');if(s){cv.hidden=false;drawThumb(cv,s);}else cv.hidden=true;}
+function syncCount(){const seg=$('count-seg'),v=$('count').value,locked=$('count').disabled;seg.setAttribute('aria-disabled',String(locked));for(const b of seg.querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.count===v));b.disabled=locked;}}
+function openPicker(){if($('picker').hidden===false)return;if(state&&!paused&&state.status==='play')overlay('잠깐 쉬어가기','','계속 · Enter');$('picker').hidden=false;$('stage-pick').setAttribute('aria-expanded','true');const cur=cards.get($('stage').value);if(cur){cur.scrollIntoView({block:'center'});cur.focus();}}
+function closePicker(){if($('picker').hidden)return;$('picker').hidden=true;$('stage-pick').setAttribute('aria-expanded','false');$('stage-pick').focus();}
+for(let n=2;n<=8;n++){const b=document.createElement('button');b.type='button';b.dataset.count=String(n);b.textContent=String(n);b.setAttribute('aria-pressed','false');b.onclick=()=>{if($('count').disabled)return;if($('count').value!==String(n)){$('count').value=String(n);$('count').dispatchEvent(new Event('change'));}syncCount();};$('count-seg').append(b);}
+buildPicker();
 let compiled,state,paused=true,selected=0,camera,last=performance.now(),loadVersion=0,replay=null,replayLoading=false,replaySpeed=1;
 const keys=new Set();
 const onlineControl=new SourceParkOnlineController({
@@ -14,7 +50,7 @@ const onlineControl=new SourceParkOnlineController({
  showOnlineLobby:()=>{state=null;paused=true;keys.clear();$('cover').hidden=true;music.pause();$('progress').textContent='대기실';},
  showOnlineGame:(remotePaused,host,status)=>{if(!host)paused=remotePaused;if(status==='play'){$('start').disabled=!host;$('cover').hidden=!paused;if(paused){$('headline').textContent='잠깐 쉬어가기';$('detail').textContent='방장이 일시정지를 제어합니다.';}syncMusic();}},
  endOnline:(status,host)=>{status==='dead'?overlay('다시 한번','모두 함께 처음부터 다시 시작합니다.','바로 시작 · Enter'):overlay('모두 함께 해냈어요',host?'대기실에서 다시 준비할 수 있습니다.':'방장을 기다리고 있습니다.','대기실 · Enter');$('start').disabled=!host&&status!=='dead';},
- onlineMode:active=>{$('count').disabled=active;$('stage').disabled=active;$('replay').disabled=active;$('retry').disabled=active&&!onlineControl.net?.host;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';},local:()=>load()
+ onlineMode:active=>{$('count').disabled=active;$('stage').disabled=active;$('replay').disabled=active;$('retry').disabled=active&&!onlineControl.net?.host;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';syncPicker();syncCount();},stageChanged:()=>{syncPicker();syncCount();},local:()=>load()
 });window.SourceParkOnline=onlineControl;
 const testMuted=new URLSearchParams(location.search).has('mute');
 const music=new Audio('audio/park-together.wav');music.loop=true;music.volume=.35;music.preload='none';
@@ -22,7 +58,8 @@ let musicEnabled=!testMuted&&localStorage.getItem('park-source-music')!=='off';
 function musicLabel(){const enabled=musicEnabled&&!testMuted&&!replay;$('music').textContent=enabled?'♫':'♫̸';$('music').setAttribute('aria-pressed',String(enabled));$('music').title=replay?'검수 재생은 무음입니다':`배경음악 ${enabled?'켜짐':'꺼짐'} · M`;}
 function syncMusic(){musicLabel();if(!musicEnabled||testMuted||paused||replay){music.pause();return;}music.play().catch(()=>{});}
 function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('park-source-music',musicEnabled?'on':'off');syncMusic();}
-function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();syncMusic();}
+function overlay(title,detail,button='시작 · Enter'){$('cover').hidden=false;$('headline').textContent=title;$('detail').textContent=detail;$('start').textContent=button;paused=true;keys.clear();syncMusic();
+ const row=$('cover-friends');row.replaceChildren();const n=state?state.players.length:0;for(let i=0;i<n;i++){const f=document.createElement('span');f.style.background=colors[(state.players[i].colorIndex??i)%8];row.append(f);}}
 function start(){if(!state)return;paused=false;keys.clear();$('cover').hidden=true;last=performance.now();canvas.focus();syncMusic();}
 function reset(){if(!compiled)return;replay=null;replaySpeed=1;$('replay-speed').hidden=true;$('replay-speed').textContent='×1';state=SourceStageRuntime.restart(compiled,state,{shuffleSeed:(Math.random()*4294967296)|0});selected=0;camera=null;overlay('함께 출발',`${state.players.length}명 · 1–8로 조작할 캐릭터 선택`);}
 function toggleReplaySpeed(){if(!replay)return;replaySpeed=replaySpeed===1?4:1;$('replay-speed').textContent='×'+replaySpeed;}
@@ -34,7 +71,7 @@ async function runReplay(){if(replayLoading)return;replayLoading=true;$('replay'
   replay={data,index:0,remaining:data.commands[0].frames,accumulator:0};$('replay-speed').hidden=false;start();
  }catch(e){overlay('입력 재생 준비 중',e.message);}finally{replayLoading=false;$('replay').disabled=false;}
 }
-async function load(){const token=++loadVersion;compiled=null;state=null;overlay('불러오는 중','원본 지형과 장치를 준비합니다.');$('start').disabled=true;
+async function load(){const token=++loadVersion;compiled=null;state=null;syncPicker();syncCount();overlay('불러오는 중','원본 지형과 장치를 준비합니다.');$('start').disabled=true;
  try{const res=await fetch(`data/${encodeURIComponent($('stage').value)}/${$('count').value}.json`,{cache:'no-store'});if(!res.ok)throw Error('연결 데이터 준비 중');const data=await res.json();if(token!==loadVersion)return;compiled=data;$('limitations').textContent='전체 이관 및 원본 동작 검수 중';$('start').disabled=false;reset();}
  catch(e){if(token===loadVersion)overlay('연결 준비 중',e.message);}
 }
@@ -120,7 +157,8 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   else if(state.status==='dead')overlay('다시 한번',state.failure?.reason||'처음부터 다시 확인해요','다시 · Enter');
  }render();requestAnimationFrame(frame);
 }
-document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName)||e.code==='Enter'&&e.target.tagName==='BUTTON')return;
+document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName)||(e.code==='Enter'||e.code==='Space')&&e.target.tagName==='BUTTON')return;
+ if(e.code==='Escape'){closePicker();return;}
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();
  if(e.code==='Enter'&&paused){if(onlineControl.active){onlineControl.cover();return;}if(state&&state.status!=='play')reset();start();return;}
  if(e.code.startsWith('Digit')&&state&&!onlineControl.active){const i=Number(e.code.slice(5))-1;if(i>=0&&i<state.players.length)selected=i;return;}
@@ -128,6 +166,6 @@ document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].include
  if(e.code==='Backspace'&&!e.repeat){if(onlineControl.active)onlineControl.pause();else paused?start():overlay('잠깐 쉬어가기','','계속 · Enter');return;}keys.add(e.code);
 });document.addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>{keys.clear();if(!onlineControl.active&&state&&state.status==='play'&&!paused)overlay('잠깐 쉬어가기','','계속 · Enter');});
  $('start').onclick=()=>{if(onlineControl.active){onlineControl.cover();return;}if(state&&state.status!=='play')reset();start();};$('retry').onclick=()=>onlineControl.active?onlineControl.restartRound():reset();$('count').onchange=load;$('stage').onchange=()=>onlineControl.active?onlineControl.selectStage($('stage').value):load();$('music').onclick=toggleMusic;$('replay').onclick=runReplay;$('replay-speed').onclick=toggleReplaySpeed;
- $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
+ $('help-button').onclick=()=>{$('help').hidden=!$('help').hidden;};$('stage-pick').onclick=()=>{if($('stage').disabled)return;$('picker').hidden?openPicker():closePicker();};$('picker-close').onclick=closePicker;$('fullscreen').onclick=async()=>{try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen();}catch{}};
  await load();requestAnimationFrame(frame);const roomCode=new URLSearchParams(location.search).get('room');if(roomCode){$('room-code').value=roomCode;$('online-panel').hidden=false;onlineControl.enter(false);}
 })();

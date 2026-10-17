@@ -68,7 +68,7 @@ class SourceParkOnlineController{
   const offline=ids.filter(id=>!this.net.connected(id));$('connection-status').textContent=offline.length?`${offline.length}명 재접속 대기`:'';
   $('room-label').textContent=`${this.net.code} · ${ids.length}/8`;$('room-ready').hidden=this.net.host;$('room-ready').textContent=r.players[this.net.id]?.ready?'준비 취소':'준비';
   $('room-start').hidden=!this.net.host;$('room-start').disabled=this.net.connectedIds().length<2||ids.some(id=>this.net.connected(id)&&id!==r.host&&!r.players[id].ready);
-  $('stage').value=r.stageId||'st_w_01_01';$('stage').disabled=!this.net.host||r.status!=='lobby'||!!r.restartPending;$('retry').disabled=!this.net.host&&r.status==='lobby';
+  $('stage').value=r.stageId||'st_w_01_01';$('stage').disabled=!this.net.host||r.status!=='lobby'||!!r.restartPending;$('retry').disabled=!this.net.host&&r.status==='lobby';if(this.app.stageChanged)this.app.stageChanged();
   $('room-join-form').hidden=true;$('room-lobby').hidden=false;
  }
  async getCompiled(n,stageId='st_w_01_01'){const key=stageId+':'+n;if(!this.compiled.has(key))this.compiled.set(key,fetch(`data/${encodeURIComponent(stageId)}/${n}.json`).then(r=>{if(!r.ok)throw Error('라운드를 불러오지 못했습니다.');return r.json();}).catch(e=>{this.compiled.delete(key);throw e;}));return this.compiled.get(key);}
