@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><title>쉘다이버 그림 미리보기</title>
+<style>body{background:#28384a;color:#fff;font:12px sans-serif;margin:8px} canvas{image-rendering:pixelated}</style></head>
+<body><canvas id="c" width="1400" height="900"></canvas>
+<script src="../../shell/art.js"></script>
+<script>
+const A = SDArt, c = document.getElementById('c'), x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+let X = 10, Y = 20, rowH = 0;
+function put(name, img, s = 3) { const w = img.width * s, h = img.height * s; if (X + w > 1390) { X = 10; Y += rowH + 22; rowH = 0; } x.drawImage(img, X, Y, w, h); x.fillStyle = '#fff'; x.fillText(name, X, Y - 4); X += w + 12; rowH = Math.max(rowH, h); }
+for (let f = 0; f < 4; f++) put('걷기' + f, A.turtle(f, false));
+for (let f = 0; f < 4; f++) { const t = A.turtle(f, true), [cv, cx] = A.mk(28, 28); cx.drawImage(t, 2, 2); cx.drawImage(A.helmet(), 1, 1); put('수영' + f, cv); }
+Object.keys(A.JC).forEach(k => put(k, A.jelly(k, 0, k.startsWith('swamp') && k !== 'swamp_purple')));
+['silver', 'gold', 'rainbow', 'emerald'].forEach(g => put(g, A.jelly('shallows_pink', 1, false, g)));
+put('잠수함', A.submarine()); ['scrap', 'crystal', 'mush', 'obsidian'].forEach(t => put(t, A.block(t, 0)));
+['shell', 'scrap', 'crystal', 'mush', 'obsidian', 'flask', 'jelly'].forEach(t => put(t, A.coin(t), 4));
+put('상점', A.store()); put('상자', A.chest(false)); put('상자열림', A.chest(true)); put('변환기', A.transmuter(true)); put('연금술', A.alchemy()); put('저장고', A.storage(true));
+put('해먹', A.hammock('ok')); put('안테나', A.antenna(1)); put('집', A.house('blue')); put('집2', A.house('pink')); put('야자', A.palm(0), 2); put('상인', A.npc(0));
+put('버블', A.bubble(8)); put('치명', A.bubble(8, true)); put('버블건', A.gun('bubble')); put('플라즈마', A.gun('plasma')); put('불가사리', A.starfish(0)); put('로봇', A.robot(0)); put('퍼플', A.puffle(0));
+['shallows', 'glacial', 'swamp', 'magma'].forEach(b => put('산호' + b, A.coral(1, b))); put('켈프', A.kelp(0)); put('구름', A.cloud(), 2);
+</script></body></html>
