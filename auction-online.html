@@ -1090,6 +1090,8 @@ const ADMIN_PIN = '1234';          // ← 관리자 비밀번호. 이 한 줄만
 const ADMIN_TAP_COUNT = 10;        // 🔨 아이콘을 이만큼 연타하면 비밀번호를 묻는다
 const AUCTION_TIME = 6;            // 입찰 제한시간(초)
 const RPS_TIME = 5;                // 가위바위보 제한시간(초)
+const RPS_HOLD = 1500;             // 손을 공개하고 잠깐 멈추는 시간(ms)
+                                   // 지명하는 동안에도 결과는 계속 떠 있는다
 const START_POINTS = 100;          // 팀당 시작 포인트
 const ROOM_TTL   = 12 * 60 * 60 * 1000;  // 방 수명 12시간 — 한 번 열면 계속 쓴다
 const HOST_BEAT  = 10 * 1000;            // 방장 생존 신호 주기
@@ -2416,6 +2418,7 @@ function normalizeState(s){
   s.hist = s.hist || []; s.passes = s.passes || {};
   s.rps = s.rps || { round:1, hands:{}, winner:0 };
   s.rps.hands = s.rps.hands || {};
+  s.rps.revealAt = s.rps.revealAt || 0;
   s.heroPick = s.heroPick || {}; s.heroDone = s.heroDone || {};
   s.rpsPicked = s.rpsPicked || {};
   s.roleAssign = s.roleAssign || {};
@@ -2682,14 +2685,14 @@ function renderBoard(){
 
 function renderPanels(){
   $('panelAuction').style.display = state.phase==='auction' ? '' : 'none';
-  $('panelRps').style.display     = state.phase==='rps'     ? '' : 'none';
+  $('panelRps').style.display     = (state.phase==='rps' || state.phase==='pick') ? '' : 'none';
   $('panelPick').style.display    = state.phase==='pick'    ? '' : 'none';
   $('panelAuto').style.display    = state.phase==='auto'    ? '' : 'none';
   $('remainCard').style.display   = (state.phase==='auto' || state.phase==='pick') ? 'none' : '';
   $('draftTools').style.display   = isHost ? '' : 'none';
 
   if(state.phase === 'auction') renderAuction();
-  if(state.phase === 'rps') renderRps();
+  if(state.phase === 'rps' || state.phase === 'pick') renderRps();
   if(state.phase === 'pick') renderPick();
   if(state.phase === 'auto') renderAuto();
   renderRemain();
@@ -2896,6 +2899,7 @@ const HANDS = { rock:'✊', scissors:'✌️', paper:'✋' };
 let rpsRevealKey = '';
 function renderRps(){
   const r = state.rps;
+  const picking = state.phase === 'pick';     // 지명 중에는 결과만 보여준다
   const revealed = !!(r.hands[1] && r.hands[2]);
   const key = r.round + ':' + (revealed ? '1' : '0');
   const justRevealed = revealed && key !== rpsRevealKey;
@@ -2915,19 +2919,26 @@ function renderRps(){
     } else { el.textContent = '❔'; el.classList.add('pending'); el.classList.remove('reveal'); }
     $('rpsWho'+t).textContent = t + '팀' + (myTeam===t?' (나)':'');
   });
+  const holdLeft = (!picking && r.revealAt) ? Math.max(0, RPS_HOLD - (srvNow() - r.revealAt)) : 0;
   const vd = $('rpsVerdict');
-  if(!revealed) vd.innerHTML = r.hands[myTeam] ? '<span class="tie">상대가 낼 때까지 기다리는 중...</span>' : '';
+  if(picking && r.winner){
+    vd.innerHTML = '<span class="w'+r.winner+'">' + r.winner + '팀이 이겼습니다</span>'
+      + ' <span class="tie">두 팀이 한 명씩 고르면 다시 가위바위보</span>';
+  }
+  else if(!revealed) vd.innerHTML = r.hands[myTeam] ? '<span class="tie">상대가 낼 때까지 기다리는 중...</span>' : '';
   else {
     const w = rpsWinner(r.hands[1], r.hands[2]);
     vd.innerHTML = w === 0
       ? '<span class="tie">비겼습니다 — 다시!</span>'
       : '<span class="w'+w+'">' + w + '팀 승리!</span> <span class="tie">' + w + '팀이 먼저 고릅니다</span>';
+    if(holdLeft > 0) startRpsHoldTick();
   }
 
-  $('rpsTitle').textContent = r.round > 1 ? '가위바위보 — ' + r.round + '라운드 (비김)' : '가위바위보';
-  const done = !!(myTeam && r.hands[myTeam]);
-  $('rpsBtns').style.display = iAmLeader() ? '' : 'none';
-  $('rpsSpecNote').style.display = iAmLeader() ? 'none' : '';
+  $('rpsTitle').textContent = picking ? ('가위바위보 결과 — ' + r.round + '라운드')
+    : (r.round > 1 ? '가위바위보 — ' + r.round + '라운드 (비김)' : '가위바위보');
+  const done = picking || !!(myTeam && r.hands[myTeam]);
+  $('rpsBtns').style.display = (iAmLeader() && !picking) ? '' : 'none';
+  $('rpsSpecNote').style.display = (iAmLeader() || picking) ? 'none' : '';
   document.querySelectorAll('#rpsBtns button').forEach(b=>{
     b.disabled = done;
     b.classList.toggle('on', myTeam && r.hands[myTeam] === b.dataset.hand);
@@ -3033,7 +3044,7 @@ function pickPlayer(pid){
       cur.phase = 'rps';                      // 양쪽 다 골랐으니 다시 가위바위보
       cur.turn = 0;
       cur.rpsPicked = {};
-      cur.rps = { round:((cur.rps && cur.rps.round) || 1) + 1, hands:{}, winner:0,
+      cur.rps = { round:((cur.rps && cur.rps.round) || 1) + 1, hands:{}, winner:0, revealAt:0,
                   deadline: srvNow() + RPS_TIME*1000 + 900 };
     } else {
       cur.turn = canPick(other) ? other : myTeam;   // 한쪽만 자리가 남았으면 계속
@@ -3153,7 +3164,12 @@ function hostTick(){
       db.ref(STATE_PATH+'/'+roomCode+'/rps/deadline').set(srvNow() + RPS_TIME*1000);
       return;
     }
-    if(r.hands[1] && r.hands[2]) return resolveRps();
+    if(r.hands[1] && r.hands[2]){
+      // 둘 다 냈으면 곧바로 넘기지 않고, 손을 공개한 채 결과를 보여준다
+      if(!r.revealAt) return revealRps();
+      if(srvNow() - r.revealAt >= RPS_HOLD) return resolveRps();
+      return;
+    }
     if(srvNow() > r.deadline) return fillAndResolveRps();
     return;
   }
@@ -3182,16 +3198,43 @@ function fillAndResolveRps(){
     [1,2].forEach(t=>{ if(!cur.rps.hands[t]) cur.rps.hands[t] = keys[Math.floor(Math.random()*keys.length)]; });
     cur.seq = (cur.seq||0)+1;
     return cur;
-  }).then(res=>{ if(res.committed) setTimeout(resolveRps, 700); });
+  }).then(res=>{ if(res.committed) setTimeout(revealRps, 400); });
 }
+/* 공개 중에는 화면을 계속 다시 그려 남은 시간을 반영한다 */
+let rpsHoldTimer = null;
+function startRpsHoldTick(){
+  if(rpsHoldTimer) return;
+  rpsHoldTimer = setInterval(()=>{
+    if(!state || state.phase !== 'rps' || !(state.rps && state.rps.revealAt)){
+      clearInterval(rpsHoldTimer); rpsHoldTimer = null; return;
+    }
+    renderRps();
+  }, 200);
+}
+
+/* 손을 공개하는 순간 — 판정과 중계는 여기서 나온다 */
+function revealRps(){
+  db.ref(STATE_PATH+'/'+roomCode).transaction(cur=>{
+    if(!cur || cur.phase !== 'rps') return;
+    const h = (cur.rps && cur.rps.hands) || {};
+    if(!h[1] || !h[2] || cur.rps.revealAt) return;
+    cur.rps.revealAt = srvNow();
+    cur.seq = (cur.seq||0)+1;
+    cur.event = { type:'rps', winner:rpsWinner(h[1], h[2]), hands:{ 1:h[1], 2:h[2] }, seq:cur.seq };
+    return cur;
+  });
+}
+
 function resolveRps(){
   db.ref(STATE_PATH+'/'+roomCode).transaction(cur=>{
     if(!cur || cur.phase !== 'rps') return;
     const h = cur.rps.hands || {};
     if(!h[1] || !h[2]) return;
+    if(!cur.rps.revealAt || srvNow() - cur.rps.revealAt < RPS_HOLD) return;   // 아직 보여주는 중
     const w = rpsWinner(h[1], h[2]);
     if(w === 0){
-      cur.rps = { round:(cur.rps.round||1)+1, hands:{}, winner:0, deadline:srvNow() + RPS_TIME*1000 + 1200 };
+      cur.rps = { round:(cur.rps.round||1)+1, hands:{}, winner:0, revealAt:0,
+                  deadline:srvNow() + RPS_TIME*1000 + 1200 };
     } else {
       cur.rps.winner = w;
       cur.turn = w;
@@ -3199,7 +3242,6 @@ function resolveRps(){
       cur.rpsPicked = {};        // 이긴 팀부터, 두 팀 다 한 명씩 고르면 다시 가위바위보
     }
     cur.seq = (cur.seq||0)+1;
-    cur.event = { type:'rps', winner:w, hands:{ 1:h[1], 2:h[2] }, seq:cur.seq };
     return cur;
   });
 }
@@ -3314,7 +3356,7 @@ function startGame(){
   };
   if(!queue.length) return toast('경매에 올릴 사람이 없습니다');
   if(state.mode === 'auction'){ upd.phase = 'auction'; upd.deadline = srvNow() + AUCTION_TIME*1000 + 1500; }
-  else if(state.mode === 'rps'){ upd.phase = 'rps'; upd.rps = { round:1, hands:{}, winner:0, deadline:srvNow() + RPS_TIME*1000 + 1200 }; }
+  else if(state.mode === 'rps'){ upd.phase = 'rps'; upd.rps = { round:1, hands:{}, winner:0, revealAt:0, deadline:srvNow() + RPS_TIME*1000 + 1200 }; }
   else { upd.phase = 'auto'; }
   db.ref(STATE_PATH+'/'+roomCode).update(upd).then(()=>{
     playAuctionStartSound();
@@ -3498,6 +3540,7 @@ function renderSlots(){
 }
 
 function moveAssign(team, mutate){
+  heroAutoRunning = false;      // 자리가 바뀌면 다시 뽑을 수 있어야 한다
   db.ref(STATE_PATH + '/' + roomCode).transaction(function(cur){
     if(!cur) return;
     cur.roleAssign = cur.roleAssign || {};
@@ -3525,6 +3568,16 @@ function dropOnBench(team){
 }
 
 /* 배정된 역할 — 영웅 목록을 그 역할로 좁히는 데 쓴다 */
+/* 팀 구성을 쓰는 판이면, 역할 자리가 다 차야 영웅을 뽑을 수 있다 */
+function slotsReady(team){
+  const slots = compSlots();
+  if(!slots) return true;                       // 자유 구성이면 자리 개념이 없다
+  const a = roleAssign(team);
+  const filled = Object.keys(a).filter(k=>a[k] !== undefined && a[k] !== null).length;
+  return filled >= Math.min(slots.length, (state.teams[team]||[]).length);
+}
+function allSlotsReady(){ return [1,2].every(slotsReady); }
+
 function assignedRole(team, pid){
   const slots = compSlots();
   if(!slots) return null;
@@ -3546,8 +3599,9 @@ function heroOf(team, pid){
 function renderResult(){
   if(state.heroMode && state.heroMode !== 'none') loadHeroes();
   renderSlots();
-  // 전원 랜덤은 팀이 정해지는 순간 알아서 뽑는다 (방장이 한 번만)
-  if(state.heroMode === 'random' && isHost){
+  // 전원 랜덤은 역할 자리가 다 찬 뒤에 뽑는다.
+  // 자리를 정하기 전에 뽑으면 탱·힐이 제멋대로 나온다.
+  if(state.heroMode === 'random' && isHost && allSlotsReady()){
     const picked = Object.keys(state.heroPick[1] || {}).length
                  + Object.keys(state.heroPick[2] || {}).length;
     const total = (state.teams[1]||[]).length + (state.teams[2]||[]).length;
@@ -3558,13 +3612,18 @@ function renderResult(){
   }
   const ah = $('resAutoHeroBtn');
   if(ah){
+    const ready = !compSlots() || allSlotsReady();
     ah.style.display = (state.heroMode && state.heroMode !== 'none'
       && [1,2].some(canEditHero)) ? '' : 'none';
-    ah.textContent = state.heroMode === 'random' ? '🎲 전원 다시 뽑기' : '🎲 영웅 자동 지정';
+    ah.disabled = !ready;
+    ah.textContent = !ready ? '역할 자리를 먼저 채우세요'
+      : (state.heroMode === 'random' ? '🎲 전원 다시 뽑기' : '🎲 영웅 자동 지정');
   }
   const note = $('resultNote');
   if(note && state.heroMode === 'random'){
-    note.textContent = '전원 랜덤입니다. 마음에 안 들면 「전원 다시 뽑기」 로 다시 돌리세요.';
+    note.textContent = (compSlots() && !allSlotsReady())
+      ? '먼저 역할 자리를 채우세요. 탱커·힐러가 정해지면 그 역할에 맞는 영웅이 자동으로 뽑힙니다.'
+      : '전원 랜덤입니다. 마음에 안 들면 「전원 다시 뽑기」 로 다시 돌리세요.';
   } else if(note) note.textContent = state.heroMode === 'opponent'
     ? '상대 팀 선수의 「+ 영웅」 을 눌러 영웅을 정해주세요. 고르는 즉시 상대 화면에도 뜹니다.'
     : state.heroMode === 'self' ? '내 팀 선수의 「+ 영웅」 을 눌러 영웅을 고르세요.' : '';
@@ -3601,7 +3660,7 @@ function restartInSameRoom(){
     points:{ 1:START_POINTS, 2:START_POINTS },
     cap: Math.ceil((state.picked||[]).length/2),
     bid:null, hist:[], passes:{}, deadline:0,
-    rps:{ round:1, hands:{}, winner:0, deadline:0 },
+    rps:{ round:1, hands:{}, winner:0, revealAt:0, deadline:0 },
     turn:0, heroPick:{}, heroDone:{}, event:null, instant:null, rpsPicked:{}, roleAssign:{},
     seq:(state.seq||0)+1
   }).then(()=>{
@@ -3616,6 +3675,9 @@ function restartInSameRoom(){
 function autoAssignHeroes(opts){
   const silent = !!(opts && opts.silent);
   if(!state || !state.heroMode || state.heroMode === 'none') return;
+  if(compSlots() && !allSlotsReady()){
+    return silent || toast('먼저 역할 자리를 모두 채워주세요 — 탱커·힐러가 정해져야 영웅을 뽑습니다');
+  }
   const targets = state.heroMode === 'random' ? [1,2] : [1,2].filter(canEditHero);
   if(!targets.length) return silent || toast('지정할 팀이 없습니다');
   const upd = {};
