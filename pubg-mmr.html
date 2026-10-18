@@ -94,6 +94,34 @@ h2{font-size:1.4rem;margin-bottom:6px}
 .diff b{font-family:'Orbitron',sans-serif;font-size:1.5rem;color:var(--fg);display:block;margin-top:2px}
 .copy{display:flex;justify-content:center;margin-top:14px}
 
+/* ── 모드 전환 ── */
+nav.modes{display:flex;gap:6px;flex-wrap:wrap}
+.tb{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--dim);
+  padding:7px 14px;border-radius:9px;font-family:'Rajdhani',sans-serif;font-size:.93rem;font-weight:700;transition:.13s}
+.tb:hover{color:var(--fg);border-color:rgba(255,255,255,.3)}
+.tb.on{background:linear-gradient(135deg,var(--accent),#f7b955);border-color:var(--accent);color:#1a1205}
+.plan{font-style:normal;color:var(--dim);font-weight:600;font-family:'Rajdhani',sans-serif;margin-left:9px;font-size:.92rem}
+.plan b{color:var(--accent);font-family:'Orbitron',sans-serif}
+.seg{display:inline-flex;gap:4px;margin-left:2px}
+.seg button{background:var(--surface2);color:var(--dim);border:1px solid var(--border);border-radius:7px;
+  padding:5px 11px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;transition:.12s}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--cyan);border-color:var(--cyan);color:#04222a}
+
+/* ── 스쿼드 결과 ── */
+.squads{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.sq{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--cyan);
+  border-radius:12px;padding:14px 16px}
+.sq:nth-child(4n+1){border-top-color:var(--accent)}
+.sq:nth-child(4n+3){border-top-color:var(--good)}
+.sq:nth-child(4n){border-top-color:var(--purple)}
+.sq h3{font-size:.98rem;display:flex;align-items:baseline;gap:8px}
+.sq h3 .avg{margin-left:auto;font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;color:var(--fg)}
+.sq ul{list-style:none;margin-top:9px}
+.sq li{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.98rem}
+.sq li:last-child{border-bottom:none}
+.sq li .m{font-variant-numeric:tabular-nums;font-weight:700;color:var(--dim);min-width:46px}
+
 /* ── 직접 추가 ── */
 .add{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);
   border:1px solid var(--border);border-radius:12px;padding:15px 17px}
@@ -112,7 +140,11 @@ h2{font-size:1.4rem;margin-bottom:6px}
 
 <header>
   <div class="wrap hrow">
-    <span class="brand">배그 내전 팀짜기</span>
+    <span class="brand" id="brand">배그 내전 팀짜기</span>
+    <nav class="modes">
+      <button class="tb" id="mVs" data-mode="vs">⚔️ 내전 2팀</button>
+      <button class="tb" id="mSq" data-mode="squad">🪂 스쿼드 나누기</button>
+    </nav>
     <span class="sp"></span>
     <button class="btn" id="reload">🔄 명단 새로고침</button>
   </div>
@@ -122,14 +154,19 @@ h2{font-size:1.4rem;margin-bottom:6px}
 
 <section>
   <h2>명단</h2>
-  <p class="sub">같이 할 사람을 눌러서 고르세요. 예상 MMR 은 <b>지파봇</b>이 op.gg 전적으로 계산해 올린 값입니다.</p>
+  <p class="sub" id="sub">같이 할 사람을 눌러서 고르세요. 예상 MMR 은 <b>지파봇</b>이 op.gg 전적으로 계산해 올린 값입니다.</p>
 
   <div class="bar">
-    <span class="cnt"><em id="nsel">0</em>명 선택</span>
+    <span class="cnt"><em id="nsel">0</em>명 선택<em id="plan" class="plan"></em></span>
     <button class="btn" id="all">전체 선택</button>
     <button class="btn" id="none">전체 해제</button>
     <span class="sp" style="margin-left:auto"></span>
-    <span class="tol">허용 차이 <input type="range" id="tol" min="0" max="120" step="5" value="30"><span class="v" id="tolv">30</span></span>
+    <span class="tol" id="tolWrap">허용 차이 <input type="range" id="tol" min="0" max="120" step="5" value="30"><span class="v" id="tolv">30</span></span>
+    <span class="tol hide" id="capWrap">한 팀 최대
+      <span class="seg">
+        <button data-cap="4" class="on">4명</button><button data-cap="3">3명</button><button data-cap="2">2명</button>
+      </span>
+    </span>
     <button class="btn go" id="go">팀 나누기</button>
   </div>
 
@@ -139,11 +176,12 @@ h2{font-size:1.4rem;margin-bottom:6px}
 
 <section id="result" class="hide">
   <h2>결과</h2>
-  <div class="teams">
+  <div class="teams" id="vsBox">
     <div class="team a"><h3>🅰️ A팀 <span id="na"></span><span class="avg" id="aa"></span></h3><ul id="la"></ul></div>
     <div class="team b"><h3>🅱️ B팀 <span id="nb"></span><span class="avg" id="ab"></span></h3><ul id="lb"></ul></div>
   </div>
-  <p class="diff">두 팀 평균 차이<b id="dv"></b></p>
+  <div class="squads hide" id="sqBox"></div>
+  <p class="diff"><span id="dlabel">두 팀 평균 차이</span><b id="dv"></b></p>
   <div class="copy">
     <button class="btn alt" id="again">🎲 비슷한 조합으로 다시 섞기</button>
     <button class="btn" id="copy" style="margin-left:10px">📋 복사</button>
@@ -177,8 +215,10 @@ h2{font-size:1.4rem;margin-bottom:6px}
 
 const DB = 'https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app';
 const PLAYERS_URL = DB + '/games/mmr_players.json';
-const MAX = 16;                       // 조합을 전부 계산한다 (C(16,8)=12870)
+const MAX_VS = 16;                    // 내전은 조합을 전부 계산한다 (C(16,8)=12870)
+const MAX_SQUAD = 40;                 // 스쿼드는 휴리스틱이라 인원이 많아도 된다
 const LS_SEL = 'pubgmmr.sel', LS_MAN = 'pubgmmr.manual', LS_OVR = 'pubgmmr.override';
+const LS_MODE = 'pubgmmr.mode', LS_CAP = 'pubgmmr.cap';
 
 const $ = id => document.getElementById(id);
 const TIERS = [[1700,'최상위','t1'],[1550,'상위','t2'],[1400,'중상위','t3'],
@@ -193,6 +233,10 @@ let sel = new Set(lsGet(LS_SEL, []));
 let override = lsGet(LS_OVR, {});              // key → 직접 넣은 MMR
 let manual = lsGet(LS_MAN, []);                // [{name,mmr}]
 let last = null;                               // 마지막 분할 결과
+// vs = 내전 두 팀 대결 / squad = 실제로 같이 들어갈 스쿼드(최대 4명)로 쪼개기
+let mode = new URLSearchParams(location.search).get('mode') === 'squad' ? 'squad'
+         : (lsGet(LS_MODE, 'vs') === 'squad' ? 'squad' : 'vs');
+let cap = lsGet(LS_CAP, 4);                    // 스쿼드 한 팀 최대 인원
 
 /* ── 팀 나누기 (mmr.py 의 balance / random_balanced 를 그대로 옮긴 것) ── */
 function* combos(n, k){
@@ -320,7 +364,7 @@ function render(){
     el.addEventListener('click', ev => {
       if (ev.target.closest('.ovr') || ev.target.closest('.rm')) return;
       if (sel.has(p.key)) sel.delete(p.key);
-      else if (sel.size >= MAX) { alert(MAX + '명까지만 고를 수 있어요.'); return; }
+      else if (sel.size >= maxPick()) { alert(maxPick() + '명까지만 고를 수 있어요.'); return; }
       else sel.add(p.key);
       lsSet(LS_SEL, [...sel]);
       render();
@@ -347,6 +391,7 @@ function render(){
   }
 
   $('nsel').textContent = sel.size;
+  $('plan').innerHTML = planText();
   $('go').disabled = sel.size < 2;
 }
 
@@ -354,12 +399,161 @@ function chosen(){
   return allPlayers().filter(p => sel.has(p.key)).map(p => ({name:p.name, mmr:effMmr(p)}));
 }
 
+/* ── 스쿼드 나누기 ──────────────────────────────────────────────────────
+   내전(2팀 대결)과 목적이 다르다. 배그 스쿼드는 최대 4명이라, 11명이면
+   4/4/3 처럼 **실제로 같이 들어갈 팀**으로 쪼개는 것이다.
+   팀이 3개 이상이면 조합을 전부 보는 건 불가능해서(16명을 4팀으로 = 수백만),
+   뱀 드래프트로 시작해 두 명씩 맞바꿔 가며 개선한다. */
+
+function squadSizes(n, cap){
+  const g = Math.ceil(n / cap);
+  const base = Math.floor(n / g), extra = n % g;
+  // 5명을 4명 기준으로 나눌 때 4/1 이 아니라 3/2 가 되게 고르게 편다
+  return Array.from({length:g}, (_, i) => base + (i < extra ? 1 : 0));
+}
+
+const avg = t => t.reduce((s, p) => s + p.mmr, 0) / t.length;
+function spread(ts){
+  const a = ts.map(avg);
+  return Math.max(...a) - Math.min(...a);
+}
+
+/* 가능한 분할을 전부 보고 평균 격차가 가장 작은 것을 고른다.
+   같은 크기 팀끼리는 순서만 다른 중복이 생기므로, 뒤 팀의 첫 번호가 앞 팀보다
+   크도록 강제해서 한 번씩만 센다. 11명 4/4/3 이면 5,775가지라 몇 ms 면 끝난다.
+   조합 수가 한도를 넘으면(16명 4팀 = 262만) 화면이 멎으므로 휴리스틱으로 간다. */
+const EXACT_MAX = 300000;
+
+function nCr(n, k){
+  let r = 1;
+  for (let i = 1; i <= k; i++) r = r * (n - k + i) / i;
+  return r;
+}
+function partitionCount(n, sizes){
+  let total = 1, rem = n;
+  for (const s of sizes){ total *= nCr(rem, s); rem -= s; }
+  let run = 1;                       // 크기가 같은 팀끼리는 순서를 구분하지 않는다
+  for (let i = 1; i <= sizes.length; i++){
+    if (i < sizes.length && sizes[i] === sizes[i - 1]) run++;
+    else { for (let f = 2; f <= run; f++) total /= f; run = 1; }
+  }
+  return total;
+}
+
+function exact(players, sizes){
+  let bestVal = Infinity, ties = [];
+  const groups = [];
+  const pool0 = players.map((p, idx) => ({...p, idx}));
+
+  function pick(k, pool){
+    if (k === sizes.length){
+      const sp = spread(groups);
+      if (sp < bestVal - 1e-9){ bestVal = sp; ties = [groups.map(g => g.slice())]; }
+      else if (sp < bestVal + 1e-9 && ties.length < 300) ties.push(groups.map(g => g.slice()));
+      return;
+    }
+    const need = sizes[k], sameAsPrev = k > 0 && sizes[k] === sizes[k - 1];
+    const minPrev = sameAsPrev ? groups[k - 1][0].idx : -1;
+    const combo = [];
+    (function rec(startI){
+      if (combo.length === need){
+        groups[k] = combo.slice();
+        const used = new Set(combo.map(c => c.idx));
+        pick(k + 1, pool.filter(x => !used.has(x.idx)));
+        return;
+      }
+      for (let i = startI; i <= pool.length - (need - combo.length); i++){
+        // 앞 팀과 크기가 같으면 이 팀의 첫 사람이 앞 팀의 첫 사람보다 뒤여야 한다
+        if (combo.length === 0 && sameAsPrev && pool[i].idx < minPrev) continue;
+        combo.push(pool[i]);
+        rec(i + 1);
+        combo.pop();
+      }
+    })(0);
+  }
+  pick(0, pool0);
+  return {bestVal, ties};
+}
+
+function heuristic(players, sizes){
+  /* 인원이 많아 전부 못 볼 때. 뱀 드래프트로 시작해 두 명씩 맞바꿔 개선한다.
+     맞바꿀 때마다 전체를 다시 더하면 느려서, 팀 합계만 증분으로 고친다. */
+  const snake = (shuffle) => {
+    const ps = players.slice();
+    if (shuffle) ps.sort(() => Math.random() - 0.5);
+    ps.sort((x, y) => y.mmr - x.mmr);
+    const teams = sizes.map(() => []), order = [];
+    for (let round = 0; order.length < ps.length; round++){
+      const ix = [...teams.keys()];
+      if (round % 2) ix.reverse();
+      for (const i of ix) if (order.filter(k => k === i).length < sizes[i]) order.push(i);
+    }
+    ps.forEach((p, k) => teams[order[k]].push(p));
+    return teams;
+  };
+  const spreadOf = (sums) => {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < sums.length; i++){ const a = sums[i] / sizes[i]; if (a < lo) lo = a; if (a > hi) hi = a; }
+    return hi - lo;
+  };
+  let bestVal = Infinity, ties = [];
+  for (let r = 0; r < 40; r++){
+    const teams = snake(r > 0);
+    const sums = teams.map(t => t.reduce((s, p) => s + p.mmr, 0));
+    for (let pass = 0; pass < 300; pass++){
+      let found = null, cur = spreadOf(sums);
+      for (let a = 0; a < teams.length; a++)
+        for (let b = a + 1; b < teams.length; b++)
+          for (let i = 0; i < teams[a].length; i++)
+            for (let j = 0; j < teams[b].length; j++){
+              const d = teams[b][j].mmr - teams[a][i].mmr;
+              if (!d) continue;
+              const t = sums.slice();
+              t[a] += d; t[b] -= d;
+              const sp = spreadOf(t);
+              if (sp < cur - 1e-9 && (!found || sp < found.sp)) found = {sp, a, b, i, j, d};
+            }
+      if (!found) break;
+      const {a, b, i, j, d} = found;
+      [teams[a][i], teams[b][j]] = [teams[b][j], teams[a][i]];
+      sums[a] += d; sums[b] -= d;
+    }
+    const sp = spreadOf(sums);
+    if (sp < bestVal - 1e-9){ bestVal = sp; ties = [teams.map(t => t.slice())]; }
+    else if (sp < bestVal + 1e-9 && ties.length < 300) ties.push(teams.map(t => t.slice()));
+  }
+  return {bestVal, ties};
+}
+
+function distribute(players, cap, varied){
+  const sizes = squadSizes(players.length, cap);
+  const r = partitionCount(players.length, sizes) <= EXACT_MAX
+          ? exact(players, sizes) : heuristic(players, sizes);
+  // 똑같이 최적인 조합이 여럿이면 그 안에서만 섞는다 (격차는 그대로 최소)
+  const uniq = [];
+  for (const t of r.ties){
+    const key = t.map(x => x.map(p => p.name).sort().join(',')).sort().join('|');
+    if (!uniq.some(u => u.key === key)) uniq.push({key, t});
+  }
+  const pick = (varied && uniq.length > 1) ? uniq[Math.floor(Math.random() * uniq.length)] : uniq[0];
+  // 큰 팀부터, 같은 크기면 센 팀부터 — 화면의 4/4/3 순서와 맞춘다
+  const teams = pick.t.slice().sort((x, y) => y.length - x.length || avg(y) - avg(x));
+  return {teams, diff: Math.round(r.bestVal * 10) / 10,
+          avgs: teams.map(t => Math.round(avg(t))), ties: uniq.length,
+          exactly: partitionCount(players.length, sizes) <= EXACT_MAX};
+}
+
 function split(){
   const players = chosen();
   if (players.length < 2){ alert('두 명 이상 골라주세요.'); return; }
-  last = randomBalanced(players, parseInt($('tol').value, 10));
-  if (!last) return;
-  show(last);
+  if (mode === 'squad'){
+    last = distribute(players, cap, true);
+    showSquads(last);
+  } else {
+    last = randomBalanced(players, parseInt($('tol').value, 10));
+    if (!last) return;
+    show(last);
+  }
 }
 
 function show(r){
@@ -378,22 +572,92 @@ function show(r){
   $('aa').textContent = r.avgA;
   $('ab').textContent = r.avgB;
   $('dv').textContent = r.diff;
+  $('vsBox').classList.remove('hide');
+  $('sqBox').classList.add('hide');
+  $('dlabel').textContent = '두 팀 평균 차이';
+  $('result').classList.remove('hide');
+  $('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function showSquads(r){
+  const box = $('sqBox');
+  box.innerHTML = '';
+  r.teams.forEach((team, i) => {
+    const d = document.createElement('div');
+    d.className = 'sq';
+    const h = document.createElement('h3');
+    h.append(document.createTextNode(`🪂 ${i + 1}팀 (${team.length}명)`));
+    const a = document.createElement('span');
+    a.className = 'avg'; a.textContent = r.avgs[i];
+    h.appendChild(a);
+    const ul = document.createElement('ul');
+    team.slice().sort((x, y) => y.mmr - x.mmr).forEach(p => {
+      const li = document.createElement('li');
+      const m = document.createElement('span'); m.className = 'm'; m.textContent = p.mmr;
+      const n = document.createElement('span'); n.textContent = p.name;
+      li.append(m, n); ul.appendChild(li);
+    });
+    d.append(h, ul);
+    box.appendChild(d);
+  });
+  $('dv').textContent = r.diff;
+  $('dlabel').textContent = '가장 센 팀과 약한 팀의 평균 차이';
+  $('vsBox').classList.add('hide');
+  box.classList.remove('hide');
   $('result').classList.remove('hide');
   $('result').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function asText(r){
   const f = t => t.slice().sort((a, b) => b.mmr - a.mmr).map(p => p.name + '(' + p.mmr + ')').join(', ');
+  if (r.teams){
+    return r.teams.map((t, i) => (i + 1) + '팀 (평균 ' + r.avgs[i] + '): ' + f(t)).join('\n') +
+           '\n평균 격차 ' + r.diff;
+  }
   return 'A팀 (평균 ' + r.avgA + '): ' + f(r.a) + '\nB팀 (평균 ' + r.avgB + '): ' + f(r.b) +
          '\n평균 차이 ' + r.diff;
 }
+
+/* ── 모드 ── */
+const maxPick = () => mode === 'squad' ? MAX_SQUAD : MAX_VS;
+
+function applyMode(){
+  const sq = mode === 'squad';
+  $('mVs').classList.toggle('on', !sq);
+  $('mSq').classList.toggle('on', sq);
+  $('tolWrap').classList.toggle('hide', sq);
+  $('capWrap').classList.toggle('hide', !sq);
+  $('brand').textContent = sq ? '배그 스쿼드 나누기' : '배그 내전 팀짜기';
+  document.title = $('brand').textContent;
+  $('sub').innerHTML = sq
+    ? '같이 들어갈 사람을 고르면 <b>한 팀 최대 ' + cap + '명</b>으로 쪼개서, 팀끼리 평균 실력이 최대한 같아지게 묶어줍니다.'
+    : '같이 할 사람을 눌러서 고르세요. 예상 MMR 은 <b>지파봇</b>이 op.gg 전적으로 계산해 올린 값입니다.';
+  $('again').textContent = sq ? '🎲 다르게 묶기' : '🎲 비슷한 조합으로 다시 섞기';
+  [...document.querySelectorAll('.seg [data-cap]')]
+    .forEach(b => b.classList.toggle('on', +b.dataset.cap === cap));
+  $('result').classList.add('hide');       // 모드가 바뀌면 옛 결과는 치운다
+  last = null;
+  render();
+}
+
+function planText(){
+  if (mode !== 'squad' || sel.size < 2) return '';
+  return ' → <b>' + squadSizes(sel.size, cap).join('/') + '</b>';
+}
+
+document.querySelectorAll('nav.modes .tb').forEach(b => {
+  b.addEventListener('click', () => { mode = b.dataset.mode; lsSet(LS_MODE, mode); applyMode(); });
+});
+document.querySelectorAll('.seg [data-cap]').forEach(b => {
+  b.addEventListener('click', () => { cap = +b.dataset.cap; lsSet(LS_CAP, cap); applyMode(); });
+});
 
 /* ── 이벤트 ── */
 $('reload').addEventListener('click', load);
 $('go').addEventListener('click', split);
 $('again').addEventListener('click', split);
 $('all').addEventListener('click', () => {
-  sel = new Set(allPlayers().slice(0, MAX).map(p => p.key));
+  sel = new Set(allPlayers().slice(0, maxPick()).map(p => p.key));
   lsSet(LS_SEL, [...sel]); render();
 });
 $('none').addEventListener('click', () => { sel = new Set(); lsSet(LS_SEL, []); render(); });
@@ -416,6 +680,7 @@ $('madd').addEventListener('click', () => {
 });
 $('mn').addEventListener('keydown', e => { if (e.key === 'Enter') $('madd').click(); });
 
+applyMode();
 load();
 </script>
 </body>
