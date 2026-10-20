@@ -58,6 +58,7 @@
   function stickEl(n) { return $(n === 'L' ? 'stickL' : 'stickR'); }
   function touchDown(e) {
     if (skillUI) return skillTouchDown(e);
+    if (scene === 'ocean' && O && O.leaveBtn && !modal) { const bb = O.leaveBtn, px = e.clientX * DPR, py = e.clientY * DPR; if (px >= bb[0] && px <= bb[0] + bb[2] && py >= bb[1] && py <= bb[1] + bb[3]) { confirmLeave(); return; } }
     const side = e.clientX < CW / 2 ? 'L' : 'R';
     if (touches[side]) return;
     touches[side] = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY };
@@ -351,6 +352,15 @@
     const nearSub = dist(pl.x, pl.y, O.sub.x, O.sub.y - 14) < 80;
     O.nearSub = nearSub && !pl.dead && !O.ending;
     if (O.nearSub && IN.act) confirmLeave();
+    if (O.nearSub && IN.click && O.leaveBtn && !modal) {   // 화면 아래 돌아가기 버튼
+      const b = O.leaveBtn, px = IN.click.x * DPR, py = IN.click.y * DPR;
+      if (px >= b[0] && px <= b[0] + b[2] && py >= b[1] && py <= b[1] + b[3]) { IN.lmb = false; confirmLeave(); }
+    }
+    if (O.nearSub && IN.click && !modal) {   // 잠수함을 직접 눌러도 돌아가기
+      const wx = IN.click.x / Z + cam.x, wy = IN.click.y / Z + cam.y;
+      if (Math.abs(wx - O.sub.x) < 32 && wy > O.sub.y - 70 && wy < O.sub.y + 24) { IN.lmb = false; confirmLeave(); }
+    }
+    O.oxyWarn = pl.oxy <= pl.oxyMax * .3;   // oxygen_warn_start 0.3
     const st = O.stor && SD.B.submarine_storage ? O.stor : null;
     O.nearStor = st && !pl.dead && dist(pl.x, pl.y, st.x, st.y + 16) < 40 && SD.invCount('inv') > 0;
     if (O.nearStor && holdTick('ostor', SD.b('jellyfish_store'))) { const m = SD.invMove('inv', 'sub'); if (m) { flyJelly(pl.x, pl.y, st.x, st.y, m); Sound.play('pickup'); } }
@@ -690,8 +700,11 @@
 
   // ── 탐사 종료 ──────────────────────────────────────────────
   function confirmLeave() {
-    showModal(`<h2 style="font-size:22px;text-align:center;margin-bottom:12px;text-shadow:0 2px 0 var(--ol)">탐사를 종료하시겠습니까?</h2>
-      <div style="display:flex;gap:12px;justify-content:center"><button class="btn ok" id="mYes">확인</button><button class="btn no" id="mNo">취소</button></div>`);
+    if (modal) return;
+    IN.lmb = IN.rmb = false;
+    showModal(`<h2 style="font-size:22px;text-align:center;margin-bottom:6px;text-shadow:0 2px 0 var(--ol)">탐사를 종료하시겠습니까?</h2>
+      <p style="text-align:center;color:#fff3df;margin-bottom:12px">잠수함을 타고 섬으로 돌아가요. 잡은 해파리는 그대로 가져가요.</p>
+      <div style="display:flex;gap:14px;justify-content:center"><button class="btn ok" id="mYes" style="min-width:96px;font-size:22px">✔</button><button class="btn" id="mNo" style="min-width:96px;font-size:22px;background:#1a2ab8">✖</button></div>`);
     $('mYes').onclick = () => { closeModal(); endDive(false); }; $('mNo').onclick = closeModal;
   }
   function endDive(drowned) {
@@ -921,9 +934,22 @@
     }
     // 앞 장식(전경)
     if (O.R.main_front) drawBaked(bakeTiles(O.lvl.room + 'f', O.R.main_front, PAL), 0, 0);
-    if (O.nearSub) prompt(O.sub.x, O.sub.y - 56, '잠수함');
+    if (O.nearSub) guideArrow(O.sub.x, O.sub.y - 40);
+    else if (O.oxyWarn || SD.invFull('inv')) guideArrow(O.sub.x, O.sub.y - 40);
     if (O.nearStor) prompt(O.stor.x, O.stor.y - 18, '저장고에 넣기 (길게)');
     drawFlyers();
+  }
+  // s_guide_arrow: 아래를 가리키는 흰 화살표가 위아래로 통통 — 화면 밖이면 가장자리에서 그 방향을 가리킴
+  function guideArrow(x, y) {
+    const k = Z * DPR, bob = Math.sin(frame / 8) * 3;
+    let [X, Y] = W2S(x, y + bob); const m = 22 * k, top = 70 * k;
+    const off = X < 0 || Y < 0 || X > cv.width || Y > cv.height;
+    let ang = Math.PI / 2;
+    if (off) { const [cx, cy] = W2S(pl.x, pl.y); ang = Math.atan2(Y - cy, X - cx); X = clamp(X, m, cv.width - m); Y = clamp(Y, top, cv.height - m); }
+    ctx.save(); ctx.translate(X, Y); ctx.rotate(ang - Math.PI / 2); const s = (off ? .9 : 1.1) * k;
+    const pts = [[-3, -8], [3, -8], [3, -1], [7, -1], [0, 7], [-7, -1], [-3, -1]];
+    ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0] * s, p[1] * s) : ctx.moveTo(p[0] * s, p[1] * s)); ctx.closePath();
+    ctx.lineWidth = 3 * k; ctx.strokeStyle = A.OL; ctx.stroke(); ctx.fillStyle = O.oxyWarn && frame % 20 < 10 ? '#ff8a8a' : '#fff9ef'; ctx.fill(); ctx.restore();
   }
   function laserLine(x1, y1, x2, y2, thin) {
     const [a, b] = W2S(x1, y1), [c, d] = W2S(x2, y2), k = Z * DPR;
@@ -1001,6 +1027,7 @@
       ctx.font = `${Math.round(8 * k)}px Jua, sans-serif`; ctx.fillStyle = '#fff9ef'; ctx.textAlign = 'center';
       ctx.fillText('O₂ ' + SD.fmt(pl.oxy) + ' / ' + SD.fmt(pl.oxyMax), x + 20 * k + w / 2, y + 8.5 * k); ctx.textAlign = 'left';
       ctx.fillText(O.lvl.bnm + ' ' + O.lvl.depth + 'm', x, y + 26 * k);
+      if (O.oxyWarn && !pl.dead) { ctx.font = `${Math.round(10 * k)}px Jua, sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 3 * k; ctx.strokeStyle = A.OL; const tx2 = cv.width / 2, ty2 = cv.height * .22; ctx.globalAlpha = frame % 30 < 20 ? 1 : .5; ctx.strokeText('산소 부족! 잠수함으로 돌아가요', tx2, ty2); ctx.fillStyle = '#ff8a8a'; ctx.fillText('산소 부족! 잠수함으로 돌아가요', tx2, ty2); ctx.globalAlpha = 1; ctx.textAlign = 'left'; }
       // 도구 원 2개 (버블 / 플라즈마)
       const tools = [[1, 'bubble', pl.ts ? pl.ts[1].ammo : bubClipMax(), bubClipMax(), Math.floor(pl.bub)], [2, 'plasma', pl.ts ? pl.ts[2].ammo : plClipMax(), plClipMax(), Math.floor(pl.plas)]];
       let tx = 8 * k; const ty = cv.height - (touchDev ? 200 : 40) * DPR;
@@ -1016,6 +1043,20 @@
         ctx.font = `${Math.round(7 * k)}px Jua, sans-serif`; ctx.fillStyle = '#fff9ef'; ctx.textAlign = 'center';
         ctx.fillText(c + '/' + cm, tx + r, ty + r + 7 * k); ctx.fillStyle = '#e6d6b8'; ctx.fillText(SD.fmt(tank), tx + r, ty + r + 15 * k); ctx.textAlign = 'left';
         tx += r * 2 + 10 * k;
+      }
+    }
+    // 잠수함 근처: 화면 아래 가운데 큰 돌아가기 버튼 (원작 s_ui_leave_button 초록 버튼)
+    if (scene === 'ocean' && O) {
+      O.leaveBtn = null;
+      if (O.nearSub && !modal) {
+        const txt = '잠수함 타고 돌아가기' + (touchDev ? '' : '  [E]');
+        ctx.font = `${Math.round(10 * k)}px Jua, sans-serif`;
+        const w = ctx.measureText(txt).width + 30 * k, h = 22 * k, x = cv.width / 2 - w / 2, y = cv.height - h - (touchDev ? 110 : 18) * DPR - Math.abs(Math.sin(frame / 10)) * 3 * k;
+        ctx.fillStyle = A.OL; ctx.fillRect(x - 3 * k, y - 3 * k, w + 6 * k, h + 6 * k);
+        ctx.fillStyle = '#e2c655'; ctx.fillRect(x - 1.5 * k, y - 1.5 * k, w + 3 * k, h + 3 * k);
+        ctx.fillStyle = '#2ec05a'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#25a04a'; ctx.fillRect(x, y + h - 3 * k, w, 3 * k);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * k; ctx.strokeStyle = A.OL; ctx.strokeText(txt, cv.width / 2, y + h / 2); ctx.fillStyle = '#fff9ef'; ctx.fillText(txt, cv.width / 2, y + h / 2); ctx.textAlign = 'left';
+        O.leaveBtn = [x, y, w, h];
       }
     }
     // 가방 슬롯 (왼쪽 아래 / 바다에선 위)
@@ -1039,13 +1080,17 @@
 
   // ── 튜토리얼 (원작 tutorial_task 01~07) ───────────────────────
   const TUT = ['주변을 둘러보세요.', '잠수함의 잠금을 해제하세요. (스킬 트리)', '첫 번째 해파리를 잡으세요.', '가방을 열어 보세요. (Tab)', '질식하기 전에 잠수함으로 돌아가세요.', '상점에서 해파리를 판매하세요.', '상자에서 조개껍데기를 꺼내세요.'];
-  function tut(i) { if (SD.S.tut === i) { SD.S.tut++; SD.save(); Sound.play('correct'); } }
+  function tut(i) { if (SD.S.tut <= i) { SD.S.tut = i + 1; SD.save(); Sound.play('correct'); } }
   function tutorialHud(k) {
-    const t = SD.S.tut; if (t >= TUT.length) return;
-    const y = scene === 'ocean' ? 70 * k : 32 * k;
+    let t = SD.S.tut; if (t === 1 && SD.lv('submarine')) t = SD.S.tut = 2;
+    if (scene === 'ocean' && t < 2) t = 2;
+    if (scene === 'ocean' && t <= 4 && (O && (O.oxyWarn || SD.invCount('inv') > 0))) t = 4;
+    if (t >= TUT.length) return;
+    if (scene === 'ocean' && O && O.nearSub) return;
     ctx.font = `${Math.round(8 * k)}px Jua, sans-serif`; ctx.textAlign = 'left';
     const txt = '- ' + TUT[t], w = ctx.measureText(txt).width + 10 * k;
-    ctx.globalAlpha = .9; hudPanel(8 * k, y, w, 13 * k); ctx.globalAlpha = 1; ctx.fillStyle = '#fff9ef'; ctx.fillText(txt, 13 * k, y + 7 * k);
+    const x = scene === 'ocean' ? cv.width / 2 - w / 2 : 8 * k, y = scene === 'ocean' ? cv.height - 13 * k - (touchDev ? 110 : 18) * DPR : 32 * k;
+    ctx.globalAlpha = .9; hudPanel(x, y, w, 13 * k); ctx.globalAlpha = 1; ctx.fillStyle = '#fff9ef'; ctx.fillText(txt, x + 5 * k, y + 7 * k);
   }
 
   // ═══════════════════════ 스킬 트리 (rm_skill_tree 별 모양, 64px 격자) ═══════════════════════
@@ -1236,8 +1281,8 @@
       else oceanUpdate();
       if (SD.S.tut === 0 && Math.abs(pl.vx) > .5) tut(0);
     }
-    IN.act = IN.jump = IN.inv = IN.phone = false;
-    if (touchDev && frame % 15 === 0) $('tbJump').style.display = scene === 'island' ? '' : 'none';
+    IN.act = IN.jump = IN.inv = IN.phone = false; IN.click = null;
+    if (touchDev && frame % 15 === 0) { $('tbJump').style.display = scene === 'island' ? '' : 'none'; const lbl = scene === 'ocean' && O && O.nearSub ? '돌아<br>가기' : '상호<br>작용'; if ($('tbAct').innerHTML !== lbl) $('tbAct').innerHTML = lbl; $('tbAct').style.background = scene === 'ocean' && O && O.nearSub ? 'rgba(46,170,90,.95)' : ''; }
     if (frame % 600 === 0) SD.save();
   }
   function loop(now) {
