@@ -124,6 +124,7 @@ h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
 .hrow { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; } .hrow span { font-size: 26px; } .hrow p { font-size: 14px; line-height: 1.5; color: var(--ink); }
 @media (max-width: 760px) { #tab-play.on, #tab-shop.on { grid-template-columns: 1fr; } #info { position: static; } .card { width: 140px; } .cdesc { display: none; } #timer { font-size: 26px; } }
 </style>
+<link rel="stylesheet" href="timber/design.css?v=woodland1">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -143,17 +144,20 @@ h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
 </div>
 
 <div id="menu">
-  <div id="mhead"><h1>🪓 팀버 러시</h1>
+  <div id="mhead"><h1>🪓 TIMBER RUSH</h1>
     <div id="tabs"><button data-t="play" class="on">🏠 플레이</button><button data-t="tree">🌳 스킬 트리</button><button data-t="shop">🛒 상점·크루</button><button data-t="ach">🏆 업적</button><button data-t="pre">✨ 환생</button><button data-t="set">⚙️</button></div>
     <div id="mcur"><div class="cur">🪵 <span id="mLogs">0</span></div><div class="cur">🪙 <span id="mCoins">0</span></div></div>
   </div>
   <div class="tab on" id="tab-play">
-    <div>
-      <h2>맵</h2><div id="levels"></div>
-      <div id="playbox"><button class="btn gold big" id="btnPlay">▶ 플레이</button><button class="btn" id="btnHow">❓ 어떻게 하나요?</button><button class="btn" id="btnPre" style="display:none" onclick="UI.setTab('pre')">✨ 환생</button><span class="dim" id="preInfo"></span></div>
-      <p class="dim" style="margin-top:10px">← → 또는 A D 로 이동 · Shift/Space 대시 · E 드론 방향 바꾸기 · Esc 일시정지</p>
+    <div class="camp-main">
+      <section class="camp-hero" aria-label="숲속 벌목 캠프">
+        <div class="camp-copy"><div class="camp-eyebrow">YOUR NEXT ADVENTURE</div><div class="camp-title">TIMBER<br><span>RUSH.</span></div><p>한 그루에서 시작되는 거대한 모험.<br>도끼를 들고, 나만의 숲을 개척하세요.</p><div class="camp-tag">작은 캠프, 끝없는 성장</div></div>
+      </section>
+      <div id="playbox"><button class="btn gold big" id="btnPlay">벌목 시작하기　↗</button><button class="btn" id="btnHow">플레이 가이드</button><button class="btn" id="btnPre" style="display:none" onclick="UI.setTab('pre')">✨ 환생</button><span class="dim" id="preInfo"></span></div>
+      <div class="camp-section-head"><h2>탐험할 지역</h2><span>오늘은 어디로 떠날까요?</span></div><div id="levels"></div>
+      <div class="camp-controls"><span><kbd>A</kbd><kbd>D</kbd> 이동</span><span><kbd>Shift</kbd> / <kbd>Space</kbd> 대시</span><span><kbd>E</kbd> 드론 방향</span><span><kbd>Esc</kbd> 일시정지</span></div>
     </div>
-    <div><h2>현재 능력치</h2><div id="summary"></div></div>
+    <aside class="camp-stats"><div class="camp-stats-label">FIELD NOTES / 01</div><h2>나의 벌목 장비</h2><div id="summary"></div><p class="camp-note">모은 통나무로 스킬을 키우고,<br>코인으로 새로운 장비를 준비하세요.</p></aside>
   </div>
   <div class="tab" id="tab-tree">
     <div id="treewrap"><canvas id="treecv"></canvas>
@@ -187,7 +191,7 @@ h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
 <script src="party-sound.js"></script><script>try { Sound.theme('playful'); } catch (e) {}</script>
 <script src="timber/data.js"></script>
 <script src="timber/core.js"></script>
-<script src="timber/run.js"></script>
+<script src="timber/run.js?v=woodland1"></script>
 <script src="timber/ui.js"></script>
 </body>
 </html>

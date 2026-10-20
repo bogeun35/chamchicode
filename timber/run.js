@@ -367,7 +367,7 @@ function autoSelect(count, forced, stacks) {
 function onChestCollected() { const n = Math.max(1, Math.round(stats.get(T.ChestChoices))); if (S.set.auto) autoSelect(n, null, 1); else openCards(n, null, 'chest', 1); }
 
 // ---------- 그리기 ----------
-const LEVEL_BG = { Forest: ['#9fd9ff', '#d8f3c8', '#5fa650', '#7bc96a'], Swamp: ['#a8c4a0', '#c9d8a6', '#4e7a48', '#6c8f5a'], Cemetery: ['#8e86b8', '#c7c0e8', '#5e5a80', '#7a7599'], WildFire: ['#ffb27a', '#ffd9a0', '#a8562c', '#c96b3a'] };
+const LEVEL_BG = { Forest: ['#7dada5', '#e4dca5', '#365b40', '#83a66a'], Swamp: ['#688f85', '#bac79a', '#354f43', '#77966b'], Cemetery: ['#656d91', '#b3aac4', '#343b52', '#737e91'], WildFire: ['#b56854', '#efbe86', '#654332', '#b17b4a'] };
 function draw() {
   const ctx = cx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W.cw, W.ch);
   const bg = LEVEL_BG[S.level] || LEVEL_BG.Forest; const g = ctx.createLinearGradient(0, 0, 0, W.ch); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W.cw, W.ch);
@@ -394,6 +394,31 @@ function draw() {
   if (R.finale) { ctx.fillStyle = 'rgba(255,200,80,.08)'; ctx.fillRect(0, 0, W.cw, W.ch); }
 }
 function drawBackdrop(ctx, bg) {
+  // Layered scenery is visual only; no run state or random-number consumption.
+  ctx.save();
+  const horizon = sy(-4.4);
+  ctx.fillStyle = '#fff0bf'; ctx.globalAlpha = .65;
+  ctx.beginPath(); ctx.arc(W.cw * .78, W.ch * .22, W.s * .7, 0, Math.PI * 2); ctx.fill();
+  for (let layer = 0; layer < 3; layer++) {
+    ctx.fillStyle = bg[2]; ctx.globalAlpha = .08 + layer * .07;
+    ctx.beginPath(); ctx.moveTo(0, horizon);
+    for (let i = 0; i <= 24; i++) {
+      const x = W.cw * i / 24;
+      const y = horizon - W.s * (1.7 + (2 - layer) * .65 + Math.sin(i * .62 + layer * 2) * .55);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W.cw, W.ch); ctx.lineTo(0, W.ch); ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha = .23; ctx.fillStyle = bg[2];
+  for (let i = 0; i < 19; i++) {
+    const x = W.cw * i / 18, h = W.s * (1.1 + (i * 7 % 11) * .14);
+    ctx.fillRect(x - W.s * .035, horizon - h, W.s * .07, h);
+    for (let tier = 0; tier < 3; tier++) {
+      const y = horizon - h + tier * h * .21, half = h * (.19 + tier * .065);
+      ctx.beginPath(); ctx.moveTo(x, y - h * .35); ctx.lineTo(x - half, y + h * .2); ctx.lineTo(x + half, y + h * .2); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.restore();
   ctx.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 5; i++) { const x = ((i * 3.7 + 1) % 18) - 9, y = 3.2 + (i % 3) * .6; const px = sx(x), py = sy(y); ctx.beginPath(); ctx.ellipse(px, py, .9 * W.s, .35 * W.s, 0, 0, Math.PI * 2); ctx.ellipse(px + .5 * W.s, py - .15 * W.s, .6 * W.s, .3 * W.s, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = bg[3]; ctx.globalAlpha = .45; for (let i = -12; i <= 12; i += 2) { const px = sx(i + .5), h = (1.2 + ((i * 7) % 5) * .3) * W.s; ctx.beginPath(); ctx.moveTo(px - .9 * W.s, sy(-4.4)); ctx.lineTo(px, sy(-4.4) - h); ctx.lineTo(px + .9 * W.s, sy(-4.4)); ctx.fill(); } ctx.globalAlpha = 1;
 }
