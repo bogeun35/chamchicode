@@ -21,7 +21,7 @@
   // ── 화면 ───────────────────────────────────────────────────
   let DPR = 1, CW = 0, CH = 0, Z = 2, VW = 320, VH = 180;
   function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2); CW = innerWidth; CH = innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 2); CW = Math.max(innerWidth, 1); CH = Math.max(innerHeight, 1);   // 숨긴 창·iframe 은 처음에 0일 수 있음
     cv.width = Math.round(CW * DPR); cv.height = Math.round(CH * DPR);
     Z = CW >= CH ? Math.min(CW / 320, CH / 180) : Math.min(CW / 200, CH / 300);   // 원작 카메라 320×180 (세로 화면은 200폭)
     VW = CW / Z; VH = CH / Z;
@@ -1224,6 +1224,7 @@
   let speed = 1, acc = 0, last = performance.now();
   function step() {
     frame++; SD.S.playFrames++;
+    if (!isFinite(cam.x) || !isFinite(cam.y)) { cam.x = pl.x - VW / 2; cam.y = pl.y - VH / 2; }
     if (fadeTo) { fade = Math.min(1, fade + .08); if (fade >= 1) { const f = fadeTo; fadeTo = null; f(); } }
     else if (fade > 0) fade = Math.max(0, fade - .06);
     if (IN.back) { IN.back = false; if (skillUI) closeSkill(); else if (modal) closeModal(); }
