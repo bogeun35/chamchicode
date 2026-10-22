@@ -17,19 +17,13 @@
   function notice(m, ms) { const t = $('notice'); t.innerHTML = m; t.classList.add('on'); clearTimeout(notice._t); notice._t = setTimeout(() => t.classList.remove('on'), ms || 2600); }
   const fmt = s => { s = Math.max(0, s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60); return [h, m, x].map(v => String(v).padStart(2, '0')).join(':'); };
 
-  // ════════ 효과음 (짧은 합성음 — 파티 사운드 효과음 볼륨을 따름) ════════
-  let AC = null;
-  function sfx(k) {
-    const vol = window.Sound ? Sound.sfxVolume : .6; if (!(vol > 0)) return;
-    try { AC = AC || new AudioContext(); if (AC.state === 'suspended') AC.resume(); } catch (e) { return; }
-    const t = AC.currentTime;
-    const tone = (f0, f1, d, type, v, dl = 0) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t + dl); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dl + d); g.gain.setValueAtTime(0, t + dl); g.gain.linearRampToValueAtTime(v * vol, t + dl + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dl + d); o.connect(g); g.connect(AC.destination); o.start(t + dl); o.stop(t + dl + d + .02); };
-    if (k === 'coin') { tone(988, 988, .08, 'square', .07); tone(1319, 1319, .22, 'square', .07, .07); }
-    else if (k === 'die') { tone(520, 90, .35, 'sawtooth', .09); tone(300, 60, .4, 'triangle', .1, .05); }
-    else if (k === 'move') { tone(300, 900, .25, 'sine', .1); tone(600, 1400, .2, 'sine', .06, .08); }
-    else if (k === 'clear') [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, .3, 'triangle', .12, i * .1));
-    else if (k === 'key') tone(1400, 1100, .03, 'square', .025);
-  }
+  // ════════ 소리 (wasd/music.js — 원작 곡·효과음을 분석해 새로 합성) ════════
+  // 원작 SoundManager.PlayGameSceneBGM: 1·3 초원1, 2 초원2, 4·6 해변1, 5 해변2, 7 사막1, 8 사막2 · 메뉴는 Main
+  const SONG_OF = n => n === 2 ? 'grass2' : n <= 3 ? 'grass1' : n === 5 ? 'beach2' : n <= 6 ? 'beach1' : n === 7 ? 'desert1' : 'desert2';
+  const sfx = k => window.Music && Music.sfx(k);
+  const bgm = id => window.Music && (id ? Music.play(id) : Music.stop());
+  bgm('main');
+  document.addEventListener('click', e => { if (e.target.closest('.btn, .seg button, .stg, .touch button[data-k="menu"]')) sfx('click'); }, true);
 
   // ════════ 스테이지 준비: 원작 타일맵을 충돌 셀 · 그리기 목록으로 ════════
   const SPR = D.spr;
@@ -282,7 +276,7 @@
     history.replaceState(null, '', location.pathname + '?room=' + code);
     R('players/' + me.k).onDisconnect().remove();
     roomRef = R(); roomCb = roomRef.on('value', s => onRoom(s.val()));
-    if (window.Sound) Sound.scene('lobby');
+    bgm('main');
   }
   function onRoom(r) {
     room = r;
@@ -302,7 +296,7 @@
     stopGame(); room = null; code = null;
     history.replaceState(null, '', location.pathname);
     $('lobby').classList.add('hide'); $('ovEnd').classList.add('hide'); $('ovMenu').classList.add('hide'); $('home').classList.remove('hide');
-    if (window.Sound) Sound.scene('home');
+    bgm('main');
   }
 
   // ════════ 대기실 ════════
@@ -356,8 +350,8 @@
     G.E = null; syncEnemies(0);
     $('lobby').classList.add('hide'); $('home').classList.add('hide'); $('ovEnd').classList.add('hide'); $('hud').classList.remove('hide');
     buildHudUsers(); buildTouch(); onStageChange(false);
-    if (window.Sound) { Sound.theme(G.st.s < 3 ? 'playful' : G.st.s < 6 ? 'lounge' : 'sneaky'); Sound.scene('game'); }
-    if (G.solo) { G.st.go = 1; prepShow(null); notice(`스테이지 ${G.st.s + 1}<small>내 키: W A S D 전부</small>`); }
+    bgm(SONG_OF(G.st.s + 1));
+    if (G.solo) { G.st.go = 1; prepShow(null); sfx('move'); notice(`스테이지 ${G.st.s + 1}<small>내 키: W A S D 전부</small>`); }
     else {
       R('loaded/' + me.k).set(run.id);
       R('in/' + me.k).onDisconnect().remove();
@@ -379,7 +373,7 @@
     // 누군가 나가면 원작처럼 게임 종료
     const gone = G.order.filter(k => !r.players[k]);
     if (gone.length && isHost && !G.st.end) { R().update({ phase: 'lobby', endMsg: `${G.run.nicks[gone[0]]} 님이 나가서 게임이 끝났어요` }); return; }
-    if (isHost && !G.st.go && ok >= n) { clearTimeout(G.loadTimer); G.st.go = 1; pushState(true); prepShow(null); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
+    if (isHost && !G.st.go && ok >= n) { clearTimeout(G.loadTimer); G.st.go = 1; pushState(true); prepShow(null); sfx('move'); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
   }
   function myKeyLine() { return G.myKeys ? '내 키: ' + keysOf(G.myKeys).join(' ') : '내 키 없음 (구경)'; }
   function packState() { const s = G.st, r3 = v => Math.round(v * 1000) / 1000; return { T: s.T, s: s.s, s0: s.s0, x: r3(s.x), y: r3(s.y), dx: s.dx, dy: s.dy, a: s.a, dt: r3(s.dt), en: s.en, op: s.op, cm: s.cm, d: s.d, sd: s.sd, pt: r3(s.pt), ps: r3(s.ps), end: s.end, ev: s.ev, go: s.go, w: Date.now() + srvOff, lc: G.lastClear || null }; }
@@ -389,7 +383,7 @@
     if (!G || !v) return;
     const prevS = G.st.s, prevA = G.st.a, prevCm = G.st.cm, prevEnd = G.st.end;
     Object.assign(G.st, v); G.recv = performance.now(); G.ping = Math.max(0, Date.now() + srvOff - v.w);
-    if (v.go && !$('prep').classList.contains('hide')) { prepShow(null); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
+    if (v.go && !$('prep').classList.contains('hide')) { prepShow(null); sfx('move'); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
     if (v.s !== prevS) { G.lastClear = v.lc; if (v.lc) G.cleared.push(v.lc); if (v.lc) saveRecord(v.lc.n, v.lc.t, v.lc.d); onStageChange(true); }
     if (prevA && !v.a) G.fx.push({ t: 'die', x: v.x, y: v.y });
     if (v.end && !prevEnd) { if (v.end.n) saveRecord(v.end.n, v.end.lt, v.end.ld); showEnd(); }
@@ -401,7 +395,7 @@
       sfx('move');
       const lc = G.lastClear;
       notice(`스테이지 ${st.s + 1}<small>${lc ? `${lc.n} 클리어 ${fmt(lc.t)} · 💀${lc.d}${lc.d <= 5 && G.order.length >= 2 ? ' 🥇' : ''}` : ''}</small>`, 3000);
-      if (window.Sound) Sound.theme(st.s < 3 ? 'playful' : st.s < 6 ? 'lounge' : 'sneaky');
+      bgm(SONG_OF(st.s + 1));
     }
   }
   function stopGame() {
@@ -410,14 +404,13 @@
     if (code && db) { R('st').off(); R('in').off(); }
     G = null; $('hud').classList.add('hide'); $('touch').classList.add('hide'); $('prep').classList.add('hide'); $('ovMenu').classList.add('hide');
   }
-  function endGameToLobby(msg) { stopGame(); $('ovEnd').classList.add('hide'); if (msg) toast(msg, 3500); $('lobby').classList.remove('hide'); if (window.Sound) Sound.scene('lobby'); }
+  function endGameToLobby(msg) { stopGame(); $('ovEnd').classList.add('hide'); if (msg) toast(msg, 3500); $('lobby').classList.remove('hide'); bgm('main'); }
 
   // ════════ 입력 ════════
   const KEYMAP = { KeyW: 'W', KeyA: 'A', KeyS: 'S', KeyD: 'D', ArrowUp: 'W', ArrowLeft: 'A', ArrowDown: 'S', ArrowRight: 'D' };
   function press(k) {
     if (!G || !G.st.go || G.st.end || !$('ovMenu').classList.contains('hide')) return;
     const f = KF[k]; G.pressId++;
-    if (G.myKeys & f) sfx('key');
     flashKey(k);
     const inp = { f, id: G.pressId };
     if (G.solo || isHost) G.inputs[me.k] = inp; else R('in/' + me.k).set(inp);
@@ -449,7 +442,7 @@
   // ════════ 엔딩 (원작 UI_Ending: 마지막 스테이지 시간·죽음 + 전체 시간·죽음) ════════
   function showEnd() {
     const e = G.st.end; if (!e) return;
-    sfx('clear'); if (window.Sound) Sound.scene('end');
+    bgm(null); sfx('clear');          // 원작: StopAllBGM → Clear
     const golds = G.cleared.filter(c => c.d <= 5).length;
     $('endBoard').innerHTML = `<div class="stamp">CLEAR</div><h2>🎉 모두 클리어!</h2>
       <p class="tip">${DIFF[G.run.diff]} · ${G.order.length}명 · 스테이지 ${G.run.stage} → ${NSTAGE}</p>
