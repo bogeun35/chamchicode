@@ -193,7 +193,7 @@
       case 'alchemy': return !!SD.B.alchemy_station;
       case 'alchChest': return !!SD.B.alchemy_station && S.flaskCoins > 0;
       case 'antenna': return true;
-      case 'sub': return SD.prestige() >= 1;
+      case 'sub': return true;
       case 'chest': return S.storeCoins > 0;
       case 'store': return SD.invCount('inv') > 0;
       case 'storage': return !!SD.B.submarine_storage && SD.invCount('sub') > 0;
@@ -207,7 +207,7 @@
     const st = ST[sel];
     switch (sel) {
       case 'antenna': if (IN.act) openSkill(); break;
-      case 'sub': if (IN.act) openBiome(); break;
+      case 'sub': if (IN.act) { if (SD.prestige() >= 1) openBiome(); else { toast('잠수함이 잠겨 있어요 — 왼쪽 안테나(스킬 트리)에서 잠수함을 열어요'); Sound.play('error'); } } break;
       case 'hammock': if (IN.act) startEnding(); break;
       case 'store': if (holdTick('store', SD.b('jellyfish_store'))) { const m = SD.invMove('inv', 'store'); if (m) { flyJelly(pl.x, pl.y - 15, st.x - 30, st.y - 30, m); Sound.play('pickup', { pitch: .5 + Math.random() * .3 }); SD.save(); tut(5); } else toast('상점 슬롯이 가득 찼어요'); } break;
       case 'trans':
@@ -843,8 +843,11 @@
     const fr = pl.onGround ? (Math.abs(pl.vx) > .2 ? Math.floor(pl.anim) % 4 : 0) : 1;
     spr(A.turtle(fr, false), pl.x, pl.y + 9, .5, 1, pl.face < 0);
     for (const c of islandCoins) spr(A.coin(c.cur), c.x, c.y, .5, .5);
+    // 처음 하는 사람 안내: 잠수함을 열기 전엔 안테나, 연 뒤 첫 잠수 전엔 잠수함 위에 화살표
+    if (!SD.lv('submarine')) guideArrowIsland(ST.antenna.x, ST.antenna.y - 78);
+    else if (!S.stats.dives) guideArrowIsland(ST.sub.x, ST.sub.y - 70);
     // 상호작용 표시
-    for (const kk in ST) if (ST[kk].sel) { const st = ST[kk]; prompt(st.x + (st.ox || 0), st.y - 62, st.nm); break; }
+    for (const kk in ST) if (ST[kk].sel) { const st = ST[kk]; prompt(st.x + (st.ox || 0), st.y - 62, kk === 'sub' && SD.prestige() < 1 ? '잠수함 (잠김 — 안테나에서 열기)' : kk === 'sub' ? '잠수하기' : st.nm); break; }
     drawFlyers();
   }
   function drawDeco(d) {
@@ -940,6 +943,15 @@
     drawFlyers();
   }
   // s_guide_arrow: 아래를 가리키는 흰 화살표가 위아래로 통통 — 화면 밖이면 가장자리에서 그 방향을 가리킴
+  function guideArrowIsland(x, y) {
+    const k = Z * DPR, [cx] = W2S(pl.x, pl.y); let [X, Y] = W2S(x, y + Math.sin(frame / 8) * 3); const m = 24 * k;
+    const off = X < 0 || X > cv.width; let ang = Math.PI / 2;
+    if (off) { ang = X > cx ? 0 : Math.PI; X = clamp(X, m, cv.width - m); Y = cv.height * .45; }
+    ctx.save(); ctx.translate(X, Y); ctx.rotate(ang - Math.PI / 2); const s = 1.1 * k;
+    const pts = [[-3, -8], [3, -8], [3, -1], [7, -1], [0, 7], [-7, -1], [-3, -1]];
+    ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0] * s, p[1] * s) : ctx.moveTo(p[0] * s, p[1] * s)); ctx.closePath();
+    ctx.lineWidth = 3 * k; ctx.strokeStyle = A.OL; ctx.stroke(); ctx.fillStyle = '#fff9ef'; ctx.fill(); ctx.restore();
+  }
   function guideArrow(x, y) {
     const k = Z * DPR, bob = Math.sin(frame / 8) * 3;
     let [X, Y] = W2S(x, y + bob); const m = 22 * k, top = 70 * k;
@@ -1079,7 +1091,7 @@
   }
 
   // ── 튜토리얼 (원작 tutorial_task 01~07) ───────────────────────
-  const TUT = ['주변을 둘러보세요.', '잠수함의 잠금을 해제하세요. (스킬 트리)', '첫 번째 해파리를 잡으세요.', '가방을 열어 보세요. (Tab)', '질식하기 전에 잠수함으로 돌아가세요.', '상점에서 해파리를 판매하세요.', '상자에서 조개껍데기를 꺼내세요.'];
+  const TUT = ['주변을 둘러보세요.', '안테나(스킬 트리)에서 잠수함을 여세요.', '첫 번째 해파리를 잡으세요.', '가방을 열어 보세요. (Tab)', '질식하기 전에 잠수함으로 돌아가세요.', '상점에서 해파리를 판매하세요.', '상자에서 조개껍데기를 꺼내세요.'];
   function tut(i) { if (SD.S.tut <= i) { SD.S.tut = i + 1; SD.save(); Sound.play('correct'); } }
   function tutorialHud(k) {
     let t = SD.S.tut; if (t === 1 && SD.lv('submarine')) t = SD.S.tut = 2;
@@ -1109,7 +1121,7 @@
   function skillAt(px, py) { let best = null, bd = 24 * skillUI.z * DPR; for (const s of SD.SKILLS) { if (!SD.visible(s) && SD.lv(s.id) === 0) continue; const [X, Y] = skillScreen(s); const d = Math.hypot(px * DPR - X, py * DPR - Y); if (d < bd) { bd = d; best = s; } } return best; }
   const ovS = $('ovSkill');
   let skDown = null;
-  ovS.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return; skDown = { x: e.clientX, y: e.clientY, ux: skillUI.x, uy: skillUI.y, moved: false }; });
+  ovS.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return skillTouchDown(e); skDown = { x: e.clientX, y: e.clientY, ux: skillUI.x, uy: skillUI.y, moved: false }; });
   ovS.addEventListener('pointermove', e => { if (e.pointerType === 'touch' || !skDown) return; const dx = e.clientX - skDown.x, dy = e.clientY - skDown.y; if (Math.hypot(dx, dy) > 5) skDown.moved = true; skillUI.x = skDown.ux - dx / skillUI.z; skillUI.y = skDown.uy - dy / skillUI.z; });
   ovS.addEventListener('pointerup', e => { if (e.pointerType === 'touch' || !skDown) return; if (!skDown.moved) skillClick(e.clientX, e.clientY); skDown = null; });
   ovS.addEventListener('wheel', e => { skillZoom(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: true });
