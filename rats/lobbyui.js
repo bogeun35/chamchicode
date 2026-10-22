@@ -51,7 +51,7 @@
     ui._held = enter;
   }
   function drawComputer(g, ui, s, Wd, Ht, t) {   // UAD (meta.md §2.5)
-    if (ui.lerp <= .01) return; const a = ui.lerp;
+    if (ui.lerp <= .01) return; const a = ui.lerp; s = Math.min(s, Wd / 650, Ht / 370);   // 좁은 화면에선 패널이 넘치지 않게 축소
     const Wp = 640 * s, Hp = 360 * s, X0 = (Wd - Wp) / 2, Y0 = (Ht - Hp) / 2 + 40 * s * (1 - a);
     g.fillStyle = `rgba(0,0,0,${.3 * a})`; g.fillRect(0, 0, Wd, Ht);
     g.globalAlpha = a;
@@ -111,7 +111,7 @@
     }
   }
   function drawCabin(g, ui, s, Wd, Ht, t) {
-    if (ui.lerp <= .01) return; const a = ui.lerp;
+    if (ui.lerp <= .01) return; const a = ui.lerp; s = Math.min(s, Wd / 650, Ht / 370);
     const Wp = 640 * s, Hp = 360 * s, X0 = (Wd - Wp) / 2, Y0 = (Ht - Hp) / 2 + 40 * s * (1 - a);
     g.fillStyle = `rgba(0,0,0,${.35 * a})`; g.fillRect(0, 0, Wd, Ht); g.globalAlpha = a;
     UI.rr(g, X0 + 8 * s, Y0 + 8 * s, Wp - 16 * s, Hp - 16 * s, 18 * s, '#f2b13a'); UI.rr(g, X0 + 18 * s, Y0 + 18 * s, Wp - 36 * s, Hp - 36 * s, 12 * s, '#2a1f45');

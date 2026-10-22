@@ -12,6 +12,7 @@
     cv.width = w; cv.height = h; cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
     V.w = w; V.h = h;
     V.scale = Math.max(Math.floor(Math.min(w / 640, h / 360)), 1);   // L56–58 은 round — 웹 창에선 넘치지 않게 내림
+    V.portrait = h > w; if (V.portrait) V.scale = Math.max(1, Math.floor(w / 360));   // 세로 폰: 원작엔 없는 화면이라 GUI 를 폭 기준으로
     V.camW = Math.max(640, w / V.scale); V.camH = Math.max(360, h / V.scale);                // L62–66
   }
   addEventListener('resize', resize); resize();
@@ -64,7 +65,7 @@
     g.fillStyle = '#120c24'; g.fillRect(0, 0, V.w, V.h);
     if (SC.name === 'menu') drawMenu();
     else {
-      const cam = G.CAM, k = V.scale / cam.size, vw = V.w / k, vh = V.h / k;
+      const cam = G.CAM, k = (V.portrait ? V.w / 420 : Math.min(V.w / 640, V.h / 360)) / cam.size, vw = V.w / k, vh = V.h / k;   // 원작: 카메라 ≥ 640×360 을 창 전체에 늘려 그림(Draw_77)
       const cx = cam.x + cam.xoffset - vw / 2 + (cam.view_shake_x || 0), cy = cam.y + cam.yoffset - vh / 2 + (cam.view_shake_y || 0);   // L47–51
       g.setTransform(k, 0, 0, k, -cx * k, -cy * k);
       RatsWorld.drawWorld(g, { x: cx, y: cy, w: vw, h: vh, k });

@@ -156,10 +156,10 @@
     g.restore();
     if (!L.show_end_results) return;
     ty += 40 * u;                                                                                                // L79
+    let gapDone = false;
     L.results.forEach((r, i) => {
       if (r.hidden) return;
-      if (i > 0 && !L.results[i - 1].name.includes('time') && false) ty += 0;
-      if (!r.name.includes('time') && !L._gapDone) { ty += 16 * u; }
+      if (!r.name.includes('time') && !gapDone) { ty += 16 * u; gapDone = true; }   // L91–95: 'time' 이 아닌 첫 줄 앞에만 16 간격
       g.save(); g.translate(cx, ty); g.scale(u * r.xscl, u * r.yscl);
       const col = r.is_record ? '#1be857' : '#ffffff';
       textOutline(g, -120, 0, T(r.name), 11, col, '#1d1630', r.lerp_in, 'left');
