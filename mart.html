@@ -99,24 +99,25 @@ button { font-family: inherit; }
   <div class="card">
     <h1>🛒 마트 대소동<small>정리 로봇이 엎어 버린 마트를 다 함께 다시 진열해요</small></h1>
     <h3>닉네임</h3><input class="input" id="nick" maxlength="8" placeholder="닉네임 (2~8자)" style="width:100%">
-    <h3>마트 크기</h3>
-    <div class="seg" id="sizeSeg"><button data-v="8">동네 편의점<br><small>약 800개 · 1~2인</small></button><button data-v="16" class="on">큰 편의점<br><small>약 1600개 · 2~3인</small></button><button data-v="32">동네 마트<br><small>약 3200개 · 3~5인</small></button><button data-v="56">슈퍼 슈퍼 마켓<br><small>약 5600개 · 원작급</small></button></div>
+    <h3>매장 <small style="color:var(--dim);font-size:13px">원작 배치 그대로</small></h3>
+    <div class="seg" id="sizeSeg"><button data-v="konbini" class="on">🏪 꿈 속 편의점<br><small>선반 23 · 상품 2,628개 · 1~4인</small></button><button data-v="super">🛒 슈퍼마켓<br><small>선반 88 · 상품 4,653개 · 2~8인</small></button></div>
     <h3>길 안내</h3>
     <div class="seg" id="easySeg"><button data-v="0" class="on">끄기 (보통)<br><small>상품을 보고 구역 찾기</small></button><button data-v="1">켜기 (쉬움)<br><small>구역·통로 번호를 알려 줌</small></button></div>
     <div class="row" style="margin-top:14px"><button class="btn go" id="btnCreate" style="flex:1">방 만들기</button><button class="btn" id="btnSolo">혼자 하기</button></div>
     <h3>방 코드로 들어가기</h3>
     <div class="row"><input class="input" id="joinCode" maxlength="6" placeholder="ABC123" style="flex:1;text-transform:uppercase;letter-spacing:3px"><button class="btn" id="btnJoin">입장</button></div>
-    <p style="margin-top:14px">PC 전용 · WASD 이동 · 마우스로 보기 · <b>왼쪽 클릭/E</b> 집기 · <b>오른쪽 클릭</b>(또는 선반 보고 E) 진열 · <b>Q</b> 던지기 · 휠/R 들고 있는 상품 바꾸기 · <b>F</b> 핑 · 동료 보고 E 건네기 · <b>M</b> 매장 지도 · <b>K</b> 스킬 · <b>1~4</b> 액티브 스킬</p>
+    <p style="margin-top:14px">상품은 물리로 쏟아지고 쌓여요 · PC 전용 · WASD 이동 · 마우스로 보기 · <b>왼쪽 클릭/E</b> 집기 · <b>오른쪽 클릭</b>(또는 선반 보고 E) 진열 · <b>Q</b> 던지기 · 휠/R 들고 있는 상품 바꾸기 · <b>F</b> 핑 · 동료 보고 E 건네기 · <b>M</b> 전체 보기(지도·동료·진열 현황) · <b>Esc</b> 메뉴에서 마우스 감도 조절 · <b>K</b> 스킬 · <b>1~4</b> 액티브 스킬</p>
   </div>
 </div>
+<div class="screen hide" id="loading"><div class="card" style="text-align:center"><h1>🛒 매장 준비 중</h1><p id="ldTxt" style="font-size:16px;margin-top:10px">…</p></div></div>
 <div class="screen hide" id="lobby">
   <div class="card">
     <h1>🛒 대기실</h1>
     <div class="code" id="lbCode" title="눌러서 초대 링크 복사">------</div>
     <p style="text-align:center">코드를 누르면 초대 링크가 복사돼요 · 최대 8명</p>
     <div class="plist" id="lbPlayers"></div>
-    <h3>마트 크기 <small id="lbSizeTxt" style="color:var(--dim);font-size:13px"></small></h3>
-    <div class="seg" id="lbSize"><button data-v="8">동네 편의점</button><button data-v="16">큰 편의점</button><button data-v="32">동네 마트</button><button data-v="56">슈퍼 슈퍼 마켓</button></div>
+    <h3>매장 <small id="lbSizeTxt" style="color:var(--dim);font-size:13px"></small></h3>
+    <div class="seg" id="lbSize"><button data-v="konbini">🏪 꿈 속 편의점</button><button data-v="super">🛒 슈퍼마켓</button></div>
     <h3>길 안내</h3>
     <div class="seg" id="lbEasy"><button data-v="0">끄기 (보통)</button><button data-v="1">켜기 (쉬움)</button></div>
     <div class="row" style="margin-top:16px"><button class="btn" id="lbReady" style="flex:1">준비</button><button class="btn go" id="lbStart" style="flex:1">시작</button><button class="btn" id="lbLeave">나가기</button></div>
@@ -134,15 +135,14 @@ button { font-family: inherit; }
   <div class="notice" id="notice"></div>
   <div class="hint" id="hint">화면을 누르면 시작 · Esc 메뉴</div>
 </div>
-<div class="esc hide" id="escMenu"><h2>⏸ 잠시 멈춤</h2><p>화면을 누르면 다시 시작해요.<br>멀티에서는 동료들은 계속 정리하고 있어요.</p><div class="row" style="justify-content:center"><button class="btn go" id="btnResume">계속하기</button><button class="btn" id="btnUnstick" title="손이 닿지 않는 곳에 끼인 물건을 입구 앞으로 모아요">끼인 물건 모으기</button><button class="btn" id="btnQuit">나가기</button></div></div>
+<div class="esc hide" id="escMenu"><h2>⏸ 잠시 멈춤</h2><p>화면을 누르면 다시 시작해요.<br>멀티에서는 동료들은 계속 정리하고 있어요.</p><div class="row" style="justify-content:center;margin-bottom:12px;font-size:15px">🖱 마우스 감도 <input type="range" id="sens" min="0.15" max="2" step="0.05" style="width:180px"> <b id="sensTxt" style="color:var(--gold);min-width:40px">1.0</b></div><div class="row" style="justify-content:center"><button class="btn go" id="btnResume">계속하기</button><button class="btn" id="btnUnstick" title="손이 닿지 않는 곳에 끼인 물건을 입구 앞으로 모아요">끼인 물건 모으기</button><button class="btn" id="btnQuit">나가기</button></div></div>
 <div class="ov hide" id="ovMemo"><div class="memo" id="memo"></div></div>
-<div class="ov hide" id="ovMap"><div class="mapbox"><h3 style="margin-bottom:8px">🗺 매장 지도 <small style="color:var(--dim)">(M 닫기)</small></h3><canvas id="mapCv" width="820" height="560"></canvas></div></div>
+<div class="ov hide" id="ovMap"><div class="mapbox" style="width:min(1180px,98vw)"><h3 style="margin-bottom:8px">🗺 전체 보기 <small style="color:var(--dim)">매장 · 동료 · 구역별 진열 현황 (M 닫기)</small></h3><div style="display:flex;gap:12px;align-items:flex-start"><canvas id="mapCv" width="820" height="560" style="flex:1;min-width:0"></canvas><div id="mapSide" style="width:300px;max-height:72vh;overflow:auto;font-size:13px;line-height:1.5"></div></div></div></div>
 <div class="ov hide" id="ovSkill"><div class="abox" id="abox"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="party-sound.js"></script>
-<script src="mart/data.js"></script>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 <script type="module" src="mart/game.js"></script>
 </body>
