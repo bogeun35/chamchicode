@@ -385,6 +385,20 @@ body.lnb-hidden .lnb-open-btn { display: flex; }
   border: none;
 }
 
+/* 게임 전체화면 버튼 (게임을 열었을 때만, 오른쪽 위) */
+#fsBtn {
+  position: fixed; right: 10px; top: 10px; z-index: 900; display: none;
+  border: 1px solid rgba(255,255,255,.35); background: rgba(10,10,16,.55); color: #fff;
+  border-radius: 10px; padding: 6px 10px; font-size: 13px; font-family: inherit; cursor: pointer;
+  opacity: .55; transition: opacity .2s; backdrop-filter: blur(4px);
+}
+#fsBtn:hover { opacity: 1; }
+body.in-game #fsBtn { display: block; }
+.page-frame:fullscreen { width: 100vw; height: 100vh; background: #000; }
+/* 진짜 전체화면이 안 되는 환경(앱 안 브라우저 등): 창 가득 채우기 */
+body.game-max .page-frame.active { position: fixed; inset: 0; z-index: 800; width: 100vw; height: 100vh; height: 100dvh; }
+body.game-max #fsBtn { opacity: .8; }
+
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(20px); }
   to { opacity:1; transform:translateY(0); }
@@ -1073,8 +1087,23 @@ document.getElementById('lnbOpen').onclick = () => {
   if (window.innerWidth <= 768) toggleLNB();
 };
 
+// 게임 전체화면: 지금 열린 게임의 iframe 영역만 화면 가득 (Esc 로 나오기)
+(function () {
+  const b = document.createElement('button'); b.id = 'fsBtn'; b.title = '게임 전체화면 (Esc 로 나오기)'; b.textContent = '⛶ 전체화면'; document.body.appendChild(b);
+  const focusGame = () => { const ifr = document.querySelector('.page-frame.active iframe'); setTimeout(() => { try { ifr.contentWindow.focus(); } catch (e) {} }, 100); };
+  const setMax = on => { document.body.classList.toggle('game-max', on); b.textContent = on ? '⤡ 작게 보기' : '⛶ 전체화면'; focusGame(); };
+  b.onclick = () => {
+    if (document.body.classList.contains('game-max')) return setMax(false);
+    const fr = document.querySelector('.page-frame.active'); if (!fr) return;
+    const req = fr.requestFullscreen || fr.webkitRequestFullscreen;
+    let done = false;
+    if (req) { try { Promise.resolve(req.call(fr)).then(() => { done = true; focusGame(); }).catch(() => { if (!done) setMax(true); }); } catch (e) { setMax(true); return; } }
+    setTimeout(() => { if (!document.fullscreenElement && !document.webkitFullscreenElement) setMax(true); }, 600);   // 전체화면이 안 되면 창 가득
+  };
+})();
 function navigate(page, fromHistory) {
   currentPage = page;
+  document.body.classList.toggle('in-game', page !== 'home'); if (page === 'home') document.body.classList.remove('game-max');
   // 주소 갱신 (뒤로가기도 동작)
   try {
     const url = page === 'home' ? hubBase() : hubBase() + '?game=' + page;
