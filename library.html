@@ -44,6 +44,15 @@ button { font-family: inherit; }
 .prog { position: absolute; left: 14px; top: 12px; background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 7px 12px; font-size: 15px; line-height: 1.55; }
 .prog b { color: var(--gold); }
 .prog .tm { font-size: 13px; color: var(--dim); }
+.prog .goal { font-size: 13px; color: var(--dim); line-height: 1.45; } .prog .goal b { color: var(--ink); } .prog .goal b.hurry { color: #ff7a5a; }
+.cats { display: grid; grid-template-columns: repeat(4, 54px); gap: 4px; margin-top: 6px; }
+.cc { display: flex; align-items: center; gap: 3px; font-size: 12px; padding: 2px 3px; border-radius: 5px; background: rgba(255,255,255,.05); border: 1px solid #3a2a18; }
+.cc span { font-size: 13px; } .cc i { flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,.45); overflow: hidden; } .cc u { display: block; height: 100%; }
+.cc small { font-size: 10px; color: var(--dim); min-width: 12px; text-align: right; } .cc.ok { border-color: var(--gold); } .cc.ok small { color: var(--gold); }
+.combo { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); text-align: center; font-size: 22px; color: #ffcf5a; text-shadow: 0 2px 6px #000, 0 0 2px #000; opacity: 0; transition: opacity .3s; }
+.combo.on { opacity: 1; } .combo b { font-size: 34px; } .combo small { display: block; font-size: 14px; color: #7ad8ff; }
+.combo i { display: block; height: 3px; margin: 3px auto 0; background: #ffcf5a; border-radius: 2px; max-width: 120px; }
+.combo.pop { animation: cpop .35s ease-out; } @keyframes cpop { 0% { transform: translateX(-50%) scale(1.5); } 100% { transform: translateX(-50%) scale(1); } }
 .hand { position: absolute; right: 14px; bottom: 14px; background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 210px; max-width: 46vw; }
 .hand h4 { font-size: 14px; color: var(--dim); display: flex; gap: 8px; } .hand h4 b { color: var(--ink); margin-left: auto; }
 .hand .top { font-size: 17px; margin-top: 3px; }
@@ -128,6 +137,7 @@ button { font-family: inherit; }
   <div class="hand" id="hand"></div>
   <div class="abil" id="abil"></div>
   <div class="notice" id="notice"></div>
+  <div class="combo" id="combo"></div>
   <div class="hint" id="hint">화면을 누르면 시작 · Esc 메뉴</div>
 </div>
 <div class="esc hide" id="escMenu"><h2>⏸ 잠시 멈춤</h2><p>화면을 누르면 다시 시작해요.<br>멀티에서는 다른 사서들은 계속 정리하고 있어요.</p><div class="row" style="justify-content:center"><button class="btn go" id="btnResume">계속하기</button><button class="btn" id="btnQuit">나가기</button></div></div>

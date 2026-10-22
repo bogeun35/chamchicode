@@ -13,13 +13,14 @@ const PCOL = ['#ff8a5a', '#5ab4ff', '#8ee08a', '#ffd36b', '#d88aff', '#5ae0d0', 
 
 // ════════════ 사운드 (짧은 합성음, 파티 사운드 볼륨 설정을 따름) ════════════
 let AC = null;
-function sfx(k) {
+function sfx(k, n = 0) {
   const vol = window.Sound ? Sound.sfxVolume : .6; if (!(vol > 0)) return;
   try { AC = AC || new AudioContext(); if (AC.state === 'suspended') AC.resume(); } catch (e) { return; }
   const t = AC.currentTime, tone = (f0, f1, d, type, v, dl = 0) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t + dl); o.frequency.exponentialRampToValueAtTime(f1, t + dl + d); g.gain.setValueAtTime(v * vol, t + dl); g.gain.exponentialRampToValueAtTime(.0001, t + dl + d); o.connect(g); g.connect(AC.destination); o.start(t + dl); o.stop(t + dl + d + .02); };
   if (k === 'pick') tone(500, 700, .06, 'triangle', .12);
   else if (k === 'place') tone(300, 220, .08, 'triangle', .16);
-  else if (k === 'good') { tone(880, 880, .12, 'sine', .1); tone(1320, 1320, .16, 'sine', .08, .07); }
+  else if (k === 'good') { const m = Math.pow(2, Math.min(n, 12) / 12); tone(880 * m, 880 * m, .12, 'sine', .1); tone(1320 * m, 1320 * m, .16, 'sine', .08, .07); }
+  else if (k === 'cat') [523, 659, 784, 1047, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f, .3, 'triangle', .11, i * .1));
   else if (k === 'row') [660, 880, 1100, 1320].forEach((f, i) => tone(f, f, .2, 'triangle', .12, i * .08));
   else if (k === 'no') tone(200, 150, .12, 'square', .06);
   else if (k === 'magic') tone(400, 1600, .35, 'sine', .1);
@@ -306,7 +307,7 @@ let booksDirty = true;
 const HIDE = new THREE.Matrix4().makeScale(0, 0, 0), GLOWM = new THREE.Matrix4(), GLOWS = new THREE.Matrix4();
 function updateBooks() {
   if (!BOOKS3D.length) return;
-  const status = rowStatus();
+  const status = rowStatus(), now = performance.now(); let sliding = false;
   for (const b of LIB.books) {
     const m = BOOKS3D[b.id], st = bookState(b.id), T = LIB.titles[b.t]; let glow = null;
     if (st.w === 'h' && st.u === me.k) {   // 1인칭: 오른쪽 아래에 손에 든 책을 눕혀 쌓아 보여 줌 (맨 위 = 지금 꽂을 책)
@@ -318,14 +319,23 @@ function updateBooks() {
     if (m.parent !== scene) scene.add(m);
     m.visible = true;
     if (st.w === 'f') { const [x, y, z, yaw] = st.p; m.position.set(x, y + T.w / 2, z); m.rotation.set(0, yaw, Math.PI / 2); }
-    else if (st.w === 's') { const [x, y, z, ry] = slotPos(st.c, st.r, st.s, T.h); m.position.set(x, y, z - (T.d - .21) / 2 * (LIB.cases[st.c].f > 0 ? 1 : -1)); m.rotation.set(0, ry, 0); const q = status.book[b.id]; glow = q === 2 ? [.55, .42, .12] : q === 1 ? [.5, .05, .03] : null; }
+    else if (st.w === 's') {
+      const [x, y, z, ry] = slotPos(st.c, st.r, st.s, T.h), f = LIB.cases[st.c].f > 0 ? 1 : -1, key = st.c + '_' + st.r + '_' + st.s, q = status.book[b.id];
+      if (FX.ready && FX.slot[b.id] !== key) FX.slide[b.id] = now;
+      const e = FX.slide[b.id] ? clamp((now - FX.slide[b.id]) / 220, 0, 1) : 1; if (e >= 1) delete FX.slide[b.id]; else sliding = true;
+      m.position.set(x, y + (1 - e) * .03, z - (T.d - .21) / 2 * f + (1 - e) * (1 - e) * .3 * f); m.rotation.set(0, ry, (1 - e) * .12 * f);
+      if (FX.ready && q === 2 && FX.q[b.id] !== 2) burst(x, y + T.h / 2, z + .12 * f, 14, GOLD, .9);
+      FX.slot[b.id] = key; FX.q[b.id] = q;
+      glow = q === 2 ? [.55, .42, .12] : q === 1 ? [.5, .05, .03] : null;
+    }
     else { const O = OTHERS[st.u]; if (O && O.mesh) { const i = (O.hand || []).indexOf(b.id), ry = O.mesh.rotation.y; m.position.set(O.mesh.position.x + Math.sin(ry) * .35, O.mesh.position.y + 1.0 + i * BOOK.w * .95, O.mesh.position.z + Math.cos(ry) * .35); m.rotation.set(0, ry, Math.PI / 2); } else m.visible = false; }
+    if (st.w !== 's') { delete FX.slot[b.id]; delete FX.q[b.id]; }
     if (glowFx.series != null && b.t === glowFx.series && st.w === 'f') glow = [.2, .7, 1];
     m.updateMatrix(); m.updateMatrixWorld();
     if (glow && m.visible) { GLOWM.copy(m.matrixWorld).multiply(GLOWS.makeScale(T.w + .025, T.h + .025, T.d + .025)); glowMesh.setMatrixAt(b.id, GLOWM); glowMesh.setColorAt(b.id, new THREE.Color(...glow)); } else glowMesh.setMatrixAt(b.id, HIDE);
   }
   glowMesh.instanceMatrix.needsUpdate = true; if (glowMesh.instanceColor) glowMesh.instanceColor.needsUpdate = true; glowMesh.computeBoundingSphere();
-  booksDirty = false;
+  booksDirty = sliding; FX.ready = true;
 }
 // ── 정답 판정 (원작 안내문): 올바른 책장 + 같은 제목은 한 단에만 + 권 번호 순서대로 왼쪽→오른쪽 ──
 let STATUS = null;
@@ -346,7 +356,9 @@ function rowStatus() {
   let done = 0; const doneRows = new Set();
   for (const key in rows) { const list = rows[key]; if (!list.length) continue; const ok = list.every(x => book[x.id] === 2) && [...new Set(list.map(x => LIB.books[x.id].t))].every(t => list.filter(x => LIB.books[x.id].t === +t).length === LIB.titles[t].vols); if (ok) { done++; doneRows.add(key); } }
   const shelved = Object.keys(book).length, good = Object.values(book).filter(v => v === 2).length;
-  return (STATUS = { book, done, doneRows, shelved, good });
+  const cat = {}; for (const b of LIB.books) { const ci = LIB.titles[b.t].cat, o = cat[ci] = cat[ci] || { n: 0, g: 0 }; o.n++; if (book[b.id] === 2) o.g++; }
+  const catDone = new Set(Object.keys(cat).filter(ci => cat[ci].g === cat[ci].n).map(Number));
+  return (STATUS = { book, done, doneRows, shelved, good, cat, catDone });
 }
 
 // ════════════ 플레이어 (1인칭) ════════════
@@ -355,7 +367,7 @@ const KEY = {}; let locked = false;
 const PW = .28, PHH = 1.7, EYE = 1.6;
 function collide(x, y, z) { for (const s of solids) if (x + PW > s[0] && x - PW < s[3] && z + PW > s[2] && z - PW < s[5] && y + PHH > s[1] && y < s[4] - .001) return s; return null; }
 function moveP(dt) {
-  const run = KEY.ShiftLeft || KEY.ShiftRight, sp = (run ? 7.5 : 4.5) * dt;
+  const run = KEY.ShiftLeft || KEY.ShiftRight, sp = (run ? 7.5 : 4.5) * (COMBO.boost > 0 ? 1.25 : 1) * dt;
   let fx = 0, fz = 0; if (KEY.KeyW) fz -= 1; if (KEY.KeyS) fz += 1; if (KEY.KeyA) fx -= 1; if (KEY.KeyD) fx += 1;
   const l = Math.hypot(fx, fz) || 1; fx /= l; fz /= l;
   const s = Math.sin(P.yaw), c = Math.cos(P.yaw), dx = (fx * c + fz * s) * sp, dz = (-fx * s + fz * c) * sp;
@@ -442,7 +454,7 @@ async function placeBook(id, c, r, s) {
   const ok = await NET.tx('slot/' + k, cur => cur == null ? id : undefined);
   if (!ok) { sfx('no'); return notice('그 자리는 막혀 있어요'); }
   P.hand = P.hand.filter(x => x !== id); await NET.set('bk/' + id, `s,${c},${r},${s}`); sendHand(); hudHand(); sfx('place'); NET.tx(`stat/${me.k}/p`, v => (v | 0) + 1);
-  setTimeout(() => { const q = rowStatus().book[id]; if (q === 2) sfx('good'); }, 120);
+  setTimeout(() => { STATUS = null; comboHit(rowStatus().book[id] === 2); }, 120);
 }
 async function autoShelve(c) {   // 자동 책꽂기: 조준한 책장이 맞는 책장이면 알맞은 단·칸을 골라 바로 꽂음
   const id = P.hand.find(x => LIB.titles[LIB.books[x].t].cat === LIB.cases[c].cat); if (id == null) { sfx('no'); return notice('손에 이 책장에 맞는 책이 없어 자동 꽂기에 실패했어요'); }
@@ -479,7 +491,8 @@ const ABIL = {
   autoshelve: { n: '자동 책꽂기', ic: '🪄', k: 5, d: '손에 든 책을 조준한 책장에 즉시 꽂아요. 그 책장에 맞는 책만, 알맞은 단과 칸을 골라 꽂아요. 활성화된 동안 계속 쓸 수 있어요.', cd: l => 40 - 4 * l, act: l => 6 + 2 * l, base: 0, on: 0, cdT: 0 } };
 const glowFx = { series: null };
 const abLv = k => ST.lv[k] | 0, abOpen = k => ABIL[k].base || LIB.chests.some(c => c.reward === k && ST.chests[c.i]);
-const points = () => Math.floor(rowStatus().done / 2) + (ST.fbonus | 0) - (ST.spent | 0);
+const earned = () => Math.floor(rowStatus().done / 2) + (ST.fbonus | 0) + rowStatus().catDone.size;
+const points = () => earned() - (ST.spent | 0);
 function useAbility(k) {
   const A = ABIL[k]; if (!abOpen(k)) { sfx('no'); return notice('이 능력은 잠겨 있어요 — 상자를 열어 그 힘을 해방하세요'); }
   if (A.cdT > 0) { sfx('no'); return; }
@@ -499,14 +512,16 @@ function useAbility(k) {
 function tickAbil(dt) {
   for (const k in ABIL) { const A = ABIL[k]; if (A.on > 0) { A.on -= dt; if (A.on <= 0) { A.on = 0; if (k === 'glow') { glowFx.series = null; booksDirty = true; } } } if (A.cdT > 0) A.cdT = Math.max(0, A.cdT - dt); }
   const tgt = ABIL.guide.on > 0 && P.hand.length ? LIB.titles[LIB.books[P.hand[0]].t].cat : -1;
-  for (const C of CASES) C.hl.material.opacity = C.c.cat === tgt ? .18 + .1 * Math.sin(performance.now() / 150) : 0;
+  const now = performance.now();
+  for (const C of CASES) { const fl = FX.flash[C.c.i], fa = fl ? Math.max(0, 1 - (now - fl) / 1400) : 0; if (fl && fa <= 0 && now > fl) delete FX.flash[C.c.i]; C.hl.material.opacity = Math.max(C.c.cat === tgt ? .18 + .1 * Math.sin(now / 150) : 0, now < fl ? .3 : fa * .3); }
+  if (COMBO.boost > 0) COMBO.boost = Math.max(0, COMBO.boost - dt);
 }
 function openAbil() {
   const pts = points(), left = 2 - rowStatus().done % 2;
-  $('abox').innerHTML = `<h3 style="margin-bottom:6px">📖 능력 목록 <small style="color:var(--dim)">(K 닫기)</small></h3><p style="color:var(--dim);font-size:14px">완성한 책장 줄 2개마다 포인트 1 · 남은 포인트 <b style="color:var(--gold)">${pts}</b> · 레벨 업까지 ${left}줄 남음${NET.solo ? '' : ' · 포인트와 레벨은 모든 사서가 함께 써요'}</p>` +
+  $('abox').innerHTML = `<h3 style="margin-bottom:6px">📖 능력 목록 <small style="color:var(--dim)">(K 닫기)</small></h3><p style="color:var(--dim);font-size:14px">책장 줄 2개 · 분야 하나 완성 · 요정 한 번마다 포인트 1 · 남은 포인트 <b style="color:var(--gold)">${pts}</b> · 레벨 업까지 ${left}줄 남음${NET.solo ? '' : ' · 포인트와 레벨은 모든 사서가 함께 써요'}</p>` +
     Object.entries(ABIL).map(([k, A]) => { const l = abLv(k), open = abOpen(k); return `<div class="arow"><div class="ic">${open ? A.ic : '🔒'}</div><div class="tx"><b>${A.k}. ${A.n}</b> Lv.${l + 1}<br>${A.d}<br>재사용 대기 ${A.cd(l)}초${A.act ? ` · 지속 ${A.act(l)}초` : ''}${A.grab ? ` · 한 번에 ${A.grab(l)}권` : ''}${l < 4 ? ` → <span style="color:var(--gold)">${A.cd(l + 1)}초${A.act ? ` · ${A.act(l + 1)}초` : ''}${A.grab ? ` · ${A.grab(l + 1)}권` : ''}</span>` : ''}${open ? '' : '<br><span style="color:var(--red)">상자를 열어야 해금돼요</span>'}</div>${open && l < 4 ? `<button class="btn" data-up="${k}" ${pts > 0 ? '' : 'disabled'}>레벨 업</button>` : ''}</div>`; }).join('');
   $('ovAbil').classList.remove('hide'); document.exitPointerLock();
-  $('abox').querySelectorAll('[data-up]').forEach(b => b.onclick = async () => { const k = b.dataset.up; const ok = await NET.tx('spent', cur => (cur | 0) < Math.floor(rowStatus().done / 2) + (ST.fbonus | 0) ? (cur | 0) + 1 : undefined); if (ok) { await NET.tx('lv/' + k, cur => (cur | 0) + 1); sfx('magic'); setTimeout(openAbil, 150); } });
+  $('abox').querySelectorAll('[data-up]').forEach(b => b.onclick = async () => { const k = b.dataset.up; const ok = await NET.tx('spent', cur => (cur | 0) < earned() ? (cur | 0) + 1 : undefined); if (ok) { await NET.tx('lv/' + k, cur => (cur | 0) + 1); sfx('magic'); setTimeout(openAbil, 150); } });
 }
 
 // ════════════ 열쇠 · 보물상자 · 회수의 돌 ════════════
@@ -568,7 +583,7 @@ function onRoom(r) {
   for (const k of KEYMESH) k.visible = !ST.keys[k.userData.i];
   CHESTMESH.forEach((c, i) => { c.scale.y = ST.chests[i] ? .55 : 1; });
   STONE.mesh.visible = stoneReady();
-  const S = rowStatus();
+  const S = rowStatus(); celebrate(S);
   if (S.done > lastRows) { sfx('row'); notice(`✨ 책장 한 줄 완성! (${S.done}줄)${S.done % 2 === 0 ? ' — 포인트 +1, K 로 능력 레벨 업' : ''}`); }
   lastRows = S.done;
   // 허가 통지 (원작: 달리기·높이뛰기 허가 편지)
@@ -687,9 +702,70 @@ function statTable() {
   return `<table style="width:100%;margin-top:8px;font-size:15px;border-collapse:collapse"><tr style="border-bottom:1px solid #a07a44"><th style="text-align:left">사서</th><th>꽂은 책</th><th>잡은 요정</th></tr>${rows.map(r => `<tr><td>${esc(r[0])}${r[0] === mvp ? ' 🏅' : ''}</td><td style="text-align:center">${r[1]}</td><td style="text-align:center">${r[2]}</td></tr>`).join('')}</table>`;
 }
 
+
+// ════════════ 손맛: 꽂히는 연출 · 금빛 불꽃 · 연속 정리 · 분야 완성 ════════════
+const GOLD = new THREE.Color('#ffcf5a');
+const FX = { ready: false, slot: {}, q: {}, slide: {}, flash: {}, rows: null, cats: null };
+const SPARK = { pts: null, list: [], N: 900 };
+function buildSparks() {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SPARK.N * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(SPARK.N * 3), 3));
+  SPARK.pts = new THREE.Points(g, new THREE.PointsMaterial({ size: .06, map: tex(32, 32, (x, w) => { const g = x.createRadialGradient(16, 16, 0, 16, 16, 16); g.addColorStop(0, '#fff'); g.addColorStop(.35, 'rgba(255,255,255,.7)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); }), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  SPARK.pts.frustumCulled = false; g.setDrawRange(0, 0); scene.add(SPARK.pts);
+}
+function burst(x, y, z, n, col, spd = 1) {
+  for (let i = 0; i < n && SPARK.list.length < SPARK.N; i++) { const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, r = Math.sqrt(1 - u * u), s = (.5 + Math.random()) * spd; SPARK.list.push({ x, y, z, vx: Math.cos(a) * r * s, vy: Math.abs(u) * s + .5, vz: Math.sin(a) * r * s, t: 0, life: .55 + Math.random() * .5, c: col }); }
+}
+function tickSparks(dt) {
+  const L = SPARK.list; if (!SPARK.pts) return; const pos = SPARK.pts.geometry.attributes.position, col = SPARK.pts.geometry.attributes.color; let n = 0;
+  for (let i = L.length - 1; i >= 0; i--) { const p = L[i]; p.t += dt; if (p.t >= p.life) { L.splice(i, 1); continue; } p.vy -= 2.4 * dt; const d = 1 - 1.8 * dt; p.vx *= d; p.vz *= d; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; }
+  for (const p of L) { const f = 1 - p.t / p.life; pos.setXYZ(n, p.x, p.y, p.z); col.setXYZ(n, p.c.r * f, p.c.g * f, p.c.b * f); n++; }
+  SPARK.pts.geometry.setDrawRange(0, n); pos.needsUpdate = true; col.needsUpdate = true;
+}
+// 연속 정리: 10초 안에 정답으로 연달아 꽂으면 콤보, 5콤보마다 '신바람'(6초 동안 이동 속도 +25%)
+const COMBO = { n: 0, t: 0, boost: 0 };
+function comboHit(ok) {
+  const now = performance.now();
+  if (!ok) { if (COMBO.n >= 3) notice('콤보가 끊겼어요'); COMBO.n = 0; hudCombo(); return; }
+  COMBO.n = now - COMBO.t < 10000 ? COMBO.n + 1 : 1; COMBO.t = now; sfx('good', COMBO.n - 1);
+  if (COMBO.n % 5 === 0) { COMBO.boost = 6; sfx('magic'); burst(P.x, P.y + 1.2, P.z, 30, new THREE.Color('#7ad8ff'), 1.4); }
+  hudCombo(true);
+}
+function hudCombo(pop) {
+  const el = $('combo'); if (!el) return; const live = COMBO.n >= 2 && performance.now() - COMBO.t < 10000;
+  el.classList.toggle('on', live || COMBO.boost > 0);
+  el.innerHTML = (live ? `🔥 <b>${COMBO.n}</b> 연속${COMBO.n >= 5 ? '!' : ''}<i style="width:${100 - (performance.now() - COMBO.t) / 100}%"></i>` : '') + (COMBO.boost > 0 ? `<small>💨 신바람 ${Math.ceil(COMBO.boost)}초</small>` : '');
+  if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+}
+function rowBooks(key) { const [c, r] = key.split('_').map(Number); return LIB.books.filter(b => { const st = bookState(b.id); return st.w === 's' && st.c === c && st.r === r; }); }
+function celebrate(S) {   // 새로 완성된 줄 · 분야를 찾아 불꽃과 책장 번쩍임
+  if (!FX.rows) { FX.rows = new Set(S.doneRows); FX.cats = new Set(S.catDone); return; }
+  for (const key of S.doneRows) if (!FX.rows.has(key)) {
+    for (const b of rowBooks(key)) { const st = bookState(b.id), T = LIB.titles[b.t], [x, y, z] = slotPos(st.c, st.r, st.s, T.h); burst(x, y + T.h / 2, z + .1 * LIB.cases[st.c].f, 6, GOLD, 1.3); }
+    FX.flash[key.split('_')[0]] = performance.now();
+  }
+  for (const ci of S.catDone) if (!FX.cats.has(ci)) {
+    const d = DATA[ci]; sfx('cat'); toast(`${d.ic} ${d.n} 분야 완성! 팀 능력 포인트 +1`, 3600);
+    for (const C of CASES) if (C.c.cat === ci) { FX.flash[C.c.i] = performance.now() + 900; for (let k = 0; k < 4; k++) burst(C.c.x + (Math.random() - .5) * 1.6, C.c.y + 2.5, C.c.z + .3 * C.c.f, 25, new THREE.Color(d.c), 1.8); }
+  }
+  FX.rows = new Set(S.doneRows); FX.cats = new Set(S.catDone);
+}
+// 목표 시간: 원작 결과 등급(책 1권당 걸린 초 × 인원)을 거꾸로 풀어 다음 등급까지 남은 시간
+const RANKS = [[9, '엄청난 승자'], [13, '아주 좋은 사람'], [18, '흥미로운 사람'], [26, '졸린 사람'], [40, '완전 엉망진창']];
+function hudGoal() {
+  const el = $('goal'); if (!el || !LIB) return; if (ST.done) { el.innerHTML = ''; return; }
+  const S = rowStatus(), np = Math.max(1, Object.keys(ST.players).length || 1), el_s = (Date.now() - ST_T0) / 1000, perSec = s => s / LIB.books.length * np;
+  const next = RANKS.find(([p]) => perSec(el_s) < p), left = next ? next[0] * LIB.books.length / np - el_s : 0;
+  const proj = S.good >= 8 ? el_s * LIB.books.length / S.good : 0, pr = proj ? (RANKS.find(([p]) => perSec(proj) < p) || [0, '해고'])[1] : '';
+  el.innerHTML = (next ? `🏅 <b>${next[1]}</b>까지 <b class="${left < 120 ? 'hurry' : ''}">${fmtT(left * 1000)}</b>` : '🏅 이제 목표는 완주!') + (pr ? `<br>📈 이 속도면 <b>${pr}</b>` : '');
+}
+
 // ════════════ HUD ════════════
 function fmtT(ms) { const s = Math.floor(ms / 1000); return `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
-function hudProg() { const S = rowStatus(); $('prog').innerHTML = `📚 정리한 책장 줄 <b>${S.done}</b><br>📖 제자리 책 <b>${S.good}</b> / ${LIB.books.length} <span style="color:var(--dim);font-size:13px">(꽂은 책 ${S.shelved})</span><div class="tm" id="tm"></div>`; }
+function hudProg() {
+  const S = rowStatus(), cats = [...new Set(LIB.cases.map(c => c.cat))];
+  const chips = cats.map(ci => { const o = S.cat[ci] || { n: 1, g: 0 }, d = DATA[ci], bc = BINDING[ci % BINDING.length][0], ok = o.g === o.n; return `<div class="cc ${ok ? 'ok' : ''}" title="${d.n} ${o.g}/${o.n}"><span>${d.ic}</span><i><u style="width:${o.g / o.n * 100}%;background:${ok ? 'var(--gold)' : bc}"></u></i><small>${ok ? '✔' : o.n - o.g}</small></div>`; }).join('');
+  $('prog').innerHTML = `📚 정리한 책장 줄 <b>${S.done}</b> · 분야 <b>${S.catDone.size}</b>/${cats.length}<br>📖 제자리 책 <b>${S.good}</b> / ${LIB.books.length} <span style="color:var(--dim);font-size:13px">(꽂은 책 ${S.shelved})</span><div class="tm" id="tm"></div><div class="goal" id="goal"></div><div class="cats">${chips}</div>`; hudGoal();
+}
 function hudHand() {
   const cap = capacity();
   if (!P.hand.length) { $('hand').innerHTML = `<h4>손에 든 책 <b>0 / ${cap}</b></h4><div class="top" style="color:var(--dim);font-size:14px">책을 조준하고 E (왼쪽 클릭)</div>`; return; }
@@ -744,7 +820,7 @@ async function startGame(o) {
   try { await Promise.race([document.fonts.load('bold 13px "Nanum Myeongjo"'), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
   LIB = buildLibrary(o.size, o.seed); ST_T0 = o.t0; OPT.easy = !!o.easy; FAIRY.next = 55 + Math.random() * 20;
   $('home').classList.add('hide'); $('lobby').classList.add('hide'); $('hud').classList.remove('hide');
-  buildRoom(); buildCases(); buildBooks(); buildProps();
+  buildRoom(); buildCases(); buildBooks(); buildProps(); buildSparks();
   P.x = 0; P.z = 3; P.yaw = 0;
   if (!NET.solo) { NET.ref('pos/' + me.k).onDisconnect().remove(); NET.ref('players/' + me.k).onDisconnect().remove(); NET.on(r => { if (!r.players || !r.players[me.k]) { toast('방에서 나왔어요'); return; } isHost = r.host === me.k || !r.players[r.host]; if (isHost && r.host !== me.k) NET.set('host', me.k); onRoom(r); hudOthers(); }); }
   else NET.on(onRoom);
@@ -759,16 +835,17 @@ function loop() {
     tickAbil(dt);
     for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; O.mesh.position.x += (O.tx - O.mesh.position.x) * Math.min(1, dt * 10); O.mesh.position.y += (O.ty - O.mesh.position.y) * Math.min(1, dt * 10); O.mesh.position.z += (O.tz - O.mesh.position.z) * Math.min(1, dt * 10); O.mesh.rotation.y = O.tyaw; if ((O.hand || []).length) booksDirty = true; }
     if (booksDirty) updateBooks();
-    updateFairy(dt); drawPings();
+    updateFairy(dt); drawPings(); tickSparks(dt);
     aimUpdate(); sendPos(dt);
     const t = performance.now() / 1000; for (const c of CANDLES) c.position.y += Math.sin(t * .8 + c.userData.p) * .002;
     for (const k of KEYMESH) k.rotation.y = t * 2;
     if (STONE.mesh.visible) STONE.mesh.rotation.y = t;
     const tm = $('tm'); if (tm) tm.textContent = '⏱ ' + fmtT((ST.done ? ST.done.t : Date.now()) - ST_T0);
-    if (Math.floor(t * 4) !== loop._a) { loop._a = Math.floor(t * 4); hudAbil(); }
+    if (Math.floor(t * 4) !== loop._a) { loop._a = Math.floor(t * 4); hudAbil(); hudGoal(); }
+    if (COMBO.n >= 2 || COMBO.boost > 0) hudCombo();
   }
   renderer.render(scene, cam);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-window.lib = { FAIRY, spawnFairy: () => { FAIRY.next = 0; }, ping, giveBook, catchFairy, OPT, get LIB() { return LIB; }, get ST() { return ST; }, P, rowStatus: () => { STATUS = null; return rowStatus(); }, NET: () => NET, pickBook, placeBook, drop, useAbility, act };
+window.lib = { FAIRY, spawnFairy: () => { FAIRY.next = 0; }, ping, giveBook, catchFairy, OPT, get LIB() { return LIB; }, get ST() { return ST; }, P, rowStatus: () => { STATUS = null; return rowStatus(); }, NET: () => NET, pickBook, placeBook, drop, useAbility, act, COMBO, FX, burst };
