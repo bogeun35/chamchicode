@@ -62,6 +62,16 @@ button { font-family: inherit; }
 .notice.on { opacity: 1; }
 .others { position: absolute; right: 14px; top: 12px; font-size: 13px; text-align: right; line-height: 1.6; text-shadow: 0 1px 3px #000; }
 .hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); font-size: 13px; color: var(--dim); text-shadow: 0 1px 3px #000; white-space: nowrap; }
+.goal { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 7px 16px; min-width: 320px; max-width: 48vw; text-align: center; transition: box-shadow .3s; }
+.goal h5 { font-size: 12px; color: var(--dim); font-weight: normal; } .goal .gt { font-size: 17px; margin-top: 1px; } .goal .gk { font-size: 12px; color: var(--dim); margin-top: 3px; }
+.goal .bar { height: 6px; background: #0e1e24; border-radius: 3px; margin-top: 6px; overflow: hidden; } .goal .bar i { display: block; height: 100%; background: var(--gold); transition: width .4s; }
+.goal.flash { box-shadow: 0 0 0 3px var(--gold), 0 0 24px rgba(255,216,74,.7); border-color: var(--gold); }
+.combo { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); font-size: 20px; color: #ffb347; text-shadow: 0 2px 4px #000; opacity: 0; transition: opacity .2s; white-space: nowrap; }
+.combo small { font-size: 13px; color: var(--gold); } .combo.on { opacity: 1; }
+.combo::after { content: ''; display: block; height: 3px; width: var(--left, 100%); margin: 2px auto 0; background: #ffb347; border-radius: 2px; transition: width .25s linear; }
+.arrow { position: absolute; left: 50%; top: calc(50% - 78px); transform: translateX(-50%); display: flex; align-items: center; gap: 8px; font-size: 15px; text-shadow: 0 2px 4px #000, 0 0 2px #000; white-space: nowrap; }
+.arrow svg { width: 38px; height: 38px; transition: transform .1s linear; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); } .arrow small { color: var(--dim); display: block; font-size: 12px; } .arrow.near svg { animation: bob .6s infinite alternate; }
+@keyframes bob { from { translate: 0 0; } to { translate: 0 -5px; } }
 .reward { position: absolute; left: 50%; top: calc(50% - 46px); transform: translateX(-50%); font-size: 18px; color: var(--gold); text-shadow: 0 2px 4px #000; opacity: 0; transition: opacity .2s, transform .6s; }
 .reward.on { opacity: 1; transform: translate(-50%, -14px); }
 .ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55); }
@@ -129,6 +139,9 @@ button { font-family: inherit; }
   <div class="aim" id="aim"></div>
   <div class="reward" id="reward"></div>
   <div class="prog" id="prog"></div>
+  <div class="goal" id="goal"></div>
+  <div class="combo" id="combo"></div>
+  <div class="arrow hide" id="arrow"><svg id="arrowSvg" viewBox="0 0 40 40"><path d="M20 3 L34 22 L24 22 L24 37 L16 37 L16 22 L6 22 Z" fill="currentColor" stroke="#102028" stroke-width="2" stroke-linejoin="round"/></svg><span id="arrowTxt"></span></div>
   <div class="others" id="others"></div>
   <div class="hand" id="hand"></div>
   <div class="abil" id="abil"></div>

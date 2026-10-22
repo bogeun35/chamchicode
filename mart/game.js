@@ -32,6 +32,7 @@ function sfx(k) {
   else if (k === 'skill') tone(400, 1500, .3, 'sine', .1);
   else if (k === 'throw') tone(700, 260, .18, 'sine', .08);
   else if (k === 'drop') tone(180, 120, .1, 'triangle', .14);
+  else if (k === 'pour') { tone(90, 60, .5, 'sawtooth', .05); tone(300, 120, .3, 'triangle', .04, .1); }
   else if (k === 'kick') { tone(150, 80, .08, 'triangle', .14); tone(420, 300, .05, 'square', .03, .02); }
   else if (k === 'atm') [600, 640, 600, 640].forEach((f, i) => tone(f, f, .07, 'square', .04, i * .12));
   else if (k === 'win') [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, .25, 'triangle', .12, i * .09));
@@ -175,7 +176,7 @@ function enterLobby() {
     const go = prep => { starting = 1; setTimeout(() => { const q = lb; want.forEach(k => NET.ref(k).off()); ST.players = q.players; startGame({ seed: q.seed, map: q.map || 'konbini', t0: q.t0 || Date.now(), easy: !!q.easy, prep }); }, 120); };
     if (r.phase === 'prep' && r.seed && isHost && !LIB && !starting) return go(true);
     if (r.phase === 'play' && r.seed && !LIB && !starting) return go(false);
-    if (r.phase === 'prep' && !LIB) { $('lbStart').disabled = true; $('lbSizeTxt').textContent = '(방장이 매장을 준비하는 중…)'; return; }
+    if (r.phase === 'prep' && !LIB) { $('lbStart').disabled = true; $('lbSizeTxt').textContent = '(방장이 매장을 준비하는 중… 깔끔봇이 상품을 쏟고 있어요)'; return; }
     if (!LIB) renderLobby(r); };
   const got = new Set();
   want.forEach(k => NET.ref(k).on('value', s => { lb[k] = s.val(); got.add(k); if (got.size === want.length) upd(); }));
@@ -305,7 +306,7 @@ function buildStore() {
   for (const sh of LIB.shelves) {
     const ss = sh.slots.map(j => LIB.slots[j]); if (!ss.length) continue; const sl0 = ss[0];
     let cx = 0, cz = 0, top = 0; for (const s of ss) { cx += s.o[0]; cz += s.o[2]; top = Math.max(top, s.o[1] + s.g.by + s.g.h); } cx /= ss.length; cz /= ss.length;
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.3, .32), new THREE.MeshBasicMaterial({ map: SIGN(sh.sec) })), f = [Math.sin(sl0.yaw), Math.cos(sl0.yaw)];
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.3, .32), new THREE.MeshBasicMaterial({ map: SIGN(sh.sec) })), f = [Math.sin(sl0.yaw), Math.cos(sl0.yaw)]; (SIGNM[sh.sec] = SIGNM[sh.sec] || []).push(sg);
     sg.position.set(cx + f[0] * (sl0.g.z0 + .02), Math.min(CEIL - .4, top + .32), cz + f[1] * (sl0.g.z0 + .02)); sg.rotation.y = sl0.yaw; scene.add(sg);
   }
   // 행사 현수막
@@ -320,7 +321,7 @@ function slatTex() { const t = tex(256, 256, (x, w, h) => { x.fillStyle = '#eef0
 function nightTex() { return tex(1024, 384, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0e1430'); g.addColorStop(.6, '#2a2a5a'); g.addColorStop(1, '#4a3a5a'); x.fillStyle = g; x.fillRect(0, 0, w, h); const r = rng(21); for (let bx = 0; bx < w;) { const bw = 60 + r() * 120, bh = 120 + r() * 200; x.fillStyle = `hsl(235,25%,${10 + r() * 8}%)`; x.fillRect(bx, h - 70 - bh, bw, bh); for (let yy = h - 60 - bh; yy < h - 90; yy += 22) for (let xx = bx + 8; xx < bx + bw - 14; xx += 18) if (r() < .45) { x.fillStyle = r() < .7 ? '#ffd88a' : '#9ad0ff'; x.fillRect(xx, yy, 9, 12); } bx += bw + 6; } x.fillStyle = '#26262e'; x.fillRect(0, h - 70, w, 70); x.fillStyle = '#e8e8a0'; for (let k = 0; k < w; k += 90) x.fillRect(k, h - 38, 46, 5); for (const lx of [180, 560, 900]) { x.fillStyle = '#4a4a52'; x.fillRect(lx, h - 250, 6, 180); const lg = x.createRadialGradient(lx + 3, h - 250, 2, lx + 3, h - 250, 70); lg.addColorStop(0, 'rgba(255,230,160,.9)'); lg.addColorStop(1, 'rgba(255,230,160,0)'); x.fillStyle = lg; x.fillRect(lx - 70, h - 320, 146, 140); } }); }
 function cigTex() { return tex(512, 256, (x, w, h) => { x.fillStyle = '#3a3430'; x.fillRect(0, 0, w, h); const r = rng(8), cs = ['#ffffff', '#1a3a8a', '#c82a2a', '#e8c84a', '#2a6a3a', '#d8d8d8', '#6a2a8a', '#1a1a1a']; for (let row = 0; row < 7; row++) for (let k = 0; k < 16; k++) { const c = cs[Math.floor(r() * cs.length)]; x.fillStyle = c; x.fillRect(6 + k * 31.5, 8 + row * 35, 26, 28); x.fillStyle = lum(c) > .5 ? cs[1 + Math.floor(r() * 4)] : '#ffffff'; x.fillRect(6 + k * 31.5, 8 + row * 35 + 18, 26, 4); } x.fillStyle = '#ffffff'; for (let row = 0; row < 7; row++) x.fillRect(0, 36 + row * 35, w, 2); }); }
 let popT = null; const POP = () => popT || (popT = tex(256, 160, (x, w, h) => { x.fillStyle = '#ffd84a'; x.beginPath(); x.moveTo(20, 0); x.lineTo(w - 20, 0); x.quadraticCurveTo(w, 0, w, 20); x.lineTo(w, h - 20); x.quadraticCurveTo(w, h, w - 20, h); x.lineTo(20, h); x.quadraticCurveTo(0, h, 0, h - 20); x.lineTo(0, 20); x.quadraticCurveTo(0, 0, 20, 0); x.fill(); x.fillStyle = '#c82a1a'; x.font = '78px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('1+1', w / 2, 66); x.font = '34px Jua, sans-serif'; x.fillStyle = '#1e2a30'; x.fillText('행사 상품', w / 2, 126); }));
-const SIGNS = {}; const SIGN = k => SIGNS[k] || (SIGNS[k] = signTex((LIB.secs[k] || {}).n || k, '', (LIB.secs[k] || {}).col || '#888888', (LIB.secs[k] || {}).ic || '📦'));
+const SIGNS = {}, SIGNM = {}; const SIGN = k => SIGNS[k] || (SIGNS[k] = signTex((LIB.secs[k] || {}).n || k, '', (LIB.secs[k] || {}).col || '#888888', (LIB.secs[k] || {}).ic || '📦'));
 
 // ════════════ 상품 그리기: 모양별 정교한 단위 형상 + 아틀라스(포장 그림) + 인스턴스 uv ════════════
 // 모든 상품을 모양 × 아틀라스 장 단위의 InstancedMesh 몇 개로 그림 (원작 4653개도 가볍게)
@@ -457,8 +458,9 @@ const slotIds = s => SL[s] ? String(SL[s]).split(',').map(Number) : [];
 const prodOf = id => LIB.prods[LIB.items[id].p];
 const dirtyP = new Set(); let tagsDirty = true, gridDirty = true, STATUS = null;
 function itemMatrix(id) {
-  if (ANIM_HIDE.has(id)) return HIDE;
+  if (ANIM_HIDE.has(id) || POUR.pending.has(id)) return HIDE;
   const P = prodOf(id); V2.set(P.w, P.h, P.d);
+  const PB = POUR.bodies.get(id); if (PB) { const t = PB.translation(), q = PB.rotation(); V1.set(t.x, t.y, t.z); QQ.set(q.x, q.y, q.z, q.w); return M4.compose(V1, QQ, V2); }
   const A = ACT.get(id); if (A) { const t = A.b.translation(), q = A.b.rotation(); V1.set(t.x, t.y, t.z); QQ.set(q.x, q.y, q.z, q.w); return M4.compose(V1, QQ, V2); }
   if (MV[id]) { const a = MV[id].split(',').map(Number); V1.set(a[0], a[1], a[2]); QQ.set(a[3], a[4], a[5], a[6]); return M4.compose(V1, QQ, V2); }
   const s = st(id);
@@ -474,6 +476,7 @@ function flushItems() {
   if (dirtyP.size) { for (const it of LIB.items) if (dirtyP.has(it.p)) setItem(it.id); dirtyP.clear(); }
   for (const id of HELD_OTHERS) setItem(id);
   for (const id of ACT.keys()) setItem(id);
+  for (const id of POUR.bodies.keys()) setItem(id);
   for (const id in MV) setItem(+id);
   for (const key of touched) IM[key].mesh.instanceMatrix.needsUpdate = true; touched.clear();
 }
@@ -506,7 +509,7 @@ function flushTags() {
 const GRID = new Map(), LOOSE_IN = new Map(); const gk = (x, z) => Math.floor(x) * 4099 + Math.floor(z);
 function rebuildGrid() {
   GRID.clear(); LOOSE_IN.clear();
-  for (const it of LIB.items) { const s = st(it.id); if (s.w !== 'f' || ACT.has(it.id) || MV[it.id]) continue; const k = gk(s.x, s.z); let a = GRID.get(k); if (!a) GRID.set(k, a = []); a.push(it.id);
+  for (const it of LIB.items) { const s = st(it.id); if (s.w !== 'f' || ACT.has(it.id) || MV[it.id] || POUR.pending.has(it.id) || POUR.bodies.has(it.id)) continue; const k = gk(s.x, s.z); let a = GRID.get(k); if (!a) GRID.set(k, a = []); a.push(it.id);
     if (s.y > .14) for (const sl of LIB.slots) { const b = SLOTBOX[sl.s]; if (s.x > b[0] && s.x < b[3] && s.y > b[1] - .02 && s.y < b[4] && s.z > b[2] && s.z < b[5]) { let l = LOOSE_IN.get(sl.s); if (!l) LOOSE_IN.set(sl.s, l = []); l.push(it.id); break; } } }
   gridDirty = false;
 }
@@ -520,7 +523,7 @@ const PW = .28, PHH = 1.7, EYE = 1.62;
 const lv = id => (ST.m.lv && ST.m.lv[id]) | 0;
 const reach = () => 2.5 + .5 * lv('s2'), capacity = () => 5 + lv('s3'), throwPow = () => 5 + lv('s31');
 function collide(x, y, z) { const hh = PHH * (1 - .45 * P.crouch); for (const s of solids) if (x + PW > s[0] && x - PW < s[3] && z + PW > s[2] && z - PW < s[5] && y + hh > s[1] && y < s[4] - .001) return s; return null; }
-const STAT = { p: 0, c: 0, t: 0, j: 0, d: 0, u: 0 };
+const STAT = { p: 0, c: 0, t: 0, j: 0, d: 0, u: 0, pickN: 0, full: 0, atm: 0 };
 function moveP(dt) {
   const canStretch = lv('s22') > 0;
   P.crouch = clamp(P.crouch + ((canStretch && (KEY.ControlLeft || KEY.ControlRight)) ? 1 : -1) * dt * 8, 0, 1);
@@ -620,7 +623,7 @@ async function pickItem(id) {
   const from = poseOfMatrix(itemMatrix(id).clone());
   const ok = await NET.tx('it/' + id, cur => (cur || null) !== prev ? undefined : 'h,' + me.k + gS(s));
   PENDING.delete(id); if (!ok) { sfx('no'); return false; }
-  if (!P.hand.includes(id)) P.hand.unshift(id); flyAnim(id, from, () => handWorld(prodOf(id)), .28); sendHand(); sfx('pick');
+  if (!P.hand.includes(id)) P.hand.unshift(id); flyAnim(id, from, () => handWorld(prodOf(id)), .28); sendHand(); sfx('pick'); STAT.pickN++;
   if (PWD) wakeAround(s.x, s.y, s.z, .3, true, true);   // 위에 얹혀 있던 상품은 떨어지고, 아래·옆은 받쳐 줌
   return true;
 }
@@ -630,7 +633,7 @@ async function takeFromSlot(s) {
   if (!ok || taken == null) { sfx('no'); return; }
   flyAnim(taken, slotPose(LIB.slots[s], prodOf(taken), at), () => handWorld(prodOf(taken)), .28);
   PENDING.add(taken); await NET.set('it/' + taken, 'h,' + me.k + gS(st(taken))); PENDING.delete(taken);
-  if (!P.hand.includes(taken)) P.hand.unshift(taken); sendHand(); sfx('pick');
+  if (!P.hand.includes(taken)) P.hand.unshift(taken); sendHand(); sfx('pick'); STAT.pickN++;
 }
 async function placeItem(id, s, quiet, from) {
   const pi = LIB.items[id].p, Pp = LIB.prods[pi], cap = Pp.cap; let n = 0;
@@ -641,15 +644,16 @@ async function placeItem(id, s, quiet, from) {
   if (!ok) { PENDING.delete(id); if (!quiet) { sfx('no'); notice('이 칸에는 넣을 수 없어요'); } return false; }
   const sv = st(id), sl = LIB.slots[s], right = Pp.sec === sl.sec, done = right && n >= cap;
   P.hand = P.hand.filter(x => x !== id);
-  const gold = right && !sv.g ? grantGold(LIB.gold) : null;
+  if (right) comboHit(); else comboBreak();
+  const gold = right && !sv.g ? grantGold(LIB.gold, comboMult()) : null;
   if (src) { const to = slotPose(sl, Pp, n - 1); flyAnim(id, src, to, .24, () => { if (right) { sparkle(to.p, done); if (gold) floatText(to.p, `+${won(gold.amt)}${gold.mul > 1 ? ` ×${gold.mul}` : ''}`, gold.mul > 1 ? '#ffd84a' : '#a6ffa8'); if (done) setTimeout(() => floatText(to.p.clone().setY(to.p.y + .14), '⭐ 칸 완성!', '#ffd84a'), 280); } else floatText(to.p, '틀린 구역!', '#ff8a7a'); }, .6); }
   await NET.set('it/' + id, `s,${s}` + (sv.g || right ? ',g' : '')); PENDING.delete(id); sendHand(); STAT.p++;
-  if (right) { STAT.c++; sfx('good'); if (done) { const got = await NET.tx('m/cs/' + s, cur => cur ? undefined : 1); if (got) { await NET.tx('m/stars', v => (v | 0) + 1); NET.tx('m/starAll', v => (v | 0) + 1); sfx('star'); reward('⭐ 칸 완성! 별 +1'); } } }
+  if (right) { STAT.c++; sfx('good'); if (done) { const got = await NET.tx('m/cs/' + s, cur => cur ? undefined : 1); if (got) { STAT.full++; await NET.tx('m/stars', v => (v | 0) + 1); NET.tx('m/starAll', v => (v | 0) + 1); sfx('star'); reward('⭐ 칸 완성! 별 +1'); } } }
   else { sfx('bad'); if (!quiet) notice(`🟥 ${LIB.secs[Pp.sec].n} 상품은 여기(${LIB.secs[sl.sec].n})가 아니에요`, 2000); }
   return true;
 }
-function grantGold(base) {
-  let mul = 1; for (const k of STK) if (k.e === 'mul' && stkN(k.id) && Math.random() * 100 < k.v) mul = Math.max(mul, k.x);
+function grantGold(base, cm = 1) {
+  let mul = 1; base = Math.round(base * cm / 10) * 10; for (const k of STK) if (k.e === 'mul' && stkN(k.id) && Math.random() * 100 < k.v) mul = Math.max(mul, k.x);
   const amt = base * mul; NET.tx('m/gold', v => (v | 0) + amt); if (mul > 1) reward(`💰 +${won(amt)} <small>(${mul}배!)</small>`); return { amt, mul };
 }
 // ════════════ 손맛: 집기·진열 비행 연출(원작 0.3초) · 반짝임 · +알바비 글자 · 발로 차기 ════════════
@@ -807,32 +811,140 @@ function unstick() {   // 손이 닿지 않는 곳(진열대 위 · 매장 밖)�
   for (const it of LIB.items) { const s = st(it.id); if (s.w !== 'f' || ACT.has(it.id)) continue; const bad = s.y > 1.75 || s.x < S.X0 || s.x > S.X1 || s.z < S.Z0 || s.z > S.Z1; if (!bad) continue; const P2 = prodOf(it.id); up[it.id] = `f,${(-1.5 + (n % 6) * .5).toFixed(2)},${(P2.h / 2 + .01).toFixed(3)},${(S.Z0 + 3.6 + Math.floor(n / 6) * .4).toFixed(2)},0,0,0,1` + gS(s); n++; }
   if (n) NET.update('it', up); toast(n ? `📦 끼인 물건 ${n}개를 입구 앞으로 모았어요` : '끼인 물건이 없어요');
 }
-// 처음 매장: 상품을 무더기로 떨어뜨려 물리로 쌓이게 (원작처럼 통로 곳곳에 더미) — 방장이 한 번 계산해서 모두에게 저장
-async function scatterAll(onProg) {
-  const S = LIB.store, R = rng(LIB.seed ^ 0x5bd1), N = LIB.items.length, out = {};
+
+// ════════════ 처음 5분: 쏟아지는 시작 · 구역 화살표 · 지금 목표/튜토리얼 · 콤보 · 구역 완성 보상 ════════════
+// ── 쏟아지는 시작: 깔끔봇 3000 이 천장에서 상품을 무더기로 떨어뜨림 (방장이 물리로 떨어뜨리며 그 자리를 저장 → 모두 같은 더미) ──
+const POUR = { on: 0, pending: new Set(), waves: [], bodies: new Map(), fixed: [], t: 0, acc: 0, done: 0, total: 0, robot: null, cur: null, leave: 0, blocked: null, gap: .2 };
+function buildRobot() {
+  const g = new THREE.Group(), white = new THREE.MeshStandardMaterial({ color: '#f4f6f8', roughness: .4, metalness: .2 }), dark = new THREE.MeshStandardMaterial({ color: '#2a3238', roughness: .5 });
+  const body = new THREE.Mesh(new RoundedBoxGeometry(.55, .5, .5, 3, .08), white); g.add(body);
+  const face = new THREE.Mesh(new THREE.BoxGeometry(.4, .16, .02), dark); face.position.set(0, .06, .26); g.add(face);
+  const eyeM = new THREE.MeshBasicMaterial({ color: '#4af0ff' }); for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.BoxGeometry(.1, .05, .01), eyeM); e.position.set(s * .1, .06, .275); g.add(e); }
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(.57, .06, .52), new THREE.MeshBasicMaterial({ color: BRAND })); belt.position.y = -.14; g.add(belt);
+  for (const s of [-1, 1]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(.08, .34, .08), dark); arm.position.set(s * .34, -.12, 0); arm.userData.s = s; g.add(arm); const claw = new THREE.Mesh(new THREE.BoxGeometry(.14, .08, .14), white); claw.position.set(s * .34, -.32, 0); g.add(claw); g.userData[s < 0 ? 'al' : 'ar'] = [arm, claw]; }
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .16, 8), dark); stem.position.y = .33; g.add(stem);
+  const prop = new THREE.Mesh(new THREE.BoxGeometry(.6, .02, .08), dark); prop.position.y = .42; g.add(prop); g.userData.prop = prop;
+  const lab = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(256, 64, (x, w, h) => { x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, 8, w, 48); x.fillStyle = '#fff'; x.font = '34px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('깔끔봇 3000', w / 2, 33); }), depthTest: false })); lab.scale.set(1.1, .28, 1); lab.position.y = .7; g.add(lab);
+  scene.add(g); return g;
+}
+function startPour() {
+  const S = LIB.store, R = rng(LIB.seed ^ 0x5bd1), N = LIB.items.length;
   const zone = [S.X0 + .6, LIB.zFront - .6, S.X1 - .6, S.Z1 - 1.4];
-  const blocked = (x, z, m) => solids.some(b => b[4] > .2 && x > b[0] - m && x < b[3] + m && z > b[2] - m && z < b[5] + m);
+  POUR.blocked = (x, z, m) => solids.some(b => b[4] > .2 && x > b[0] - m && x < b[3] + m && z > b[2] - m && z < b[5] + m);
   const centers = [], nCl = Math.max(8, Math.ceil(N / 42));
-  for (let t = 0; centers.length < nCl && t < 40000; t++) { const x = zone[0] + R() * (zone[2] - zone[0]), z = zone[1] + R() * (zone[3] - zone[1]); if (!blocked(x, z, .5) && centers.every(c => Math.hypot(c[0] - x, c[1] - z) > .9)) centers.push([x, z]); }
-  const order = shuffle(LIB.items.map(it => it.id), R), per = Math.ceil(N / centers.length), fixed = [], E = new THREE.Euler(), Q = new THREE.Quaternion();
-  for (let c = 0; c < centers.length; c++) {
-    const ids = order.slice(c * per, (c + 1) * per); if (!ids.length) break; const bodies = [];
-    ids.forEach((id, k) => {
-      let x, z, tr = 0; do { const a = R() * 6.283, rr = .08 + .5 * Math.sqrt(R()); x = centers[c][0] + Math.cos(a) * rr; z = centers[c][1] + Math.sin(a) * rr; } while (blocked(x, z, .08) && ++tr < 10);
-      Q.setFromEuler(E.set(R() * 6.28, R() * 6.28, R() * 6.28));
-      const b = PWD.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(x, .2 + Math.floor(k / 7) * .2 + R() * .08, z).setRotation({ x: Q.x, y: Q.y, z: Q.z, w: Q.w }).setLinvel(0, -1.5, 0).setAngularDamping(.4));
-      PWD.createCollider(shapeDesc(prodOf(id)), b); bodies.push([id, b]);
-    });
-    for (let s = 0; s < 260; s++) { PWD.step(); if (s > 70 && s % 15 === 0 && bodies.every(([, b]) => { const v = b.linvel(); return b.isSleeping() || Math.hypot(v.x, v.y, v.z) < .03; })) break; }
-    for (const [id, b] of bodies) {
+  for (let t = 0; centers.length < nCl && t < 40000; t++) { const x = zone[0] + R() * (zone[2] - zone[0]), z = zone[1] + R() * (zone[3] - zone[1]); if (!POUR.blocked(x, z, .5) && centers.every(c => Math.hypot(c[0] - x, c[1] - z) > .9)) centers.push([x, z]); }
+  const order = shuffle(LIB.items.map(it => it.id), R), per = Math.ceil(N / centers.length);
+  centers.forEach((c, i) => { const ids = order.slice(i * per, (i + 1) * per); if (ids.length) POUR.waves.push({ c, ids, rs: ids.map(() => [R(), R(), R(), R(), R()]) }); });
+  POUR.waves.sort((a, b) => (Math.round(a.c[1] / 3) - Math.round(b.c[1] / 3)) || (a.c[0] - b.c[0]));   // 로봇이 앞줄부터 쓸고 지나가게
+  for (const it of LIB.items) POUR.pending.add(it.id);
+  POUR.on = 1; POUR.total = N; POUR.gap = clamp(10 / POUR.waves.length, .08, .3); POUR.robot = buildRobot(); POUR.robot.position.set(0, CEIL - .55, S.Z0 + 2.5); POUR.cur = POUR.waves[0];
+  for (const p of LIB.prods) dirtyP.add(p.i); gridDirty = true;
+  notice('🤖 깔끔봇 3000: "모든 진열은 일시적일 뿐… 모든 상품은 바닥으로!"', 4000); sfx('pour');
+}
+function pourSpawn(w) {
+  const E = new THREE.Euler(), Q = new THREE.Quaternion(); w.bodies = []; w.age = 0;
+  w.ids.forEach((id, k) => {
+    const r = w.rs[k]; let x, z, tr = 0; do { const a = r[0] * 6.283 + tr, rr = .08 + .5 * Math.sqrt(r[1]); x = w.c[0] + Math.cos(a) * rr; z = w.c[1] + Math.sin(a) * rr; } while (POUR.blocked(x, z, .08) && ++tr < 10);
+    Q.setFromEuler(E.set(r[2] * 6.28, r[3] * 6.28, r[4] * 6.28));
+    const b = PWD.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(x, 1.9 + Math.floor(k / 7) * .2 + r[4] * .08, z).setRotation({ x: Q.x, y: Q.y, z: Q.z, w: Q.w }).setLinvel(0, -1.5, 0).setAngularDamping(.4));
+    PWD.createCollider(shapeDesc(prodOf(id)), b); POUR.bodies.set(id, b); w.bodies.push([id, b]); POUR.pending.delete(id);
+  });
+}
+function tickPour(dt) {
+  const R = POUR.robot; if (!R) return;
+  if (!POUR.on) { if (POUR.leave) { R.position.y += dt * 2.2; R.rotation.y += dt * 6; R.userData.prop.rotation.y += dt * 40; if (R.position.y > CEIL + 3) { scene.remove(R); POUR.robot = null; } } return; }
+  POUR.t += dt; POUR.acc += dt;
+  const next = POUR.waves.find(w => !w.bodies), flying = POUR.waves.filter(w => w.bodies && !w.saved).length;
+  if (next && POUR.acc >= POUR.gap && flying < 16) { POUR.acc = 0; pourSpawn(next); POUR.cur = next; if (Math.random() < .3) sfx('pour'); }
+  physAcc = Math.min(physAcc + dt, .1); let n = 0; while (physAcc >= 1 / 60 && n < 4) { PWD.step(); physAcc -= 1 / 60; n++; }
+  const S = LIB.store;
+  for (const w of POUR.waves) {
+    if (!w.bodies || w.saved) continue; w.age += dt;
+    const calm = w.age > .9 && w.bodies.every(([, b]) => { const v = b.linvel(); return b.isSleeping() || Math.hypot(v.x, v.y, v.z) < .12; });
+    if (!calm && w.age < 2.5) continue;
+    w.saved = 1; const out = {};
+    for (const [id, b] of w.bodies) {
       let t = b.translation(); const q = b.rotation();
-      if (t.y < -.5 || t.x < S.X0 || t.x > S.X1 || t.z < S.Z0 || t.z > S.Z1) t = { x: centers[c][0], y: prodOf(id).h / 2, z: centers[c][1] };
-      out[id] = fStr(t, q, 0); PWD.removeRigidBody(b); fixed.push(PWD.createCollider(shapeDesc(prodOf(id)).setTranslation(t.x, t.y, t.z).setRotation(q)));
+      if (t.y < -.5 || t.x < S.X0 || t.x > S.X1 || t.z < S.Z0 || t.z > S.Z1) t = { x: w.c[0], y: prodOf(id).h / 2, z: w.c[1] };
+      out[id] = fStr(t, q, 0); IT[id] = out[id]; PWD.removeRigidBody(b); POUR.bodies.delete(id); POUR.fixed.push(PWD.createCollider(shapeDesc(prodOf(id)).setTranslation(t.x, t.y, t.z).setRotation(q))); markItem(id);
     }
-    if (c % 2 === 0) { onProg && onProg((c + 1) / centers.length); await new Promise(r => setTimeout(r, 0)); }
+    POUR.done += w.bodies.length; NET.update('it', out);
   }
-  for (const f of fixed) PWD.removeCollider(f, false);
-  return out;
+  // 로봇: 지금 쏟는 더미 위로 날아가며 팔을 휘젓고 프로펠러가 돔
+  if (POUR.cur) { const f = Math.min(1, dt * 3); R.position.x += (POUR.cur.c[0] - R.position.x) * f; R.position.z += (POUR.cur.c[1] - R.position.z) * f; }
+  R.position.y = CEIL - .55 + Math.sin(POUR.t * 5) * .05; R.rotation.y = Math.sin(POUR.t * 2) * .6; R.userData.prop.rotation.y += dt * 30;
+  for (const k of ['al', 'ar']) { const [arm, claw] = R.userData[k], a = Math.sin(POUR.t * 9 + (k === 'al' ? 0 : 3)) * .5; arm.rotation.x = a; claw.position.y = -.32 + Math.sin(POUR.t * 9 + (k === 'al' ? 0 : 3)) * .04; }
+  if (POUR.waves.every(w => w.saved)) finishPour();
+}
+async function finishPour() {
+  POUR.on = 0; POUR.leave = 1; for (const f of POUR.fixed) PWD.removeCollider(f, false); POUR.fixed = []; gridDirty = true; STATUS = null;
+  ST_T0 = Date.now(); if (!NET.solo) await NET.update('', { phase: 'play', t0: ST_T0 });
+  notice('🤖 "정리는 너희가 해. 난 퇴근한다." — 개점 전까지 전부 다시 진열하세요!', 4500); sfx('win'); hudGoal(true);
+}
+
+// ── 구역 화살표: 손에 든 상품이 들어갈 가장 가까운 칸 쪽을 가리킴 (같은 상품이 든 칸 우선) ──
+let ARROW = null, arrowT = 0;
+function arrowTarget() {
+  if (!P.hand.length) return null; const Pp = prodOf(P.hand[0]), S = status();
+  const own = (S.byProd[Pp.i] || []).filter(s => accepts(s, Pp.i) && LIB.slots[s].sec === Pp.sec), pool = own.length ? own : LIB.slots.filter(sl => sl.sec === Pp.sec && !S.slot[sl.s]).map(sl => sl.s);
+  let best = null, bd = 1e9; for (const s of pool) { const b = SLOTBOX[s], x = (b[0] + b[3]) / 2, z = (b[2] + b[5]) / 2, d = Math.hypot(x - P.x, z - P.z); if (d < bd) { bd = d; best = { s, x, z, d }; } }
+  return best && Object.assign(best, { sec: Pp.sec, exact: own.length > 0, pi: Pp.i });
+}
+function hudArrow(dt) {
+  arrowT -= dt; if (arrowT <= 0) { arrowT = .15; ARROW = arrowTarget(); }
+  const el = $('arrow'); if (!ARROW || POUR.on) { el.classList.add('hide'); return; } el.classList.remove('hide');
+  const tx = ARROW.x - P.x, tz = ARROW.z - P.z, fwd = tx * -Math.sin(P.yaw) + tz * -Math.cos(P.yaw), rgt = tx * Math.cos(P.yaw) + tz * -Math.sin(P.yaw), deg = Math.atan2(rgt, fwd) * 180 / Math.PI, D = LIB.secs[ARROW.sec], d = Math.hypot(tx, tz);
+  $('arrowSvg').style.transform = `rotate(${deg.toFixed(0)}deg)`; $('arrowSvg').style.color = D.col;
+  $('arrowTxt').innerHTML = `${D.ic} ${esc(D.n)} <small>${d < 1.6 ? (ARROW.exact ? '여기! 같은 상품이 든 칸' : '여기 빈 칸에') : `${d.toFixed(0)}m${ARROW.exact ? ' · 같은 상품 칸' : ''}`}</small>`;
+  el.classList.toggle('near', d < 1.6);
+}
+
+// ── 지금 목표: 튜토리얼 미션 → 구역 하나씩 완성하기 ──
+const TUT = [
+  { t: '바닥의 상품 하나 집어 보기', k: '상품을 보고 왼쪽 클릭 (또는 E)', ok: () => STAT.pickN > 0 },
+  { t: '화살표를 따라 맞는 선반에 넣기', k: '칸을 보고 오른쪽 클릭 (또는 E) · 같은 상품은 한 칸에', ok: () => STAT.c > 0 },
+  { t: '칸 하나 가득 채우기', k: '같은 상품을 다 모아 넣으면 가격표가 노랗게 · 별 ⭐ +1', ok: () => STAT.full > 0 },
+  { t: '상품 하나 던져 보기', k: 'Q (길게 누르면 발밑에 전부 내려놓기)', ok: () => STAT.t > 0 },
+  { t: '알바비로 스킬 배우기', k: 'K 로 스킬 창 · 빠른 걸음 2,000원부터', ok: () => SK.some(s => lv(s.id) > 0) },
+  { t: () => `별 ${LIB.atms[2].cost}개 모아 ATM 써 보기`, k: '입구 왼쪽 벽 · 한방 ATM 은 싸지만 10%', ok: () => STAT.atm > 0 }];
+let TUTI = 0, goalKey = '', goalFlash = 0;
+function secProgress() { const S = status(), per = {}; for (const it of LIB.items) { const k = prodOf(it.id).sec; (per[k] = per[k] || { all: 0, ok: 0 }).all++; } for (const sl of LIB.slots) { const q = S.slot[sl.s]; if (q && q.ok && per[sl.sec]) per[sl.sec].ok += q.n; } return per; }
+function hudGoal(force) {
+  const el = $('goal'); if (!LIB) return;
+  if (POUR.on) { el.innerHTML = `<h5>🤖 깔끔봇 3000 이 상품을 쏟아붓는 중</h5><div class="gt">${POUR.done} / ${POUR.total}</div><div class="bar"><i style="width:${Math.round(POUR.done / POUR.total * 100)}%"></i></div><div class="gk">구경하며 기다리거나 돌아다녀 보세요 · 다 쏟으면 시작!</div>`; return; }
+  let html = '';
+  if (TUTI < TUT.length) {
+    const T = TUT[TUTI]; if (T.ok() && !force) { TUTI++; goalFlash = performance.now(); sfx('star'); toast(`✔ 미션 완료! ${TUTI < TUT.length ? '다음 미션으로' : '튜토리얼 끝 — 이제 구역을 하나씩 완성해 보세요'}`, 2600); if (TUTI >= TUT.length) try { localStorage.setItem('mt_tut', '1'); } catch (e) {} }
+    if (TUTI < TUT.length) { const U = TUT[TUTI]; html = `<h5>📌 미션 ${TUTI + 1} / ${TUT.length}</h5><div class="gt">${typeof U.t === 'function' ? U.t() : U.t}</div><div class="gk">${U.k}</div>`; }
+  }
+  if (!html) {   // 구역 목표: 손에 든 상품의 구역, 아니면 가장 많이 된 미완성 구역
+    const per = secProgress(); let k = P.hand.length ? prodOf(P.hand[0]).sec : null; if (!k || !per[k] || per[k].ok >= per[k].all) { k = null; let bf = -1; for (const q in per) { const f = per[q].ok / per[q].all; if (f < 1 && f > bf) { bf = f; k = q; } } }
+    if (!k) html = `<h5>🎉 모든 구역 완성</h5><div class="gt">출입문으로 가서 퇴근하기!</div><div class="bar"><i style="width:100%"></i></div>`;
+    else { const D = LIB.secs[k], v = per[k]; if (goalKey && goalKey !== k && per[goalKey] && per[goalKey].ok >= per[goalKey].all) goalFlash = performance.now(); html = `<h5>🎯 지금 목표</h5><div class="gt">${D.ic} ${esc(D.n)} 구역 완성하기</div><div class="bar"><i style="width:${Math.round(v.ok / v.all * 100)}%;background:${D.col}"></i></div><div class="gk">${v.ok} / ${v.all} · 다 채우면 보너스 알바비 + 간판 점등</div>`; goalKey = k; }
+  }
+  el.innerHTML = html; el.classList.toggle('flash', performance.now() - goalFlash < 900);
+}
+
+// ── 콤보: 8초 안에 연달아 맞게 넣으면 알바비가 10%씩 늘어남 (최대 2배) · 틀리면 끊김 ──
+const COMBO = { n: 0, t: 0 };
+const comboMult = () => 1 + Math.min(9, Math.max(0, COMBO.n - 1)) * .1;
+function comboHit() { const now = performance.now(); COMBO.n = now - COMBO.t < 8000 ? COMBO.n + 1 : 1; COMBO.t = now; if (COMBO.n === 5 || COMBO.n === 10) { sfx('star'); reward(COMBO.n === 10 ? '🔥 10콤보! 알바비 2배!' : '🔥 5콤보! 신바람'); } hudCombo(); }
+function comboBreak() { if (COMBO.n >= 2) notice('💔 콤보가 끊겼어요', 1500); COMBO.n = 0; hudCombo(); }
+function hudCombo() { const el = $('combo'); if (COMBO.n < 2) { el.classList.remove('on'); return; } el.innerHTML = `🔥 ${COMBO.n} 콤보 <small>알바비 ×${comboMult().toFixed(1)}</small>`; el.classList.add('on'); el.style.setProperty('--left', `${Math.max(0, 1 - (performance.now() - COMBO.t) / 8000) * 100}%`); }
+
+// ── 구역 완성 보상: 그 구역 상품이 전부 제자리면 보너스 알바비 + 간판 점등 (누가 먼저 확인하든 한 번만) ──
+const SEC_LIT = new Set(); let secT = 0;
+function checkSections(dt) {
+  secT -= dt; if (secT > 0 || POUR.on) return; secT = .6; const per = secProgress(), sd = ST.m.sd || {};
+  for (const k in per) { if (per[k].ok < per[k].all || sd[k] || SEC_LIT.has(k)) continue; NET.tx('m/sd/' + k, cur => cur ? undefined : me.k).then(ok => { if (!ok) return; const bonus = LIB.gold * 50; NET.tx('m/gold', v => (v | 0) + bonus); const D = LIB.secs[k]; notice(`🏆 ${D.ic} <b>${esc(D.n)}</b> 구역 완성! 보너스 알바비 +${won(bonus)}`, 4000); sfx('win'); goalFlash = performance.now(); }); }
+}
+function lightSection(k) {
+  if (SEC_LIT.has(k)) return; SEC_LIT.add(k); const D = LIB.secs[k] || { col: '#ffd84a' };
+  for (const sg of SIGNM[k] || []) {
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.6, .56), new THREE.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false })); halo.position.copy(sg.position); halo.rotation.copy(sg.rotation); halo.translateZ(-.01); scene.add(halo); sg.userData.halo = halo;
+    const chk = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(128, 128, (x) => { x.fillStyle = '#ffd84a'; x.beginPath(); x.arc(64, 64, 56, 0, 6.29); x.fill(); x.fillStyle = '#1e2a30'; x.font = '82px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('✔', 64, 70); }), depthTest: false })); chk.scale.setScalar(.3); chk.position.copy(sg.position); chk.position.y += .3; chk.renderOrder = 996; scene.add(chk);
+    sparkle(sg.position.clone(), true); if (ST.m.sd && ST.m.sd[k] !== me.k) sfx('star');
+  }
 }
 
 // ════════════ 스킬 (원작 수치) ════════════
@@ -890,7 +1002,7 @@ let atmBusy = 0;
 async function useAtm(i) {
   const A = LIB.atms[i]; if (atmBusy) return notice('사용 중인 ATM이에요');
   const ok = await NET.tx('m/stars', v => (v | 0) >= A.cost ? (v | 0) - A.cost : undefined); if (!ok) { sfx('no'); return notice(`별이 모자라요 (★${A.cost} 필요) — 칸을 완성하면 별을 받아요`); }
-  atmBusy = 1; sfx('atm'); notice(`🏧 ${A.n} 작동 중…`, 1200);
+  atmBusy = 1; STAT.atm++; sfx('atm'); notice(`🏧 ${A.n} 작동 중…`, 1200);
   setTimeout(async () => {
     atmBusy = 0;
     if (Math.random() * 100 >= A.ch) { sfx('fail'); return notice('💨 꽝! 스티커를 받지 못했어요', 2400); }
@@ -938,6 +1050,7 @@ function onItem(k, v) {
 function onSlot(k, v) { const s = +k; if (v == null) delete SL[s]; else SL[s] = v; for (const id of slotIds(s)) markItem(id); tagsDirty = true; STATUS = null; }
 function onMeta(m) {
   ST.m = m || {}; const S = status();
+  if (LIB) for (const k in (ST.m.sd || {})) lightSection(k);
   if (ST.m.done && !shown.end) { shown.end = 1; setTimeout(showEnd, 600); }
   hudProg(); hudAbil();
 }
@@ -1048,12 +1161,8 @@ async function startGame(o) {
   ld('진열대를 세우는 중…'); await new Promise(r => setTimeout(r, 30));
   for (const sl of LIB.slots) SLOTBOX[sl.s] = slotBox(sl); buildStore(); buildItems();
   ld('물리 엔진을 켜는 중…'); await initPhysics();
-  if (o.prep) {   // 방장(혼자 하기 포함): 상품을 쏟아 물리로 쌓고 저장
-    const out = await scatterAll(f => ld(`상품을 바닥에 쏟는 중… ${Math.round(f * 100)}%`));
-    ld('매장 상태를 저장하는 중…'); const ks = Object.keys(out);
-    for (let i = 0; i < ks.length; i += 400) { const part = {}; for (const k of ks.slice(i, i + 400)) part[k] = out[k]; await NET.update('it', part); }
-    ST_T0 = Date.now(); if (!NET.solo) await NET.update('', { phase: 'play', t0: ST_T0 });
-  }
+  try { if (localStorage.getItem('mt_tut') === '1') TUTI = TUT.length; } catch (e) {}
+  if (o.prep) startPour();   // 방장(혼자 하기 포함): 깔끔봇이 상품을 쏟아붓는 연출로 바로 시작 (떨어진 자리를 저장해 모두 같은 더미)
   $('loading').classList.add('hide'); $('hud').classList.remove('hide');
   P.x = 0; P.z = LIB.store.Z0 + 3.0; P.yaw = Math.PI; camPose(false);
   NET.onChild('it', { add: onItem, chg: onItem, rem: k => onItem(k, null) });
@@ -1071,20 +1180,22 @@ async function startGame(o) {
     NET.onVal('t0', v => { if (v) ST_T0 = v; });
   }
   hudProg(); hudHand(); hudAbil(); hudOthers();
-  memo('📋 오늘의 업무 지시', `<b>${LIB.title}</b> (원작 배치) · 어젯밤 매장 정리 로봇 <b>깔끔봇 3000</b>이 "모든 진열은 일시적일 뿐"이라는 깨달음을 얻더니, 진열대의 상품을 몽땅 바닥에 쏟아 놓고 퇴근해 버렸습니다.<br><br>개점 전까지 바닥의 상품 <b>${LIB.items.length}개</b>를 <b>맞는 구역의 선반</b>에 다시 진열해 주세요. 칸 하나에는 <b>한 가지 상품만</b> 들어가고, 상품마다 칸이 꽉 차는 개수가 있어요.<br><br>가격표 색을 보세요: <b>흰색</b> = 구역은 맞지만 아직 모자람 · <b style="color:#c89a00">노랑</b> = 칸 완성(별 +1) · <b style="color:#c83a2a">빨강</b> = 틀린 구역.<br>맞게 넣을 때마다 알바비 ${won(LIB.gold)}을 줘요. 알바비로 <b>K 스킬</b>을 배우고, 별은 입구 옆 <b>ATM</b>에서 스티커로 바꾸세요.${NET.solo ? '' : '<br><br>동료에게는 <b>F</b> 로 위치를 알리고, 동료를 보고 <b>E</b> 를 누르면 상품을 건넬 수 있어요.'}<br><br>다 끝나면 <b>출입문</b>으로 가서 퇴근!`, '업무 시작!');
+  READY = true; hudGoal(true); hudArrow(1); if (!o.prep) notice(`📦 <b>${LIB.title}</b> — 바닥의 상품 ${LIB.items.length}개를 맞는 선반에 다시 진열하세요!`, 4000);
 }
 const clock = new THREE.Clock();
-function loop() { requestAnimationFrame(loop); try { frame(Math.min(.05, clock.getDelta())); } catch (e) { if (!loop._err) { loop._err = 1; console.error(e); } } }
+const ERRS = new Set();
+function loop() { requestAnimationFrame(loop); try { frame(Math.min(.05, clock.getDelta())); } catch (e) { const k = String(e && e.message); if (!ERRS.has(k)) { ERRS.add(k); console.error(e); } } }
+let READY = false;
 function frame(dt) {
-  if (LIB) {
+  if (LIB && READY) {
     if (locked) moveP(dt); else camPose(false);
     for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; const f = Math.min(1, dt * 10); O.mesh.position.x += (O.tx - O.mesh.position.x) * f; O.mesh.position.y += (O.ty - O.mesh.position.y) * f; O.mesh.position.z += (O.tz - O.mesh.position.z) * f; O.mesh.rotation.y = O.tyaw; }
-    tickSkills(dt); stepPhysics(dt); tickAnims(dt); tickFx(dt); flushItems(); flushTags(); handView(); aimUpdate(); drawPings(); sendPos(dt); if (!NET.solo) sendStat(dt);
+    tickSkills(dt); stepPhysics(dt); tickPour(dt); tickAnims(dt); tickFx(dt); checkSections(dt); flushItems(); flushTags(); handView(); aimUpdate(); drawPings(); hudArrow(dt); sendPos(dt); if (!NET.solo) sendStat(dt);
     const t = performance.now() / 1000;
     if (cleared() && TARGETS.door) TARGETS.door.glass.material.emissiveIntensity = .4 + .35 * Math.sin(t * 4);
     if (cleared() && !shown.clear) { shown.clear = 1; sfx('win'); notice('✨ 모든 상품을 진열했어요! <b>출입문</b>으로 가서 퇴근하세요', 6000); }
     if (STATUS && STATUS.full > lastFull) { if (lastFull >= 0) hudProg(); lastFull = STATUS.full; }
-    if (Math.floor(t * 4) !== loop._a) { loop._a = Math.floor(t * 4); hudAbil(); hudProg(); }
+    if (Math.floor(t * 4) !== loop._a) { loop._a = Math.floor(t * 4); hudAbil(); hudProg(); hudGoal(); hudCombo(); if (COMBO.n && performance.now() - COMBO.t > 8000) { COMBO.n = 0; hudCombo(); } }
     const tm = $('tm'); if (tm) tm.textContent = '⏱ ' + fmtT((ST.m.done ? ST.m.done.t : Date.now()) - ST_T0);
   }
   renderer.render(scene, cam);
@@ -1110,4 +1221,4 @@ async function solve(n = 10) {
   }
   return done;
 }
-window.mart = { ACTsize: () => ACT.size, fx: () => ({ anim: ANIM.length, fx: FX.length }), kick: (dx, dz, dt) => kickItems(dx, dz, dt), frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
+window.mart = { ACTsize: () => ACT.size, POUR, SEC_LIT, SIGNM, get TUTI() { return TUTI; }, COMBO, secProgress, STAT, fx: () => ({ anim: ANIM.length, fx: FX.length }), kick: (dx, dz, dt) => kickItems(dx, dz, dt), frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
