@@ -34,39 +34,51 @@ function sfx(k) {
 const BINDING = [['#6e1f1f', '#e8c46a'], ['#1f2c4e', '#e8c46a'], ['#24452e', '#e8c46a'], ['#5a3a22', '#f0d080'], ['#1e1a18', '#d8b45a'], ['#5a1a2e', '#f0d080'], ['#1e4a4e', '#e8c46a'], ['#9a6a2a', '#2a1a0c'], ['#3e4a5a', '#e8d8a0'], ['#4a2440', '#e8c46a'], ['#4e4e22', '#f0d080'], ['#d8c8a0', '#5a2a1a'], ['#7a2a1a', '#f0d890'], ['#2a3a2a', '#d8c070'], ['#2a5a8a', '#f0d890'], ['#6a5a8a', '#f0e0a0']];
 const BOOK = { w: .11, h: .30, d: .21 }, CASE = { w: 2.0, h: 2.45, d: .42, rows: 5, slots: 14, rowH: .44, row0: .18 };
 const SLOT_W = 1.82 / CASE.slots, GAL_Y = 3.2;
-// 책장 자리: [x, y(바닥), z, 바라보는 방향 +1/-1(z축)] — 1층 북쪽 벽 4 · 남쪽 벽 4 · 2층 북쪽 4 · 남쪽 4
-const CASE_SPOTS = [[-5, 0, -6.75, 1], [-1.6, 0, -6.75, 1], [1.8, 0, -6.75, 1], [5.2, 0, -6.75, 1], [-5, 0, 6.75, -1], [-1.6, 0, 6.75, -1], [1.8, 0, 6.75, -1], [5.2, 0, 6.75, -1],
-  [-5, GAL_Y, -6.75, 1], [-1.6, GAL_Y, -6.75, 1], [1.8, GAL_Y, -6.75, 1], [5.2, GAL_Y, -6.75, 1], [-5, GAL_Y, 6.75, -1], [-1.6, GAL_Y, 6.75, -1], [1.8, GAL_Y, 6.75, -1], [5.2, GAL_Y, 6.75, -1]];
+// 책장 자리: [x, y(바닥), z, 바라보는 방향 +1/-1(z축)]
+const WALL1 = [[-5, 0, -6.75, 1], [-1.6, 0, -6.75, 1], [1.8, 0, -6.75, 1], [5.2, 0, -6.75, 1], [-5, 0, 6.75, -1], [-1.6, 0, 6.75, -1], [1.8, 0, 6.75, -1], [5.2, 0, 6.75, -1]];
+const GAL = [[-5, GAL_Y, -6.75, 1], [-1.6, GAL_Y, -6.75, 1], [1.8, GAL_Y, -6.75, 1], [5.2, GAL_Y, -6.75, 1], [-5, GAL_Y, 6.75, -1], [-1.6, GAL_Y, 6.75, -1], [1.8, GAL_Y, 6.75, -1], [5.2, GAL_Y, 6.75, -1]];
+const MID = []; for (const x of [-5, -1.6, 1.8, 5.2]) MID.push([x, 0, -3.41, -1], [x, 0, -2.99, 1], [x, 0, 2.99, -1], [x, 0, 3.41, 1]);   // 등을 맞댄 양면 서가 (통로는 1.4m)
+// 도서관 크기: 책장 수 → [카테고리 수, 카테고리마다 제목 수, 책장 자리]
+const SIZES = { 4: [4, 8, WALL1.slice(0, 4)], 8: [8, 12, WALL1], 16: [16, 10, WALL1.concat(GAL)], 32: [16, 20, WALL1.concat(MID, GAL)] };
+const CASE_SPOTS = WALL1.concat(GAL);
+function titlePool(ci, R) {   // 손으로 지은 제목 + 주제×꼴 조합 (겹치지 않게)
+  const out = DATA[ci].t.slice(), G = (window.LIB_GEN || [])[ci];
+  if (G) for (const f of G.f) for (const x of G.s) { const t = f.replace('{s}', x); if (!out.includes(t)) out.push(t); }
+  const hand = out.slice(0, DATA[ci].t.length), gen = out.slice(DATA[ci].t.length); for (let i = gen.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [gen[i], gen[j]] = [gen[j], gen[i]]; }
+  return hand.concat(gen);
+}
 function buildLibrary(size, seed) {
-  const R = rng(seed), cats = DATA.map((c, i) => i); for (let i = cats.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [cats[i], cats[j]] = [cats[j], cats[i]]; }
-  const use = cats.slice(0, size), cases = [], books = [], titles = [];
-  use.forEach((ci, k) => {
-    const [x, y, z, f] = CASE_SPOTS[k], lab = (y > 0 ? '2' : '1') + 'ABCDEFGH'[k % 8];
+  const R = rng(seed), [nCat, nT, spots0] = SIZES[size] || SIZES[8], cats = DATA.map((c, i) => i); for (let i = cats.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [cats[i], cats[j]] = [cats[j], cats[i]]; }
+  const use = cats.slice(0, nCat), per = spots0.length / nCat, cases = [], books = [], titles = [], cnt = { 0: 0, 1: 0 };
+  spots0.forEach(([x, y, z, f], k) => {
+    const ci = use[Math.floor(k / per)], fl = y > 0 ? 1 : 0, lab = (fl + 1) + 'ABCDEFGHIJKLMNOPQRSTUVWX'[cnt[fl]++];
     cases.push({ i: k, cat: ci, x, y, z, f, lab, name: DATA[ci].n, col: BINDING[ci % BINDING.length][0], gold: BINDING[ci % BINDING.length][1] });
-    const nT = size <= 4 ? 6 : size <= 8 ? 6 : 5;   // 카테고리마다 제목 수 (책장 한 칸에 넉넉히)
-    const pick = DATA[ci].t.slice(); for (let i = pick.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [pick[i], pick[j]] = [pick[j], pick[i]]; }
-    for (const name of pick.slice(0, nT)) {
-      const r = R(), vols = r < .3 ? 1 : r < .6 ? 2 : r < .85 ? 3 : 4, ti = titles.length, bc = BINDING[Math.floor(R() * BINDING.length)];
-      titles.push({ i: ti, name, cat: ci, caseI: k, vols, col: new THREE.Color(bc[0]), gold: bc[1], h: .25 + R() * .09, d: .17 + R() * .06, w: .07 + R() * .05, style: Math.floor(R() * 3) });
-      for (let v = 1; v <= vols; v++) books.push({ id: books.length, t: ti, v });
-    }
   });
+  for (const ci of use) {
+    const myCases = cases.filter(C => C.cat === ci), pool = titlePool(ci, R), bc = BINDING[ci % BINDING.length];
+    pool.slice(0, nT).forEach((name, j) => {   // 같은 카테고리 = 같은 장정 색·금박 (제목마다 색조만 살짝)
+      const r = R(), vols = r < .2 ? 1 : r < .45 ? 2 : r < .7 ? 3 : r < .87 ? 4 : 5, ti = titles.length, tc = new THREE.Color(bc[0]); tc.offsetHSL((R() - .5) * .03, (R() - .5) * .1, (R() - .5) * .1);
+      titles.push({ i: ti, name, cat: ci, caseI: myCases[j % myCases.length].i, vols, col: tc, gold: bc[1], h: .25 + R() * .09, d: .17 + R() * .06, w: .07 + R() * .05, style: Math.floor(R() * 3) });
+      for (let v = 1; v <= vols; v++) books.push({ id: books.length, t: ti, v });
+    });
+  }
   // 처음 놓인 자리: 바닥 더미(1층 가운데·통로·계단·2층 회랑) + 탁자 위 — 요정이 흩뜨려 놓은 모습
   const piles = [], free = [];
-  const spots = [[-3, 0, 0], [0, 0, -2], [3, 0, 1.5], [-6, 0, 2.5], [6, 0, -2.5], [0, 0, 3.5], [-2, 0, -4], [2.5, 0, 4.5], [-7, 0, -1], [7, 0, 2], [-4, .82, -1.2], [4, .82, 1.2], [0, .82, 0]];
-  if (size > 8) spots.push([-4, GAL_Y, -5.6], [0, GAL_Y, -5.7], [4, GAL_Y, -5.6], [-4, GAL_Y, 5.6], [0, GAL_Y, 5.7], [4, GAL_Y, 5.6], [-8.85, 1.8, -1.0], [8.85, 1.0, 1.0]);
+  const spots = [[-3, 0, 0], [0, 0, -2], [3, 0, 1.5], [-6, 0, 2.5], [6, 0, -2.5], [0.1, 0, 3.5], [-2, 0, -4.6], [2.5, 0, 4.8], [-7, 0, -1], [7, 0, 2], [-4, .82, -1.2], [4, .82, 1.2], [0, .82, 0], [-6.6, 0, -5], [6.6, 0, 5], [-3.3, 0, 5.2], [3.5, 0, -5], [-1.3, 0, 1.6], [1.5, 0, -1.4]];
+  if (size >= 16) spots.push([-4, GAL_Y, -5.6], [0, GAL_Y, -5.7], [4, GAL_Y, -5.6], [-4, GAL_Y, 5.6], [0, GAL_Y, 5.7], [4, GAL_Y, 5.6], [-8.85, 1.8, -1.0], [8.85, 1.0, 1.0]);
   else spots.push([-8.85, .6, 1.8], [8.85, .6, -1.8]);
   const order = books.map(b => b.id); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
   let k = 0;
   for (const id of order) {   // 더미마다 몇 무더기로 나눠 쌓음
-    const si = k % spots.length, s = spots[si], sub = Math.floor(k / spots.length) % 3, key = si + '_' + sub; k++;
-    const tw = titles[books[id].t].w, h = piles[key] = piles[key] || 0; piles[key] += tw; const ox = s[0] + [0, .45, -.4][sub] + (R() - .5) * .1, oz = s[2] + [0, .3, .35][sub] + (R() - .5) * .1;
+    const si = k % spots.length, s = spots[si], nsub = Math.max(3, Math.ceil(books.length / spots.length / 7)), sub = Math.floor(k / spots.length) % nsub, key = si + '_' + sub; k++;
+    const onTable = s[1] > .5 && s[1] < 1, ring = onTable ? .28 : .32 + .3 * Math.floor(sub / 6), ang = sub * 2.4 + si, rr = sub ? ring : 0;
+    const tw = titles[books[id].t].w, h = piles[key] = piles[key] || 0; piles[key] += tw; const ox = s[0] + Math.cos(ang) * rr * (onTable ? 1.8 : 1) + (R() - .5) * .1, oz = s[2] + Math.sin(ang) * rr * (onTable ? .9 : 1) + (R() - .5) * .1;
     free.push([ox, s[1] + h, oz, R() * Math.PI * 2]);
     books[id].start = free[free.length - 1];
   }
   // 열쇠 4개 · 보물상자 4개 (원작: 노란 다이아·초록 클로버·빨간 팔각·파란 별)
   const KEYS = [{ n: '황금 다이아몬드 열쇠', ic: '🔶', c: '#ffd34a' }, { n: '에메랄드 클로버 열쇠', ic: '🍀', c: '#4ad46a' }, { n: '진홍색 팔각 열쇠', ic: '🛑', c: '#e84a3a' }, { n: '푸른 별 열쇠', ic: '⭐', c: '#4a8aff' }];
-  const keySpots = size > 8 ? [[-9.2, GAL_Y + .1, -6.2], [9.2, GAL_Y + .1, 6.2], [0, .82, 0.5], [-8.5, 0, 6]] : [[-9.2, 0, -6.2], [9.2, 0, 6.2], [0, .82, .5], [-8.5, 0, 6]];
+  const keySpots = size >= 16 ? [[-9.2, GAL_Y + .1, -6.2], [9.2, GAL_Y + .1, 6.2], [0, .82, 0.5], [-8.5, 0, 6]] : [[-9.2, 0, -6.2], [9.2, 0, 6.2], [0, .82, .5], [-8.5, 0, 6]];
   const chestSpots = [[-9.3, 0, 0], [9.3, 0, 0], [-3.5, 0, 6.2], [3.5, 0, -6.2]];
   const rewards = ['autoshelve', 'gather', 'potion3', 'glow'];
   const keys = KEYS.map((k, i) => Object.assign({ i, pos: keySpots[i] }, k)), chests = KEYS.map((k, i) => ({ i, pos: chestSpots[i], key: i, reward: rewards[i], c: k.c, ic: k.ic }));
@@ -209,7 +221,7 @@ function buildCases() {
 const PICKABLE = [];
 // ── 책: 한 권마다 메시, 표지·책등 그림은 아틀라스 텍스처에 (제목 · 권 번호 · 카테고리 그림) ──
 const BOOKS3D = []; let glowMesh = null;
-const ATL = { S: 2048, cw: 160, ch: 176, sp: 48 }; ATL.cols = Math.floor(ATL.S / ATL.cw); ATL.rows = Math.floor(ATL.S / ATL.ch); ATL.per = ATL.cols * ATL.rows - 1;
+const ATL = { S: 2048, cw: 128, ch: 144, sp: 40 }; ATL.cols = Math.floor(ATL.S / ATL.cw); ATL.rows = Math.floor(ATL.S / ATL.ch); ATL.per = ATL.cols * ATL.rows - 1;
 function shadeC(hex, f) { const c = new THREE.Color(hex); c.offsetHSL(0, 0, f); return '#' + c.getHexString(); }
 const SERIF = '"Nanum Myeongjo", "Batang", serif';
 function emblem(x, k, cx, cy, r, col) {   // 카테고리 금박 문양 16종
@@ -246,21 +258,21 @@ function drawCell(x, ox, oy, b) {
   // 책등: 천 질감 + 볼록한 띠(가름끈 자리) + 금박 문양 · 세로 제목 · 권 번호
   cloth(x, ox, oy, W, H, col, b.t * 7 + 1);
   const sg = x.createLinearGradient(ox, 0, ox + W, 0); sg.addColorStop(0, 'rgba(0,0,0,.35)'); sg.addColorStop(.25, 'rgba(255,255,255,.08)'); sg.addColorStop(.6, 'rgba(255,255,255,.02)'); sg.addColorStop(1, 'rgba(0,0,0,.4)'); x.fillStyle = sg; x.fillRect(ox, oy, W, H);
-  const bands = T.style === 0 ? [18, 40, H - 44, H - 20] : T.style === 1 ? [12, H - 14] : [22, 30, H - 34, H - 26];
+  const bands = T.style === 0 ? [14, 36, H - 40, H - 14] : T.style === 1 ? [10, H - 12] : [18, 26, H - 30, H - 22];
   for (const yy of bands) { x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(ox, oy + yy + 2, W, 2); x.fillStyle = gold; x.globalAlpha = .9; x.fillRect(ox + 3, oy + yy, W - 6, 1.5); x.globalAlpha = 1; }
-  emblem(x, ci, ox + W / 2, oy + 29, 8, gold);
+  emblem(x, ci, ox + W / 2, oy + 25, 7, gold);
   x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = gold; x.font = `bold 12px ${SERIF}`;
-  const chars = [...T.name.replace(/\s+/g, '').replace(/[:!?,.·…]/g, '')], n = Math.min(chars.length, 8);
-  for (let i = 0; i < n; i++) x.fillText(i === 7 && chars.length > 8 ? '⋮' : chars[i], ox + W / 2, oy + 54 + i * 12.5);
-  x.font = `bold 16px ${SERIF}`; x.fillText(['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ'][b.v - 1] || b.v, ox + W / 2, oy + H - 32);
+  const chars = [...T.name.replace(/\s+/g, '').replace(/[:!?,.·…]/g, '')], n = Math.min(chars.length, 6);
+  for (let i = 0; i < n; i++) x.fillText(i === 5 && chars.length > 6 ? '⋮' : chars[i], ox + W / 2, oy + 47 + i * 11.5);
+  x.font = `bold 15px ${SERIF}`; x.fillText(['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ'][b.v - 1] || b.v, ox + W / 2, oy + H - 26);
   // 표지: 천 질감 + 이중 테두리(금박·민압) + 가운데 문양 + 제목 + 권
   const cx = ox + W, CW = ATL.cw - W;
   cloth(x, cx, oy, CW, H, col, b.t * 13 + 5); x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(cx, oy, 7, H);
-  x.strokeStyle = gold; x.lineWidth = 1.5; x.strokeRect(cx + 12, oy + 8, CW - 20, H - 16); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.strokeRect(cx + 16, oy + 12, CW - 28, H - 24);
-  for (const [a, c] of [[cx + 12, oy + 8], [cx + CW - 8, oy + 8], [cx + 12, oy + H - 8], [cx + CW - 8, oy + H - 8]]) { x.fillStyle = gold; x.beginPath(); x.arc(a, c, 2.5, 0, 6.29); x.fill(); }
-  emblem(x, ci, cx + CW / 2 + 2, oy + 44, 16, gold);
-  x.fillStyle = gold; x.font = `bold 13px ${SERIF}`; wrap(x, T.name, CW - 34).slice(0, 4).forEach((l, i) => x.fillText(l, cx + CW / 2 + 2, oy + 82 + i * 16));
-  x.font = `12px ${SERIF}`; x.fillText(`제 ${b.v} 권`, cx + CW / 2 + 2, oy + H - 24);
+  x.strokeStyle = gold; x.lineWidth = 1.5; x.strokeRect(cx + 10, oy + 7, CW - 16, H - 14); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.strokeRect(cx + 13, oy + 10, CW - 22, H - 20);
+  for (const [a, c] of [[cx + 10, oy + 7], [cx + CW - 6, oy + 7], [cx + 10, oy + H - 7], [cx + CW - 6, oy + H - 7]]) { x.fillStyle = gold; x.beginPath(); x.arc(a, c, 2.5, 0, 6.29); x.fill(); }
+  emblem(x, ci, cx + CW / 2 + 2, oy + 36, 13, gold);
+  x.fillStyle = gold; x.font = `bold 11px ${SERIF}`; wrap(x, T.name, CW - 24).slice(0, 4).forEach((l, i) => x.fillText(l, cx + CW / 2 + 2, oy + 66 + i * 13));
+  x.font = `10px ${SERIF}`; x.fillText(`제 ${b.v} 권`, cx + CW / 2 + 2, oy + H - 18);
 }
 function wrap(x, s, w) { const out = []; let cur = ''; for (const ch of s) { if (x.measureText(cur + ch).width > w && cur) { out.push(cur); cur = ch.trim() ? ch : ''; } else cur += ch; } if (cur) out.push(cur); return out; }
 function buildBooks() {
@@ -324,7 +336,7 @@ function rowStatus() {
   for (const t in byTitle) {
     const T = LIB.titles[t], list = byTitle[t], rowsUsed = new Set(list.map(x => x.c + '_' + x.r));
     for (const x of list) {
-      if (x.c !== T.caseI) { book[x.id] = 0; continue; }
+      if (LIB.cases[x.c].cat !== T.cat) { book[x.id] = 0; continue; }
       const same = list.filter(y => y.c === x.c && y.r === x.r);
       const ordered = same.every(y => (y.v < x.v) === (y.s < x.s) || y.id === x.id);
       book[x.id] = rowsUsed.size === 1 && ordered ? 2 : 1;
@@ -387,7 +399,7 @@ function aimUpdate() {
   }
   // 조준 표시
   let html = '';
-  if (AIM && AIM.kind === 'book') { const b = LIB.books[AIM.id], T = LIB.titles[b.t], q = AIM.st.w === 's' ? rowStatus().book[AIM.id] : null; html = `${esc(T.name)} <b>${b.v}권</b> / ${T.vols}권<small>${OPT.easy ? `${DATA[T.cat].ic} ${esc(DATA[T.cat].n)} → ${LIB.cases[T.caseI].lab} 책장` : '장정 색과 금박 문양이 같은 책장을 찾아요'}${q === 2 ? ' · <span class="good">제자리!</span>' : q === 1 ? ' · <span class="bad">책장은 맞지만 순서·단이 달라요</span>' : q === 0 ? ' · <span class="bad">책장이 틀렸어요</span>' : ''}</small>`; }
+  if (AIM && AIM.kind === 'book') { const b = LIB.books[AIM.id], T = LIB.titles[b.t], q = AIM.st.w === 's' ? rowStatus().book[AIM.id] : null; html = `${esc(T.name)} <b>${b.v}권</b> / ${T.vols}권<small>${OPT.easy ? `${DATA[T.cat].ic} ${esc(DATA[T.cat].n)} → ${LIB.cases.filter(C => C.cat === T.cat).map(C => C.lab).join('·')} 책장` : '장정 색과 금박 문양이 같은 책장을 찾아요'}${q === 2 ? ' · <span class="good">제자리!</span>' : q === 1 ? ' · <span class="bad">책장은 맞지만 순서·단이 달라요</span>' : q === 0 ? ' · <span class="bad">책장이 틀렸어요</span>' : ''}</small>`; }
   else if (AIM && AIM.kind === 'slot') { const C = LIB.cases[AIM.c]; html = `${C.lab} : ${esc(C.name)} <small>${AIM.r + 1}단 ${AIM.s + 1}번째 칸${P.hand.length ? ' · E 로 꽂기' : ''}</small>`; }
   else if (AIM && AIM.kind === 'map') html = '도서관 지도 <small>E 로 크게 보기</small>';
   else if (AIM && AIM.kind === 'key') html = `${LIB.keys[AIM.i].ic} ${LIB.keys[AIM.i].n} <small>E 로 줍기</small>`;
@@ -433,7 +445,7 @@ async function placeBook(id, c, r, s) {
   setTimeout(() => { const q = rowStatus().book[id]; if (q === 2) sfx('good'); }, 120);
 }
 async function autoShelve(c) {   // 자동 책꽂기: 조준한 책장이 맞는 책장이면 알맞은 단·칸을 골라 바로 꽂음
-  const id = P.hand.find(x => LIB.titles[LIB.books[x].t].caseI === c); if (id == null) { sfx('no'); return notice('손에 이 책장에 맞는 책이 없어 자동 꽂기에 실패했어요'); }
+  const id = P.hand.find(x => LIB.titles[LIB.books[x].t].cat === LIB.cases[c].cat); if (id == null) { sfx('no'); return notice('손에 이 책장에 맞는 책이 없어 자동 꽂기에 실패했어요'); }
   const b = LIB.books[id], T = LIB.titles[b.t];
   // 같은 제목이 이미 꽂힌 단이 있으면 그 단, 아니면 연속 빈칸이 권수만큼 있는 단
   let row = null; for (const x of LIB.books) { if (x.t !== b.t || x.id === id) continue; const st = bookState(x.id); if (st.w === 's' && st.c === c) { row = st.r; break; } }
@@ -486,8 +498,8 @@ function useAbility(k) {
 }
 function tickAbil(dt) {
   for (const k in ABIL) { const A = ABIL[k]; if (A.on > 0) { A.on -= dt; if (A.on <= 0) { A.on = 0; if (k === 'glow') { glowFx.series = null; booksDirty = true; } } } if (A.cdT > 0) A.cdT = Math.max(0, A.cdT - dt); }
-  const tgt = ABIL.guide.on > 0 && P.hand.length ? LIB.titles[LIB.books[P.hand[0]].t].caseI : -1;
-  for (const C of CASES) C.hl.material.opacity = C.c.i === tgt ? .18 + .1 * Math.sin(performance.now() / 150) : 0;
+  const tgt = ABIL.guide.on > 0 && P.hand.length ? LIB.titles[LIB.books[P.hand[0]].t].cat : -1;
+  for (const C of CASES) C.hl.material.opacity = C.c.cat === tgt ? .18 + .1 * Math.sin(performance.now() / 150) : 0;
 }
 function openAbil() {
   const pts = points(), left = 2 - rowStatus().done % 2;
@@ -561,7 +573,7 @@ function onRoom(r) {
   lastRows = S.done;
   // 허가 통지 (원작: 달리기·높이뛰기 허가 편지)
   if (isHost && S.done >= 3 && !ST.permits.run) NET.set('permits/run', 1);
-  if (isHost && S.done >= 8 && !ST.permits.jump && LIB.size > 4) NET.set('permits/jump', 1);
+  if (isHost && S.done >= 8 && !ST.permits.jump && LIB.size >= 16) NET.set('permits/jump', 1);
   if (ST.permits.run && !shown.run) { shown.run = 1; letter('급히 전합니다,', '학장님의 승인에 따라 이제 도서관 안에서 <b>달리기</b>가 허용됩니다. 책장 사이를 빠르게 이동하세요.<br><br><b>왼쪽 Shift</b> 를 누르면 달릴 수 있습니다.'); }
   if (ST.permits.jump && !shown.jump) { shown.jump = 1; letter('급히 전합니다,', '학장님의 승인에 따라 이제 도서관 안에서 <b>높이뛰기</b>가 허용됩니다. 곧바로 2층까지 뛰어오를 수 있습니다.<br><br><b>스페이스 바</b>를 길게 누를수록 더 높이 뜁니다.'); }
   // 손에 든 사서가 나가 버린 책은 방장이 가운데 바닥으로 돌려놓음
@@ -683,7 +695,7 @@ function hudHand() {
   if (!P.hand.length) { $('hand').innerHTML = `<h4>손에 든 책 <b>0 / ${cap}</b></h4><div class="top" style="color:var(--dim);font-size:14px">책을 조준하고 E (왼쪽 클릭)</div>`; return; }
   $('hand').innerHTML = `<h4>손에 든 책 <b>${P.hand.length} / ${cap}</b></h4><div class="hl">` + P.hand.map((id, i) => {
     const b = LIB.books[id], T = LIB.titles[b.t], C = LIB.cases[T.caseI], cat = DATA[T.cat];
-    return `<div class="hb ${i ? '' : 'top'}"><span class="bk" style="background:#${T.col.getHexString()};border-color:${T.gold}">${b.v}</span><span class="nm">${esc(T.name)} <small>${b.v}/${T.vols}권</small></span>${OPT.easy ? `<span class="to" style="border-color:${C.col};background:${C.col}55">${cat.ic} ${C.lab}</span>` : ""}</div>`;
+    return `<div class="hb ${i ? '' : 'top'}"><span class="bk" style="background:#${T.col.getHexString()};border-color:${T.gold}">${b.v}</span><span class="nm">${esc(T.name)} <small>${b.v}/${T.vols}권</small></span>${OPT.easy ? `<span class="to" style="border-color:${C.col};background:${C.col}55">${cat.ic} ${LIB.cases.filter(x => x.cat === T.cat).map(x => x.lab).join('·')}</span>` : ""}</div>`;
   }).join('') + `</div><div class="hk">맨 위 책부터 꽂아요 · 휠/R 순서 바꾸기 · Q 내려놓기</div>`;
 }
 function hudAbil() { $('abil').innerHTML = Object.entries(ABIL).map(([k, A]) => { const open = abOpen(k); return `<div class="ab ${A.on > 0 ? 'act' : ''} ${open ? '' : 'lock'}"><span class="k">${A.k}</span>${open ? A.ic : '🔒'}<span class="lv">Lv.${abLv(k) + 1}</span>${A.cdT > 0 ? `<div class="cd">${Math.ceil(A.cdT)}</div>` : ''}</div>`; }).join(''); }
@@ -711,7 +723,7 @@ function drawMap(c, W, H) {
   x.fillStyle = '#6a4a26'; x.fillRect(X(-9.9), Z(-4.5), 2.1 * sx, 7.5 * sz); x.fillRect(X(7.8), Z(-3), 2.1 * sx, 7.5 * sz);
   x.font = `${Math.round(sz * .55)}px Jua, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
   if (!LIB) return c;
-  for (const C of LIB.cases) { const up = C.y > 0, zz = C.z + (C.f > 0 ? (up ? 1.4 : .9) : (up ? -1.4 : -.9)); x.fillStyle = C.col; x.globalAlpha = up ? .65 : 1; x.fillRect(X(C.x - 1), Z(C.z - .25), 2 * sx, .5 * sz); x.globalAlpha = 1; x.fillStyle = '#f6e6c0'; x.fillText(`${DATA[C.cat].ic} ${C.lab} ${C.name}`, X(C.x), Z(zz)); }
+  for (const C of LIB.cases) { const up = C.y > 0, mid = Math.abs(C.z) < 4, zz = mid ? C.z + C.f * .55 : C.z + (C.f > 0 ? (up ? 1.4 : .9) : (up ? -1.4 : -.9)); x.fillStyle = C.col; x.globalAlpha = up ? .65 : 1; x.fillRect(X(C.x - 1), Z(C.z - .25), 2 * sx, .5 * sz); x.globalAlpha = 1; x.fillStyle = '#f6e6c0'; x.font = `${Math.round(sz * (mid ? .4 : .5))}px Jua, sans-serif`; x.fillText(`${C.lab} ${C.name}`, X(C.x), Z(zz)); }
   x.fillStyle = '#c8b490'; x.fillText('계단', X(-8.85), Z(-.7)); x.fillText('계단', X(8.85), Z(.7));
   if (P) { x.fillStyle = '#fff'; x.beginPath(); x.arc(X(P.x), Z(P.z), 6, 0, 6.28); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 2; x.beginPath(); x.moveTo(X(P.x), Z(P.z)); x.lineTo(X(P.x - Math.sin(P.yaw) * .9), Z(P.z - Math.cos(P.yaw) * .9)); x.stroke(); }
   return c;
@@ -745,7 +757,7 @@ function loop() {
   if (LIB) {
     if (locked) moveP(dt); else cam.rotation.set(P.pitch, P.yaw, 0, 'YXZ'), cam.position.set(P.x, P.y + EYE, P.z);
     tickAbil(dt);
-    for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; O.mesh.position.x += (O.tx - O.mesh.position.x) * Math.min(1, dt * 10); O.mesh.position.y += (O.ty - O.mesh.position.y) * Math.min(1, dt * 10); O.mesh.position.z += (O.tz - O.mesh.position.z) * Math.min(1, dt * 10); O.mesh.rotation.y = O.tyaw; booksDirty = true; }
+    for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; O.mesh.position.x += (O.tx - O.mesh.position.x) * Math.min(1, dt * 10); O.mesh.position.y += (O.ty - O.mesh.position.y) * Math.min(1, dt * 10); O.mesh.position.z += (O.tz - O.mesh.position.z) * Math.min(1, dt * 10); O.mesh.rotation.y = O.tyaw; if ((O.hand || []).length) booksDirty = true; }
     if (booksDirty) updateBooks();
     updateFairy(dt); drawPings();
     aimUpdate(); sendPos(dt);
