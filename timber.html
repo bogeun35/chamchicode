@@ -125,11 +125,52 @@ h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
 @media (max-width: 760px) { #tab-play.on, #tab-shop.on { grid-template-columns: 1fr; } #info { position: static; } .card { width: 140px; } .cdesc { display: none; } #timer { font-size: 26px; } }
 </style>
 <link rel="stylesheet" href="timber/design.css?v=woodland1">
+<style>
+/* 획득 연출 */
+#reveal { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(8,16,12,.82); overflow: hidden; cursor: pointer; }
+#reveal.on { display: flex; animation: rvIn .25s ease; }
+@keyframes rvIn { from { opacity: 0; } }
+.rv-rays { position: absolute; left: 50%; top: 50%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--tc) 22%, transparent) 0deg 9deg, transparent 9deg 22.5deg); animation: rvSpin 14s linear infinite; opacity: .55; }
+@keyframes rvSpin { to { transform: rotate(360deg); } }
+.rv-box { position: relative; text-align: center; animation: rvPop .55s cubic-bezier(.2,1.6,.4,1); }
+@keyframes rvPop { from { transform: scale(.3); opacity: 0; } }
+#rvKind { font-size: 15px; font-weight: 900; letter-spacing: 2px; color: #1f2b22; background: var(--tc); display: inline-block; padding: 6px 16px; border-radius: 999px; box-shadow: 0 4px 0 color-mix(in srgb, var(--tc) 55%, #000); }
+.rv-pic { width: 240px; height: 240px; margin: 14px auto 6px; border-radius: 50%; background: color-mix(in srgb, var(--tc) 22%, #1c2c24); border: 5px solid var(--tc); display: grid; place-items: center; box-shadow: 0 0 0 10px color-mix(in srgb, var(--tc) 18%, transparent); animation: rvBob 2.4s ease-in-out infinite; }
+@keyframes rvBob { 50% { transform: translateY(-8px) rotate(-2deg); } }
+#rvEmoji { font-size: 110px; }
+#rvStars { color: var(--tc); font-size: 26px; letter-spacing: 4px; min-height: 30px; text-shadow: 0 2px 0 #0006; }
+#rvName { font-size: 34px; font-weight: 900; color: #fff8e6; text-shadow: 0 3px 0 #0008; }
+#rvDesc { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 420px; font-size: 13px; color: #e8efe2; line-height: 1.6; }
+#rvDesc span { background: #ffffff14; border: 1px solid #ffffff22; padding: 4px 10px; border-radius: 999px; } #rvDesc b { color: var(--tc); }
+.rv-tap { margin-top: 14px; font-size: 11px; color: #ffffff88; }
+#rvConf { position: absolute; inset: 0; pointer-events: none; }
+#rvConf i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; animation: rvFall linear forwards; }
+@keyframes rvFall { to { top: 110%; transform: rotate(720deg); } }
+/* 특수 통나무 배너 */
+#sbanner { position: fixed; left: 50%; top: 24%; transform: translate(-50%, -50%) scale(.6); z-index: 8; pointer-events: none; opacity: 0; text-align: center; }
+#sbanner.on { animation: sbIn 1.5s ease forwards; }
+@keyframes sbIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -62%) scale(1); } }
+#sbanner b { display: block; font-size: 32px; font-weight: 900; color: var(--bc); -webkit-text-stroke: 7px #1d1612; paint-order: stroke fill; letter-spacing: -1px; }
+#sbanner span { display: inline-block; margin-top: 4px; font-size: 14px; font-weight: 800; color: #1d1612; background: var(--bc); padding: 3px 12px; border-radius: 999px; }
+/* 상점 등급 */
+.item { position: relative; border-color: color-mix(in srgb, var(--tc) 45%, transparent) !important; }
+.item.on { border-color: var(--tc) !important; box-shadow: 0 0 0 2px var(--tc), 0 8px 24px #0004; }
+.item .istars { position: absolute; top: 8px; right: 10px; font-size: 10px; color: var(--tc); letter-spacing: 1px; }
+.item .ipic { display: grid; place-items: center; background: color-mix(in srgb, var(--tc) 14%, #172a21); border-radius: 10px; margin-bottom: 8px; padding: 4px 0; }
+.item.tier5 .ipic { background: color-mix(in srgb, var(--tc) 26%, #172a21); }
+.item.lock .ipic canvas { filter: brightness(0) opacity(.45); }
+.ibig { position: relative; display: grid; place-items: center; height: 170px; margin: -6px -6px 12px; border-radius: 12px; background: color-mix(in srgb, var(--tc) 16%, #172a21); border: 1px solid color-mix(in srgb, var(--tc) 50%, transparent); }
+.ibig .istars2 { position: absolute; top: 8px; right: 12px; color: var(--tc); font-size: 13px; letter-spacing: 2px; }
+</style>
 </head>
 <body>
 <canvas id="cv"></canvas>
 <div id="toast" class="toast"></div>
 <div id="finale">🔥 불멸의 수확! 10초 · 3배 🔥</div>
+<div id="sbanner"></div>
+<div id="reveal" onclick="UI.closeReveal()"><div class="rv-rays"></div><div id="rvConf"></div>
+  <div class="rv-box"><div id="rvKind"></div><div class="rv-pic"><canvas id="rvPic"></canvas><div id="rvEmoji"></div></div><div id="rvStars"></div><div id="rvName"></div><div id="rvDesc"></div><div class="rv-tap">눌러서 닫기</div></div>
+</div>
 
 <div id="hud">
   <div class="top">
@@ -191,7 +232,8 @@ h2 { font-size: 17px; color: var(--gold); margin-bottom: 4px; }
 <script src="party-sound.js"></script><script>try { Sound.theme('playful'); } catch (e) {}</script>
 <script src="timber/data.js"></script>
 <script src="timber/core.js"></script>
-<script src="timber/run.js?v=woodland1"></script>
-<script src="timber/ui.js"></script>
+<script src="timber/art.js?v=cute1"></script>
+<script src="timber/run.js?v=cute1"></script>
+<script src="timber/ui.js?v=cute1"></script>
 </body>
 </html>

@@ -126,7 +126,9 @@ const UI = {
     $('#ttBuy').style.display = maxed ? 'none' : ''; $('#ttMax').style.display = maxed || n.max <= 1 ? 'none' : ''; $('#ttMax').textContent = `최대 구매 (${qm.count}개 🪵 ${fmt(qm.cost)})`;
     $('#ttBuy').disabled = !st.reqOk || q.count === 0; $('#ttMax').disabled = !st.reqOk || qm.count === 0;
   },
-  buyNode(max) { const n = UI.treeSel; if (!n) return; const err = Tree.buy(n, max); if (err) { UI.toast(err); if (window.Sound && !G.mute) try { Sound.play('error'); } catch (e) {} } else { if (window.Sound && !G.mute) try { Sound.play('submit'); } catch (e) {} UI.refreshCur(); UI.renderTip(); UI.treeDirty = true; } },
+  buyNode(max) { const n = UI.treeSel; if (!n) return; const err = Tree.buy(n, max); if (err) { UI.toast(err); if (window.Sound && !G.mute) try { Sound.play('error'); } catch (e) {} } else { if (window.Sound && !G.mute) try { Sound.play('submit'); } catch (e) {} UI.refreshCur(); UI.renderTip(); UI.treeDirty = true; UI.nodeBurst(n); const big = UI.BIG_NODES[n.id]; if (big && Tree.lv(n.id) === 1) UI.reveal({ kind: '새로운 힘 해금!', name: UI.nodeName(n), icon: big, stars: 0, desc: n.stat != null ? ST[n.stat].desc : '' }); } },
+  BIG_NODES: { dashUnlock: '💨', drone_1: '🤖', specialLogUnlock: '🌟', lightningLogUnlock: '⚡', magmaLogUnlock: '🌋', goldenLogUnlock: '✨', arcaneLogUnlock: '🔮', magnetLogUnlock: '🧲', crystalLogUnlock: '❄️', unlockLumberjacks: '👷', lumberjack_1: '👷', lumberjack_2: '👷', lumberjack_3: '👷', lumberjack_4: '👷', unlockPotions: '🧪', unlockAttackPotion: '💪', unlockCritChancePotion: '🎯', unlockCritDamagePotion: '💥', rubyUnlock: '💎', diamondUnlock: '💎', lightningLogChain: '⚡', magmaLogDetonation: '💥', levelUpChoices: '🃏', chestChoices: '📦', autoCollectDouble: '🙌', droneChangeDirection: '🤖' },
+  nodeBurst(n) { UI.burst = { id: n.id, t: performance.now() }; UI.treeDirty = true; },
   // ---- 상점 / 크루
   slotName(i) { return i === -1 ? '플레이어' : `나무꾼 ${i + 1}`; },
   slotGear(i) { return i === -1 ? { c: CHARS[S.char], a: AXES[S.axe] } : Crew.gear(i); },
@@ -134,13 +136,33 @@ const UI = {
     const cnt = Crew.count(); if (UI.shopSlot >= cnt) UI.shopSlot = -1;
     $('#slots').innerHTML = [-1, 0, 1, 2, 3].map(i => { const lock = i >= 0 && i >= cnt; const g = UI.slotGear(i); return `<button class="slot ${UI.shopSlot === i ? 'on' : ''} ${lock ? 'lock' : ''}" data-i="${i}"><div class="sname">${i === -1 ? '👤' : '👷'} ${UI.slotName(i)}</div>${lock ? '<div class="sgear">🔒 스킬 트리에서 고용</div>' : `<div class="sgear">${g.c ? g.c.name : '-'}<br>${g.a ? g.a.name : '-'}</div>`}</button>`; }).join('');
     $$('#slots .slot').forEach(b => b.onclick = () => { if (b.classList.contains('lock')) { UI.toast('스킬 트리에서 "추가 인력"을 사면 열려요'); return; } UI.shopSlot = +b.dataset.i; UI.renderShop(); });
-    const list = (items, host) => { $(host).innerHTML = items.map(it => { const own = Shop.owned(it); const g = UI.slotGear(UI.shopSlot); const eq = (Shop.isAxe(it) ? g.a : g.c) === it; const ok = Shop.meetsReq(it); return `<button class="item ${UI.shopItem === it ? 'on' : ''} ${own ? 'own' : ''} ${ok ? '' : 'lock'}" data-k="${it.key}"><div class="ipic"><canvas width="72" height="72" data-pic="${it.key}"></canvas></div><div class="iname">${it.name}</div><div class="imeta">${eq ? '<b>장착 중</b>' : own ? '보유' : ok ? `🪙 ${fmt(it.cost)}` : '🔒'}</div></button>`; }).join(''); };
+    const list = (items, host) => { $(host).innerHTML = items.map(it => { const own = Shop.owned(it); const g = UI.slotGear(UI.shopSlot); const eq = (Shop.isAxe(it) ? g.a : g.c) === it; const ok = Shop.meetsReq(it); const st = UI.stars(it); return `<button class="item tier${st} ${UI.shopItem === it ? 'on' : ''} ${own ? 'own' : ''} ${ok ? '' : 'lock'}" data-k="${it.key}" style="--tc:${UI.TIERC[st]}"><div class="istars">${'★'.repeat(st)}</div><div class="ipic"><canvas data-pic="${it.key}"></canvas></div><div class="iname">${it.name}</div><div class="imeta">${eq ? '<b>장착 중</b>' : own ? '보유' : ok ? `🪙 ${fmt(it.cost)}` : '🔒 ' + (it.req[0] ? it.req[0][2] : '')}</div></button>`; }).join(''); };
     const byCost = arr => arr.slice().sort((x, y) => x.cost - y.cost); list(byCost(D.axes), '#axeList'); list(byCost(D.chars), '#charList');
     $$('#tab-shop .item').forEach(b => b.onclick = () => { UI.shopItem = AXES[b.dataset.k] || CHARS[b.dataset.k]; UI.renderShop(); });
     $$('#tab-shop canvas[data-pic]').forEach(c => UI.drawPic(c, c.dataset.pic));
     UI.renderInfo();
   },
-  drawPic(c, key) { const ctx = c.getContext('2d'); ctx.clearRect(0, 0, c.width, c.height); const save = W.s; W.s = 40; if (AXES[key]) drawAxe(ctx, key, 26, 60, 1.1, .6); else drawChar(ctx, key, 36, 44, 1.1, 1, 1, false); W.s = save; },
+  drawPic(c, key, size = 84) { const d = devicePixelRatio || 1; c.width = c.height = Math.round(size * d); c.style.width = c.style.height = size + 'px'; const ctx = c.getContext('2d'); ART.preview(ctx, key, c.width, c.height, { axe: null }); },
+  TIERC: ['#c9d0dc', '#c9d0dc', '#9ee6a8', '#a6c8ff', '#d3adff', '#ffd36b'],
+  stars(it) { const arr = (Shop.isAxe(it) ? D.axes : D.chars).slice().sort((a, b) => a.cost - b.cost); const r = arr.indexOf(it); return 1 + Math.floor(Math.max(0, r) / 2); },
+  // ---- 획득 연출 (장비 구매·큰 해금)
+  reveal(o) {
+    const el = $('#reveal'); const c = $('#rvPic'); const st = o.stars || 3; el.style.setProperty('--tc', UI.TIERC[st] || '#ffd36b');
+    $('#rvKind').textContent = o.kind; $('#rvName').textContent = o.name; $('#rvStars').textContent = o.stars ? '★'.repeat(o.stars) : ''; $('#rvDesc').innerHTML = o.desc || '';
+    if (o.key) { c.style.display = ''; $('#rvEmoji').style.display = 'none'; UI.drawPic(c, o.key, 210); } else { c.style.display = 'none'; $('#rvEmoji').style.display = ''; $('#rvEmoji').textContent = o.icon || '✨'; }
+    const conf = $('#rvConf'); conf.innerHTML = ''; const cols = ['#ffd36b', '#ffb3c8', '#a6dcff', '#b9ecb0', '#d3adff'];
+    for (let i = 0; i < 26; i++) { const d = document.createElement('i'); d.style.left = (Math.random() * 100) + '%'; d.style.background = cols[i % cols.length]; d.style.animationDelay = (Math.random() * .6) + 's'; d.style.animationDuration = (1.6 + Math.random() * 1.2) + 's'; d.style.transform = `rotate(${Math.random() * 360}deg)`; conf.appendChild(d); }
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    if (window.Sound && !G.mute) try { Sound.play('win'); } catch (e) {}
+  },
+  closeReveal() { $('#reveal').classList.remove('on'); },
+  // ---- 런 중 특수 통나무 배너
+  BANNER: { Lightning: ['⚡ 번개 통나무!', '나무에 벼락이 꽂혀요', '#a6dcff'], Magma: ['🌋 용암 통나무!', '불타는 지속 피해', '#ffb08a'], Golden: ['✨ 황금 통나무!', '잠시 코인 2배', '#ffe08a'], Arcane: ['🔮 비전 통나무!', '잠시 경험치 2배', '#d6b6ff'],
+    Freeze: ['❄️ 수정 통나무!', '시간이 멈췄어요', '#c4f3ff'], Magnet: ['🧲 자석 통나무!', '전부 끌어와요', '#ffb3b3'], Damage: ['💪 전투 물약!', '피해 2배', '#ffa3ad'], CritChance: ['🎯 정밀 물약!', '치명타 확률 2배', '#ffd08f'], CritDamage: ['💥 분노 물약!', '치명타 피해 2배', '#ffaee3'] },
+  banner(kind) {
+    const b = UI.BANNER[kind]; if (!b) return; const now = performance.now(); if (UI._bk === kind && now - UI._bt < 700) return; UI._bk = kind; UI._bt = now;
+    const el = $('#sbanner'); el.innerHTML = `<b>${b[0]}</b><span>${b[1]}</span>`; el.style.setProperty('--bc', b[2]); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  },
   itemStatsHtml(it, slot) {
     const isAxe = Shop.isAxe(it); const g = UI.slotGear(slot); const cur = isAxe ? g.a : g.c; const types = new Set(); (isAxe ? Equip.axeEntries(it) : Equip.charEntries(it)).forEach(e => types.add(e[0]));
     return [...types].map(t => { const base = ST[t] ? ST[t].base : 0; const nv = (isAxe ? Equip.axeStat(it, t, base) : Equip.charStat(it, t, base)) - base; const cv2 = cur ? (isAxe ? Equip.axeStat(cur, t, base) : Equip.charStat(cur, t, base)) - base : 0; const txt = v => ST[t] && ST[t].disp === 0 ? pct(v) : fmtNum2(v); const up = nv > cv2; return `<div class="istat"><span>${ICON[t] || ''} ${ST[t] ? ST[t].type : t}</span><b class="${cur === it ? '' : up ? 'up' : nv < cv2 ? 'down' : ''}">${cur && cur !== it ? txt(cv2) + ' → ' : ''}${txt(nv)}</b></div>`; }).join('');
@@ -148,12 +170,19 @@ const UI = {
   renderInfo() {
     const it = UI.shopItem; const el = $('#info'); if (!it) { el.innerHTML = '<div class="dim">도끼나 캐릭터를 골라보세요</div>'; return; }
     const own = Shop.owned(it), ok = Shop.meetsReq(it), isAxe = Shop.isAxe(it); const g = UI.slotGear(UI.shopSlot); const eq = (isAxe ? g.a : g.c) === it;
-    el.innerHTML = `<div class="iname2">${it.name}</div><div class="islot">${UI.slotName(UI.shopSlot)}에게</div>${UI.itemStatsHtml(it, UI.shopSlot)}
+    const stI = UI.stars(it);
+    el.innerHTML = `<div class="ibig" style="--tc:${UI.TIERC[stI]}"><canvas id="iPic"></canvas><div class="istars2">${'★'.repeat(stI)}</div></div><div class="iname2">${it.name}</div><div class="islot">${UI.slotName(UI.shopSlot)}에게</div>${UI.itemStatsHtml(it, UI.shopSlot)}
       ${it.req.map(r => `<div class="req ${Ach.get(r[0], 1) >= r[1] ? 'ok' : ''}">${r[2]}: ${fmt(Ach.get(r[0], 1))} / ${fmt(r[1])}</div>`).join('')}
       <div class="ibtns">${own ? `<button id="iEquip" ${eq ? 'disabled' : ''}>${eq ? '장착 중' : '장착'}</button>${isAxe ? `<button id="iUp">🔧 강화 (${AxeUp.st(it).pts}/${AxeUp.maxPts(it)})</button>` : ''}` : `<button id="iBuy" ${ok && S.coins >= it.cost ? '' : 'disabled'}>구매 🪙 ${fmt(it.cost)}</button>`}</div>`;
-    const b = $('#iBuy'); if (b) b.onclick = () => { if (Shop.buy(it, false)) { UI.toast(`${it.name} 구매!`); Crew.equipTo(UI.shopSlot, it); UI.renderShop(); UI.refreshCur(); } else UI.toast('조건이 안 맞거나 코인이 부족해요'); };
+    const b = $('#iBuy'); if (b) b.onclick = () => { if (Shop.buy(it, false)) { Crew.equipTo(UI.shopSlot, it); UI.renderShop(); UI.refreshCur(); UI.revealItem(it); } else UI.toast('조건이 안 맞거나 코인이 부족해요'); };
+    const ip = $('#iPic'); if (ip) { UI.drawPic(ip, it.key, 150); if (!ok && !own) ip.style.filter = 'brightness(0) opacity(.45)'; }
     const e2 = $('#iEquip'); if (e2) e2.onclick = () => { Crew.equipTo(UI.shopSlot, it); UI.renderShop(); UI.refreshSummary(); };
     const u = $('#iUp'); if (u) u.onclick = () => UI.openAxeDlg(it);
+  },
+  revealItem(it) {
+    const isAxe = Shop.isAxe(it); const st = UI.stars(it);
+    const lines = (isAxe ? Equip.axeEntries(it) : Equip.charEntries(it)).filter(e => ST[e[0]]).map(e => { const d = ST[e[0]]; const v = e[2] === MUL ? '×' + fmtNum2(e[1]) : (d.disp === 0 ? '+' + pct(e[1]) : '+' + fmtNum2(e[1])); return `<span>${ICON[e[0]] || ''} ${d.type} <b>${v}</b></span>`; }).join('');
+    UI.reveal({ kind: isAxe ? '새 도끼 획득!' : '새 동료 합류!', name: it.name, key: it.key, stars: st, desc: lines });
   },
   openAxeDlg(axe) { UI.axeDlg = axe; $('#axedlg').classList.add('on'); UI.renderAxeDlg(); },
   closeAxeDlg() { UI.axeDlg = null; $('#axedlg').classList.remove('on'); },
