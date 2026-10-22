@@ -97,10 +97,12 @@ button { font-family: inherit; }
     <h3>닉네임</h3><input class="input" id="nick" maxlength="8" placeholder="닉네임 (2~8자)" style="width:100%">
     <h3>도서관 크기</h3>
     <div class="seg" id="sizeSeg"><button data-v="4">작은 서고<br><small>4칸 · 약 40권</small></button><button data-v="8" class="on">중간 서고<br><small>8칸 · 약 80권</small></button><button data-v="16">대도서관<br><small>16칸 · 2층까지</small></button></div>
+    <h3>길 안내</h3>
+    <div class="seg" id="easySeg"><button data-v="0" class="on">끄기 (보통)<br><small>장정 색·문양으로 찾기</small></button><button data-v="1">켜기 (쉬움)<br><small>갈 책장을 알려 줌</small></button></div>
     <div class="row" style="margin-top:14px"><button class="btn go" id="btnCreate" style="flex:1">방 만들기</button><button class="btn" id="btnSolo">혼자 하기</button></div>
     <h3>방 코드로 들어가기</h3>
     <div class="row"><input class="input" id="joinCode" maxlength="6" placeholder="ABC123" style="flex:1;text-transform:uppercase;letter-spacing:3px"><button class="btn" id="btnJoin">입장</button></div>
-    <p style="margin-top:14px">PC 전용 · WASD 이동 · 마우스로 보기 · <b>E</b>/왼쪽 클릭 집기·꽂기 · <b>Q</b> 내려놓기(길게 누르면 가지런히) · 휠/R 순서 바꾸기 · <b>Tab</b> 책 목록 · <b>M</b> 지도 · <b>1~5</b> 마법 · <b>K</b> 능력 목록</p>
+    <p style="margin-top:14px">PC 전용 · WASD 이동 · 마우스로 보기 · <b>E</b>/왼쪽 클릭 집기·꽂기 · <b>Q</b> 내려놓기(길게 누르면 가지런히) · 휠/R 순서 바꾸기 · <b>F</b>/휠 클릭 핑 · 동료 조준+<b>E</b> 책 건네기 · <b>M</b> 지도 · <b>1~5</b> 마법 · <b>K</b> 능력 목록</p>
   </div>
 </div>
 <!-- 대기실 -->
@@ -112,6 +114,8 @@ button { font-family: inherit; }
     <div class="plist" id="lbPlayers"></div>
     <h3>도서관 크기 <small id="lbSizeTxt" style="color:var(--dim);font-size:13px"></small></h3>
     <div class="seg" id="lbSize"><button data-v="4">작은 서고</button><button data-v="8">중간 서고</button><button data-v="16">대도서관</button></div>
+    <h3>길 안내</h3>
+    <div class="seg" id="lbEasy"><button data-v="0">끄기 (보통)</button><button data-v="1">켜기 (쉬움)</button></div>
     <div class="row" style="margin-top:16px"><button class="btn" id="lbReady" style="flex:1">준비</button><button class="btn go" id="lbStart" style="flex:1">시작</button><button class="btn" id="lbLeave">나가기</button></div>
   </div>
 </div>
