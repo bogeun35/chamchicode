@@ -32,6 +32,7 @@ function sfx(k) {
   else if (k === 'skill') tone(400, 1500, .3, 'sine', .1);
   else if (k === 'throw') tone(700, 260, .18, 'sine', .08);
   else if (k === 'drop') tone(180, 120, .1, 'triangle', .14);
+  else if (k === 'kick') { tone(150, 80, .08, 'triangle', .14); tone(420, 300, .05, 'square', .03, .02); }
   else if (k === 'atm') [600, 640, 600, 640].forEach((f, i) => tone(f, f, .07, 'square', .04, i * .12));
   else if (k === 'win') [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, .25, 'triangle', .12, i * .09));
   else if (k === 'fail') tone(300, 90, .45, 'sawtooth', .06);
@@ -456,6 +457,7 @@ const slotIds = s => SL[s] ? String(SL[s]).split(',').map(Number) : [];
 const prodOf = id => LIB.prods[LIB.items[id].p];
 const dirtyP = new Set(); let tagsDirty = true, gridDirty = true, STATUS = null;
 function itemMatrix(id) {
+  if (ANIM_HIDE.has(id)) return HIDE;
   const P = prodOf(id); V2.set(P.w, P.h, P.d);
   const A = ACT.get(id); if (A) { const t = A.b.translation(), q = A.b.rotation(); V1.set(t.x, t.y, t.z); QQ.set(q.x, q.y, q.z, q.w); return M4.compose(V1, QQ, V2); }
   if (MV[id]) { const a = MV[id].split(',').map(Number); V1.set(a[0], a[1], a[2]); QQ.set(a[3], a[4], a[5], a[6]); return M4.compose(V1, QQ, V2); }
@@ -527,7 +529,7 @@ function moveP(dt) {
   const l = Math.hypot(fx, fz) || 1; fx /= l; fz /= l;
   const s = Math.sin(P.yaw), c = Math.cos(P.yaw), dx = (fx * c + fz * s) * sp, dz = (-fx * s + fz * c) * sp, ox = P.x, oz = P.z;
   for (const [ax, d] of [['x', dx], ['z', dz]]) { if (!d) continue; const nx = ax === 'x' ? P.x + d : P.x, nz = ax === 'z' ? P.z + d : P.z; if (!collide(nx, P.y, nz)) { P.x = nx; P.z = nz; } }
-  STAT.d += Math.hypot(P.x - ox, P.z - oz);
+  STAT.d += Math.hypot(P.x - ox, P.z - oz); kickItems(P.x - ox, P.z - oz, dt);
   if (canStretch && KEY.Space && P.ground) { P.vy = 5; P.ground = false; STAT.j++; }   // 원작: 점프 속도 5, 중력 ×1.2
   P.vy -= 9.81 * 1.2 * dt; const ny = P.y + P.vy * dt, hit = collide(P.x, ny, P.z);
   if (hit) { if (P.vy < 0) { P.y = hit[4]; P.ground = true; } P.vy = 0; } else { P.y = ny; P.ground = false; }
@@ -615,34 +617,106 @@ async function act(right) {
 function full() { if (P.hand.length >= capacity()) { sfx('no'); notice(`더 들 수 없어요 (최대 ${capacity()}개) — 진열하거나 Q 로 던지세요`); return true; } return false; }
 async function pickItem(id) {
   if (full() || PENDING.has(id)) return; const prev = IT[id] || null, s = st(id); if (s.w !== 'f') return; PENDING.add(id);
+  const from = poseOfMatrix(itemMatrix(id).clone());
   const ok = await NET.tx('it/' + id, cur => (cur || null) !== prev ? undefined : 'h,' + me.k + gS(s));
   PENDING.delete(id); if (!ok) { sfx('no'); return false; }
-  if (!P.hand.includes(id)) P.hand.unshift(id); sendHand(); sfx('pick');
+  if (!P.hand.includes(id)) P.hand.unshift(id); flyAnim(id, from, () => handWorld(prodOf(id)), .28); sendHand(); sfx('pick');
   if (PWD) wakeAround(s.x, s.y, s.z, .3, true, true);   // 위에 얹혀 있던 상품은 떨어지고, 아래·옆은 받쳐 줌
   return true;
 }
 async function takeFromSlot(s) {
-  if (full()) return; let taken = null;
-  const ok = await NET.tx('sl/' + s, cur => { const a = cur ? String(cur).split(',') : []; if (!a.length) { taken = null; return undefined; } taken = +a[a.length - 1]; a.pop(); return a.length ? a.join(',') : null; });
+  if (full()) return; let taken = null, at = 0;
+  const ok = await NET.tx('sl/' + s, cur => { const a = cur ? String(cur).split(',') : []; if (!a.length) { taken = null; return undefined; } taken = +a[a.length - 1]; at = a.length - 1; a.pop(); return a.length ? a.join(',') : null; });
   if (!ok || taken == null) { sfx('no'); return; }
+  flyAnim(taken, slotPose(LIB.slots[s], prodOf(taken), at), () => handWorld(prodOf(taken)), .28);
   PENDING.add(taken); await NET.set('it/' + taken, 'h,' + me.k + gS(st(taken))); PENDING.delete(taken);
   if (!P.hand.includes(taken)) P.hand.unshift(taken); sendHand(); sfx('pick');
 }
-async function placeItem(id, s, quiet) {
-  const pi = LIB.items[id].p, cap = LIB.prods[pi].cap; let n = 0;
-  if (PENDING.has(id)) return false; PENDING.add(id);
+async function placeItem(id, s, quiet, from) {
+  const pi = LIB.items[id].p, Pp = LIB.prods[pi], cap = Pp.cap; let n = 0;
+  if (PENDING.has(id)) return false;
+  const src = from === false ? null : from || (P.hand.includes(id) ? handWorld(Pp) : poseOfMatrix(itemMatrix(id).clone()));
+  PENDING.add(id);
   const ok = await NET.tx('sl/' + s, cur => { const a = cur ? String(cur).split(',').map(Number) : []; if (a.includes(id)) return undefined; if (a.length && LIB.items[a[0]].p !== pi) return undefined; if (a.length >= cap) return undefined; a.push(id); n = a.length; return a.join(','); });
   if (!ok) { PENDING.delete(id); if (!quiet) { sfx('no'); notice('이 칸에는 넣을 수 없어요'); } return false; }
-  const sv = st(id), right = LIB.prods[pi].sec === LIB.slots[s].sec;
+  const sv = st(id), sl = LIB.slots[s], right = Pp.sec === sl.sec, done = right && n >= cap;
   P.hand = P.hand.filter(x => x !== id);
+  const gold = right && !sv.g ? grantGold(LIB.gold) : null;
+  if (src) { const to = slotPose(sl, Pp, n - 1); flyAnim(id, src, to, .24, () => { if (right) { sparkle(to.p, done); if (gold) floatText(to.p, `+${won(gold.amt)}${gold.mul > 1 ? ` ×${gold.mul}` : ''}`, gold.mul > 1 ? '#ffd84a' : '#a6ffa8'); if (done) setTimeout(() => floatText(to.p.clone().setY(to.p.y + .14), '⭐ 칸 완성!', '#ffd84a'), 280); } else floatText(to.p, '틀린 구역!', '#ff8a7a'); }, .6); }
   await NET.set('it/' + id, `s,${s}` + (sv.g || right ? ',g' : '')); PENDING.delete(id); sendHand(); STAT.p++;
-  if (right) { STAT.c++; sfx('good'); if (!sv.g) grantGold(LIB.gold); if (n >= cap) { const got = await NET.tx('m/cs/' + s, cur => cur ? undefined : 1); if (got) { await NET.tx('m/stars', v => (v | 0) + 1); NET.tx('m/starAll', v => (v | 0) + 1); sfx('star'); reward('⭐ 칸 완성! 별 +1'); } } }
-  else { sfx('bad'); if (!quiet) notice(`🟥 ${LIB.secs[LIB.prods[pi].sec].n} 상품은 여기(${LIB.secs[LIB.slots[s].sec].n})가 아니에요`, 2000); }
+  if (right) { STAT.c++; sfx('good'); if (done) { const got = await NET.tx('m/cs/' + s, cur => cur ? undefined : 1); if (got) { await NET.tx('m/stars', v => (v | 0) + 1); NET.tx('m/starAll', v => (v | 0) + 1); sfx('star'); reward('⭐ 칸 완성! 별 +1'); } } }
+  else { sfx('bad'); if (!quiet) notice(`🟥 ${LIB.secs[Pp.sec].n} 상품은 여기(${LIB.secs[sl.sec].n})가 아니에요`, 2000); }
   return true;
 }
 function grantGold(base) {
   let mul = 1; for (const k of STK) if (k.e === 'mul' && stkN(k.id) && Math.random() * 100 < k.v) mul = Math.max(mul, k.x);
-  const amt = base * mul; NET.tx('m/gold', v => (v | 0) + amt); reward(mul > 1 ? `💰 +${won(amt)} <small>(${mul}배!)</small>` : `+${won(amt)}`);
+  const amt = base * mul; NET.tx('m/gold', v => (v | 0) + amt); if (mul > 1) reward(`💰 +${won(amt)} <small>(${mul}배!)</small>`); return { amt, mul };
+}
+// ════════════ 손맛: 집기·진열 비행 연출(원작 0.3초) · 반짝임 · +알바비 글자 · 발로 차기 ════════════
+const ANIM = [], ANIM_HIDE = new Map(); let animN = 0;   // ANIM_HIDE: 날아가는 중인 상품 → 실제 자리에서는 숨김
+const ease = t => 1 - Math.pow(1 - t, 3);
+const PZ = () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() });
+function poseOfMatrix(m) { const r = PZ(); m.decompose(r.p, r.q, r.s); return r; }
+function handWorld(Pp) {   // 손에 든 상품이 보이는 자리(카메라 기준)를 세계 좌표로
+  const mx = Math.max(Pp.w, Pp.h, Pp.d), sc = (.14 + mx * .4) / mx; cam.updateMatrixWorld();
+  EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(Pp.w * sc, Pp.h * sc, Pp.d * sc);
+  return poseOfMatrix(new THREE.Matrix4().compose(V1, QQ, V2).premultiply(cam.matrixWorld));
+}
+function slotPose(sl, Pp, k) { const r = slotItemPos(sl, Pp, k); return { p: new THREE.Vector3(r.p[0], r.p[1], r.p[2]), q: r.q, s: new THREE.Vector3(Pp.w, Pp.h, Pp.d) }; }
+function flyAnim(id, from, to, dur, onEnd, arc = 1) {   // to = 포즈 또는 (손처럼 움직이는 목표라면) 포즈를 돌려주는 함수
+  const m = soloMesh(id, 'a' + (animN++ % 12)); ANIM_HIDE.set(id, (ANIM_HIDE.get(id) || 0) + 1); markItem(id); handDirty = true;
+  ANIM.push({ id, m, from, to, t: 0, dur, onEnd, arc });
+}
+function tickAnims(dt) {
+  for (let i = ANIM.length - 1; i >= 0; i--) {
+    const A = ANIM[i]; A.t += dt; const k = Math.min(1, A.t / A.dur), e = ease(k), to = typeof A.to === 'function' ? A.to() : A.to;
+    V1.lerpVectors(A.from.p, to.p, e); V1.y += Math.sin(k * Math.PI) * .1 * A.arc; QQ.slerpQuaternions(A.from.q, to.q, e); V2.lerpVectors(A.from.s, to.s, e);
+    A.m.setMatrixAt(0, M4.compose(V1, QQ, V2)); A.m.instanceMatrix.needsUpdate = true; A.m.visible = true;
+    if (k >= 1) { ANIM.splice(i, 1); A.m.visible = false; const n = (ANIM_HIDE.get(A.id) || 1) - 1; if (n > 0) ANIM_HIDE.set(A.id, n); else ANIM_HIDE.delete(A.id); markItem(A.id); handDirty = true; if (A.onEnd) A.onEnd(); }
+  }
+}
+// 반짝임(원작: 맞게 넣으면 상품이 빛남) · 떠오르는 글자
+const FX = [];
+const starTex = tex(64, 64, x => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,244,170,.9)'); g.addColorStop(1, 'rgba(255,220,90,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); x.fillStyle = '#fff'; x.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, r = i % 2 ? 5 : 31; x.lineTo(32 + Math.cos(a) * r, 32 + Math.sin(a) * r); } x.fill(); });
+function sparkle(p, big) {
+  for (let i = 0; i < (big ? 16 : 9); i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: big ? '#ffe070' : '#fff8d0' })), a = Math.random() * 6.283;
+    s.position.copy(p); s.scale.setScalar((big ? .1 : .065) * (.7 + Math.random() * .6)); s.userData = { v: new THREE.Vector3(Math.cos(a) * .55, .45 + Math.random() * .8, Math.sin(a) * .55).multiplyScalar(big ? 1.5 : 1), life: .55 + Math.random() * .2, g: 2.4 };
+    scene.add(s); FX.push(s);
+  }
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.05, .075, 24), new THREE.MeshBasicMaterial({ color: big ? '#ffd84a' : '#ffffff', transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+  ring.position.copy(p); ring.lookAt(cam.position); ring.userData = { v: new THREE.Vector3(), life: .4, grow: big ? 3.4 : 2.4, a: .7 }; scene.add(ring); FX.push(ring);
+}
+const TXT = {};
+function floatText(p, str, col) {
+  const key = str + col, t = TXT[key] || (TXT[key] = tex(320, 72, (x, w, h) => { x.font = '44px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 8; x.strokeStyle = 'rgba(16,28,34,.9)'; x.strokeText(str, w / 2, h / 2); x.fillStyle = col; x.fillText(str, w / 2, h / 2); }));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); s.position.copy(p); s.position.y += .1; s.scale.set(.44, .1, 1); s.renderOrder = 997;
+  s.userData = { v: new THREE.Vector3(0, .32, 0), life: 1.1, text: 1 }; scene.add(s); FX.push(s);
+}
+function tickFx(dt) {
+  for (let i = FX.length - 1; i >= 0; i--) {
+    const s = FX[i], u = s.userData; u.life -= dt; s.position.addScaledVector(u.v, dt); if (u.g) u.v.y -= u.g * dt; if (u.grow) s.scale.multiplyScalar(1 + u.grow * dt);
+    s.material.opacity = clamp(u.life / (u.text ? .45 : .3), 0, 1) * (u.a || 1);
+    if (u.life <= 0) { scene.remove(s); s.material.dispose(); if (s.geometry && !s.isSprite) s.geometry.dispose(); FX.splice(i, 1); }
+  }
+}
+// 발로 차기: 걸어가다 발에 걸린 바닥 상품을 물리로 굴림 (달리면 더 멀리)
+const KICKED = new Map();
+function kickItems(dx, dz, dt) {
+  if (!PWD || ACT.size > 90 || P.crouch > .5 || !P.ground) return; const d = Math.hypot(dx, dz), sp = d / dt; if (sp < 1.2) return;
+  if (gridDirty) rebuildGrid(); const now = performance.now(), ux = dx / d, uz = dz / d; let n = 0;
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+    const a = GRID.get(gk(P.x + i, P.z + j)); if (!a) continue;
+    for (const id of a) {
+      if (n >= 2 || ACT.has(id) || PENDING.has(id) || MV[id] || ANIM_HIDE.has(id) || (KICKED.get(id) || 0) > now) continue;
+      const s = st(id); if (s.w !== 'f' || s.y > P.y + .4) continue;
+      const Pp = prodOf(id), r = PW + Math.max(Pp.w, Pp.d) * .4, ox = s.x - P.x, oz = s.z - P.z; if (ox * ox + oz * oz > r * r || ox * ux + oz * uz < -.02) continue;
+      const f = .5 + Math.random() * .4, A = addBody(id, {});
+      A.b.setLinvel({ x: ux * sp * f + ox * 2, y: .5 + Math.random() * .9 + sp * .08, z: uz * sp * f + oz * 2 }, true); A.b.setAngvel({ x: (Math.random() - .5) * 12, y: (Math.random() - .5) * 8, z: (Math.random() - .5) * 12 }, true);
+      KICKED.set(id, now + 700); n++;
+    }
+  }
+  if (n) sfx('kick');
 }
 // ════════════ 물리 (Rapier): 쏟아진 더미 · 던지기 · 떨어뜨리기 · 쌓이고 굴러감 ════════════
 // 멈춰 있는 상품은 물리 세계에 넣지 않고, 사건이 난 곳 주변만 잠깐 물리 몸체로 깨워 시뮬레이션 → 다 멈추면 새 자세를 저장
@@ -703,7 +777,7 @@ function settleAll() {   // 다 멈췄으면 움직인 상품만 새 자세로 �
 function dunkCheck() {   // 덩크슛: 던진 상품이 맞는 구역의 받아 줄 칸에 들어가면 바로 진열
   for (const A of ACT.values()) {
     if (!A.dunk) continue; const t = A.b.translation(), P = prodOf(A.id);
-    for (const sl of LIB.slots) { const b = SLOTBOX[sl.s]; if (t.x > b[0] && t.x < b[3] && t.y > b[1] && t.y < b[4] && t.z > b[2] && t.z < b[5] && sl.sec === P.sec && accepts(sl.s, P.i)) { ACT.delete(A.id); PWD.removeRigidBody(A.b); placeItem(A.id, sl.s, true).then(ok => { if (ok) reward('🏀 덩크슛!'); else landAt(A.id, t.x, t.y, t.z); }); break; } }
+    for (const sl of LIB.slots) { const b = SLOTBOX[sl.s]; if (t.x > b[0] && t.x < b[3] && t.y > b[1] && t.y < b[4] && t.z > b[2] && t.z < b[5] && sl.sec === P.sec && accepts(sl.s, P.i)) { const q = A.b.rotation(), from = { p: new THREE.Vector3(t.x, t.y, t.z), q: new THREE.Quaternion(q.x, q.y, q.z, q.w), s: new THREE.Vector3(P.w, P.h, P.d) }; ACT.delete(A.id); PWD.removeRigidBody(A.b); placeItem(A.id, sl.s, true, from).then(ok => { if (ok) reward('🏀 덩크슛!'); else landAt(A.id, t.x, t.y, t.z); }); break; } }
   }
 }
 function landAt(id, x, y, z) { const s = st(id); addBody(id, { pose: { x, y: y + .05, z, qx: 0, qy: 0, qz: 0, qw: 1, g: s.g } }); }
@@ -1005,7 +1079,7 @@ function frame(dt) {
   if (LIB) {
     if (locked) moveP(dt); else camPose(false);
     for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; const f = Math.min(1, dt * 10); O.mesh.position.x += (O.tx - O.mesh.position.x) * f; O.mesh.position.y += (O.ty - O.mesh.position.y) * f; O.mesh.position.z += (O.tz - O.mesh.position.z) * f; O.mesh.rotation.y = O.tyaw; }
-    tickSkills(dt); stepPhysics(dt); flushItems(); flushTags(); handView(); aimUpdate(); drawPings(); sendPos(dt); if (!NET.solo) sendStat(dt);
+    tickSkills(dt); stepPhysics(dt); tickAnims(dt); tickFx(dt); flushItems(); flushTags(); handView(); aimUpdate(); drawPings(); sendPos(dt); if (!NET.solo) sendStat(dt);
     const t = performance.now() / 1000;
     if (cleared() && TARGETS.door) TARGETS.door.glass.material.emissiveIntensity = .4 + .35 * Math.sin(t * 4);
     if (cleared() && !shown.clear) { shown.clear = 1; sfx('win'); notice('✨ 모든 상품을 진열했어요! <b>출입문</b>으로 가서 퇴근하세요', 6000); }
@@ -1020,7 +1094,7 @@ let handMesh = null;
 function handView() {
   if (!handDirty) return; handDirty = false;
   for (const k in SOLO_MESH) if (k.endsWith('|hand')) SOLO_MESH[k].visible = false;
-  if (!P.hand.length) return; const id = P.hand[0], Pp = prodOf(id), m = soloMesh(id, 'hand'), mx = Math.max(Pp.w, Pp.h, Pp.d), sc = (.14 + mx * .4) / mx;
+  if (!P.hand.length || ANIM_HIDE.has(P.hand[0])) return; const id = P.hand[0], Pp = prodOf(id), m = soloMesh(id, 'hand'), mx = Math.max(Pp.w, Pp.h, Pp.d), sc = (.14 + mx * .4) / mx;
   EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(Pp.w * sc, Pp.h * sc, Pp.d * sc); m.setMatrixAt(0, M4.compose(V1, QQ, V2)); m.instanceMatrix.needsUpdate = true; handMesh = m;
 }
 requestAnimationFrame(loop);
@@ -1032,8 +1106,8 @@ async function solve(n = 10) {
     const Sx = status(), pi = it.p, own = (Sx.byProd[pi] || []).find(q => accepts(q, pi) && LIB.slots[q].sec === LIB.prods[pi].sec);
     const target = own ?? LIB.slots.find(sl => sl.sec === LIB.prods[pi].sec && !Sx.slot[sl.s] && !slotIds(sl.s).length)?.s; if (target == null) continue;
     if (s.w === 's') { await NET.tx('sl/' + s.s, cur => { const a = cur ? String(cur).split(',').map(Number).filter(x => x !== it.id) : []; return a.length ? a.join(',') : null; }); }
-    if (await placeItem(it.id, target, true)) done++;
+    if (await placeItem(it.id, target, true, false)) done++;
   }
   return done;
 }
-window.mart = { ACTsize: () => ACT.size, frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
+window.mart = { ACTsize: () => ACT.size, fx: () => ({ anim: ANIM.length, fx: FX.length }), kick: (dx, dz, dt) => kickItems(dx, dz, dt), frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
