@@ -14,3 +14,6 @@ o2jam/src/
 # 업데이트한 기존 두 곡
 !o2jam/ghost.mp3
 !o2jam/xmas.mp3
+
+# 원작 모델(로컬 전용, 공개 저장소에 올리지 않음)
+mart/orig/

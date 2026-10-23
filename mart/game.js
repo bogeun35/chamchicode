@@ -54,7 +54,7 @@ const slotBox = sl => { const g = sl.g; return lbox(sl, -g.hw, g.by, g.z0 - .05,
 function buildMart(key, seed) {
   const M = window.MART_MAPS[key], R = rng(seed);
   // 원작은 입구가 +z 쪽 → 180° 돌려 입구를 -z(앞)로
-  const slots = M.slots.map((s, i) => ({ s: i, sh: s.sh, o: [-s.o[0], s.o[1], -s.o[2]], yaw: M.shelves[s.sh].yaw + Math.PI, g: s.g, sec: M.shelves[s.sh].sec, type: M.shelves[s.sh].type }));
+  const slots = M.slots.map((s, i) => ({ s: i, sh: s.sh, o: [-s.o[0], s.o[1], -s.o[2]], yaw: (s.yaw != null ? s.yaw : M.shelves[s.sh].yaw) + Math.PI, g: s.g, sec: M.shelves[s.sh].sec, type: M.shelves[s.sh].type }));
   const secs = {}; for (const k in M.secs) { const [n, col, ic] = M.secs[k]; secs[k] = { k, n, col, ic, st: hashS(k) % 5 }; }
   const prods = M.prods.map((p, i) => {
     const r2 = rng(hashS(p.n) ^ seed), produce = String(p.ic).startsWith('#'), S = secs[p.sec] || { col: '#888888' };
@@ -289,7 +289,7 @@ function buildStore() {
     const below = rel.some(([o, r]) => Math.abs(r[0]) < g.hw && Math.abs(r[2]) < .7 && r[1] < -.05), above = rel.some(([o, r]) => Math.abs(r[0]) < g.hw && Math.abs(r[2]) < .7 && r[1] > .05);
     const left = rel.some(([o, r]) => Math.abs(r[1]) < .05 && Math.abs(r[2]) < .3 && r[0] < -.05 && r[0] > -2.2 * g.hw), right = rel.some(([o, r]) => Math.abs(r[1]) < .05 && Math.abs(r[2]) < .3 && r[0] > .05 && r[0] < 2.2 * g.hw);
     const z0 = g.z0 - .04, z1 = g.z1 + .02, bot = below ? g.by - .03 : 0, top = g.by + g.h + (above ? 0 : .04), L = (x0, y0, zz0, x1, y1, zz1) => lbox(sl, x0, y0, zz0, x1, y1, zz1);
-    const add = (b, c, phys = 1) => { SB.push({ b, c }); OCC.push(b); if (phys) PHYS.push(b); };
+    const add = (b, c, phys = 1) => { if (!ORIG) SB.push({ b, c }); OCC.push(b); if (phys) PHYS.push(b); };
     add(L(-g.hw, g.by - .025, z0, g.hw, g.by, z1), frozen ? '#e4f2fa' : '#f6f6f4');   // 판
     add(L(-g.hw, g.by - .06, z1, g.hw, g.by, z1 + .016), shade(Sx.col, .3));          // 가격표 레일 (구역 색)
     backs.push([sl, L(-g.hw, bot, z0 - .03, g.hw, top, z0)]);                           // 뒤판
@@ -297,11 +297,11 @@ function buildStore() {
     if (!right) add(L(g.hw, bot, z0 - .03, g.hw + .03, top, z1 + .02), '#eef0f0');
     if (!below) { add(L(-g.hw, 0, z0, g.hw, Math.max(.02, g.by - .03), z1), '#4a5054'); add(L(-g.hw, .02, z1, g.hw, Math.min(.12, Math.max(.03, g.by - .04)), z1 + .012), Sx.col, 0); }
     if (!above) add(L(-g.hw - .03, top - .04, z0 - .03, g.hw + .03, top, z1 + .02), '#dfe4e6');
-    if (frozen && !above) SBL.push({ b: L(-g.hw + .02, top - .05, z1 - .02, g.hw - .02, top - .04, z1), c: '#bfe8ff' });
+    if (frozen && !above && !ORIG) SBL.push({ b: L(-g.hw + .02, top - .05, z1 - .02, g.hw - .02, top - .04, z1), c: '#bfe8ff' });
     solids.push(L(-g.hw - .03, 0, z0 - .03, g.hw + .03, top, z1 + .02));
   }
   const slatM = new THREE.MeshStandardMaterial({ map: slat, roughness: .6 });
-  for (const [sl, b] of backs) { const m = new THREE.Mesh(new THREE.BoxGeometry(b[3] - b[0], b[4] - b[1], b[5] - b[2]), slatM); m.position.set((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2); scene.add(m); OCC.push(b); PHYS.push(b); }
+  for (const [sl, b] of backs) { if (!ORIG) { const m = new THREE.Mesh(new THREE.BoxGeometry(b[3] - b[0], b[4] - b[1], b[5] - b[2]), slatM); m.position.set((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2); scene.add(m); } OCC.push(b); PHYS.push(b); }
   // 구역 간판: 선반마다 위에 (앞쪽을 보게)
   for (const sh of LIB.shelves) {
     const ss = sh.slots.map(j => LIB.slots[j]); if (!ss.length) continue; const sl0 = ss[0];
@@ -322,6 +322,34 @@ function nightTex() { return tex(1024, 384, (x, w, h) => { const g = x.createLin
 function cigTex() { return tex(512, 256, (x, w, h) => { x.fillStyle = '#3a3430'; x.fillRect(0, 0, w, h); const r = rng(8), cs = ['#ffffff', '#1a3a8a', '#c82a2a', '#e8c84a', '#2a6a3a', '#d8d8d8', '#6a2a8a', '#1a1a1a']; for (let row = 0; row < 7; row++) for (let k = 0; k < 16; k++) { const c = cs[Math.floor(r() * cs.length)]; x.fillStyle = c; x.fillRect(6 + k * 31.5, 8 + row * 35, 26, 28); x.fillStyle = lum(c) > .5 ? cs[1 + Math.floor(r() * 4)] : '#ffffff'; x.fillRect(6 + k * 31.5, 8 + row * 35 + 18, 26, 4); } x.fillStyle = '#ffffff'; for (let row = 0; row < 7; row++) x.fillRect(0, 36 + row * 35, w, 2); }); }
 let popT = null; const POP = () => popT || (popT = tex(256, 160, (x, w, h) => { x.fillStyle = '#ffd84a'; x.beginPath(); x.moveTo(20, 0); x.lineTo(w - 20, 0); x.quadraticCurveTo(w, 0, w, 20); x.lineTo(w, h - 20); x.quadraticCurveTo(w, h, w - 20, h); x.lineTo(20, h); x.quadraticCurveTo(0, h, 0, h - 20); x.lineTo(0, 20); x.quadraticCurveTo(0, 0, 20, 0); x.fill(); x.fillStyle = '#c82a1a'; x.font = '78px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('1+1', w / 2, 66); x.font = '34px Jua, sans-serif'; x.fillStyle = '#1e2a30'; x.fillText('행사 상품', w / 2, 126); }));
 const SIGNS = {}, SIGNM = {}; const SIGN = k => SIGNS[k] || (SIGNS[k] = signTex((LIB.secs[k] || {}).n || k, '', (LIB.secs[k] || {}).col || '#888888', (LIB.secs[k] || {}).ic || '📦'));
+
+// ════════════ 원작 모델 (로컬 전용): mart/orig/manifest.json 이 있으면 상품·진열대를 원작 메시로 그림 (공개 저장소엔 없음 → 없으면 직접 만든 모델) ════════════
+let ORIG = null;
+const dimsOf = P => ORIG && ORIG.prods[P.i] ? [1, 1, 1] : [P.w, P.h, P.d];
+async function loadOrig(key, onProg) {
+  if (/[?&]noorig/.test(location.search)) return null;   // ?noorig = 원작 모델 없이(공개 버전 모습) 보기
+  try {
+    const r = await fetch('mart/orig/manifest.json', { cache: 'no-store' }); if (!r.ok) return null;
+    const man = await r.json(), M = man.maps && man.maps[key]; if (!M) return null;
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js'); const loader = new GLTFLoader(); loader.setPath('mart/orig/'); const bust = '?v=' + Date.now();
+    const cache = {}, V = new THREE.Vector3(), B = new THREE.Box3();
+    const load = file => cache[file] || (cache[file] = new Promise(ok => loader.load(file + bust, g => {
+      const parts = [], mats = []; g.scene.updateMatrixWorld(true);
+      g.scene.traverse(o => { if (!o.isMesh) return; const geo = o.geometry.clone().applyMatrix4(o.matrixWorld); for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k); if (!geo.attributes.normal) geo.computeVertexNormals(); if (!geo.attributes.uv) geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2)); const ms = Array.isArray(o.material) ? o.material : [o.material]; if (geo.groups.length && ms.length > 1) { for (const gr of geo.groups) { const sub = geo.clone(); sub.setDrawRange(gr.start, gr.count); const ix = geo.index ? geo.index.array.slice(gr.start, gr.start + gr.count) : null; const g2 = ix ? new THREE.BufferGeometry() : sub; if (ix) { g2.setAttribute('position', geo.attributes.position); g2.setAttribute('normal', geo.attributes.normal); g2.setAttribute('uv', geo.attributes.uv); g2.setIndex(new THREE.BufferAttribute(ix, 1)); } parts.push(g2.toNonIndexed ? g2.toNonIndexed() : g2); mats.push(ms[gr.materialIndex] || ms[0]); } } else { geo.clearGroups(); parts.push(geo.index ? geo.toNonIndexed() : geo); mats.push(ms[0]); } });
+      if (!parts.length) return ok(null);
+      const merged = mergeGeometries(parts, true); for (const m of mats) { m.side = THREE.DoubleSide; if (m.map) { m.map.colorSpace = THREE.SRGBColorSpace; m.map.anisotropy = 4; } }
+      ok({ geo: merged, mats });
+    }, undefined, () => ok(null))));
+    const prods = [], shelves = []; let n = 0; const total = M.prods.length + M.shelves.length;
+    for (let i = 0; i < M.prods.length; i++) { const p = M.prods[i]; let r2 = null; if (p.file) { const g = await load(p.file); if (g) { const geo = g.geo.clone(); geo.rotateY(-p.ang); geo.computeBoundingBox(); geo.boundingBox.getCenter(V); geo.translate(-V.x, -V.y, -V.z); r2 = { geo, mats: g.mats }; } } prods.push(r2); if (onProg && ++n % 20 === 0) onProg(n / total); }
+    for (let i = 0; i < M.shelves.length; i++) { const s = M.shelves[i]; shelves.push(s.file ? await load(s.file) : null); if (onProg && ++n % 10 === 0) onProg(n / total); }
+    return { prods, shelves, n: prods.filter(Boolean).length };
+  } catch (e) { console.warn('원작 모델 없음/실패', e); return null; }
+}
+function buildOrigShelves() {   // 원작 진열대 메시를 선반 자리에 (원작은 입구가 +z → 180° 돌려 놓음)
+  if (!ORIG) return;
+  LIB.shelves.forEach((sh, i) => { const g = ORIG.shelves[i]; if (!g || !sh.pos) return; const m = new THREE.Mesh(g.geo, g.mats); m.position.set(-sh.pos[0], sh.pos[1], -sh.pos[2]); m.rotation.y = sh.yaw + Math.PI; scene.add(m); });
+}
 
 // ════════════ 상품 그리기: 모양별 정교한 단위 형상 + 아틀라스(포장 그림) + 인스턴스 uv ════════════
 // 모든 상품을 모양 × 아틀라스 장 단위의 InstancedMesh 몇 개로 그림 (원작 4653개도 가볍게)
@@ -425,8 +453,9 @@ function buildItems() {
     t.anisotropy = 4; MATS.push(uvPatch(new THREE.MeshStandardMaterial({ map: t, roughness: .45, metalness: 0 })));
   }
   const groups = {};
-  for (const it of LIB.items) { const P = LIB.prods[it.p], [gk] = geoOf(P.sh), key = gk + '|' + Math.floor(P.i / ATL.per); (groups[key] = groups[key] || []).push(it.id); }
+  for (const it of LIB.items) { const P = LIB.prods[it.p]; let key; if (ORIG && ORIG.prods[P.i]) key = 'orig:' + P.i; else { const [gk] = geoOf(P.sh); key = gk + '|' + Math.floor(P.i / ATL.per); } (groups[key] = groups[key] || []).push(it.id); }
   for (const key in groups) {
+    if (key.startsWith('orig:')) { const O = ORIG.prods[+key.slice(5)], ids = groups[key], mesh = new THREE.InstancedMesh(O.geo, O.mats, ids.length); ids.forEach((id, i) => { ITEM_MESH[id] = [key, i]; }); mesh.frustumCulled = false; scene.add(mesh); IM[key] = { mesh, ids, uv: null }; continue; }
     const [gk, pg] = key.split('|'), ids = groups[key], mesh = new THREE.InstancedMesh(GEO[gk], MATS[+pg], ids.length), uv = new Float32Array(ids.length * 4);
     ids.forEach((id, i) => { const P = LIB.prods[LIB.items[id].p], k = P.i % ATL.per, cx = (k % (ATL.S / ATL.C)) * ATL.C, cy = Math.floor(k / (ATL.S / ATL.C)) * ATL.C; uv.set([(cx + 2) / ATL.S, 1 - (cy + ATL.C - 2) / ATL.S, (ATL.C - 4) / ATL.S, (ATL.C - 4) / ATL.S], i * 4); ITEM_MESH[id] = [key, i]; });
     mesh.geometry = mesh.geometry.clone(); mesh.geometry.setAttribute('aUv', new THREE.InstancedBufferAttribute(uv, 4));
@@ -445,8 +474,8 @@ const HIDE = new THREE.Matrix4().makeScale(0, 0, 0), M4 = new THREE.Matrix4(), Q
 const SOLO_MESH = {};   // 'geo|page|용도' → 인스턴스 1개짜리 메시 (손에 든 상품)
 function soloMesh(id, use) {
   const [key, i] = ITEM_MESH[id], src = IM[key], k = key + '|' + use;
-  let m = SOLO_MESH[k]; if (!m) { const g = src.mesh.geometry.clone(); g.setAttribute('aUv', new THREE.InstancedBufferAttribute(new Float32Array(4), 4)); m = SOLO_MESH[k] = new THREE.InstancedMesh(g, src.mesh.material, 1); m.frustumCulled = false; (use === 'hand' ? cam : scene).add(m); }
-  m.geometry.attributes.aUv.array.set(src.uv.subarray(i * 4, i * 4 + 4)); m.geometry.attributes.aUv.needsUpdate = true; m.visible = true; return m;
+  let m = SOLO_MESH[k]; if (!m) { const g = src.uv ? src.mesh.geometry.clone() : src.mesh.geometry; if (src.uv) g.setAttribute('aUv', new THREE.InstancedBufferAttribute(new Float32Array(4), 4)); m = SOLO_MESH[k] = new THREE.InstancedMesh(g, src.mesh.material, 1); m.frustumCulled = false; (use === 'hand' ? cam : scene).add(m); }
+  if (src.uv) { m.geometry.attributes.aUv.array.set(src.uv.subarray(i * 4, i * 4 + 4)); m.geometry.attributes.aUv.needsUpdate = true; } m.visible = true; return m;
 }
 
 // ── 상태 읽기: 'f,x,y,z,qx,qy,qz,qw' 바닥(물리로 멈춘 자세, 상품 중심) · 'h,플레이어' 손 · 's,칸' 진열 (끝에 ',g' = 알바비 받음) ──
@@ -459,7 +488,7 @@ const prodOf = id => LIB.prods[LIB.items[id].p];
 const dirtyP = new Set(); let tagsDirty = true, gridDirty = true, STATUS = null;
 function itemMatrix(id) {
   if (ANIM_HIDE.has(id) || POUR.pending.has(id)) return HIDE;
-  const P = prodOf(id); V2.set(P.w, P.h, P.d);
+  const P = prodOf(id); V2.set(...dimsOf(P));
   const PB = POUR.bodies.get(id); if (PB) { const t = PB.translation(), q = PB.rotation(); V1.set(t.x, t.y, t.z); QQ.set(q.x, q.y, q.z, q.w); return M4.compose(V1, QQ, V2); }
   const A = ACT.get(id); if (A) { const t = A.b.translation(), q = A.b.rotation(); V1.set(t.x, t.y, t.z); QQ.set(q.x, q.y, q.z, q.w); return M4.compose(V1, QQ, V2); }
   if (MV[id]) { const a = MV[id].split(',').map(Number); V1.set(a[0], a[1], a[2]); QQ.set(a[3], a[4], a[5], a[6]); return M4.compose(V1, QQ, V2); }
@@ -663,10 +692,10 @@ const PZ = () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new TH
 function poseOfMatrix(m) { const r = PZ(); m.decompose(r.p, r.q, r.s); return r; }
 function handWorld(Pp) {   // 손에 든 상품이 보이는 자리(카메라 기준)를 세계 좌표로
   const mx = Math.max(Pp.w, Pp.h, Pp.d), sc = (.14 + mx * .4) / mx; cam.updateMatrixWorld();
-  EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(Pp.w * sc, Pp.h * sc, Pp.d * sc);
+  const dd = dimsOf(Pp); EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(dd[0] * sc, dd[1] * sc, dd[2] * sc);
   return poseOfMatrix(new THREE.Matrix4().compose(V1, QQ, V2).premultiply(cam.matrixWorld));
 }
-function slotPose(sl, Pp, k) { const r = slotItemPos(sl, Pp, k); return { p: new THREE.Vector3(r.p[0], r.p[1], r.p[2]), q: r.q, s: new THREE.Vector3(Pp.w, Pp.h, Pp.d) }; }
+function slotPose(sl, Pp, k) { const r = slotItemPos(sl, Pp, k); return { p: new THREE.Vector3(r.p[0], r.p[1], r.p[2]), q: r.q, s: new THREE.Vector3(...dimsOf(Pp)) }; }
 function flyAnim(id, from, to, dur, onEnd, arc = 1) {   // to = 포즈 또는 (손처럼 움직이는 목표라면) 포즈를 돌려주는 함수
   const m = soloMesh(id, 'a' + (animN++ % 12)); ANIM_HIDE.set(id, (ANIM_HIDE.get(id) || 0) + 1); markItem(id); handDirty = true;
   ANIM.push({ id, m, from, to, t: 0, dur, onEnd, arc });
@@ -781,7 +810,7 @@ function settleAll() {   // 다 멈췄으면 움직인 상품만 새 자세로 �
 function dunkCheck() {   // 덩크슛: 던진 상품이 맞는 구역의 받아 줄 칸에 들어가면 바로 진열
   for (const A of ACT.values()) {
     if (!A.dunk) continue; const t = A.b.translation(), P = prodOf(A.id);
-    for (const sl of LIB.slots) { const b = SLOTBOX[sl.s]; if (t.x > b[0] && t.x < b[3] && t.y > b[1] && t.y < b[4] && t.z > b[2] && t.z < b[5] && sl.sec === P.sec && accepts(sl.s, P.i)) { const q = A.b.rotation(), from = { p: new THREE.Vector3(t.x, t.y, t.z), q: new THREE.Quaternion(q.x, q.y, q.z, q.w), s: new THREE.Vector3(P.w, P.h, P.d) }; ACT.delete(A.id); PWD.removeRigidBody(A.b); placeItem(A.id, sl.s, true, from).then(ok => { if (ok) reward('🏀 덩크슛!'); else landAt(A.id, t.x, t.y, t.z); }); break; } }
+    for (const sl of LIB.slots) { const b = SLOTBOX[sl.s]; if (t.x > b[0] && t.x < b[3] && t.y > b[1] && t.y < b[4] && t.z > b[2] && t.z < b[5] && sl.sec === P.sec && accepts(sl.s, P.i)) { const q = A.b.rotation(), from = { p: new THREE.Vector3(t.x, t.y, t.z), q: new THREE.Quaternion(q.x, q.y, q.z, q.w), s: new THREE.Vector3(...dimsOf(P)) }; ACT.delete(A.id); PWD.removeRigidBody(A.b); placeItem(A.id, sl.s, true, from).then(ok => { if (ok) reward('🏀 덩크슛!'); else landAt(A.id, t.x, t.y, t.z); }); break; } }
   }
 }
 function landAt(id, x, y, z) { const s = st(id); addBody(id, { pose: { x, y: y + .05, z, qx: 0, qy: 0, qz: 0, qw: 1, g: s.g } }); }
@@ -1158,8 +1187,9 @@ async function startGame(o) {
   $('home').classList.add('hide'); $('lobby').classList.add('hide'); $('loading').classList.remove('hide'); const ld = t => { $('ldTxt').textContent = t; };
   ld('원작 매장 배치를 불러오는 중…'); await loadMap(o.map);
   LIB = buildMart(o.map, o.seed); ST_T0 = o.t0; OPT.easy = !!o.easy;
+  ld('원작 모델을 찾는 중…'); ORIG = await loadOrig(o.map, f => ld(`원작 모델 불러오는 중… ${Math.round(f * 100)}%`)); if (ORIG) toast(`원작 모델 사용 (로컬 전용): 상품 ${ORIG.n}종`, 3000);
   ld('진열대를 세우는 중…'); await new Promise(r => setTimeout(r, 30));
-  for (const sl of LIB.slots) SLOTBOX[sl.s] = slotBox(sl); buildStore(); buildItems();
+  for (const sl of LIB.slots) SLOTBOX[sl.s] = slotBox(sl); buildStore(); buildOrigShelves(); buildItems();
   ld('물리 엔진을 켜는 중…'); await initPhysics();
   try { if (localStorage.getItem('mt_tut') === '1') TUTI = TUT.length; } catch (e) {}
   if (o.prep) startPour();   // 방장(혼자 하기 포함): 깔끔봇이 상품을 쏟아붓는 연출로 바로 시작 (떨어진 자리를 저장해 모두 같은 더미)
@@ -1206,7 +1236,7 @@ function handView() {
   if (!handDirty) return; handDirty = false;
   for (const k in SOLO_MESH) if (k.endsWith('|hand')) SOLO_MESH[k].visible = false;
   if (!P.hand.length || ANIM_HIDE.has(P.hand[0])) return; const id = P.hand[0], Pp = prodOf(id), m = soloMesh(id, 'hand'), mx = Math.max(Pp.w, Pp.h, Pp.d), sc = (.14 + mx * .4) / mx;
-  EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(Pp.w * sc, Pp.h * sc, Pp.d * sc); m.setMatrixAt(0, M4.compose(V1, QQ, V2)); m.instanceMatrix.needsUpdate = true; handMesh = m;
+  const dd = dimsOf(Pp); EE.set(.15, -.5, 0); QQ.setFromEuler(EE); V1.set(.3, -.27, -.55); V2.set(dd[0] * sc, dd[1] * sc, dd[2] * sc); m.setMatrixAt(0, M4.compose(V1, QQ, V2)); m.instanceMatrix.needsUpdate = true; handMesh = m;
 }
 requestAnimationFrame(loop);
 // 테스트용: 순서대로 맞는 칸에 바로 넣기 (손을 거치지 않음)
@@ -1221,4 +1251,4 @@ async function solve(n = 10) {
   }
   return done;
 }
-window.mart = { ACTsize: () => ACT.size, POUR, SEC_LIT, SIGNM, get TUTI() { return TUTI; }, COMBO, secProgress, STAT, fx: () => ({ anim: ANIM.length, fx: FX.length }), kick: (dx, dz, dt) => kickItems(dx, dz, dt), frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
+window.mart = { get ORIG() { return ORIG; }, ACTsize: () => ACT.size, POUR, SEC_LIT, SIGNM, get TUTI() { return TUTI; }, COMBO, secProgress, STAT, fx: () => ({ anim: ANIM.length, fx: FX.length }), kick: (dx, dz, dt) => kickItems(dx, dz, dt), frame: (dt = .016) => frame(dt), get LIB() { return LIB; }, IT, SL, ST, P, NET: () => NET, status: () => { STATUS = null; return status(); }, pickItem, takeFromSlot, placeItem, throwTop, dropAll, useSkill, useAtm, solve, unstick, act, rayPick, get AIM() { return AIM; }, SKILL, openSkills, leave };
