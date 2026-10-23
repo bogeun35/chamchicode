@@ -370,6 +370,9 @@
 firebase.initializeApp({apiKey:"AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM",authDomain:"rolling2-17a8f.firebaseapp.com",databaseURL:"https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"rolling2-17a8f",storageBucket:"rolling2-17a8f.firebasestorage.app",messagingSenderId:"936512265515",appId:"1:936512265515:web:c9cb05f341267af81a796e"});
 const db = firebase.database();
 const rpath = c => `games/zd_${c}`;          // 규칙상 games/ 아래 · zd_ 접두
+// 참가자 입력은 방 밖에 둠 — 방 안에 있으면 한 명이 보낼 때마다(초당 11~25번) 모두가 그걸 받음.
+// 각자 onDisconnect 로 자기 칸을 지우므로 방장이 갑자기 나가도 남지 않음.
+const inpath = c => `games/zd_in_${c}`;
 const idxRef = c => db.ref('games/zd_rooms/' + c);
 const MAX_PLAYERS = 8;
 
@@ -584,6 +587,7 @@ const moveStick = { id: null, bx: 0, by: 0, x: 0, y: 0 };
 const aimStick = { id: null, bx: 0, by: 0, x: 0, y: 0, on: false };
 const mouse = { x: 0, y: 0, down: false, has: false };
 let pendingShots = [];
+let myBullets = [];            // 참가자: 쏘자마자 보이는 내 총알 (판정은 방장이 함)
 let pendingNades = [];
 let hostMoney = {};
 
@@ -1191,8 +1195,8 @@ function roomRef() { return db.ref(rpath(code)); }
 function meRef() { return db.ref(`${rpath(code)}/players/${myKey}`); }
 function encodeState() {
   const n = nowMs();
-  const z = zs.map(o => `${ZTYPES[o.t].ic},${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
-  const b = bullets.map(o => `${o.x | 0},${o.y | 0},${o.px | 0},${o.py | 0}`).join(';');
+  const z = zs.map(o => `${ZTYPES[o.t].ic},${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)},${o.id}`).join(';');
+  const b = bullets.map(o => `${o.x | 0},${o.y | 0},${o.px | 0},${o.py | 0},${o.owner || ''}`).join(';');
   const u = Object.entries(units).map(([k, o]) =>
     `${k},${o.x | 0},${o.y | 0},${o.hp | 0},${o.dead ? 1 : 0},${o.kills},${n - o.swing < 160 ? 1 : 0},${o.down ? 1 : 0},${Math.round((o.bleed || 0) * 99)},${Math.round((o.rev || 0) * 99)},${n - (o.repairing || 0) < 300 ? 1 : 0}`).join(';');
   const t = turrets.map(o => `${o.x | 0},${o.y | 0},${Math.ceil(o.hp / o.maxHp * 9)}`).join(';');
@@ -1209,20 +1213,25 @@ function encodeState() {
 function applyState(s) {
   if (!s || isHost) return;
   const n = nowMs();
-  const prevHp = {};
-  zs.forEach((o, i) => { prevHp[i] = o.hp; });
+  // 좀비는 id 로 짝지어, 화면 위치는 그대로 두고 목표(tx,ty)만 바꿈 → step 에서 부드럽게 따라감
+  // (예전엔 순번으로 짝지어 0.1초마다 순간이동했고, 하나가 죽으면 뒤 좀비들 짝이 어긋났음)
+  const byId = {};
+  zs.forEach((o, i) => { byId[o.id || '#' + i] = o; });
   zs = (s.z || '').split(';').filter(Boolean).map((t, i) => {
-    const [ic, x, y, h] = t.split(',').map(Number);
+    const f = t.split(','), [ic, x, y, h] = f.map(Number), id = f[4] || '#' + i;
     const type = Object.keys(ZTYPES).find(k => ZTYPES[k].ic === ic) || 'walker';
-    const old = zs[i];
-    const z = { t: type, x, y, hp: h, maxHp: 9, r: ZTYPES[type].r, id: '', ph: old ? old.ph : Math.random() * 6.28, face: old ? old.face : 0, flash: old ? old.flash : 0 };
+    const old = byId[id];
+    const near = old && Math.abs(x - old.x) + Math.abs(y - old.y) < 160;
+    const z = { t: type, x: near ? old.x : x, y: near ? old.y : y, tx: x, ty: y, hp: h, maxHp: 9, r: ZTYPES[type].r, id, ph: old ? old.ph : Math.random() * 6.28, face: old ? old.face : 0, flash: old ? old.flash : 0 };
     if (old) {
-      if (Math.abs(x - old.x) + Math.abs(y - old.y) > 0.5) z.face = Math.atan2(y - old.y, x - old.x);
-      if (h < prevHp[i]) { z.flash = n; bloodAt(x, y, 2); }    // 체력이 줄었으면 맞은 것
+      const ox = old.tx !== undefined ? old.tx : old.x, oy = old.ty !== undefined ? old.ty : old.y;
+      if (Math.abs(x - ox) + Math.abs(y - oy) > 0.5) z.face = Math.atan2(y - oy, x - ox);
+      if (h < old.hp) { z.flash = n; bloodAt(x, y, 2); }    // 체력이 줄었으면 맞은 것
     }
     return z;
   });
-  bullets = (s.b || '').split(';').filter(Boolean).map(t => { const [x, y, px, py] = t.split(',').map(Number); return { x, y, px, py, color: '#ffe08a' }; });
+  // 총알: 방장 한 걸음(1/30초) 전 위치(px,py)로 속도를 알아내 다음 상태까지 이어 날림. 내 총알은 내가 그린 것을 씀
+  bullets = (s.b || '').split(';').filter(Boolean).map(t => { const f = t.split(','), [x, y, px, py] = f.map(Number); return { x, y, px, py, vx: (x - px) * 30, vy: (y - py) * 30, age: 0, mine: f[4] === myKey, color: '#ffe08a' }; }).filter(b => !b.mine);
   zshots = (s.sp || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
   turrets = (s.t || '').split(';').filter(Boolean).map(t => { const [x, y, h] = t.split(',').map(Number); return { x, y, hp: h, maxHp: 9 }; });
   mines = (s.m || '').split(';').filter(Boolean).map(t => { const [x, y] = t.split(',').map(Number); return { x, y }; });
@@ -1459,10 +1468,24 @@ function step(dt) {
       u.ammo--;
       const shotSt = { ...st, dmg: st.dmg * (aimMode ? 1.25 : 1) };   // 조준 보너스
       if (isHost) shoot({ ...u, key: myKey }, aimAt, shotSt, '#ffe08a');
-      else pendingShots.push({ x: u.x | 0, y: u.y | 0, tx: aimAt.x | 0, ty: aimAt.y | 0, d: Math.round(shotSt.dmg) });
+      else {
+        pendingShots.push({ x: u.x | 0, y: u.y | 0, tx: aimAt.x | 0, ty: aimAt.y | 0, d: Math.round(shotSt.dmg) });
+        const a0 = Math.atan2(aimAt.y - u.y, aimAt.x - u.x);
+        for (let i = 0; i < st.n; i++) { const a = a0 + rnd(-st.spread, st.spread); myBullets.push({ x: u.x, y: u.y, px: u.x, py: u.y, vx: Math.cos(a) * st.spd, vy: Math.sin(a) * st.spd, life: st.rng / st.spd, pierce: st.pierce, hit: [] }); }
+      }
       Snd.play(st.gun.snd, 0.55);
       fx.push({ t: 'muzzle', x: u.x, y: u.y, a: u.aim, life: 0.07 });
     }
+  }
+  if (!isHost) {
+    const kz = Math.min(1, dt * 12);
+    for (const z of zs) if (z.tx !== undefined) { z.x += (z.tx - z.x) * kz; z.y += (z.ty - z.y) * kz; }
+    for (const b of bullets) if (b.vx !== undefined && b.age < 0.12) { b.age += dt; b.px = b.x; b.py = b.y; b.x += b.vx * dt; b.y += b.vy * dt; }
+    for (const b of myBullets) {
+      b.px = b.x; b.py = b.y; b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      for (const z of zs) if (z.hp > 0 && !b.hit.includes(z.id) && dist2(b, z) < (z.r + 4) ** 2) { b.hit.push(z.id); if (b.hit.length > b.pierce) b.life = 0; break; }
+    }
+    myBullets = myBullets.filter(b => b.life > 0 && b.x > -60 && b.x < W + 60 && b.y > -60 && b.y < H + 60);
   }
   // 다른 사람 보간
   for (const k in units) {
@@ -1524,33 +1547,35 @@ function net() {
         roomRef().update(upd);
       }
     }
-  } else if (now - lastInput > 90) {
+  } else if (now - lastInput > 90 || ((pendingShots.length || pendingNades.length) && now - lastInput > 40)) {
     lastInput = now;
     const u = units[myKey];
-    if (u) db.ref(`${rpath(code)}/in/${myKey}`).set({ x: u.x | 0, y: u.y | 0, sh: pendingShots.splice(0, 8), gn: pendingNades.splice(0, 2), rp: repairing ? 1 : 0, t: now });
+    if (u) db.ref(`${inpath(code)}/${myKey}`).set({ x: u.x | 0, y: u.y | 0, sh: pendingShots.splice(0, 8), gn: pendingNades.splice(0, 2), rp: repairing ? 1 : 0, t: now });
   }
 }
 // 호스트: 게스트 입력 반영
 function bindInputs() {
   if (!isHost) return;
-  const ref = db.ref(`${rpath(code)}/in`);
-  const cb = ref.on('value', sn => {
-    const v = sn.val() || {};
-    for (const k in v) {
-      if (k === myKey) continue;
-      const u = units[k];
-      if (!u) continue;
-      u.x = v[k].x; u.y = v[k].y;
-      stepRepair(1 / 30, k, !!v[k].rp);
-      (v[k].gn || []).forEach(g => throwNade(g.x, g.y, g.tx, g.ty, k));
-      (v[k].sh || []).forEach(s => {
-        const st = baseStats(players[k] || {});
-        u.aim = Math.atan2(s.ty - s.y, s.tx - s.x);
-        shoot({ x: s.x, y: s.y, key: k }, { x: s.tx, y: s.ty }, { ...st, dmg: s.d || st.dmg }, '#ffe08a');
-      });
-    }
-  });
-  listeners.push(() => ref.off('value', cb));
+  if (bindInputs.on) return;
+  bindInputs.on = true;
+  // 참가자별로 받음 — 예전엔 'in' 전체를 받아, 한 명이 보낼 때마다 다른 사람의 마지막 묶음(총알·수류탄)까지 다시 처리했음
+  const ref = db.ref(inpath(code));
+  const cb = sn => {
+    const k = sn.key, v = sn.val();
+    if (!v || k === myKey) return;
+    const u = units[k];
+    if (!u) return;
+    u.x = v.x; u.y = v.y;
+    stepRepair(1 / 30, k, !!v.rp);
+    (v.gn || []).forEach(g => throwNade(g.x, g.y, g.tx, g.ty, k));
+    (v.sh || []).forEach(s => {
+      const st = baseStats(players[k] || {});
+      u.aim = Math.atan2(s.ty - s.y, s.tx - s.x);
+      shoot({ x: s.x, y: s.y, key: k }, { x: s.tx, y: s.ty }, { ...st, dmg: s.d || st.dmg }, '#ffe08a');
+    });
+  };
+  ref.on('child_added', cb); ref.on('child_changed', cb);
+  listeners.push(() => { ref.off('child_added', cb); ref.off('child_changed', cb); bindInputs.on = false; });
 }
 
 /* ═══════════ 그리기 ═══════════ */
@@ -1886,7 +1911,7 @@ function render(dt) {
   // 총알 (궤적)
   ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
   ctx.beginPath();
-  for (const b of bullets) {
+  for (const b of isHost ? bullets : bullets.concat(myBullets)) {
     if (!vis(b.x, b.y, 40)) continue;
     ctx.moveTo(b.px !== undefined ? b.px : b.x, b.py !== undefined ? b.py : b.y); ctx.lineTo(b.x, b.y);
   }
@@ -2992,9 +3017,26 @@ function enterRoom() {
   history.replaceState(null, '', location.pathname + '?room=' + code);
   $('roomCode').textContent = code;
   const ref = roomRef();
-  const cb = ref.on('value', snap => {
+  // 방 전체를 'value' 로 들으면 방장이 상태(s)를 초당 10번 쓸 때마다 방 전체를 받아 아래 처리를 다 다시 했음
+  // (같은 상태를 두 번 적용해 처치 효과가 겹치기도 함). 갈래별로 받아: s·hp 는 바로 반영, 나머지는 묶어서 아래 처리.
+  const R = {};
+  let queued = false, sDirty = false, loaded = false;
+  const later = () => { if (!queued) { queued = true; queueMicrotask(onRoom); } };
+  const put = snap => {
+    const k = snap.key, v = snap.val();
+    R[k] = v;
+    if (loaded && k === 's') { if (!isHost) applyState(v); return; }
+    if (loaded && k === 'hp') { if (!isHost && typeof v === 'number') baseHp = v; return; }
+    if (k === 's') sDirty = true;
+    later();
+  };
+  const drop = snap => { delete R[snap.key]; later(); };
+  ref.on('child_added', put); ref.on('child_changed', put); ref.on('child_removed', drop);
+  listeners.push(() => { ref.off('child_added', put); ref.off('child_changed', put); ref.off('child_removed', drop); });
+  function onRoom() {
+    queued = false; loaded = true;
     const prev = status;
-    room = snap.val();
+    room = Object.keys(R).length ? R : null;
     if (!room) { toast('방이 종료되었어요'); goHome(); return; }
     players = room.players || {};
     if (!players[myKey]) { toast('방에서 나갔어요'); goHome(); return; }
@@ -3008,7 +3050,7 @@ function enterRoom() {
     teamPerks = room.perks || [];
     status = room.status;
     wave = room.wave || wave;
-    if (room.s) applyState(room.s);
+    if (sDirty) { sDirty = false; if (room.s) applyState(room.s); }
     if (typeof room.hp === 'number' && !isHost) baseHp = room.hp;
 
     if (status === 'lobby') { show('lobby'); renderLobby(); localSetup.done = false; return; }
@@ -3016,18 +3058,17 @@ function enterRoom() {
       show('game'); resize();
       if (!localSetup.done) localSetup();          // 새 판 시작 · 진행 중 난입 모두 여기서
       checkRotate();
-      if (isHost) syncUnits();
+      if (isHost) { syncUnits(); bindInputs(); }
       $('shopOv').hidden = status !== 'shop';
       $('resultOv').hidden = status !== 'ended';
       if (status === 'shop') { renderShop(); renderVote(); }
       if (status === 'ended') renderResult();
       if (isHost && status === 'shop') checkShopDone();
     }
-  });
-  listeners.push(() => ref.off('value', cb));
+  }
   const pref = meRef();
   pref.onDisconnect().remove();
-  const inref = db.ref(`${rpath(code)}/in/${myKey}`);
+  const inref = db.ref(`${inpath(code)}/${myKey}`);
   inref.onDisconnect().remove();
   listeners.push(() => { inref.onDisconnect().cancel(); inref.remove().catch(() => {}); });
   const iv = setInterval(() => { if (isHost) publishRoom(); }, 20000);
