@@ -173,15 +173,49 @@
   // 방장 틱 — 원작 Tori.FixedUpdateNetwork → 물리 트리거 → GameScene 이벤트 순
   function hostTick() {
     const st = G.st; if (!st.go || st.end) return;
-    st.T++; st.pt += DT;
     // 입력: 자리 순서대로, 아직 안 쓴 누름 중 첫 유효한 것 하나 (ReadLatestValidInput)
-    let dir = null;
+    let pick = null;
     for (const id of G.order) {
       const inp = G.inputs[id]; if (!inp || inp.id === G.used[id]) continue;
       G.used[id] = inp.id;
-      if (G.keys[id] & inp.f) { dir = keyToDir(inp.f, st.op); break; }
+      if (G.keys[id] & inp.f) { pick = inp; break; }
     }
-    if (st.en && dir) { st.dx = dir[0]; st.dy = dir[1]; }
+    if (pick && pick.T != null && st.a && st.en && rewindTo(pick)) return;
+    simTick(pick);
+  }
+  // ── 지연 보상: 참가자 누름은 그 사람 화면에서 누른 자리(틱)로 되감아 다시 계산 ──
+  // 되감기는 최근 BACK 틱(0.3초)까지, 마지막 사건(죽음·부활·코인·도착·늪 출입·스테이지) 뒤로만 — 판정은 같은 simTick 이 다시 함
+  const BACK = 18;
+  function snap(inp) {
+    const s = G.st;
+    G.hist.push({ T: s.T, inp: inp || null, st: { T: s.T, x: s.x, y: s.y, dx: s.dx, dy: s.dy, a: s.a, en: s.en, op: s.op, cm: s.cm, fin: s.fin, dt: s.dt, pt: s.pt, d: s.d, sd: s.sd }, E: G.E ? { tick: G.E.tick, ents: G.E.ents.map(o => [o.x, o.y, o.ti]) } : null });
+    if (G.hist.length > BACK + 8) G.hist.shift();
+  }
+  function rewindTo(inp) {
+    const st = G.st, now = st.T, lo = Math.max(now - BACK, G.lastEvT, st.s0);
+    let best = null;   // h = 틱 h.T 가 끝난 상태 → 그다음 틱에 누른 것으로
+    for (const h of G.hist) {
+      if (h.T < lo || h.T >= now || !h.st.a || !h.st.en) continue;
+      const d = inp.x == null ? Math.abs(h.T + 1 - inp.T) * SPEED * DT : Math.hypot(h.st.x - inp.x, h.st.y - inp.y);
+      if (!best || d < best.d) best = { h, d };
+    }
+    if (!best || best.d > .6) return false;
+    const base = best.h, later = G.hist.filter(h => h.T > base.T && h.inp).map(h => [h.T, h.inp]);
+    Object.assign(st, base.st);
+    if (base.E && G.E) { G.E.tick = base.E.tick; G.E.ents.forEach((o, i) => { const e = base.E.ents[i]; if (e) { o.x = e[0]; o.y = e[1]; o.ti = e[2]; } }); }
+    G.hist = G.hist.filter(h => h.T <= base.T);
+    G.rewinds = (G.rewinds || 0) + 1; G.rewindTicks = (G.rewindTicks || 0) + (now - base.T); (G.rewD = G.rewD || []).push(+best.d.toFixed(3)); if (G.rewD.length > 60) G.rewD.shift();   // 계측용: 누른 자리와 꺾은 자리 거리
+    simTick(inp);
+    // 그사이 다른 사람이 쓴 누름은 원래 틱에 다시 (같은 틱이면 한 틱 뒤로)
+    const q = later.slice(), stage = st.s;
+    while (st.T <= now && !st.end && st.s === stage) { let use = null; if (q.length && q[0][0] <= st.T + 1) use = q.shift()[1]; simTick(use); }
+    return true;
+  }
+  function simTick(inp) {
+    const st = G.st;
+    st.T++; st.pt += DT;
+    const dir = inp && st.en ? keyToDir(inp.f, st.op) : null;
+    if (dir) { st.dx = dir[0]; st.dy = dir[1]; }
     if (st.a && st.en && (st.dx || st.dy)) { st.x += st.dx * SPEED * DT; st.y += st.dy * SPEED * DT; }
     syncEnemies(st.T);
     const P = prep(st.s);
@@ -189,20 +223,23 @@
       const T = toriShapes(st.x, st.y);
       // 반전 구역 (Swamp, 레이어 12)
       let inSw = false; for (const w of P.S.swamps) if (T.b[2] > w.x && T.b[0] < w.x + w.w && T.b[3] > w.y && T.b[1] < w.y + w.h || boxCircle([w.x, w.y, w.x + w.w, w.y + w.h], T.c[0], T.c[1], T.c[2])) inSw = true;
+      if (st.op !== (inSw ? 1 : 0)) G.lastEvT = st.T;
       st.op = inSw ? 1 : 0;
       // 벽(9) · 적(8)
       const hb = cellsHit(P.borders, T.c[0] - T.c[2], T.c[1] - T.c[2], T.c[0] + T.c[2], T.c[1] + T.c[2], T.c) || cellsHit(P.borders, T.b[0], T.b[1], T.b[2], T.b[3]);
-      if (hb || enemyHit(G.E, T)) { st.a = 0; st.en = 0; st.dx = st.dy = 0; st.dt = 0; st.ev++; G.fx.push({ t: 'die', x: st.x, y: st.y }); return; }
+      if ((hb || enemyHit(G.E, T)) && !G.god) { st.a = 0; st.en = 0; st.dx = st.dy = 0; st.dt = 0; st.ev++; G.fx.push({ t: 'die', x: st.x, y: st.y }); G.lastEvT = st.T; snap(inp); return; }
       // 코인(10)
-      P.S.coins.forEach((c, i) => { if (!(st.cm & (1 << i)) && ((T.c[0] - c[0]) ** 2 + (T.c[1] - c[1]) ** 2 < (T.c[2] + D.coin.r) ** 2 || boxCircle(T.b, c[0], c[1], D.coin.r))) st.cm |= 1 << i; });
+      P.S.coins.forEach((c, i) => { if (!(st.cm & (1 << i)) && ((T.c[0] - c[0]) ** 2 + (T.c[1] - c[1]) ** 2 < (T.c[2] + D.coin.r) ** 2 || boxCircle(T.b, c[0], c[1], D.coin.r))) { st.cm |= 1 << i; G.lastEvT = st.T; } });
       // 결승(11) — 들어가는 순간, 코인을 다 모았을 때만
       const inF = cellsHit(P.finish, T.c[0] - T.c[2], T.c[1] - T.c[2], T.c[0] + T.c[2], T.c[1] + T.c[2], T.c) || cellsHit(P.finish, T.b[0], T.b[1], T.b[2], T.b[3]);
       if (inF && !st.fin) { const all = (1 << P.S.coins.length) - 1; if ((st.cm & all) === all) { nextStage(); return; } }
+      if (inF !== !!st.fin) G.lastEvT = st.T;
       st.fin = inF ? 1 : 0;
     } else {
       st.dt += DT;
-      if (st.dt >= RESPAWN) { st.a = 1; st.en = 1; st.x = 0; st.y = 0; st.dx = st.dy = 0; st.op = 0; st.fin = 0; st.d++; st.sd++; st.cm = 0; }
+      if (st.dt >= RESPAWN) { st.a = 1; st.en = 1; st.x = 0; st.y = 0; st.dx = st.dy = 0; st.op = 0; st.fin = 0; st.d++; st.sd++; st.cm = 0; G.lastEvT = st.T; }
     }
+    snap(inp);
   }
   function nextStage() {
     const st = G.st, n = st.s + 1, clearT = Math.max(0, st.pt - st.ps), deaths = st.sd;
@@ -210,7 +247,7 @@
     G.cleared.push({ n, t: clearT, d: deaths });
     if (st.s + 1 >= NSTAGE) { st.end = { lt: clearT, ld: deaths, tt: st.pt, td: st.d, n }; st.en = 0; st.ev++; pushState(true); showEnd(); return; }
     st.s++; st.s0 = st.T; st.sd = 0; st.cm = 0; st.x = 0; st.y = 0; st.dx = st.dy = 0; st.op = 0; st.fin = 0; st.ps = st.pt; st.en = 1; st.ev++;
-    G.E = makeEnemies(st.s, G.run.diff); G.E.tick = st.T; G.E.si = st.s; G.E.s0 = st.s0;
+    G.E = makeEnemies(st.s, G.run.diff); G.E.tick = st.T; G.E.si = st.s; G.E.s0 = st.s0; G.hist = []; G.lastEvT = st.T;
     G.lastClear = { n, t: clearT, d: deaths };
     onStageChange(true);
     pushState(true);
@@ -346,7 +383,7 @@
   // ════════ 게임 시작 · 진행 ════════
   function startGame(run) {
     stopGame();
-    G = { run, me, keys: run.keys, order: run.order, myKeys: run.keys[me.k] || 0, st: newState(run), inputs: {}, used: {}, pressId: 0, fx: [], cleared: [], disp: { x: 0, y: 0 }, cam: { x: 0, y: 0 }, recv: performance.now(), anim: { ph: 0, dir: 'front', dieT: -1, dieX: 0, dieY: 0 }, lastEv: -1, solo: !code, started: performance.now() };
+    G = { run, me, keys: run.keys, order: run.order, myKeys: run.keys[me.k] || 0, st: newState(run), inputs: {}, used: {}, pressId: 0, hist: [], lastEvT: 0, pend: [], sentAt: {}, corr: { x: 0, y: 0 }, lastTgt: null, fx: [], cleared: [], disp: { x: 0, y: 0 }, cam: { x: 0, y: 0 }, recv: performance.now(), anim: { ph: 0, dir: 'front', dieT: -1, dieX: 0, dieY: 0 }, lastEv: -1, solo: !code, started: performance.now() };
     G.E = null; syncEnemies(0);
     $('lobby').classList.add('hide'); $('home').classList.add('hide'); $('ovEnd').classList.add('hide'); $('hud').classList.remove('hide');
     buildHudUsers(); buildTouch(); onStageChange(false);
@@ -371,18 +408,23 @@
     const loaded = r.loaded || {}, n = G.order.length, ok = G.order.filter(k => loaded[k] === G.run.id).length;
     if (!G.st.go) { $('prepBig').textContent = `${ok} / ${n}`; prepShow('모두 들어오면 시작해요'); }
     // 누군가 나가면 원작처럼 게임 종료
+    const nk = r.run && r.run.keys;
+    if (nk && G.order.some(id => (nk[id] || 0) !== (G.keys[id] || 0))) applyKeys(Object.fromEntries(G.order.map(id => [id, nk[id] || 0])));
     const gone = G.order.filter(k => !r.players[k]);
     if (gone.length && isHost && !G.st.end) { R().update({ phase: 'lobby', endMsg: `${G.run.nicks[gone[0]]} 님이 나가서 게임이 끝났어요` }); return; }
     if (isHost && !G.st.go && ok >= n) { clearTimeout(G.loadTimer); G.st.go = 1; pushState(true); prepShow(null); sfx('move'); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
   }
   function myKeyLine() { return G.myKeys ? '내 키: ' + keysOf(G.myKeys).join(' ') : '내 키 없음 (구경)'; }
-  function packState() { const s = G.st, r3 = v => Math.round(v * 1000) / 1000; return { T: s.T, s: s.s, s0: s.s0, x: r3(s.x), y: r3(s.y), dx: s.dx, dy: s.dy, a: s.a, dt: r3(s.dt), en: s.en, op: s.op, cm: s.cm, d: s.d, sd: s.sd, pt: r3(s.pt), ps: r3(s.ps), end: s.end, ev: s.ev, go: s.go, w: Date.now() + srvOff, lc: G.lastClear || null }; }
+  function packState() { const s = G.st, r3 = v => Math.round(v * 1000) / 1000; return { T: s.T, s: s.s, s0: s.s0, x: r3(s.x), y: r3(s.y), dx: s.dx, dy: s.dy, a: s.a, dt: r3(s.dt), en: s.en, op: s.op, cm: s.cm, d: s.d, sd: s.sd, pt: r3(s.pt), ps: r3(s.ps), end: s.end, ev: s.ev, go: s.go, w: Date.now() + srvOff, lc: G.lastClear || null, ack: G.used }; }
   let lastPush = 0;
-  function pushState(force) { if (G.solo || !isHost) return; const now = performance.now(); if (!force && now - lastPush < 66) return; lastPush = now; R('st').set(packState()); }
+  function pushState(force) { if (G.solo || !isHost) return; const now = performance.now(); if (!force && now - lastPush < 33) return; lastPush = now; R('st').set(packState()); }
   function onState(v) {
     if (!G || !v) return;
     const prevS = G.st.s, prevA = G.st.a, prevCm = G.st.cm, prevEnd = G.st.end;
     Object.assign(G.st, v); G.recv = performance.now(); G.ping = Math.max(0, Date.now() + srvOff - v.w);
+    const ack = v.ack && v.ack[me.k];
+    if (ack != null) { G.pend = G.pend.filter(p => p.id > ack); const t0 = G.sentAt[ack]; if (t0) { const r = G.recv - t0; G.rtt = G.rtt == null ? r : G.rtt * .7 + r * .3; delete G.sentAt[ack]; } }
+    G.pend = G.pend.filter(p => p.T > v.T - 40);
     if (v.go && !$('prep').classList.contains('hide')) { prepShow(null); sfx('move'); notice(`스테이지 ${G.st.s + 1}<small>${myKeyLine()}</small>`); }
     if (v.s !== prevS) { G.lastClear = v.lc; if (v.lc) G.cleared.push(v.lc); if (v.lc) saveRecord(v.lc.n, v.lc.t, v.lc.d); onStageChange(true); }
     if (prevA && !v.a) G.fx.push({ t: 'die', x: v.x, y: v.y });
@@ -413,7 +455,13 @@
     const f = KF[k]; G.pressId++;
     flashKey(k);
     const inp = { f, id: G.pressId };
-    if (G.solo || isHost) G.inputs[me.k] = inp; else R('in/' + me.k).set(inp);
+    if (G.solo || isHost) { G.inputs[me.k] = inp; return; }
+    // 참가자: 내 화면 기준 위치·틱을 함께 보냄 (방장이 그 자리로 되감아 꺾음) + 내 화면은 바로 꺾음
+    const v = G.view || predict(performance.now()), st = G.st;
+    inp.T = Math.round(v.T * 100) / 100; inp.x = Math.round(v.x * 1000) / 1000; inp.y = Math.round(v.y * 1000) / 1000;
+    G.sentAt[inp.id] = performance.now();
+    if ((G.myKeys & f) && st.a && st.en) G.pend.push({ id: inp.id, f, T: v.T, x: v.x, y: v.y, op: st.op });
+    R('in/' + me.k).set(inp);
   }
   addEventListener('keydown', e => {
     if (e.target && e.target.tagName === 'INPUT') return;
@@ -434,6 +482,30 @@
     m.classList.toggle('hide', !open);
     $('menuTip').textContent = G.solo ? '혼자 할 때는 멈춰 있어요.' : '다른 사람의 게임은 계속 진행돼요. 한 명이라도 나가면 모두 대기실로 돌아가요.';
     $('mLobby').classList.toggle('hide', !(isHost || G.solo));
+    if (open) renderKeyMenu();
+  }
+  // ════════ 게임 중 키 바꾸기 (원작은 대기실 룰렛에서만 나눔 — 웹판에 더한 기능) ════════
+  function renderKeyMenu() {
+    const el = $('mKeys'); if (!el) return;
+    if (!G || G.solo) { el.innerHTML = ''; return; }
+    const cell = (id, k) => { const on = (G.keys[id] || 0) & KF[k]; return `<button class="kcell ${on ? 'on' : ''}" data-id="${esc(id)}" data-k="${k}" style="${on ? `background:${A.KEYCOL[k]}` : ''}" ${isHost ? '' : 'disabled'}>${on ? k : ''}</button>`; };
+    el.innerHTML = `<h3>🔀 키 바꾸기</h3>
+      <div class="kgrid"><span></span>${KORDER.map(k => `<b>${k}</b>`).join('')}</div>
+      ${G.order.map(id => `<div class="kgrid"><span>${esc(G.run.nicks[id] || '?')}${id === me.k ? ' <small>(나)</small>' : ''}</span>${KORDER.map(k => cell(id, k)).join('')}</div>`).join('')}
+      ${isHost ? '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn blue" id="mShuffle">🎲 키 다시 섞기</button></div>' : ''}
+      <p class="tip">${isHost ? '칸을 누르면 그 키를 그 사람에게 옮겨요. 다시 섞기는 처음처럼 무작위예요 (2명 2개씩 · 3명 한 명만 2개 · 4명 1개씩).' : '방장이 키를 바꿀 수 있어요.'}</p>`;
+  }
+  $('mKeys').onclick = e => {
+    if (!isHost || !G || G.solo) return; const b = e.target.closest('button'); if (!b) return;
+    let nk = null;
+    if (b.id === 'mShuffle') nk = assignKeys(G.order);
+    else if (b.dataset.k) { const f = KF[b.dataset.k]; nk = {}; for (const id of G.order) nk[id] = (G.keys[id] || 0) & ~f; nk[b.dataset.id] |= f; }
+    if (nk) R('run/keys').set(nk);
+  };
+  function applyKeys(k) {
+    G.keys = k; G.run.keys = k; G.myKeys = k[me.k] || 0; G.pend = [];
+    buildHudUsers(); buildTouch(); renderKeyMenu(); sfx('click');
+    notice(`🔀 키가 바뀌었어요<small>${myKeyLine()}</small>`, 3000);
   }
   $('mResume').onclick = () => $('ovMenu').classList.add('hide');
   $('mLobby').onclick = () => { $('ovMenu').classList.add('hide'); if (!code) { stopGame(); soloLobby(); } else if (isHost) R().update({ phase: 'lobby', endMsg: '방장이 대기실로 돌아왔어요' }); };
@@ -472,7 +544,7 @@
     $('hDeath').textContent = st.d; $('hSDeath').textContent = '(' + st.sd + ')';
     $('hCoin').textContent = `${got} / ${all}`;
     $('hStage').textContent = `스테이지 ${st.s + 1} / ${NSTAGE} · ${DIFF[G.run.diff]}${st.op ? ' · 🌪 모래폭풍 — 키가 거꾸로!' : ''}`;
-    $('hPing').textContent = G.solo ? '' : isHost ? '방장' : `${Math.round(G.ping || 0)} ms`;
+    $('hPing').textContent = G.solo ? '' : isHost ? '방장' : G.rtt != null ? `핑 ${Math.round(G.rtt)} ms` : '';
   }
 
   // ════════ 그리기 ════════
@@ -528,18 +600,42 @@
     const dtR = Math.min(.1, (now - (frame.last || now)) / 1000); frame.last = now;
     // 진행: 방장/혼자는 simPump(Worker 타이머)가 틱을 돌림, 참가자는 받은 틱을 따라 적만 돌림
     if (!(G.solo || isHost) && G.st.go && !G.st.end) {
-      const age = (now - G.recv) / 1000; syncEnemies(G.st.T + Math.min(.3, age) * 60);
+      const age = (now - G.recv) / 1000; syncEnemies(G.st.T + Math.min(.5, age) * 60);
     }
     render(dtR, now / 1000);
     if ((hudT += dtR) > .2) { hudT = 0; updHud(); }
   }
+  // 참가자 화면: 마지막 방장 상태에서 지금 틱까지 직접 굴리고(벽 앞에선 멈춤 — 죽음은 방장이 정함), 방장이 아직 못 받은 내 누름은 누른 자리에서 꺾음
+  function wallAtPos(P, x, y) { const T = toriShapes(x, y); return cellsHit(P.borders, T.c[0] - T.c[2], T.c[1] - T.c[2], T.c[0] + T.c[2], T.c[1] + T.c[2], T.c) || cellsHit(P.borders, T.b[0], T.b[1], T.b[2], T.b[3]); }
+  function predict(now) {
+    const st = G.st, age = Math.min(.5, Math.max(0, (now - G.recv) / 1000)), Tn = st.T + age * 60;
+    let x = st.x, y = st.y, dx = st.dx, dy = st.dy, T = st.T;
+    if (!st.a || !st.en || !st.go || st.end) return { T: Tn, x, y, dx, dy };
+    const pend = G.pend; let pi = 0;
+    if (pend.length && pend[0].T >= st.T - 30) { const p = pend[0], d = keyToDir(p.f, p.op); x = p.x; y = p.y; T = p.T; dx = d[0]; dy = d[1]; pi = 1; }
+    const P = prep(st.s); let n = 0;
+    while (T < Tn - 1e-6 && n++ < 60) {
+      while (pi < pend.length && pend[pi].T <= T + 1e-6) { const d = keyToDir(pend[pi].f, pend[pi].op); dx = d[0]; dy = d[1]; pi++; }
+      const k = Math.min(1, Tn - T), nx = x + dx * SPEED * DT * k, ny = y + dy * SPEED * DT * k;
+      if ((dx || dy) && wallAtPos(P, nx, ny)) break;
+      x = nx; y = ny; T += k;
+    }
+    while (pi < pend.length) { const d = keyToDir(pend[pi].f, pend[pi].op); dx = d[0]; dy = d[1]; pi++; }
+    return { T: Tn, x, y, dx, dy };
+  }
   function render(dtR, t) {
     const st = G.st, P = prep(st.s);
-    // 다람쥐 표시 위치 (참가자는 받은 위치에서 진행 방향으로 짧게 예측)
-    let tx = st.x, ty = st.y;
-    if (!(G.solo || isHost) && st.a && st.en) { const age = Math.min(.25, (performance.now() - G.recv) / 1000); tx += st.dx * SPEED * age; ty += st.dy * SPEED * age; }
-    if (Math.hypot(tx - G.disp.x, ty - G.disp.y) > 2.5 || G.solo || isHost) { G.disp.x = tx; G.disp.y = ty; }
-    else { const k = 1 - Math.exp(-dtR * 18); G.disp.x += (tx - G.disp.x) * k; G.disp.y += (ty - G.disp.y) * k; }
+    const v = G.view = (G.solo || isHost) ? { T: st.T, x: st.x, y: st.y, dx: st.dx, dy: st.dy } : predict(performance.now());
+    // 보정(방장 상태 도착 · 되감기)으로 목표가 튀면 그만큼을 오프셋으로 두고 서서히 줄임 → 순간이동·멈칫 없이
+    const L = G.lastTgt;
+    if (L) {
+      const jx = v.x - (L.x + L.dx * SPEED * dtR), jy = v.y - (L.y + L.dy * SPEED * dtR), j = Math.hypot(jx, jy);
+      if (j > 2.5 || !st.a) { G.corr.x = G.corr.y = 0; } else if (j > .02) { G.corr.x -= jx; G.corr.y -= jy; }
+    }
+    G.lastTgt = { x: v.x, y: v.y, dx: st.a && st.en ? v.dx : 0, dy: st.a && st.en ? v.dy : 0 };
+    const kd = Math.exp(-dtR * 10); G.corr.x *= kd; G.corr.y *= kd;
+    if (Math.hypot(G.corr.x, G.corr.y) > 2.5) G.corr.x = G.corr.y = 0;
+    G.disp.x = v.x + G.corr.x; G.disp.y = v.y + G.corr.y;
     // 카메라: Cinemachine 감쇠 1초 (99% 도달)
     const kc = 1 - Math.exp(-4.6 * dtR); G.cam.x += (G.disp.x - G.cam.x) * kc; G.cam.y += (G.disp.y - G.cam.y) * kc;
     const PPU = Math.min(H / 18, W / 16) * (G.zoom || 1);  // 원작 직교 크기 9 (세로 화면은 가로 16유닛 보장 · zoom 은 시험용)
@@ -570,11 +666,11 @@
     }
     // 다람쥐
     const an = G.anim;
-    if (st.dx > 0) an.dir = 'right'; else if (st.dx < 0) an.dir = 'left'; else if (st.dy > 0) an.dir = 'up'; else if (st.dy < 0) an.dir = 'front';
-    const moving = st.a && st.en && (st.dx || st.dy);
+    if (v.dx > 0) an.dir = 'right'; else if (v.dx < 0) an.dir = 'left'; else if (v.dy > 0) an.dir = 'up'; else if (v.dy < 0) an.dir = 'front';
+    const moving = st.a && st.en && (v.dx || v.dy);
     if (!st.dx && !st.dy) an.dir = an.dir === 'up' ? 'up' : an.dir;
     an.ph = (an.ph + dtR / (moving ? .667 : 1.4)) % 1;
-    if (st.a) A.tori(ctx, sx(G.disp.x), sy(G.disp.y - .1), PPU * 1.02, (st.dx || st.dy) ? an.dir : 'front', an.ph, moving);
+    if (st.a) A.tori(ctx, sx(G.disp.x), sy(G.disp.y - .1), PPU * 1.02, (v.dx || v.dy) ? an.dir : 'front', an.ph, moving);
     // 죽음 연기
     for (const f of G.fx) if (f.t === 'die' && f.k == null) { f.k = 0; sfx('die'); }
     G.fx = G.fx.filter(f => { f.k += dtR / D.die.len; if (f.k >= 1) return false; A.poof(ctx, sx(f.x - .1), sy(f.y), PPU * 1.66, f.k); return true; });
@@ -621,6 +717,7 @@
     solo(stage = 1, diff = 1) { me = { k: 'me', nick: 'test' }; isHost = true; code = null; soloOpt = { stage, diff }; startGame({ id: 'solo' + Date.now(), keys: { me: 15 }, order: ['me'], stage, diff, nicks: { me: 'test' }, cols: { me: 0 } }); G.manual = true; return G.st; },
     step(sec = 1) { const n = Math.round(sec / DT); for (let i = 0; i < n; i++) hostTick(); render(DT, performance.now() / 1000); updHud(); return this.state(); },
     tick(n = 1) { for (let i = 0; i < n; i++) hostTick(); },
+    viewDir() { const v = G.view || G.st; return [v.dx, v.dy]; },
     press, auto(on) { G.manual = !on; },
     state() { const s = G.st; return { stage: s.s + 1, x: +s.x.toFixed(2), y: +s.y.toFixed(2), alive: s.a, coins: s.cm, deaths: s.d, sdeaths: s.sd, op: s.op, end: s.end, T: s.T }; },
     tp(x, y) { G.st.x = x; G.st.y = y; }, coinsAll() { G.st.cm = (1 << D.stages[G.st.s].coins.length) - 1; },
