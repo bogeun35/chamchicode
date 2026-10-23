@@ -4,8 +4,8 @@
 // 원작 확인값: 가닥당 $0.0222 · 더미 약 600만 가닥 · 양동이 600 · 마당 덩이 상한 600 · 연구 트리 카드 이름·가격(data.js 참고)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import * as D from './data.js?v=1';
-import * as W from './world.js?v=1';
+import * as D from './data.js?v=2';
+import * as W from './world.js?v=2';
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -914,8 +914,8 @@ function nextPile() {
 // ════════════ 미션 ════════════
 function mission(id) { if (S.missions[id]) return; S.missions[id] = 1; const m = D.MISSIONS.find(x => x.id === id); if (m) { toast(`✔ ${m.t}`, 2400); renderMission(); } }
 function renderMission() {
-  const cur = D.MISSIONS.find(m => !S.missions[m.id]); const done = D.MISSIONS.filter(m => S.missions[m.id]).length;
-  $('mission').innerHTML = cur ? `<h5>할 일 ${done + 1}/${D.MISSIONS.length}</h5><div class="mt">${esc(cur.t)}</div><div class="mh">${esc(cur.hint)}</div>` : '<h5>할 일</h5><div class="mt">더미를 다 찾아냈다?</div>';
+  const cur = D.MISSIONS.find(m => !S.missions[m.id]);
+  $('mission').innerHTML = cur ? `<h5>할 일 ${D.MISSIONS.indexOf(cur) + 1}/${D.MISSIONS.length}</h5><div class="mt">${esc(cur.t)}</div><div class="mh">${esc(cur.hint)}</div>` : '<h5>할 일</h5><div class="mt">더미를 다 찾아냈다?</div>';
 }
 
 // ════════════ HUD ════════════

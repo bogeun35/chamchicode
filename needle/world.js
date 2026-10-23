@@ -164,7 +164,8 @@ export function buildYard(scene, Y, opt) {
   af.add(at(box(.86, .06, .06, MAT.wood), 0, 1.06, 0)); g.add(shadowAll(af));
   // HAY IN 호퍼 간판 (벨트 시작)
   const hi = new THREE.Group(); hi.position.set(-9.6, 0, 11.1);
-  hi.add(at(new THREE.Mesh(new THREE.PlaneGeometry(1.3, .5), new THREE.MeshStandardMaterial({ map: signTexture('HAY IN', { w: 256, h: 96, size: 60, font: 'Arial' }), side: THREE.DoubleSide })), 0, 1.5, 0, 0, -.5));
+  { const hm = new THREE.MeshStandardMaterial({ map: signTexture('HAY IN', { w: 256, h: 96, size: 60, font: 'Arial' }) }); // 앞뒤 두 장 (DoubleSide 는 뒤에서 글자가 뒤집혀 보임)
+    hi.add(at(new THREE.Mesh(new THREE.PlaneGeometry(1.3, .5), hm), 0, 1.5, 0, 0, -.5)); hi.add(at(new THREE.Mesh(new THREE.PlaneGeometry(1.3, .5), hm), 0, 1.5, 0, 0, -.5 + Math.PI)); }
   hi.add(at(box(.08, 1.4, .08, MAT.woodDark), -.5, .7, -.25)); hi.add(at(box(.08, 1.4, .08, MAT.woodDark), .5, .7, .25));
   for (let i = 0; i < 2; i++) hi.add(at(box(.9, .45, .55, M('#a08848')), -1.5, .23 + i * .46, .4));
   g.add(shadowAll(hi));
