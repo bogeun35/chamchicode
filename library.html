@@ -34,48 +34,48 @@ button { font-family: inherit; }
 .pl.rdy { border-color: #6ab04a; }
 .pl small { margin-left: auto; font-size: 12px; color: var(--dim); }
 .code { font-size: 28px; letter-spacing: 4px; color: var(--gold); text-align: center; margin: 6px 0; cursor: pointer; }
-/* ── 게임 HUD ── */
-.hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
-.cross { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
-.cross.hot { width: 10px; height: 10px; margin: -5px 0 0 -5px; background: var(--gold); }
-.aim { position: absolute; left: 50%; top: calc(50% + 22px); transform: translateX(-50%); text-align: center; font-size: 16px; text-shadow: 0 2px 4px #000, 0 0 2px #000; white-space: nowrap; }
-.aim small { display: block; font-size: 13px; color: var(--dim); }
+/* ── 게임 HUD (원작 배치: 왼쪽 위 진행·손에 든 책 / 왼쪽 아래 마법 / 오른쪽 아래 책 수 / 가운데 아래 조준) ── */
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; font-family: 'Nanum Myeongjo', serif; color: #f4ead8; text-shadow: 0 1px 3px #000, 0 0 2px #000; }
+.cross { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+.cross.hot { width: 8px; height: 8px; margin: -4px 0 0 -4px; }
+kbd { display: inline-block; background: #f4ead8; color: #111; border-radius: 3px; padding: 0 6px; font: bold 13px sans-serif; text-shadow: none; margin-right: 6px; vertical-align: 1px; }
+.aim { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); text-align: center; font-size: 19px; min-width: 460px; }
+.aim .press { position: fixed; left: 50%; top: calc(50% + 105px); transform: translateX(-50%); font-size: 19px; padding: 3px 34px; background: linear-gradient(90deg, transparent, rgba(0,0,0,.55), transparent); }
+.aim .t { padding: 7px 40px; border-top: 1px solid rgba(255,255,255,.3); border-bottom: 1px solid rgba(255,255,255,.3); background: linear-gradient(90deg, transparent, rgba(0,0,0,.45), transparent); line-height: 1.45; }
+.aim .vol { font-size: 17px; } .aim small { display: block; font-size: 14px; margin-top: 5px; color: #e0d0b0; }
 .aim .bad { color: var(--red); } .aim .good { color: var(--gold); }
-.prog { position: absolute; left: 14px; top: 12px; background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 7px 12px; font-size: 15px; line-height: 1.55; }
-.prog b { color: var(--gold); }
-.prog .tm { font-size: 13px; color: var(--dim); }
-.prog .goal { font-size: 13px; color: var(--dim); line-height: 1.45; } .prog .goal b { color: var(--ink); } .prog .goal b.hurry { color: #ff7a5a; }
-.cats { display: grid; grid-template-columns: repeat(4, 54px); gap: 4px; margin-top: 6px; }
-.cc { display: flex; align-items: center; gap: 3px; font-size: 12px; padding: 2px 3px; border-radius: 5px; background: rgba(255,255,255,.05); border: 1px solid #3a2a18; }
-.cc span { font-size: 13px; } .cc i { flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,.45); overflow: hidden; } .cc u { display: block; height: 100%; }
-.cc small { font-size: 10px; color: var(--dim); min-width: 12px; text-align: right; } .cc.ok { border-color: var(--gold); } .cc.ok small { color: var(--gold); }
-.combo { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); text-align: center; font-size: 22px; color: #ffcf5a; text-shadow: 0 2px 6px #000, 0 0 2px #000; opacity: 0; transition: opacity .3s; }
+.prog { position: absolute; left: 20px; top: 14px; font-size: 16px; line-height: 1.5; min-width: 300px; }
+.prog .lv { font-size: 15px; padding: 0 0 5px 2px; border-bottom: 1px solid rgba(255,255,255,.35); margin-bottom: 6px; }
+.prog .lv b { color: #fff; }
+.prog .cnt { display: flex; align-items: center; gap: 26px; font-size: 24px; margin: 7px 0 7px 18px; }
+.prog .cnt b { font-weight: 700; color: #fff; }
+.prog .cnt i { display: inline-block; width: 18px; height: 26px; border: 2px solid #ece4d4; border-radius: 2px; box-shadow: 0 1px 3px #000; }
+.prog .cnt i.ic-rows { background: repeating-linear-gradient(#ece4d4 0 2px, transparent 2px 5px); }
+.prog .cnt i.ic-book { background: #ece4d4; width: 14px; }
+.prog .goal { font-size: 13px; color: #d8c8a8; border-top: 1px solid rgba(255,255,255,.35); padding-top: 5px; margin-top: 4px; }
+.prog .goal b { color: #fff; } .prog .goal b.hurry { color: #ff8a6a; }
+.prog .held { font-size: 16px; margin-top: 4px; max-width: 46vw; }
+.prog .held div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 3px 0 3px 4px; border-bottom: 1px solid rgba(255,255,255,.14); opacity: .88; }
+.prog .held div.top { opacity: 1; color: #ffe6a0; } .prog .held small { color: #ffd36b; font-size: 13px; }
+.hand { position: absolute; right: 26px; bottom: 20px; text-align: center; }
+.hand .stack { display: flex; flex-direction: column; gap: 2px; width: 56px; margin: 0 auto 6px; }
+.hand .stack i { height: 9px; background: #efe6d6; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.7); }
+.hand .n { font-size: 26px; }
+.abil { position: absolute; left: 20px; bottom: 26px; }
+.abil .maj, .abil .perm { display: flex; gap: 12px; } .abil .perm { margin-bottom: 30px; }
+.ab { width: 58px; height: 58px; border-radius: 5px; background: linear-gradient(#2e2a22, #15120d); border: 2px solid #a8915e; position: relative; display: grid; place-items: center; color: #f4ead8; box-shadow: inset 0 0 0 2px #15120d, 0 2px 6px rgba(0,0,0,.6); }
+.ab.sm { width: 46px; height: 46px; }
+.ab .k { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); font: 11px sans-serif; color: #f4ead8; border: 1px solid #c8b890; border-radius: 3px; padding: 1px 6px; background: rgba(0,0,0,.55); text-shadow: none; }
+.ab .cd { position: absolute; inset: 0; border-radius: 4px; background: rgba(0,0,0,.68); display: grid; place-items: center; font-size: 18px; color: #fff; }
+.ab.act { border-color: #ffd36b; box-shadow: 0 0 16px rgba(255,211,107,.75); }
+.notice { position: absolute; left: 50%; top: 13%; transform: translateX(-50%); background: rgba(20,14,8,.82); border: 1px solid #a07a44; border-radius: 6px; padding: 8px 18px; font-size: 15px; opacity: 0; transition: opacity .3s; text-align: center; max-width: 80vw; }
+.notice.on { opacity: 1; }
+.others { position: absolute; right: 16px; top: 12px; font-size: 13px; text-align: right; line-height: 1.6; }
+.hint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 13px; color: #d8c8a8; white-space: nowrap; }
+.combo { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); text-align: center; font-size: 22px; color: #ffcf5a; opacity: 0; transition: opacity .3s; }
 .combo.on { opacity: 1; } .combo b { font-size: 34px; } .combo small { display: block; font-size: 14px; color: #7ad8ff; }
 .combo i { display: block; height: 3px; margin: 3px auto 0; background: #ffcf5a; border-radius: 2px; max-width: 120px; }
 .combo.pop { animation: cpop .35s ease-out; } @keyframes cpop { 0% { transform: translateX(-50%) scale(1.5); } 100% { transform: translateX(-50%) scale(1); } }
-.hand { position: absolute; right: 14px; bottom: 14px; background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 210px; max-width: 46vw; }
-.hand h4 { font-size: 14px; color: var(--dim); display: flex; gap: 8px; } .hand h4 b { color: var(--ink); margin-left: auto; }
-.hand .top { font-size: 17px; margin-top: 3px; }
-.hand { min-width: 280px; max-width: min(420px, 46vw); }
-.hl { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; max-height: 52vh; overflow: hidden; }
-.hb { display: flex; align-items: center; gap: 7px; padding: 3px 6px; border-radius: 6px; font-size: 14px; color: var(--dim); }
-.hb.top { background: rgba(255,211,107,.16); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255,211,107,.5); }
-.hb .bk { flex: none; width: 20px; height: 26px; border-radius: 3px; border-top: 5px solid; border-bottom: 5px solid; display: grid; place-items: center; font-size: 12px; color: #fff; text-shadow: 0 1px 2px #000; }
-.hb .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .hb .nm small { color: var(--dim); font-size: 11px; }
-.hb .to { flex: none; font-size: 12px; border: 1px solid; border-radius: 10px; padding: 1px 7px; color: var(--ink); }
-.hk { font-size: 11px; color: var(--dim); margin-top: 5px; }
-.sw { display: inline-block; width: 10px; height: 14px; border-radius: 2px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(255,255,255,.3); }
-.abil { position: absolute; left: 14px; bottom: 14px; display: flex; gap: 8px; }
-.ab { width: 58px; height: 58px; border-radius: 10px; background: var(--panel); border: 2px solid var(--line); position: relative; display: grid; place-items: center; font-size: 26px; }
-.ab .k { position: absolute; left: 4px; top: 1px; font-size: 11px; color: var(--dim); }
-.ab .lv { position: absolute; right: 4px; bottom: 1px; font-size: 11px; color: var(--gold); }
-.ab .cd { position: absolute; inset: 0; border-radius: 8px; background: rgba(0,0,0,.65); display: grid; place-items: center; font-size: 15px; color: #fff; }
-.ab.act { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.6); }
-.ab.lock { opacity: .35; }
-.notice { position: absolute; left: 50%; top: 13%; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 8px 16px; font-size: 15px; opacity: 0; transition: opacity .3s; text-align: center; max-width: 80vw; }
-.notice.on { opacity: 1; }
-.others { position: absolute; right: 14px; top: 12px; font-size: 13px; text-align: right; line-height: 1.6; text-shadow: 0 1px 3px #000; }
-.hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); font-size: 13px; color: var(--dim); text-shadow: 0 1px 3px #000; white-space: nowrap; }
 /* 지도 · 편지 · 능력 · 결과 */
 .ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55); }
 .letter { width: min(560px, 92vw); background: #efe0bc; color: #3a2a18; border-radius: 6px; padding: 26px 30px; box-shadow: 0 20px 60px rgba(0,0,0,.7); font-size: 16px; line-height: 1.75; border: 6px double #a07a44; max-height: 90vh; overflow: auto; }
@@ -83,12 +83,32 @@ button { font-family: inherit; }
 .letter .sign { text-align: right; margin-top: 12px; }
 .letter .rank { font-size: 30px; color: #8a2a1a; text-align: center; margin: 12px 0; }
 .letter .btn { margin-top: 14px; }
-.mapbox { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 16px; width: min(760px, 96vw); }
-.mapbox canvas { width: 100%; border-radius: 6px; background: #20160c; }
-.abox { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 16px 18px; width: min(640px, 96vw); }
-.arow { display: flex; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid #3a2a18; }
-.arow .ic { font-size: 28px; width: 40px; text-align: center; }
-.arow .tx { flex: 1; font-size: 14px; color: var(--dim); line-height: 1.5; } .arow .tx b { color: var(--ink); font-size: 16px; }
+.mapbox { background: #2a1a0c; border: 3px solid #a07a44; border-radius: 10px; padding: 14px 16px; width: min(1240px, 97vw); }
+.mapbox h3 { color: var(--gold); margin-bottom: 8px; }
+.maps { display: flex; gap: 10px; } .maps canvas { width: 50%; border-radius: 4px; }
+.mapbox .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 5px; margin-top: 10px; }
+.cc { display: flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 5px; border-radius: 5px; background: rgba(255,255,255,.05); border: 1px solid #4a3420; }
+.cc span { font-size: 14px; } .cc em { font-style: normal; color: var(--dim); font-size: 11px; } .cc i { flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,.45); overflow: hidden; } .cc u { display: block; height: 100%; background: #c89a3a; }
+.cc small { font-size: 11px; color: var(--dim); min-width: 14px; text-align: right; } .cc.ok { border-color: var(--gold); } .cc.ok small { color: var(--gold); } .cc.ok u { background: var(--gold); }
+.abox { width: min(1120px, 96vw); height: min(660px, 90vh); display: flex; position: relative; box-shadow: 0 0 0 12px #4a2c14, 0 0 0 15px #2a180a, 0 30px 90px rgba(0,0,0,.75); border-radius: 14px; font-family: 'Nanum Myeongjo', serif; }
+.abox .page { flex: 1; background: radial-gradient(ellipse at center, #f4e8cc, #e2cfa4); color: #3a2a18; padding: 30px 44px; position: relative; overflow: auto; text-align: center; box-shadow: inset 0 0 50px rgba(120,80,30,.3); }
+.abox .page.l { border-radius: 14px 3px 3px 14px; border-right: 2px solid #b89a6a; padding-top: 128px; }
+.abox .page.r { border-radius: 3px 14px 14px 3px; padding-top: 50px; }
+.abox .ribbon { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 92px; height: 124px; background: #2c4c8c; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); display: grid; place-items: center; color: #f4ead8; padding-bottom: 22px; }
+.abox h2 { font-size: 34px; } .abox .sub { font-size: 18px; color: #7a5a3a; margin-top: 6px; } .abox .sub2 { font-size: 13px; color: #8a7050; }
+.abox h4 { text-align: left; margin: 18px 0 10px; font-size: 17px; border-bottom: 1px solid #b8a078; padding-bottom: 3px; } .abox .pt { color: #d87a1a; margin-left: 12px; }
+.abox .mgs { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.abox .mg { width: 72px; height: 72px; background: #2a2620; color: #f4ead8; border: 3px solid #5a4a30; display: grid; place-items: center; cursor: pointer; position: relative; margin-bottom: 20px; }
+.abox .mg span { position: absolute; bottom: -22px; font-size: 12px; color: #3a2a18; }
+.abox .mg.sel { border-color: #a02a1a; box-shadow: 0 0 0 2px #e8c46a; }
+.abox .mg.mn { width: 54px; height: 54px; margin-bottom: 6px; } .abox .mg.lock { background: #7a6e58; }
+.abox .hint2 { font-size: 12px; color: #8a7050; margin-top: 8px; }
+.abox .big { width: 150px; height: 150px; margin: 0 auto 18px; background: #2a2620; color: #f4ead8; display: grid; place-items: center; border: 4px double #8a7a5a; outline: 3px solid #2a2620; }
+.abox .page.r h3 { font-size: 30px; } .abox .lvl { font-size: 16px; margin: 4px 0 14px; border-bottom: 1px solid #b8a078; padding-bottom: 8px; }
+.abox p { text-align: left; font-size: 16px; line-height: 1.8; } .abox ul { text-align: left; margin: 14px 0 0 20px; font-size: 15px; line-height: 1.9; }
+.abox .btn { margin-top: 16px; font-family: 'Jua', sans-serif; }
+.abox .back { position: absolute; right: 0; bottom: -46px; color: #f4ead8; font-size: 16px; }
+.letter .crest { text-align: center; margin-bottom: 4px; }
 .esc { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 15; background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 18px 22px; text-align: center; }
 .esc p { color: var(--dim); font-size: 14px; margin: 8px 0 12px; line-height: 1.6; }
 .toast { position: fixed; left: 50%; top: 70px; transform: translateX(-50%); z-index: 40; background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 8px 16px; opacity: 0; transition: .25s; pointer-events: none; }
@@ -105,13 +125,13 @@ button { font-family: inherit; }
     <h1>📚 사서의 밤<small>요정이 엉망으로 만든 비전 도서관을 다 함께 정리해요</small></h1>
     <h3>닉네임</h3><input class="input" id="nick" maxlength="8" placeholder="닉네임 (2~8자)" style="width:100%">
     <h3>도서관 크기</h3>
-    <div class="seg" id="sizeSeg"><button data-v="4">작은 서고<br><small>약 90권 · 1~2인</small></button><button data-v="8" class="on">중간 서고<br><small>약 270권 · 2~3인</small></button><button data-v="16">대도서관<br><small>약 450권 · 2층</small></button><button data-v="32">거대 도서관<br><small>약 900권 · 5~8인</small></button></div>
+    <div class="seg" id="sizeSeg"><button data-v="4">작은 서고<br><small>4분야 · 약 350권</small></button><button data-v="8" class="on">중간 서고<br><small>8분야 · 약 700권</small></button><button data-v="16">대도서관<br><small>16분야 · 약 1,400권</small></button><button data-v="34">원작 크기<br><small>34분야 · 약 3,000권</small></button></div>
     <h3>길 안내</h3>
     <div class="seg" id="easySeg"><button data-v="0" class="on">끄기 (보통)<br><small>장정 색·문양으로 찾기</small></button><button data-v="1">켜기 (쉬움)<br><small>갈 책장을 알려 줌</small></button></div>
     <div class="row" style="margin-top:14px"><button class="btn go" id="btnCreate" style="flex:1">방 만들기</button><button class="btn" id="btnSolo">혼자 하기</button></div>
     <h3>방 코드로 들어가기</h3>
     <div class="row"><input class="input" id="joinCode" maxlength="6" placeholder="ABC123" style="flex:1;text-transform:uppercase;letter-spacing:3px"><button class="btn" id="btnJoin">입장</button></div>
-    <p style="margin-top:14px">PC 전용 · WASD 이동 · 마우스로 보기 · <b>E</b>/왼쪽 클릭 집기·꽂기 · <b>Q</b> 내려놓기(길게 누르면 가지런히) · 휠/R 순서 바꾸기 · <b>F</b>/휠 클릭 핑 · 동료 조준+<b>E</b> 책 건네기 · <b>M</b> 지도 · <b>1~5</b> 마법 · <b>K</b> 능력 목록</p>
+    <p style="margin-top:14px">PC 전용 · WASD 이동 · Shift 달리기 · 마우스로 보기 · <b>E</b>/왼쪽 클릭 집기·꽂기 (한 번에 10권) · <b>Q</b> 내려놓기(길게 누르면 다 같이) · 휠/R 순서 바꾸기 · <b>F</b>/휠 클릭 핑 · 동료 조준+<b>E</b> 책 건네기 · <b>M</b> 지도 · <b>1~5</b> 마법 · <b>K</b> 능력 목록</p>
   </div>
 </div>
 <!-- 대기실 -->
@@ -122,7 +142,7 @@ button { font-family: inherit; }
     <p style="text-align:center">코드를 누르면 초대 링크가 복사돼요 · 최대 8명</p>
     <div class="plist" id="lbPlayers"></div>
     <h3>도서관 크기 <small id="lbSizeTxt" style="color:var(--dim);font-size:13px"></small></h3>
-    <div class="seg" id="lbSize"><button data-v="4">작은 서고</button><button data-v="8">중간 서고</button><button data-v="16">대도서관</button><button data-v="32">거대 도서관</button></div>
+    <div class="seg" id="lbSize"><button data-v="4">작은 서고</button><button data-v="8">중간 서고</button><button data-v="16">대도서관</button><button data-v="34">원작 크기</button></div>
     <h3>길 안내</h3>
     <div class="seg" id="lbEasy"><button data-v="0">끄기 (보통)</button><button data-v="1">켜기 (쉬움)</button></div>
     <div class="row" style="margin-top:16px"><button class="btn" id="lbReady" style="flex:1">준비</button><button class="btn go" id="lbStart" style="flex:1">시작</button><button class="btn" id="lbLeave">나가기</button></div>
@@ -142,14 +162,14 @@ button { font-family: inherit; }
 </div>
 <div class="esc hide" id="escMenu"><h2>⏸ 잠시 멈춤</h2><p>화면을 누르면 다시 시작해요.<br>멀티에서는 다른 사서들은 계속 정리하고 있어요.</p><div class="row" style="justify-content:center"><button class="btn go" id="btnResume">계속하기</button><button class="btn" id="btnQuit">나가기</button></div></div>
 <div class="ov hide" id="ovLetter"><div class="letter" id="letter"></div></div>
-<div class="ov hide" id="ovMap"><div class="mapbox"><h3 style="margin-bottom:8px">🗺 도서관 지도 <small style="color:var(--dim)">(M 닫기)</small></h3><canvas id="mapCv" width="760" height="520"></canvas></div></div>
+<div class="ov hide" id="ovMap"><div class="mapbox"><h3>🗺 도서관 지도 <small style="color:var(--dim)">(M 닫기 · 아래는 분야별 남은 책)</small></h3><div class="maps"><canvas id="mapCv1"></canvas><canvas id="mapCv2"></canvas></div><div class="cats" id="mapCats"></div></div></div>
 <div class="ov hide" id="ovAbil"><div class="abox" id="abox"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="party-sound.js"></script>
 <script src="library/data.js"></script>
-<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 <script type="module" src="library/game.js"></script>
 </body>
 </html>
