@@ -121,11 +121,29 @@ function localNet() {
   return { solo: true, tx: (p, fn) => { const r = fn(get(p) == null ? null : JSON.parse(JSON.stringify(get(p)))); if (r === undefined) return Promise.resolve(false); put(p, r); cb && cb(data); return Promise.resolve(true); },
     set: (p, v) => { put(p, v); cb && cb(data); return Promise.resolve(); }, update: (p, o) => { for (const k in o) put(p + '/' + k, o[k]); cb && cb(data); return Promise.resolve(); }, on: f => { cb = f; f(data); }, off() {}, data };
 }
+// 게임 중엔 방 전체(책 3천 권 상태 포함)를 한 번에 듣지 않음: 사서 위치는 한 명당 초당 10번,
+// 요정은 8번 바뀌는데 그때마다 방 전체를 다시 받아 책 판정·배치를 새로 하면 사람이 늘수록 버벅임.
+// 위치·요정·핑은 따로, 책(bk)·자리(slot)는 한 권씩 받고, 나머지는 갈래별로 받아 한 번에 묶어 반영.
+const LB_STATE = ['host', 'players', 'keys', 'chests', 'lv', 'spent', 'stone', 'done', 'permits', 'stat', 'fbonus'], LB_MAPS = ['bk', 'slot'], LB_FAST = ['pos', 'fairy', 'ping'];
 function fbNet(code) {
   const base = 'games/lb_' + code, ref = p => db.ref(base + (p ? '/' + p : ''));
-  let h = null;
+  const offs = [], listen = (r, ev, f) => { r.on(ev, f); offs.push(() => r.off(ev, f)); };
   return { code, ref, tx: (p, fn) => ref(p).transaction(cur => { const r = fn(cur); return r === undefined ? undefined : r; }).then(r => r.committed),
-    set: (p, v) => ref(p).set(v), update: (p, o) => ref(p).update(o), on: f => { h = ref('').on('value', s => f(s.val() || {})); }, off: () => ref('').off('value', h) };
+    set: (p, v) => ref(p).set(v), update: (p, o) => ref(p).update(o), on: f => listen(ref(''), 'value', s => f(s.val() || {})),
+    // cb(갈래, 방) — 갈래 'state' 는 첫 값이 모두 모인 뒤부터, 같은 순간의 변경을 한 번으로 묶어 부름
+    watch: cb => {
+      const R = {}, wait = new Set([...LB_STATE, ...LB_MAPS]); let queued = false;
+      const flush = () => { queued = false; if (!wait.size) cb('state', R); };
+      const state = () => { if (!queued) { queued = true; queueMicrotask(flush); } };
+      for (const k of LB_FAST) listen(ref(k), 'value', s => { R[k] = s.val(); if (!wait.size) cb(k, R); });
+      for (const k of LB_STATE) listen(ref(k), 'value', s => { R[k] = s.val(); wait.delete(k); state(); });
+      for (const k of LB_MAPS) {
+        const m = R[k] = {}, r = ref(k), put = s => { m[s.key] = s.val(); state(); };
+        listen(r, 'child_added', put); listen(r, 'child_changed', put); listen(r, 'child_removed', s => { delete m[s.key]; state(); });
+        r.once('value').then(() => { wait.delete(k); state(); });   // 처음 자식들이 다 온 뒤에 옴
+      }
+    },
+    off: () => offs.splice(0).forEach(f => f()) };
 }
 
 // ════════════ 첫 화면 · 대기실 ════════════
@@ -428,6 +446,14 @@ function updateBooks() {
   booksDirty = sliding; FX.ready = true;
 }
 const _col = new THREE.Color();
+function updateOthersHeld() {
+  let any = false;
+  for (const k in OTHERS) {
+    const O = OTHERS[k]; if (!O.hand || !O.hand.length || !O.mesh) continue; const ry = O.mesh.rotation.y;
+    O.hand.forEach((id, i) => { if (!LIB.books[id] || ST.bk[id] !== 'h,' + k) return; const T = LIB.titles[LIB.books[id].t]; BOOKS.setMatrixAt(id, bookMatrix(BM, T, O.mesh.position.x + Math.sin(ry) * .35, O.mesh.position.y + 1.0 + i * .075, O.mesh.position.z + Math.cos(ry) * .35, 0, ry, Math.PI / 2)); any = true; });
+  }
+  if (any) BOOKS.instanceMatrix.needsUpdate = true;
+}
 // 1인칭: 손에 든 책을 화면 오른쪽에 눕혀 쌓음 (책등이 나를 봄, 맨 위 = 지금 꽂을 책)
 const HM = new THREE.Matrix4();
 function updateHeld() {
@@ -557,20 +583,28 @@ async function act() {
   if (AIM.kind === 'fairy') return catchFairy();
   if (AIM.kind === 'player') return giveBook(AIM.k);
 }
-const PENDING = new Set();
+const PENDING = new Set(), OVR = {};   // OVR: 서버 답을 기다리는 동안 미리 보여 줄 책 상태
 async function pickBook(id) {
   if (P.hand.length >= capacity()) { sfx('no'); return notice(`더 들 수 없어요 (최대 ${capacity()}권) — Q 로 내려놓거나 꽂으세요`); }
+  if (PENDING.has(id) || P.hand.includes(id)) return;
+  if ((ST.bk[id] || '').startsWith('h,')) { sfx('no'); return; }   // 동료 손에 있는 책
   const prev = ST.bk[id] || null, st = bookState(id); PENDING.add(id);
+  // 누르자마자 손에 듦 — 남이 먼저 집었으면 답이 온 뒤 내려놓음
+  OVR[id] = ST.bk[id] = 'h,' + me.k; P.hand.unshift(id); STATUS = null; booksDirty = true; sfx('pick'); hudHand();
   const ok = await NET.tx('bk/' + id, cur => { const c = cur || null; if (c && c.startsWith('h,')) return undefined; if (c !== prev) return undefined; return 'h,' + me.k; });
-  PENDING.delete(id); if (!ok) { sfx('no'); return; }
+  PENDING.delete(id); delete OVR[id];
+  if (!ok) { P.hand = P.hand.filter(x => x !== id); if (ST.bk[id] === 'h,' + me.k) { if (prev) ST.bk[id] = prev; else delete ST.bk[id]; } STATUS = null; booksDirty = true; hudHand(); sfx('no'); return; }
   if (st.w === 's') NET.set(`slot/${st.c}_${st.k}_${st.s}`, null);
-  if (!P.hand.includes(id)) P.hand.unshift(id); sendHand(); sfx('pick'); hudHand();
+  sendHand();
 }
 async function placeBook(id, c, k, s) {
-  const key = `${c}_${k}_${s}`;
+  const key = `${c}_${k}_${s}`, v = `s,${c},${k},${s}`;
+  if (ST.slot[key] != null || PENDING.has(id)) { sfx('no'); return notice('그 자리는 막혀 있어요'); }
+  // 누르자마자 꽂힌 모습 — 자리를 남이 먼저 차지했으면 답이 온 뒤 손으로 되돌림
+  PENDING.add(id); OVR[id] = ST.bk[id] = v; P.hand = P.hand.filter(x => x !== id); STATUS = null; booksDirty = true; hudHand(); sfx('place');
   const ok = await NET.tx('slot/' + key, cur => cur == null ? id : undefined);
-  if (!ok) { sfx('no'); return notice('그 자리는 막혀 있어요'); }
-  P.hand = P.hand.filter(x => x !== id); await NET.set('bk/' + id, `s,${c},${k},${s}`); sendHand(); hudHand(); sfx('place'); NET.tx(`stat/${me.k}/p`, v => (v | 0) + 1);
+  if (!ok) { PENDING.delete(id); delete OVR[id]; ST.bk[id] = 'h,' + me.k; if (!P.hand.includes(id)) P.hand.unshift(id); STATUS = null; booksDirty = true; hudHand(); sfx('no'); return notice('그 자리는 막혀 있어요'); }
+  await NET.set('bk/' + id, v); PENDING.delete(id); delete OVR[id]; sendHand(); NET.tx(`stat/${me.k}/p`, v => (v | 0) + 1);
   setTimeout(() => { STATUS = null; comboHit(rowStatus().book[id] === 2); }, 120);
 }
 // 자동 책꽂기: 조준한 책장이 맞는 책장이면 권수에 맞는 칸(같은 제목이 이미 있는 칸 우선)을 골라 제 번호 자리에 꽂음
@@ -713,13 +747,13 @@ function sendHand() { if (!NET.solo) NET.set('pos/' + me.k + '/h', P.hand.join('
 let lastRows = 0;
 function onRoom(r) {
   if (!LIB) return;
-  ST.bk = r.bk || {}; ST.slot = r.slot || {}; ST.keys = r.keys || {}; ST.chests = r.chests || {}; ST.lv = r.lv || {}; ST.spent = r.spent || 0; ST.stone = r.stone || 0; ST.players = r.players || ST.players; ST.done = r.done || null; ST.permits = r.permits || {};
+  ST.bk = r.bk || {}; ST.slot = r.slot || {}; for (const id in OVR) ST.bk[id] = OVR[id]; ST.keys = r.keys || {}; ST.chests = r.chests || {}; ST.lv = r.lv || {}; ST.spent = r.spent || 0; ST.stone = r.stone || 0; ST.players = r.players || ST.players; ST.done = r.done || null; ST.permits = r.permits || {};
   STATUS = null; booksDirty = true;
   // 남이 내 손의 책을 가져갔으면(동시 집기 경합) 손에서 뺌
-  P.hand = P.hand.filter(id => (ST.bk[id] || '') === 'h,' + me.k);
+  P.hand = P.hand.filter(id => PENDING.has(id) || (ST.bk[id] || '') === 'h,' + me.k);
   for (const id in ST.bk) if (ST.bk[id] === 'h,' + me.k && !P.hand.includes(+id) && !PENDING.has(+id)) { P.hand.unshift(+id); toast('📖 동료가 책을 건넸어요'); sfx('pick'); }   // 건네받은 책
   ST.fbonus = r.fbonus || 0; ST.stat = r.stat || {}; ST.ping = r.ping || {};
-  if (!isHost && r.fairy) { FAIRY.net = r.fairy; } if (isHost && r.fairy && !r.fairy.on && FAIRY.on && r.fairy.by) { FAIRY.on = 0; FAIRY.next = 70 + Math.random() * 50; } if (r.fairy && r.fairy.on && !FAIRY.seenOn) { FAIRY.seenOn = 1; notice('🧚 요정이 나타났어요! 책을 흩뜨리기 전에 잡으세요 (조준하고 E)', 4000); sfx('giggle'); } if (r.fairy && !r.fairy.on) { if (FAIRY.seenOn && r.fairy.by) toast(`🧚 ${r.fairy.by === me.k ? '내가' : ((ST.players[r.fairy.by] || {}).nick || '누군가') + '님이'} 요정을 잡았어요! 능력 포인트 +1`, 3200); FAIRY.seenOn = 0; }
+  onFairy(r.fairy);
   if (!NET.solo) syncOthers(r.pos || {}, r.players || {});
   for (const k of KEYMESH) k.visible = !ST.keys[k.userData.i];
   CHESTMESH.forEach((c, i) => { c.scale.y = ST.chests[i] ? .55 : 1; });
@@ -736,6 +770,9 @@ function onRoom(r) {
   if (!ST.done && S.good === LIB.books.length) NET.tx('done', cur => cur ? undefined : { t: Date.now(), by: me.k });
   if (ST.done && !shown.end) { shown.end = 1; setTimeout(showEnd, 900); }
   hudProg(); hudHand(); hudAbil();
+}
+function onFairy(f) {
+  if (!isHost && f) { FAIRY.net = f; } if (isHost && f && !f.on && FAIRY.on && f.by) { FAIRY.on = 0; FAIRY.next = 70 + Math.random() * 50; } if (f && f.on && !FAIRY.seenOn) { FAIRY.seenOn = 1; notice('🧚 요정이 나타났어요! 책을 흩뜨리기 전에 잡으세요 (조준하고 E)', 4000); sfx('giggle'); } if (f && !f.on) { if (FAIRY.seenOn && f.by) toast(`🧚 ${f.by === me.k ? '내가' : ((ST.players[f.by] || {}).nick || '누군가') + '님이'} 요정을 잡았어요! 능력 포인트 +1`, 3200); FAIRY.seenOn = 0; }
 }
 const shown = {};
 
@@ -974,7 +1011,11 @@ async function startGame(o) {
   $('home').classList.add('hide'); $('lobby').classList.add('hide'); $('hud').classList.remove('hide');
   buildRoom(); buildCases(); buildBooks(); buildProps(); buildSparks();
   P.x = -4.5; P.z = 0; P.yaw = -Math.PI / 2;
-  if (!NET.solo) { NET.ref('pos/' + me.k).onDisconnect().remove(); NET.ref('players/' + me.k).onDisconnect().remove(); NET.on(r => { if (!r.players || !r.players[me.k]) { toast('방에서 나왔어요'); return; } isHost = r.host === me.k || !r.players[r.host]; if (isHost && r.host !== me.k) NET.set('host', me.k); onRoom(r); hudOthers(); }); }
+  if (!NET.solo) { NET.ref('pos/' + me.k).onDisconnect().remove(); NET.ref('players/' + me.k).onDisconnect().remove(); NET.watch((kind, r) => {
+      if (kind === 'pos') return syncOthers(r.pos || {}, ST.players || {});
+      if (kind === 'fairy') return onFairy(r.fairy);
+      if (kind === 'ping') { ST.ping = r.ping || {}; return; }
+      if (!r.players || !r.players[me.k]) { toast('방에서 나왔어요'); return; } isHost = r.host === me.k || !r.players[r.host]; if (isHost && r.host !== me.k) NET.set('host', me.k); onRoom(r); hudOthers(); }); }
   else NET.on(onRoom);
   hudProg(); hudHand(); hudAbil(); hudOthers();
   letter('사서에게,', `잘 들으십시오. 아주 중요한 이야기입니다. 그 고약한 요정이 저지른 짓은 <b>대참사</b>입니다. 아름다운 우리 도서관이 전에 없던 난장판이 되어 버렸어요.<br><br>그러니 사서인 당신에게 결정을 내립니다. 책이 한 권도 빠짐없이 제자리로 돌아갈 때까지 이 도서관 문은 열리지 않습니다. 봉인입니다!<br><br>책마다 <b>분야에 맞는 책장</b>으로 가져가세요. 책장의 칸은 폭이 저마다 다릅니다 — <b>그 제목의 권수에 꼭 맞는 칸</b>을 골라 <b>1권부터 순서대로 왼쪽에서 오른쪽으로</b> 꽂으세요. 올바르면 노랗게, 책장은 맞지만 칸이나 순서가 틀리면 희미하게 붉게 빛납니다.<br><br>책장 위치는 계단 앞 지도(M)에서 확인하세요. ${OPT.easy ? '책을 조준하면 갈 책장과 칸이 보입니다.' : '책등 위쪽에 분야 이름이 적혀 있습니다.'} 한 번에 <b>10권</b>까지 들 수 있습니다.<br><br>완벽하게, 100% 끝내면 보상이 있습니다. 피자입니다. 인생 최고의 피자! 자, 일하러 가세요.`, '정리 시작!');
@@ -985,8 +1026,8 @@ function loop() {
   if (LIB) {
     if (locked) moveP(dt); else cam.rotation.set(P.pitch, P.yaw, 0, 'YXZ'), cam.position.set(P.x, P.y + EYE, P.z);
     tickAbil(dt);
-    for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; O.mesh.position.x += (O.tx - O.mesh.position.x) * Math.min(1, dt * 10); O.mesh.position.y += (O.ty - O.mesh.position.y) * Math.min(1, dt * 10); O.mesh.position.z += (O.tz - O.mesh.position.z) * Math.min(1, dt * 10); O.mesh.rotation.y = O.tyaw; if ((O.hand || []).length) booksDirty = true; }
-    if (booksDirty) updateBooks();
+    for (const k in OTHERS) { const O = OTHERS[k]; if (O.tx == null) continue; O.mesh.position.x += (O.tx - O.mesh.position.x) * Math.min(1, dt * 10); O.mesh.position.y += (O.ty - O.mesh.position.y) * Math.min(1, dt * 10); O.mesh.position.z += (O.tz - O.mesh.position.z) * Math.min(1, dt * 10); O.mesh.rotation.y = O.tyaw; }
+    if (booksDirty) updateBooks(); if (!NET.solo) updateOthersHeld();
     updateHeld();
     updateFairy(dt); drawPings(); tickSparks(dt);
     aimUpdate(); sendPos(dt);
