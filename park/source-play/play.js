@@ -140,8 +140,13 @@ function renderFlat(){const k=canvas.height/675,w=canvas.width/k;ctx.setTransfor
   ctx.restore();
  }
 }
-function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
- if(onlineControl.active)onlineControl.frame(dt,now);
+// The host's simulation must not stop when its tab is hidden (rAF pauses there),
+// or every peer freezes: a worker timer keeps it running whenever rAF is late.
+let onlineLast=performance.now(),rafAt=performance.now();
+function pumpOnline(now){const dt=Math.max(0,Math.min(.05,(now-onlineLast)/1000));onlineLast=now;onlineControl.frame(dt,now);}
+try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},16)'],{type:'text/javascript'})));w.onmessage=()=>{const now=performance.now();if(onlineControl.active&&onlineControl.net?.host&&now-rafAt>100)pumpOnline(now);};window.__parkTicker=w;}catch(e){}
+function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;rafAt=performance.now();
+ if(onlineControl.active)pumpOnline(now);
  else if(state&&!paused&&state.status==='play'){
   if(replay){replay.accumulator+=dt*replaySpeed;const h=1/state.physics.nativeTickRate;
    while(replay&&replay.accumulator+1e-10>=h&&state.status==='play'){
@@ -157,6 +162,8 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   else if(state.status==='dead')overlay('다시 한번',state.failure?.reason||'처음부터 다시 확인해요','다시 · Enter');
  }render();requestAnimationFrame(frame);
 }
+// Test hook: drive one frame without rAF (a hidden window pauses rAF).
+window.__parkFrameOnce=now=>{const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;rafAt=now;if(onlineControl.active)pumpOnline(now);render();};
 document.addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName)||(e.code==='Enter'||e.code==='Space')&&e.target.tagName==='BUTTON')return;
  if(e.code==='Escape'){closePicker();return;}
  if(['ArrowLeft','ArrowRight','ArrowUp','Space','Backspace'].includes(e.code))e.preventDefault();

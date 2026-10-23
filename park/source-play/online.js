@@ -4,6 +4,14 @@ const $=id=>document.getElementById(id),copy=x=>JSON.parse(JSON.stringify(x));
 // The original loses the round for everyone and restarts the same stage
 // after a short beat; it never returns the party to the waiting room.
 const RESTART_DELAY_MS=1100;
+// Latency work (2026-10-23). The host publishes 20x/s (was 12) as deltas (network.js).
+// A peer no longer waits for the host to see its own keys: it steps the same
+// runtime locally with its live keys, and every host snapshot is adopted and then
+// re-simulated forward over the peer's own recent keys (rewind-and-replay).
+// ?nopredict restores the old view-only peer for comparison.
+const PUBLISH_DT=1/20;
+const PREDICT=!new URLSearchParams(location.search).has('nopredict');
+const LEAD_MAX=.25,RESIM_BUDGET_MS=6;
 const memberIds=room=>Object.keys(room.players||{}).sort((a,b)=>(room.players[a].joined-room.players[b].joined)||a.localeCompare(b));
 // Only the host simulates, so every device state a peer renders has to travel
 // in the snapshot. A state left out of this list is frozen on every peer screen
@@ -36,6 +44,8 @@ function apply(s,p,positions=true){
  // of its lists must keep the shape the runtime expects rather than lose it.
  for(const [key,field] of DEVICE_STATES){
   if(p[key]===undefined||s[field]===undefined)continue;
+  // A state the round creates later (null in a freshly built state) is taken as sent.
+  if(s[field]===null||typeof s[field]!=='object'){s[field]=unpackState(p[key]);continue;}
   const incoming=unpackState(p[key]),merged={...s[field],...incoming};
   for(const name of Object.keys(s[field]))if(Array.isArray(s[field][name])&&!Array.isArray(incoming[name]))merged[name]=[];
   s[field]=merged;
@@ -49,7 +59,7 @@ function apply(s,p,positions=true){
  s.players=p.players.map(p=>({...p}));return s;
 }
 class SourceParkOnlineController{
- constructor(app){this.app=app;this.active=false;this.busy=false;this.runId='';this.compiled=new Map();this.sentAt=0;this.publishTime=0;this.lastText='';this.jumpSeen={};this.restartSeen={};this.target=null;this.panelOpen=false;this.deadAt=0;this.restarting=false;
+ constructor(app){this.app=app;this.active=false;this.busy=false;this.runId='';this.compiled=new Map();this.sentAt=0;this.publishTime=0;this.lastText='';this.jumpSeen={};this.restartSeen={};this.target=null;this.panelOpen=false;this.deadAt=0;this.restarting=false;this.sent=new Map();this.hist=[];this.rtt=.12;this.adopted=null;this.stepCost=.2;this.lastInputs={};
   $('online').onclick=()=>{if(!this.active){app.pause();$('online-panel').hidden=!$('online-panel').hidden;}else{this.panelOpen=!this.panelOpen;$('online-panel').hidden=!this.panelOpen;app.clearKeys();}};
   $('room-create').onclick=()=>this.enter(true);$('room-join').onclick=()=>this.enter(false);$('room-ready').onclick=()=>this.ready();
   $('room-start').onclick=()=>this.start();$('room-leave').onclick=()=>this.leave();$('room-close').onclick=()=>{this.panelOpen=false;$('online-panel').hidden=true;};
@@ -136,27 +146,59 @@ class SourceParkOnlineController{
   if(this.net.host&&asked){this.restartRound();return;}
   // The host simulates its own keys directly. Writing them to the database as
   // well only added contention with its own snapshot publishing.
-  const own=this.controls(),text=JSON.stringify(own);if(!this.net.host&&(text!==this.lastText||now-this.sentAt>120)){this.net.input(own);this.lastText=text;this.sentAt=now;}
+  const own=this.controls(),text=JSON.stringify(own);if(!this.net.host&&(text!==this.lastText||now-this.sentAt>120)){this.net.input(own);this.lastText=text;this.sentAt=now;this.sent.set(this.net.seq,now);if(this.sent.size>64)this.sent.delete(this.sent.keys().next().value);}
+  if(!this.net.host){this.hist.push({t:now,input:own});while(this.hist.length&&now-this.hist[0].t>1000)this.hist.shift();}
   if(this.net.host){
    if(!this.app.isPaused()&&s.status==='play'){
     const inputs={},arrival=this.net.inputArrival||{};for(const p of s.players){let v=this.net.inputs[p.id]||{};if(!this.net.connected(p.id)||!arrival[p.id]||Date.now()-arrival[p.id].at>1000)v={};inputs[p.id]={...v};
      // Preserve a short press even when press/release arrive between ticks.
      if((v.jumpSeq||0)>(this.jumpSeen[p.id]||0)){inputs[p.id].jump=!p.jump;if(!p.jump)this.jumpSeen[p.id]=v.jumpSeq;}
     }
-    inputs[this.net.id]=own;SourceStageRuntime.step(s,inputs,dt);
+    inputs[this.net.id]=own;this.lastInputs=inputs;SourceStageRuntime.step(s,inputs,dt);
    }
    this.publishTime+=dt;
    // A restart replaces the state mid-frame, so publish what the app holds now:
    // re-sending the captured lost round would push the party back through the
    // defeat it has already left.
-   if(this.publishTime>=1/12&&!this.restarting){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(pack(current,this.runId,this.app.isPaused()));}
-  }else if(this.target&&this.target.runId===this.runId){const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
+   if(this.publishTime>=PUBLISH_DT&&!this.restarting){this.publishTime=0;const current=this.app.getState();if(current)this.net.publish(this.extras(pack(current,this.runId,this.app.isPaused())));}
+  }else if(this.target&&this.target.runId===this.runId){
+   if(PREDICT&&this.target.status==='play'&&!this.app.isPaused())this.predict(s,own,dt,now);
+   else{const previous=s.players.map(p=>({...p}));apply(s,this.target);for(const p of s.players){const old=previous.find(q=>q.id===p.id);if(old&&!p.exit&&!old.exit&&Math.hypot(p.x-old.x,p.y-old.y)<180){p.x=old.x+(p.x-old.x)*Math.min(1,dt*20);p.y=old.y+(p.y-old.y)*Math.min(1,dt*20);}}}
+  }
   if(s.status!=='play'&&this.endStatus!==s.status){this.endStatus=s.status;this.app.endOnline(s.status,this.net.host);
    // Announce the lost round immediately so every peer sees it, and keep
    // publishing it until the restart; one packet is not a reliable observation.
    if(s.status==='dead'&&this.net.host){this.deadAt=now;this.publishTime=0;this.net.publish(pack(s,this.runId,this.app.isPaused()));}
   }
   if(this.net.host&&this.deadAt){if(s.status!=='dead')this.deadAt=0;else if(now-this.deadAt>=RESTART_DELAY_MS){this.deadAt=0;this.restartRound();}}
+ }
+ // Host: every member's applied input (peers predict the others with these) and
+ // the last input sequence it has from each (peers measure their round trip).
+ extras(snapshot){const ins={},acks={};
+  for(const [id,v] of Object.entries(this.lastInputs||{}))ins[id]={left:!!v.left,right:!!v.right,jump:!!v.jump,up:!!v.up,down:!!v.down,shot:!!v.shot};
+  for(const [id,v] of Object.entries(this.net.inputs||{}))acks[id]=v.seq||0;
+  snapshot.ins=ins;snapshot.acks=acks;return snapshot;}
+ // Peer: adopt each new host snapshot, replay this peer's own keys since then,
+ // and keep stepping locally between snapshots. Host status is authoritative:
+ // a death or clear seen only in the prediction is rolled back to the snapshot.
+ predict(s,own,dt,now){
+  const t=this.target,others=t.ins||{},me=this.net.id;
+  const inputsWith=mine=>{const o={};for(const p of s.players)o[p.id]=p.id===me?mine:(others[p.id]||{});return o;};
+  if(t!==this.adopted){
+   this.adopted=t;apply(s,copy(t));this.hold=false;
+   const ack=t.acks&&t.acks[me],sentAt=this.sent.get(ack);
+   if(sentAt!==undefined){const sample=(now-sentAt)/1000;if(sample>=0&&sample<2)this.rtt=this.rtt*.8+sample*.2;}
+   const h=1/s.physics.nativeTickRate;
+   let n=Math.round(Math.min(LEAD_MAX,this.rtt)/h);n=Math.min(n,Math.floor(RESIM_BUDGET_MS/Math.max(.02,this.stepCost)));
+   const t0=performance.now();
+   for(let i=n;i>0&&s.status==='play';i--){const at=now-i*h*1000;let mine={};for(let k=this.hist.length-1;k>=0;k--)if(this.hist[k].t<=at){mine=this.hist[k].input;break;}SourceStageRuntime.step(s,inputsWith(mine),h);}
+   if(n>0)this.stepCost=this.stepCost*.8+(performance.now()-t0)/n*.2;
+   if(s.status!=='play'){apply(s,copy(t));this.hold=true;}
+   return;
+  }
+  if(this.hold||s.status!=='play')return;
+  SourceStageRuntime.step(s,inputsWith(own),dt);
+  if(s.status!=='play'){apply(s,copy(t));this.hold=true;}
  }
  pause(){if(!this.net?.host){this.message('방장이 일시정지를 제어합니다.');return;}this.app.togglePause();}
  async removed(reason){await this.leave();this.message(reason==='kicked'?'방장이 내보냈습니다.':reason==='replaced'?'다른 창에서 같은 자리로 접속했습니다.':'방에서 나왔습니다.');$('online-panel').hidden=false;}

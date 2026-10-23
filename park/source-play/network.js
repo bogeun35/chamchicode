@@ -5,10 +5,14 @@
   // under the room the host publishes with a root transaction, and the host's own
   // input set() aborted that transaction ("set"): the host's keys worked while
   // the peer's screen froze and the peer's keys never reached the simulation.
-  const PROTOCOL = 'source-park-v3';
+  // v4 moved the running snapshot out of the room node too: the host writes it
+  // 20x/s, and every room transaction (join, ready, kick, leave, host election)
+  // kept retrying against those writes until it failed with "maxretry".
+  const PROTOCOL = 'source-park-v4';
   const roomPath = code => 'games/park_source_' + code;
   // Room codes are upper-case letters and digits, so this can never be a room.
   const inputPath = code => 'games/park_source_inputs_' + code;
+  const snapPath = code => 'games/park_source_snap_' + code;
   const CONFIG = {
     apiKey: 'AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM',
     authDomain: 'rolling2-17a8f.firebaseapp.com',
@@ -37,6 +41,30 @@
     return sdkLoading;
   }
   const cleanSnapshot = value => JSON.parse(JSON.stringify(value, (_key, item) => item === undefined ? null : item));
+  // Leaf paths of a JSON value. Empty arrays/objects and nulls are absent, as in
+  // the database itself.
+  function flatten(value, path, out) {
+    if (value && typeof value === 'object') { for (const key of Object.keys(value)) flatten(value[key], path ? path + '/' + key : key, out); }
+    else if (value !== null && value !== undefined && path) out[path] = value;
+    return out;
+  }
+  // Multi-path update from the previous leaves to the current ones. A path may
+  // not appear together with one of its ancestors in one update, so deletions
+  // under a leaf that is being set, or above a leaf being set, are dropped
+  // (the set replaces them anyway).
+  function diffPaths(previous, current, prefix) {
+    const update = {}, setKeys = [];
+    for (const key in current) if (previous[key] !== current[key]) { update[prefix + key] = current[key]; setKeys.push(key); }
+    const setSet = new Set(setKeys), ancestors = new Set();
+    for (const key of setKeys) { let i = key.lastIndexOf('/'); while (i > 0) { ancestors.add(key.slice(0, i)); i = key.lastIndexOf('/', i - 1); } }
+    for (const key in previous) {
+      if (key in current || ancestors.has(key)) continue;
+      let covered = false, i = key.lastIndexOf('/');
+      while (i > 0 && !covered) { if (setSet.has(key.slice(0, i))) covered = true; i = key.lastIndexOf('/', i - 1); }
+      if (!covered) update[prefix + key] = null;
+    }
+    return update;
+  }
   const randomId = prefix => prefix + (root.crypto && root.crypto.randomUUID ? root.crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).slice(2) + Date.now().toString(36));
   function playerId() {
     try {
@@ -114,6 +142,7 @@
       await this.init();
       const ref = this.db.ref(roomPath(code));
       const inputRef = this.db.ref(inputPath(code));
+      const snapRef = this.db.ref(snapPath(code));
       const connectionId = randomId('c');
       // A live subscription warms the local transaction cache before joining.
       const warm = () => {};
@@ -141,6 +170,8 @@
         if (!result.committed) throw Error('참가할 수 없어요. 방 코드·인원·진행 상태를 확인해주세요');
         this.ref = ref;
         this.inputRef = inputRef;
+        this.snapRef = snapRef;
+        this.snapshotValue = null;
         this.code = code;
         this.connectionId = connectionId;
         this.localOnline = true;
@@ -159,7 +190,9 @@
         await this.armPresence(ref, connectionId);
         this.listener = snap => {
           if (this.ref !== ref) return;
-          const room = snap.val();
+          const base = snap.val();
+          this.roomBase = base;
+          const room = base ? { ...base, snapshot: this.snapshotValue } : base;
           const wasHost = this.host;
           this.room = room;
           if (!room || !room.players || !room.players[this.id] || room.kicked && room.kicked[this.id] || room.players[this.id].connectionId !== connectionId) {
@@ -173,6 +206,14 @@
           if (!online(room, room.host)) this.elect(ref, room);
         };
         ref.on('value', this.listener, error => this.error(error));
+        this.snapListener = snap => {
+          if (this.snapRef !== snapRef) return;
+          this.snapshotValue = snap.val();
+          if (!this.roomBase) return;
+          this.room = { ...this.roomBase, snapshot: this.snapshotValue };
+          try { if (this.onRoom) this.onRoom(this.room); } catch (error) { this.error(error); }
+        };
+        snapRef.on('value', this.snapListener, error => this.error(error));
         this.inputListener = snap => {
           if (this.inputRef !== inputRef) return;
           this.rawInputs = snap.val() || {};
@@ -187,6 +228,7 @@
         this.infoListener = snap => {
           if (this.ref !== ref) return;
           this.localOnline = snap.val() === true;
+          this.pubFlat = null;
           if (!this.localOnline) {
             this.host = false;
             try { if (this.onRoom && this.room) this.onRoom(this.room); } catch (error) { this.error(error); }
@@ -213,7 +255,7 @@
     revoked(ref, reason) {
       if (this.ref !== ref) return;
       this.detach(ref);
-      this.ref = this.player = this.code = this.inputRef = null;
+      this.ref = this.player = this.code = this.inputRef = this.snapRef = this.roomBase = null;
       this.host = this.justBecameHost = false;
       this.inputs = {};
       this.rawInputs = {};
@@ -228,6 +270,8 @@
     }
     detach(ref) {
       if (this.listener) ref.off('value', this.listener);
+      if (this.snapRef && this.snapListener) this.snapRef.off('value', this.snapListener);
+      this.snapListener = null;
       if (this.inputRef && this.inputListener) this.inputRef.off('value', this.inputListener);
       if (this.infoRef && this.infoListener) this.infoRef.off('value', this.infoListener);
       this.infoRef = this.infoListener = this.inputListener = null;
@@ -281,33 +325,58 @@
       this.restartSeq++;
       return this.input(this.lastInput || {});
     }
+    // The host publishes only what changed since its last publish (multi-path
+    // update of leaves), plus a full snapshot every 2 s and on every new run.
+    // A root transaction per publish used to queue behind the previous one
+    // (Firebase runs transactions on a location one at a time) and resent the
+    // whole 18-30 KB room 12x/s to every peer; a delta is typically 0.2-3 KB.
+    // The guard the transaction gave is checked on the host's own room view.
     publish(snapshot) {
       if (!this.host || !this.ref) return Promise.resolve(false);
-      const ref = this.ref;
-      const revision = this.room && this.room.revision || 0;
-      const connectionId = this.connectionId;
-      return this.write(ref, () => ref.transaction(room => {
-        if (!room || room.host !== this.id || !online(room, this.id) || room.players[this.id].connectionId !== connectionId || room.status === 'lobby' || (room.revision || 0) !== revision) return;
-        room.snapshot = cleanSnapshot(snapshot);
-        room.status = snapshot.status === 'play' ? 'game' : snapshot.status;
-        return room;
-      }));
+      const room = this.room, ref = this.ref;
+      if (!room || room.host !== this.id || !online(room, this.id) || !room.players[this.id] || room.players[this.id].connectionId !== this.connectionId || room.status === 'lobby') return Promise.resolve(false);
+      const clean = cleanSnapshot(snapshot);
+      const status = clean.status === 'play' ? 'game' : clean.status;
+      const revision = room.revision || 0, now = Date.now();
+      let update;
+      const snapRef = this.snapRef;
+      let write;
+      if (!this.pubFlat || this.pubRun !== clean.runId || this.pubRevision !== revision || now - this.pubFullAt > 2000) {
+        this.pubFlat = flatten(clean, '', {});
+        this.pubRun = clean.runId; this.pubRevision = revision; this.pubFullAt = now;
+        write = () => snapRef.set(clean);
+      } else {
+        const current = flatten(clean, '', {});
+        update = diffPaths(this.pubFlat, current, '');
+        this.pubFlat = current;
+        write = Object.keys(update).length ? () => snapRef.update(update) : null;
+      }
+      const done = write ? this.write(ref, write) : Promise.resolve(true);
+      if ((this.roomBase && this.roomBase.status) !== status) this.write(ref, () => ref.child('status').set(status));
+      return done;
     }
+    resetPublish() { this.pubFlat = null; }
     async start(snapshot) {
       if (!this.host || !this.ref) throw Error('방장만 시작할 수 있어요');
+      this.pubFlat = null;
       const state = cleanSnapshot(snapshot);
-      const ref = this.ref;
-      const result = await this.track(ref, () => ref.transaction(room => {
+      const ref = this.ref, snapRef = this.snapRef;
+      // Peers adopt the round when the room turns to "game"; the snapshot must be there first.
+      // One tracked operation, so a leave() issued meanwhile drains the whole start.
+      const result = await this.track(ref, async () => { await snapRef.set(state); return ref.transaction(room => {
         if (!room || room.host !== this.id || !online(room, this.id) || room.status !== 'lobby') return;
         if (state.stageId && state.stageId !== (room.stageId || 'st_w_01_01')) return;
         const players = Object.entries(room.players || {});
         if (players.length < 2 || players.length > 8 || onlineIds(room).length < 2 || players.some(([id, player]) => online(room, id) && id !== this.id && !player.ready)) return;
-        room.snapshot = state;
+        room.snapshot = null;
         room.status = 'game';
         room.restartPending = false;
         return room;
-      })).catch(error => { this.error(error); throw error; });
-      if (!result.committed) throw Error('2~8명이 참가하고 모두 준비해야 시작할 수 있어요');
+      }); }).catch(error => { this.error(error); throw error; });
+      if (!result.committed) {
+        if (this.snapRef === snapRef && this.roomBase && this.roomBase.status === 'lobby') this.write(ref, () => snapRef.remove());
+        throw Error('2~8명이 참가하고 모두 준비해야 시작할 수 있어요');
+      }
       return true;
     }
     ready(ready) {
@@ -336,7 +405,10 @@
     }
     lobby() {
       if (!this.host || !this.ref) return Promise.resolve(false);
+      this.pubFlat = null;
       const ref = this.ref;
+      const snapRef = this.snapRef;
+      if (snapRef) this.write(ref, () => snapRef.remove());
       return this.write(ref, () => ref.transaction(room => {
         if (!room || room.host !== this.id) return;
         room.status = 'lobby';
@@ -381,18 +453,18 @@
       const ref = this.ref;
       const disconnects = this.disconnects;
       const connectionId = this.connectionId;
-      const inputRef = this.inputRef;
+      const inputRef = this.inputRef, snapRef = this.snapRef;
       if (ref) this.detach(ref);
-      this.ref = this.room = this.player = this.code = this.inputRef = null;
+      this.ref = this.room = this.roomBase = this.player = this.code = this.inputRef = this.snapRef = null;
       this.host = this.justBecameHost = false;
       this.inputs = {};
       this.rawInputs = {};
       this.disconnects = [];
       if (!ref) return Promise.resolve();
-      this.leaving = this.finishLeave(ref, disconnects, connectionId, inputRef).finally(() => { this.leaving = null; });
+      this.leaving = this.finishLeave(ref, disconnects, connectionId, inputRef, snapRef).finally(() => { this.leaving = null; });
       return this.leaving;
     }
-    async finishLeave(ref, disconnects, connectionId, inputRef) {
+    async finishLeave(ref, disconnects, connectionId, inputRef, snapRef) {
       // Keep a listener while the transaction runs, then detach only our listener.
       const warm = () => {};
       ref.on('value', warm);
@@ -424,6 +496,7 @@
         // The last one out also clears the room's input node.
         const left = result.snapshot && typeof result.snapshot.val === 'function' ? result.snapshot.val() : undefined;
         if (inputRef && left === null) await inputRef.remove();
+        if (snapRef && left === null) await snapRef.remove();
         await Promise.all(disconnects.map(disconnect => disconnect.cancel()));
       } catch (error) { this.error(error); } finally { ref.off('value', warm); }
     }
