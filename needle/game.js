@@ -4,7 +4,7 @@
 // 원작 확인값: 가닥당 $0.0222 · 더미 약 600만 가닥 · 양동이 600 · 마당 덩이 상한 600 · 연구 트리 카드 이름·가격(data.js 참고)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import * as D from './data.js?v=3';
+import * as D from './data.js?v=4';
 import * as W from './world.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -699,10 +699,10 @@ function stepMachines(dt) {
     }
   }
 }
-function stepRake(m, dt) {
+function stepRake(m, dt) { // 한 번에 40가닥(추정 — 22였을 땐 손 작업의 1/10도 안 돼서 자동화할 맛이 없었음)
   const spd = 1 + .15 * lvl('rake_speed'); m.t += dt * spd; const cyc = 2.4;
   const ph = (m.t % cyc) / cyc; m.r.head.position.z = -.6 - Math.sin(ph * Math.PI) * .7;
-  if (m.t >= cyc) { m.t -= cyc; const f = L2W(m, 0, -1.3); const got = scoopPile(f.x, f.z, 22 * (1 + .3 * lvl('rake_bite')), .55); if (got.n) { const o = L2W(m, 0, 1.15, .75); mkItem('hay', got.n, o.x, o.y, o.z, Math.sin(m.rot) * .6, 0, Math.cos(m.rot) * .6, got.nd); burst(f.x, hAt(f.x, f.z), f.z, 4, 1); } }
+  if (m.t >= cyc) { m.t -= cyc; const f = L2W(m, 0, -1.3); const got = scoopPile(f.x, f.z, 40 * (1 + .3 * lvl('rake_bite')), .55); if (got.n) { const o = L2W(m, 0, 1.15, .75); mkItem('hay', got.n, o.x, o.y, o.z, Math.sin(m.rot) * .6, 0, Math.cos(m.rot) * .6, got.nd); burst(f.x, hAt(f.x, f.z), f.z, 4, 1); } }
 }
 // 로봇 팔: 더미에서 집어서 반경 안의 벨트·발전기·양동이에 놓음
 function armTargets(m) {
