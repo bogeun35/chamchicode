@@ -1,10 +1,10 @@
 // ════════════ 바늘 찾기 — Find The Needle 재현 (원작: FindTheNeedleDev, Steam) ════════════
 // 창고 안 600만 가닥 건초 더미에서 바늘을 찾는 1인칭 자동화 게임.
-// 맨손으로 한 가닥씩 → 삽·쇠스랑·양동이 → 벨트·발전기·로봇 팔·압축기·스캐너.
+// 맨손으로 한 움큼씩 → 삽·쇠스랑·양동이 → 벨트·발전기·로봇 팔·압축기·스캐너.
 // 원작 확인값: 가닥당 $0.0222 · 더미 약 600만 가닥 · 양동이 600 · 마당 덩이 상한 600 · 연구 트리 카드 이름·가격(data.js 참고)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import * as D from './data.js?v=2';
+import * as D from './data.js?v=3';
 import * as W from './world.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -75,9 +75,9 @@ const reachOf = () => 2.6 + .4 * lvl('grab_reach');
 function toolStat(k) {
   const sb = 1 + .06 * lvl('strong_back'), sw = 1 + .12 * lvl('easy_swing');
   if (k === 'hand') return { cap: D.TECH_BY.hand_carry.eff(lvl('hand_carry')), cd: .2, r: .12 };
-  if (k === 'toy') return { cap: Math.round((6 + 4 * lvl('toy_shovel_size')) * sb), cd: .38 / sw, r: .18 };
-  if (k === 'spade') return { cap: Math.round((20 + 8 * lvl('shovel_size')) * sb), cd: .5 / sw, r: .26 };
-  if (k === 'fork') return { cap: Math.round((60 + 25 * lvl('fork_size')) * sb), cd: .62 / sw, r: .38 };
+  if (k === 'toy') return { cap: Math.round((15 + 5 * lvl('toy_shovel_size')) * sb), cd: .38 / sw, r: .18 };
+  if (k === 'spade') return { cap: Math.round((30 + 8 * lvl('shovel_size')) * sb), cd: .5 / sw, r: .26 };
+  if (k === 'fork') return { cap: Math.round((80 + 25 * lvl('fork_size')) * sb), cd: .62 / sw, r: .38 };
   return null;
 }
 const TOOLS = { hand: { ko: '손', icon: '✋' }, detector: { ko: '금속 탐지기', icon: '📡' }, toy: { ko: '장난감 삽', icon: '🥄' }, spade: { ko: '삽', icon: '♠️' }, fork: { ko: '쇠스랑', icon: '🔱' }, broom: { ko: '빗자루', icon: '🧹' }, vac: { ko: '마당 청소기', icon: '🌀' } };
@@ -830,6 +830,7 @@ function buy(id) {
   const t = D.TECH_BY[id]; const c = techCost(t); if (c == null || !reqOK(t)) return false;
   if (S.money < c) { sfx('deny'); return false; }
   S.money -= c; S.tech[id] = lvl(id) + 1; sfx('buy');
+  if (id === 'hand_carry') mission('carry');
   if (t.tool) { if (t.tool === 'bucket') deliver('bucket'); else if (t.tool === 'barrow') deliver('barrow'); else deliver('tool', t.tool); toast(`📦 ${t.ko} — SUPPLY CO. 배달 팔레트에 도착!`, 3500); mission('buy_tool'); if (t.tool === 'bucket') mission('bucket'); }
   else if (t.build) toast(`🛠 ${t.ko} — B 키(건설)로 설치할 수 있다`, 3500);
   if (id === 'joiner' || id === 'pole_span' || id === 'pole_drop') relink();
@@ -1012,6 +1013,7 @@ function load() {
   if (!d || d.v !== 1) return false;
   try {
     Object.assign(S, d.S); K = d.K;
+    if (S.missions.earn1 || lvl('hand_carry')) S.missions.carry = 1; // '한 움큼' 할 일은 나중에 추가됨 — 이미 지난 세이브는 건너뜀
     const u = unb64(d.H), h16 = new Uint16Array(u.buffer, 0, H.length); for (let k = 0; k < H.length; k++) H[k] = h16[k] / 1000; pileSum = sumH();
     genNeedles(S.pileNo); d.needles.forEach((q, i) => { if (needles[i]) Object.assign(needles[i], q); });
     for (const q of needles) if (q.st === 'held') q.st = 'prop';

@@ -27,17 +27,17 @@ const G = (base, mul, n) => Array.from({ length: n }, (_, i) => Math.round(base 
 // col = 원작 트리의 "N STEPS" 열, up = 붙어 있는 카드(업그레이드 상자로 표시), req = 선행
 export const TECH = [
   // ── 손일 HAND WORK ── (트레일러 프레임: Toy Shovel $1.00 · Spade · Broom $10.00 · Bucket Licence · Bigger Spade $15 0/5 · Pitchfork $25 · Better Broom 0/3 · Bigger Toy Shovel 0/2 · Bigger Bucket $25 · Smooth Pouring $25 · Wheelbarrow Licence)
-  { id: 'bare_hands', cat: 'hand', col: 0, en: 'Bare Hands', ko: '맨손', icon: '✋', cost: [0], own: true, src: 'name', d: '처음부터 가진 손. 건초를 한 가닥씩 집는다.' },
-  { id: 'hand_carry', cat: 'hand', up: 'bare_hands', en: 'Hand Carry', ko: '한 움큼', cost: [0.2, 0.5, 1.2, 3, 7], src: 'guess', d: '손으로 한 번에 집는 가닥 +1·+2·+3…', eff: l => [1, 2, 4, 7, 11, 16][l] },
+  { id: 'bare_hands', cat: 'hand', col: 0, en: 'Bare Hands', ko: '맨손', icon: '✋', cost: [0], own: true, src: 'name', d: '처음부터 가진 손. 건초를 한 움큼(3가닥)씩 집는다.' }, // 원작 "You start by hand"(스팀 데모 소개). 한 번에 몇 가닥인지는 추정
+  { id: 'hand_carry', cat: 'hand', up: 'bare_hands', en: 'Hand Carry', ko: '한 움큼', cost: [0.1, 0.25, 0.6, 1.5, 4], src: 'guess', d: '손으로 한 번에 집는 가닥 3→5→8→12→16→20', eff: l => [3, 5, 8, 12, 16, 20][l] }, // 추정: 첫 $1(장난감 삽)까지 10여 번 왕복이 되게
   { id: 'grab_reach', cat: 'hand', up: 'bare_hands', en: 'Grab Reach', ko: '팔 길이', cost: G(2, 2, 4), src: 'guess', d: '집고 쏟는 거리 +0.4m' },
-  { id: 'toy_shovel', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Toy Shovel', ko: '장난감 삽', icon: '🪣', cost: [1], src: 'orig', d: '빨간 플라스틱 삽. 한 번에 6가닥.', tool: 'toy' },
-  { id: 'toy_shovel_size', cat: 'hand', col: 2, req: ['toy_shovel'], en: 'Bigger Toy Shovel', ko: '더 큰 장난감 삽', icon: '🪣', cost: [2, 5], src: 'name', d: '장난감 삽 +4가닥' },
-  { id: 'spade', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Spade', ko: '삽', icon: '♠', cost: [4], src: 'name', d: '진짜 삽. 한 번에 20가닥.', tool: 'spade' },
+  { id: 'toy_shovel', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Toy Shovel', ko: '장난감 삽', icon: '🪣', cost: [1], src: 'orig', d: '빨간 플라스틱 삽. 한 번에 15가닥.', tool: 'toy' },
+  { id: 'toy_shovel_size', cat: 'hand', col: 2, req: ['toy_shovel'], en: 'Bigger Toy Shovel', ko: '더 큰 장난감 삽', icon: '🪣', cost: [2, 5], src: 'name', d: '장난감 삽 +5가닥' },
+  { id: 'spade', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Spade', ko: '삽', icon: '♠', cost: [4], src: 'name', d: '진짜 삽. 한 번에 30가닥.', tool: 'spade' },
   { id: 'shovel_size', cat: 'hand', col: 2, req: ['spade'], en: 'Bigger Spade', ko: '더 큰 삽', icon: '♠', cost: [15, 24, 38, 60, 95], src: 'orig', d: '삽 +8가닥' },
   { id: 'broom', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Broom', ko: '빗자루', icon: '🧹', cost: [10], src: 'orig', d: '바닥에 흘린 건초를 쓸어 모은다.', tool: 'broom' },
   { id: 'broom_bristles', cat: 'hand', col: 2, req: ['broom'], en: 'Better Broom', ko: '더 좋은 빗자루', icon: '🧹', cost: [12, 30, 70], src: 'name', d: '쓰는 폭 +0.5m' },
   { id: 'bucket', cat: 'hand', col: 1, req: ['bare_hands'], en: 'Bucket Licence', ko: '양동이 허가증', icon: '🪣', cost: [15], src: 'name', d: '600가닥 담는 양동이. 들고 가서 벨트에 붓는다.', tool: 'bucket' },
-  { id: 'pitchfork', cat: 'hand', col: 2, req: ['spade'], en: 'Pitchfork', ko: '쇠스랑', icon: '🔱', cost: [25], src: 'orig', d: '한 번에 60가닥 푹.', tool: 'fork' },
+  { id: 'pitchfork', cat: 'hand', col: 2, req: ['spade'], en: 'Pitchfork', ko: '쇠스랑', icon: '🔱', cost: [25], src: 'orig', d: '한 번에 80가닥 푹.', tool: 'fork' },
   { id: 'fork_size', cat: 'hand', col: 3, req: ['pitchfork'], en: 'Bigger Pitchfork', ko: '더 큰 쇠스랑', icon: '🔱', cost: G(40, 1.55, 5), src: 'name', d: '쇠스랑 +25가닥' },
   { id: 'bucket_size', cat: 'hand', col: 3, req: ['bucket'], en: 'Bigger Bucket', ko: '더 큰 양동이', icon: '🪣', cost: G(25, 1.6, 5), src: 'orig', d: '양동이 +300가닥' },
   { id: 'smooth_pour', cat: 'hand', col: 3, req: ['bucket'], en: 'Smooth Pouring', ko: '부드럽게 붓기', icon: '🫗', cost: G(25, 1.8, 3), src: 'orig', d: '붓는 속도 +60%' },
@@ -136,8 +136,9 @@ export const NEEDLES = [
 
 // 미션(원작 show_missions 옵션은 있으나 문구는 확인 못 함 → 추정)
 export const MISSIONS = [
-  { id: 'first_strand', t: '건초 한 가닥을 집어 HAY IN 벨트에 올리기', hint: '더미를 보고 왼쪽 클릭으로 집고, 벨트를 보고 다시 클릭' },
-  { id: 'earn1', t: '$1.00 벌기', hint: '판매대 저울에 들어간 만큼 돈이 들어온다' },
+  { id: 'first_strand', t: '건초 한 움큼을 집어 HAY IN 벨트에 올리기', hint: '더미를 보고 왼쪽 클릭으로 집고, 벨트를 보고 다시 클릭' },
+  { id: 'carry', t: "연구에서 '한 움큼' 사기", hint: 'Tab(또는 SUPPLY CO. 단말기에서 E) → 손일 · 맨손 업그레이드. 한 번에 집는 양이 늘어난다' },
+  { id: 'earn1', t: '$1.00 벌기', hint: '판매대 저울에 들어간 만큼 돈이 들어온다. 한 움큼을 더 올리면 금방' },
   { id: 'buy_tool', t: 'SUPPLY CO. 에서 연장 사기', hint: 'SUPPLY CO. 간판 앞 단말기에서 E (또는 Tab)' },
   { id: 'pickup_tool', t: '배달된 연장 줍기', hint: 'SUPPLY CO. 앞 팔레트에 놓인 연장을 보고 E' },
   { id: 'earn10', t: '$10 벌기', hint: '삽으로 퍼서 벨트에 쏟자' },
