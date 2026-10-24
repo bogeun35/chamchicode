@@ -150,12 +150,26 @@ function addPile(x, z, n, nd) {
 const strawTex = W.strawTexture(); strawTex.repeat.set(28 / 1.7, 28 / 1.7);
 const pileGeo = new THREE.PlaneGeometry(28, 28, N - 1, N - 1); pileGeo.rotateX(-Math.PI / 2); pileGeo.translate(X0 + 14, 0, Z0 + 14);
 const pileMesh = new THREE.Mesh(pileGeo, new THREE.MeshStandardMaterial({ map: strawTex, roughness: 1, color: '#e8d0a0' }));
-pileMesh.receiveShadow = true; pileMesh.castShadow = !MOBILE; scene.add(pileMesh);
+pileMesh.receiveShadow = true; pileMesh.castShadow = !MOBILE; pileMesh.frustumCulled = false; scene.add(pileMesh);
+// 줄(행)마다 바뀐 구간만 GPU 로 올린다 — 전체(12,769점)를 매 프레임 올리면 파는 동안 프레임이 무너짐
+function rowRanges(cells, perCell) { // cells: 칸 번호 Set/배열 → [[시작, 개수]…] (perCell 배수)
+  const rows = new Map(); for (const k of cells) { const j = (k / N) | 0, r = rows.get(j); if (!r) rows.set(j, [k, k]); else { if (k < r[0]) r[0] = k; if (k > r[1]) r[1] = k; } }
+  return [...rows.values()].map(([a, b]) => [a * perCell, (b - a + 1) * perCell]);
+}
+function pileNormal(k, pos, nor) {
+  const i = k % N, j = (k / N) | 0, y = q => pos[q * 3 + 1];
+  const dx = (y(i < N - 1 ? k + 1 : k) - y(i > 0 ? k - 1 : k)) / ((i > 0 && i < N - 1 ? 2 : 1) * C), dz = (y(j < N - 1 ? k + N : k) - y(j > 0 ? k - N : k)) / ((j > 0 && j < N - 1 ? 2 : 1) * C);
+  const l = Math.hypot(dx, 1, dz); nor[k * 3] = -dx / l; nor[k * 3 + 1] = 1 / l; nor[k * 3 + 2] = -dz / l;
+}
 function updatePileMesh(full) {
-  const pos = pileGeo.attributes.position.array;
-  if (full) { for (let k = 0; k < H.length; k++) pos[k * 3 + 1] = H[k] > .006 ? H[k] : -.08; }
-  else for (const k of meshDirty) pos[k * 3 + 1] = H[k] > .006 ? H[k] : -.08;
-  pileGeo.attributes.position.needsUpdate = true; pileGeo.computeVertexNormals(); pileGeo.computeBoundingSphere();
+  const pa = pileGeo.attributes.position, na = pileGeo.attributes.normal, pos = pa.array, nor = na.array;
+  if (full) { for (let k = 0; k < H.length; k++) pos[k * 3 + 1] = H[k] > .006 ? H[k] : -.08; for (let k = 0; k < H.length; k++) pileNormal(k, pos, nor); pa.clearUpdateRanges(); na.clearUpdateRanges(); pa.needsUpdate = na.needsUpdate = true; return; }
+  const ns = new Set();
+  for (const k of meshDirty) { pos[k * 3 + 1] = H[k] > .006 ? H[k] : -.08; ns.add(k); const i = k % N; if (i > 0) ns.add(k - 1); if (i < N - 1) ns.add(k + 1); if (k >= N) ns.add(k - N); if (k + N < H.length) ns.add(k + N); }
+  for (const k of ns) pileNormal(k, pos, nor);
+  pa.clearUpdateRanges(); for (const [a, c] of rowRanges(meshDirty, 3)) pa.addUpdateRange(a, c);
+  na.clearUpdateRanges(); for (const [a, c] of rowRanges(ns, 3)) na.addUpdateRange(a, c);
+  pa.needsUpdate = na.needsUpdate = true;
 }
 // 표면 가닥 (원작처럼 한 가닥 한 가닥 보이게)
 const NF = MOBILE ? 14000 : 42000;
@@ -166,12 +180,17 @@ const cellFuzz = new Map();
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 {
   let s = 77; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const tmp = [];
   for (let n = 0; n < NF; n++) {
-    const a = r() * 6.283, d = Math.sqrt(r()) * (PR + 2.5); FX[n] = PCX + Math.cos(a) * d; FZ[n] = PCZ + Math.sin(a) * d; FA[n] = r() * 6.283; FT[n] = (r() - .5) * .9; FL[n] = .7 + r() * .7;
-    const k = clamp(Math.round((FZ[n] - Z0) / C), 0, N - 1) * N + clamp(Math.round((FX[n] - X0) / C), 0, N - 1); FK[n] = k;
-    if (!cellFuzz.has(k)) cellFuzz.set(k, []); cellFuzz.get(k).push(n);
-    fuzz.setColorAt(n, _c.set(W.STRAW_COLS[(r() * W.STRAW_COLS.length) | 0]));
+    const a = r() * 6.283, d = Math.sqrt(r()) * (PR + 2.5), x = PCX + Math.cos(a) * d, z = PCZ + Math.sin(a) * d;
+    tmp.push({ x, z, a: r() * 6.283, t: (r() - .5) * .9, l: .7 + r() * .7, k: clamp(Math.round((z - Z0) / C), 0, N - 1) * N + clamp(Math.round((x - X0) / C), 0, N - 1), c: (r() * W.STRAW_COLS.length) | 0 });
   }
+  tmp.sort((p, q) => p.k - q.k); // 칸 순서 = 메모리 순서 (부분 업로드용)
+  tmp.forEach((f, n) => {
+    FX[n] = f.x; FZ[n] = f.z; FA[n] = f.a; FT[n] = f.t; FL[n] = f.l; FK[n] = f.k;
+    if (!cellFuzz.has(f.k)) cellFuzz.set(f.k, []); cellFuzz.get(f.k).push(n);
+    fuzz.setColorAt(n, _c.set(W.STRAW_COLS[f.c]));
+  });
 }
 scene.add(fuzz);
 const fuzzShuffle = new Set();
@@ -181,9 +200,16 @@ function setFuzz(n) {
   _e.set(FT[n], FA[n], 0); _q.setFromEuler(_e); _v.set(FX[n], h + .01, FZ[n]); _s.set(1, 1, FL[n]); _m.compose(_v, _q, _s); fuzz.setMatrixAt(n, _m);
 }
 function updateFuzz(full) {
+  const im = fuzz.instanceMatrix; im.clearUpdateRanges();
   if (full) { for (let n = 0; n < NF; n++) setFuzz(n); }
-  else for (const k of meshDirty) { const l = cellFuzz.get(k); if (l) for (const n of l) { if (fuzzShuffle.has(k)) { FA[n] = Math.random() * 6.283; FT[n] = (Math.random() - .5) * .9; } setFuzz(n); } }
-  fuzzShuffle.clear(); fuzz.instanceMatrix.needsUpdate = true;
+  else {
+    const rows = new Map(); // 줄마다 바뀐 가닥 번호 범위
+    for (const k of meshDirty) { const l = cellFuzz.get(k); if (!l) continue; for (const n of l) { if (fuzzShuffle.has(k)) { FA[n] = Math.random() * 6.283; FT[n] = (Math.random() - .5) * .9; } setFuzz(n); }
+      const j = (k / N) | 0, a = l[0], b = l[l.length - 1], r = rows.get(j); if (!r) rows.set(j, [a, b]); else { if (a < r[0]) r[0] = a; if (b > r[1]) r[1] = b; } }
+    if (!rows.size) { fuzzShuffle.clear(); return; }
+    for (const [a, b] of rows.values()) im.addUpdateRange(a * 16, (b - a + 1) * 16);
+  }
+  fuzzShuffle.clear(); im.needsUpdate = true;
 }
 
 // ════════════ 바늘 ════════════
@@ -234,7 +260,7 @@ function renderItems() {
     _e.set(key === 'stick' ? 0 : it.rx * .3, it.ry, 0); _q.setFromEuler(_e); _v.set(it.x, it.y + (key === 'clump' ? .08 * sc : key === 'bale' ? .18 : key === 'wbale' ? .24 : .01), it.z); _s.set(sc, sc, sc);
     _m.compose(_v, _q, _s); m.setMatrixAt(cnt[key]++, _m);
   }
-  for (const k in IM) { IM[k].count = cnt[k]; IM[k].instanceMatrix.needsUpdate = true; }
+  for (const k in IM) { const im = IM[k].instanceMatrix, was = IM[k].count; IM[k].count = cnt[k]; if (!cnt[k] && !was) continue; im.clearUpdateRanges(); if (cnt[k]) im.addUpdateRange(0, cnt[k] * 16); im.needsUpdate = true; }
 }
 // 튀는 건초 부스러기 (손맛)
 const PART = 260, partM = new THREE.InstancedMesh(stickGeo, new THREE.MeshStandardMaterial({ color: '#e8c070' }), PART); partM.frustumCulled = false; partM.count = 0; scene.add(partM);
@@ -935,7 +961,7 @@ function stepLabels(dt) {
   // 양동이 수량 표시 (원작 "485 / 600")
   const cl = $('contLabels'); let html = '';
   for (const c of props) { if (c.kind === 'tool') continue; const d = Math.hypot(c.x - P.x, c.z - P.z); if (d > 5) continue; _v.set(c.x, c.y + (c.kind === 'bucket' ? .55 : 1.05), c.z).project(camera); if (_v.z > 1) continue; html += `<div class="cl" style="left:${(_v.x + 1) / 2 * innerWidth}px;top:${(1 - _v.y) / 2 * innerHeight}px">${c.n >= contCap(c.kind) ? 'FULL' : `${fmtN(c.n)} / ${fmtN(contCap(c.kind))}`}</div>`; }
-  cl.innerHTML = html;
+  if (cl._h !== html) { cl._h = html; cl.innerHTML = html; } // 매 프레임 DOM 다시 쓰지 않기
 }
 let hudT = 0;
 function updateHUD(dt) {
@@ -1199,6 +1225,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) save(
 window.needle = {
   S, P, items, builds, needles, props, H, hAt, scoopPile, addPile, buy, mkItem, beltInsert, deliver, openResearch, openCatalog, mission, save, load, startBuild, buildClick, addBelt, addMachine, relink, powerTick, sell,
   step(dt = 1 / 60, n = 1) { for (let i = 0; i < n; i++) step(dt); renderer.render(scene, camera); },
+  stepOnly(dt = 1 / 60, n = 1) { for (let i = 0; i < n; i++) step(dt); }, render(fin) { renderer.render(scene, camera); if (fin) renderer.getContext().finish(); }, dirtyCount: () => dirty.size,
+  info() { const r = renderer.info.render; let meshes = 0, yardMeshes = 0; scene.traverse(o => { if (o.isMesh) meshes++; }); yard.group.traverse(o => { if (o.isMesh) yardMeshes++; }); return { calls: r.calls, tris: r.triangles, meshes, yardMeshes, shadow: renderer.shadowMap.enabled }; },
   tp(x, z, yaw) { P.x = x; P.z = z; P.y = groundAt(x, z); if (yaw != null) P.yaw = yaw; },
   look(yaw, pitch) { P.yaw = yaw; P.pitch = pitch; },
   hold(l, r) { mouseL = !!l; mouseR = !!r; if (!l) pouring = false; },
