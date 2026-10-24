@@ -4,7 +4,7 @@
 // 원작 확인값: 가닥당 $0.0222 · 더미 약 600만 가닥 · 양동이 600 · 마당 덩이 상한 600 · 연구 트리 카드 이름·가격(data.js 참고)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import * as D from './data.js?v=4';
+import * as D from './data.js?v=5';
 import * as W from './world.js?v=2';
 
 const $ = id => document.getElementById(id);
@@ -67,6 +67,8 @@ const S = {
   money: 0, earned: 0, sold: 0, dug: 0, play: 0, bestSale: 0,
   tech: {}, hotbar: ['hand', 'detector'], slot: 0, missions: {}, cabinet: [], pileNo: 1, detSecs: 0, intro: false,
 };
+// 같이 하기 상태 (자세한 건 아래 '같이 하기' 절)
+const NET = { on: false, host: false, guest: false, code: null, me: null, players: {}, poses: {}, ready: false, gone: new Map(), msSent: {} };
 const lvl = id => S.tech[id] != null ? S.tech[id] : (D.TECH_BY[id] && D.TECH_BY[id].own ? 1 : 0);
 const has = id => lvl(id) > 0;
 const price = () => D.STRAND_PRICE * (1 + .1 * lvl('hay_price')) * (1 + .05 * S.cabinet.length);
@@ -136,7 +138,7 @@ function scoopPile(x, z, want, rad) {
   for (const c of cs) { const k = c[0], rm = Math.min(H[k], dh * c[2] / wsum); H[k] -= rm; dirty.add(k); meshDirty.add(k); fuzzShuffle.add(k); }
   pileSum -= dh; S.dug += take;
   const nd = [];
-  for (const nd0 of needles) if (nd0.st === 'pile' && Math.hypot(nd0.x - x, nd0.z - z) <= rad + .2 && nd0.y >= hAt(nd0.x, nd0.z) - .06) { nd0.st = 'load'; nd.push(nd0.id); }
+  if (!NET.guest) for (const nd0 of needles) if (nd0.st === 'pile' && Math.hypot(nd0.x - x, nd0.z - z) <= rad + .2 && nd0.y >= hAt(nd0.x, nd0.z) - .06) { nd0.st = 'load'; nd.push(nd0.id); }
   return { n: take, nd };
 }
 function addPile(x, z, n, nd) {
@@ -230,7 +232,7 @@ function buildNeedleMeshes() {
 }
 
 // ════════════ 건초 덩이 (바닥·벨트·공중) ════════════
-const items = [];
+const items = []; let itemSeq = 0, propSeq = 0;
 const CAPI = 760;
 const stickGeo = new THREE.BoxGeometry(.012, .012, .32);
 const clumpGeo = (() => { const gs = W.clumpGeometry(3, 18, .2); gs.forEach((g, i) => { const c = new THREE.Color(W.STRAW_COLS[i % W.STRAW_COLS.length]); const n = g.attributes.position.count, arr = new Float32Array(n * 3); for (let j = 0; j < n; j++) { arr[j * 3] = c.r; arr[j * 3 + 1] = c.g; arr[j * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(arr, 3)); }); return mergeGeometries(gs); })();
@@ -243,7 +245,7 @@ const IM = {
 for (const k in IM) { IM[k].count = 0; IM[k].castShadow = !MOBILE; IM[k].frustumCulled = false; scene.add(IM[k]); }
 IM.wbale.geometry.rotateZ(Math.PI / 2);
 function mkItem(kind, n, x, y, z, vx = 0, vy = 0, vz = 0, nd = []) {
-  const it = { kind, n, nd: nd || [], x, y, z, vx, vy, vz, st: 'air', belt: null, s: 0, ry: Math.random() * 6.28, rx: Math.random() * 6.28, age: 0, py: y };
+  const it = { id: ++itemSeq, kind, n, nd: nd || [], x, y, z, vx, vy, vz, st: 'air', belt: null, s: 0, ry: Math.random() * 6.28, rx: Math.random() * 6.28, age: 0, py: y };
   if (items.length >= D.BELT_CAP) { // 원작 belt_cap=600: 넘치면 가장 오래 바닥에 있던 덩이부터 사라짐 (prop decay)
     let oi = -1, oa = -1; for (let i = 0; i < items.length; i++) if (items[i].st === 'ground' && items[i].age > oa) { oa = items[i].age; oi = i; }
     if (oi >= 0) { const o = items[oi]; for (const id of o.nd) dropNeedle(id, o.x, o.y, o.z); items.splice(oi, 1); }
@@ -319,7 +321,7 @@ function removeBuild(b) {
   const i = builds.indexOf(b); if (i < 0 || b.fixed) return;
   builds.splice(i, 1); machRoot.remove(b.g);
   if (b.type === 'belt') { for (const it of [...b.items]) { it.belt = null; it.st = 'air'; it.vy = 1; } b.items.length = 0; }
-  else { const nd = [...(b.nd || [])]; if (b.carry) nd.push(...b.carry.nd); for (const qi of b.q || []) nd.push(...qi.nd); for (const id of nd) dropNeedle(id, b.x, 0, b.z); if (b.buf > 0 && b.type !== 'generator') mkItem('hay', Math.round(b.buf), b.x, 1, b.z, 0, 1, 0); }
+  else if (!NET.guest) { const nd = [...(b.nd || [])]; if (b.carry) nd.push(...b.carry.nd); for (const qi of b.q || []) nd.push(...qi.nd); for (const id of nd) dropNeedle(id, b.x, 0, b.z); if (b.buf > 0 && b.type !== 'generator') mkItem('hay', Math.round(b.buf), b.x, 1, b.z, 0, 1, 0); }
   relink();
 }
 const machines = () => builds.filter(b => b.type !== 'belt');
@@ -367,6 +369,7 @@ const props = []; // { kind:'tool'|'bucket'|'barrow', tool, x,y,z, ry, n, nd, g 
 function addProp(p) {
   p.g = p.kind === 'tool' ? W.toolModel(p.tool) : p.kind === 'bucket' ? W.bucketModel() : W.barrowModel();
   if (p.kind === 'tool') { p.g.rotation.z = Math.PI / 2; p.g.position.x = .45; const w = new THREE.Group(); w.add(p.g); w.add(hitBox(1.1, .3, .35, .1)); p.g = w; }
+  if (p.id == null) p.id = ++propSeq; p.held = p.held || null;
   p.g.userData.ref = { kind: 'prop', p }; p.n = p.n || 0; p.nd = p.nd || []; p.ry = p.ry || 0; scene.add(p.g); props.push(p); placeProp(p); return p;
 }
 function placeProp(p) { p.g.position.set(p.x, p.y + (p.kind === 'tool' ? .05 : 0), p.z); p.g.rotation.y = p.ry; p.g.updateMatrixWorld(true); updateFill(p); }
@@ -460,7 +463,7 @@ const isHay = a => a && (a.kind === 'pile' || a.kind === 'item');
 
 // ════════════ 동작 ════════════
 let pouring = false, pourAcc = 0, vacAcc = 0, detBeep = 0, detSig = 0;
-function throwLoad(n, nd, target) {
+function throwLoad(n, nd, target, all = true) {
   if (n <= 0) return;
   camera.getWorldPosition(_o); camera.getWorldDirection(_d);
   const right = new THREE.Vector3().crossVectors(_d, camera.up).normalize();
@@ -468,6 +471,7 @@ function throwLoad(n, nd, target) {
   let tg = target ? target.clone() : _o.clone().addScaledVector(_d, 2.2);
   const dist = st.distanceTo(tg), T = clamp(dist / 6, .16, .45);
   const v = tg.sub(st).divideScalar(T); v.y += .5 * 9.8 * T;
+  if (NET.guest) { netAct({ t: 'th', n, s: [st.x, st.y, st.z].map(r3), v: [v.x, v.y, v.z].map(r3), all: all ? 1 : 0, c: P.holding ? P.holding.id : null }); const g = mkItem('hay', n, st.x, st.y, st.z, v.x, v.y, v.z); g.ghost = .5; return; }
   mkItem('hay', n, st.x, st.y, st.z, v.x, v.y, v.z, nd);
 }
 function aimTarget(maxD) {
@@ -486,8 +490,8 @@ function primary(dt, pressed) {
     if (!pressed || P.cd > 0) return;
     if (P.load.n < st.cap && isHay(a) && a.t <= reach) {
       let got;
-      if (a.kind === 'item') { const it = a.it, take = Math.min(it.n, st.cap - P.load.n); got = { n: take, nd: take >= it.n ? it.nd : [] }; it.n -= take; if (it.n <= 0) removeItem(it); }
-      else got = scoopPile(a.p.x, a.p.z, st.cap - P.load.n, st.r);
+      if (a.kind === 'item') { const it = a.it, take = Math.min(it.n, st.cap - P.load.n); got = { n: take, nd: take >= it.n ? it.nd : [] }; if (NET.guest) netAct({ t: 'pi', id: it.id, n: take }); it.n -= take; if (it.n <= 0) removeItem(it); }
+      else { got = scoopPile(a.p.x, a.p.z, st.cap - P.load.n, st.r); if (NET.guest && got.n) netAct({ t: 'sc', x: r3(a.p.x), z: r3(a.p.z), w: got.n, r: st.r }); }
       if (got.n > 0) { P.load.n += got.n; P.load.nd.push(...got.nd); P.cd = st.cd; P.swing = 1; sfx('scoop', t === 'hand' ? .5 : 1); burst(a.p.x, a.p.y, a.p.z, Math.min(12, 2 + got.n / 6), 1.6); if (got.nd.length) { toast('✨ 뭔가 반짝이는 게 딸려 왔다! 바닥에 쏟아 보자'); sfx('needle'); } }
       return;
     }
@@ -503,7 +507,7 @@ function secondary(dt, pressed) {
   const t = curTool();
   if (P.holding) { if (pressed) putDown(); return; }
   if (toolStat(t) && pressed && P.load.n > 0) { throwLoad(P.load.n, P.load.nd, aimTarget(reachOf())); P.load = { n: 0, nd: [] }; P.swing = 1; sfx('dump'); }
-  if (t === 'vac' && P.vac.n > 0) { vacAcc += dt * 90; const n = Math.min(P.vac.n, Math.floor(vacAcc)); if (n > 0) { vacAcc -= n; P.vac.n -= n; const nd = P.vac.n <= 0 ? P.vac.nd : []; if (P.vac.n <= 0) P.vac.nd = []; throwLoad(n, nd, aimTarget(3.5)); } }
+  if (t === 'vac' && P.vac.n > 0) { vacAcc += dt * 90; const n = Math.min(P.vac.n, Math.floor(vacAcc)); if (n > 0) { vacAcc -= n; P.vac.n -= n; const nd = P.vac.n <= 0 ? P.vac.nd : []; if (P.vac.n <= 0) P.vac.nd = []; throwLoad(n, nd, aimTarget(3.5), P.vac.n <= 0); } }
 }
 function pourContainer(dt) {
   const c = P.holding; if (c.n <= 0) return;
@@ -513,30 +517,36 @@ function pourContainer(dt) {
   if (pourAcc < rate * .08 && pourAcc < c.n) return; // 0.08초마다 한 줌씩
   const n = Math.min(c.n, Math.floor(pourAcc)); if (n <= 0) return; pourAcc -= n; c.n -= n;
   const nd = c.n <= 0 ? c.nd : []; if (c.n <= 0) c.nd = [];
-  throwLoad(n, nd, aimTarget(2.2).add(new THREE.Vector3((Math.random() - .5) * .15, 0, (Math.random() - .5) * .15)));
+  throwLoad(n, nd, aimTarget(2.2).add(new THREE.Vector3((Math.random() - .5) * .15, 0, (Math.random() - .5) * .15)), c.n <= 0);
   if (Math.random() < dt * 8) sfx('dump', .4);
 }
 function sweep() {
-  camera.getWorldDirection(_d); const fx = _d.x, fz = _d.z, fl = Math.hypot(fx, fz) || 1, rng = 1.7 + .5 * lvl('broom_bristles');
+  camera.getWorldDirection(_d);
+  if (NET.guest) { netAct({ t: 'sw', x: r3(P.x), z: r3(P.z), fx: r3(_d.x), fz: r3(_d.z) }); burst(P.x + _d.x, .2, P.z + _d.z, 4, 1); return; }
+  sweepAt(P.x, P.z, _d.x, _d.z);
+}
+function sweepAt(px, pz, fx, fz) {
+  const fl = Math.hypot(fx, fz) || 1, rng = 1.7 + .5 * lvl('broom_bristles');
   let n = 0;
-  for (const it of items) { if (it.st !== 'ground') continue; const dx = it.x - P.x, dz = it.z - P.z, d = Math.hypot(dx, dz); if (d > rng || d < .2) continue; if ((dx * fx + dz * fz) / (d * fl) < .45) continue; it.st = 'air'; it.vx = fx / fl * 2.6; it.vz = fz / fl * 2.6; it.vy = 1.6; n++; }
-  for (const q of needles) if (q.st === 'prop') { const dx = q.x - P.x, dz = q.z - P.z, d = Math.hypot(dx, dz); if (d < rng && d > .2 && (dx * fx + dz * fz) / (d * fl) > .45) { q.x += fx / fl * .8; q.z += fz / fl * .8; } }
-  if (n) burst(P.x + fx / fl * 1.2, .2, P.z + fz / fl * 1.2, 6, 1);
+  for (const it of items) { if (it.st !== 'ground') continue; const dx = it.x - px, dz = it.z - pz, d = Math.hypot(dx, dz); if (d > rng || d < .2) continue; if ((dx * fx + dz * fz) / (d * fl) < .45) continue; it.st = 'air'; it.vx = fx / fl * 2.6; it.vz = fz / fl * 2.6; it.vy = 1.6; n++; }
+  for (const q of needles) if (q.st === 'prop') { const dx = q.x - px, dz = q.z - pz, d = Math.hypot(dx, dz); if (d < rng && d > .2 && (dx * fx + dz * fz) / (d * fl) > .45) { q.x += fx / fl * .8; q.z += fz / fl * .8; } }
+  if (n) burst(px + fx / fl * 1.2, .2, pz + fz / fl * 1.2, 6, 1);
 }
 function vacuum(dt) {
   const a = aimHit, cap = 1500; if (P.vac.n >= cap || !a || a.t > 3.6) return;
   vacAcc += dt * 45; const want = Math.min(cap - P.vac.n, Math.floor(vacAcc)); if (want <= 0) return; vacAcc -= want;
   let got = { n: 0, nd: [] };
-  if (a.kind === 'item') { const it = a.it, take = Math.min(it.n, want); got = { n: take, nd: take >= it.n ? it.nd : [] }; it.n -= take; if (it.n <= 0) removeItem(it); }
-  else if (a.kind === 'pile') got = scoopPile(a.p.x, a.p.z, want, .3);
+  if (a.kind === 'item') { const it = a.it, take = Math.min(it.n, want); got = { n: take, nd: take >= it.n ? it.nd : [] }; if (NET.guest) netAct({ t: 'pi', id: it.id, n: take }); it.n -= take; if (it.n <= 0) removeItem(it); }
+  else if (a.kind === 'pile') { got = scoopPile(a.p.x, a.p.z, want, .3); if (NET.guest && got.n) netAct({ t: 'sc', x: r3(a.p.x), z: r3(a.p.z), w: got.n, r: .3 }); }
   if (got.n) { P.vac.n += got.n; P.vac.nd.push(...got.nd); if (Math.random() < dt * 6) sfx('vac'); burst(a.p.x, a.p.y, a.p.z, 1, .5); }
-  for (const q of needles) if (q.st === 'prop' && a.p.distanceTo(new THREE.Vector3(q.x, q.y, q.z)) < .5) { q.st = 'load'; P.vac.nd.push(q.id); }
+  if (!NET.guest) for (const q of needles) if (q.st === 'prop' && a.p.distanceTo(new THREE.Vector3(q.x, q.y, q.z)) < .5) { q.st = 'load'; P.vac.nd.push(q.id); }
 }
 function putDown() {
   const c = P.holding; if (!c) return;
   camera.getWorldDirection(_d); const fl = Math.hypot(_d.x, _d.z) || 1;
   const x = P.x + _d.x / fl * 1.0, z = P.z + _d.z / fl * 1.0; const [cx, cz] = collide(x, z, .3);
   c.x = cx; c.z = cz; c.y = groundAt(cx, cz); c.ry = P.yaw; c.g.visible = true; placeProp(c); P.holding = null; sfx('place', .4);
+  if (NET.guest) netAct({ t: 'put', id: c.id, x: r3(cx), z: r3(cz), ry: r3(c.ry), n: c.n });
 }
 function interact() {
   if (BM) return;
@@ -545,11 +555,13 @@ function interact() {
   if (!near) return;
   if (a.kind === 'prop') {
     const p = a.ref.p;
+    if (p.held) { toast('누가 들고 있다'); return; }
+    if (NET.guest) netAct({ t: p.kind === 'tool' ? 'tp' : 'hold', id: p.id });
     if (p.kind === 'tool') { if (!S.hotbar.includes(p.tool)) S.hotbar.push(p.tool); S.slot = S.hotbar.indexOf(p.tool); removeProp(p); sfx('pick'); toast(`${TOOLS[p.tool].icon} ${TOOLS[p.tool].ko} 획득 — 숫자키 ${S.slot + 1}`); mission('pickup_tool'); renderHotbar(); }
     else { P.holding = p; p.g.visible = false; sfx('pick'); }
     return;
   }
-  if (a.kind === 'needle') { const q = a.ref.q; if (P.needle != null) { const o = needles[P.needle]; o.st = 'prop'; o.x = q.x; o.y = q.y; o.z = q.z + .1; } q.st = 'held'; P.needle = q.id; setViewNeedle(); sfx('needle'); toast(`🪡 <b>${D.NEEDLES[q.id].ko}</b> (${D.NEEDLES[q.id].en}) 를 찾았다! 진열장에 넣자`, 4000); mission('needle'); return; }
+  if (a.kind === 'needle') { const q = a.ref.q; if (NET.guest) { if (P.needle != null) netAct({ t: 'nq', id: P.needle, x: r3(q.x), y: r3(q.y), z: r3(q.z + .1) }); netAct({ t: 'np', id: q.id }); } if (P.needle != null) { const o = needles[P.needle]; o.st = 'prop'; o.x = q.x; o.y = q.y; o.z = q.z + .1; } q.st = 'held'; P.needle = q.id; setViewNeedle(); sfx('needle'); toast(`🪡 <b>${D.NEEDLES[q.id].ko}</b> (${D.NEEDLES[q.id].en}) 를 찾았다! 진열장에 넣자`, 4000); mission('needle'); return; }
   if (a.kind === 'kiosk') { openResearch(); return; }
   if (a.kind === 'build') {
     const b = a.ref.b;
@@ -562,7 +574,8 @@ function dropTool() {
   const t = curTool(); if (t === 'hand' || t === 'detector' || P.holding) return;
   if (P.load.n) { throwLoad(P.load.n, P.load.nd, aimTarget(1.5)); P.load = { n: 0, nd: [] }; }
   camera.getWorldDirection(_d); const fl = Math.hypot(_d.x, _d.z) || 1; const x = P.x + _d.x / fl, z = P.z + _d.z / fl;
-  addProp({ kind: 'tool', tool: t, x, y: groundAt(x, z), z, ry: P.yaw }); S.hotbar.splice(S.slot, 1); S.slot = 0; renderHotbar();
+  if (NET.guest) netAct({ t: 'dt', tool: t, x: r3(x), z: r3(z), ry: r3(P.yaw) }); else addProp({ kind: 'tool', tool: t, x, y: groundAt(x, z), z, ry: P.yaw });
+  S.hotbar.splice(S.slot, 1); S.slot = 0; renderHotbar();
 }
 function selectSlot(i) { if (i < 0 || i >= S.hotbar.length || P.holding) return; if (P.load.n && toolStat(curTool())) { throwLoad(P.load.n, P.load.nd, aimTarget(1.2)); P.load = { n: 0, nd: [] }; } S.slot = i; renderHotbar(); }
 
@@ -598,7 +611,7 @@ function stepItems(dt) {
     if (Math.abs(it.z) > Y - .2) { it.z = Math.sign(it.z) * (Y - .2); it.vz *= -.3; }
     let done = false;
     // 양동이·손수레
-    for (const c of props) { if (c.kind === 'tool' || c === P.holding) continue; const rim = c.y + (c.kind === 'bucket' ? .32 : .7), rr = c.kind === 'bucket' ? .3 : .6; if (it.py >= rim && it.y <= rim && Math.hypot(it.x - c.x, it.z - c.z) < rr && it.kind === 'hay') { const room = contCap(c.kind) - c.n; if (room > 0) { const tk = Math.min(room, it.n); c.n += tk; it.n -= tk; if (it.n <= 0) { c.nd.push(...it.nd); items.splice(i, 1); done = true; } updateFill(c); } break; } }
+    for (const c of props) { if (c.kind === 'tool' || c === P.holding || c.held) continue; const rim = c.y + (c.kind === 'bucket' ? .32 : .7), rr = c.kind === 'bucket' ? .3 : .6; if (it.py >= rim && it.y <= rim && Math.hypot(it.x - c.x, it.z - c.z) < rr && it.kind === 'hay') { const room = contCap(c.kind) - c.n; if (room > 0) { const tk = Math.min(room, it.n); c.n += tk; it.n -= tk; if (it.n <= 0) { c.nd.push(...it.nd); items.splice(i, 1); done = true; } updateFill(c); } break; } }
     if (done) continue;
     // 판매대 바구니
     const bk = yard.basket; if (it.py >= bk.y && it.y <= bk.y + .05 && Math.hypot(it.x - bk.x, it.z - bk.z) < .4) { sell(it); items.splice(i, 1); continue; }
@@ -709,7 +722,7 @@ function armTargets(m) {
   const R = m.def.reach; let drop = null, dd = 1e9;
   for (const b of belts()) { if (b.sell && false) continue; const pr = beltProject(b, m.x, m.z); if (pr.d > R - .2) continue; let s = pr.s; if (pr.d < .55) { s = clamp(s + .8, 0, b.len); } const p = beltPos(b, s, {}); const d = Math.hypot(p.x - m.x, p.z - m.z); if (d < .5 || d > R) continue; if (d < dd) { dd = d; drop = { t: 'belt', b, s, p: new THREE.Vector3(p.x, p.y + .25, p.z) }; } }
   for (const g of builds) if (g.type === 'generator') { const hp = L2W(g, -.35, 0, 1.6); const d = Math.hypot(hp.x - m.x, hp.z - m.z); if (d < R && d < dd) { dd = d; drop = { t: 'gen', g, p: new THREE.Vector3(hp.x, 1.9, hp.z) }; } }
-  for (const c of props) if (c.kind !== 'tool' && c !== P.holding) { const d = Math.hypot(c.x - m.x, c.z - m.z); if (d < R && d > .4 && d < dd) { dd = d; drop = { t: 'cont', c, p: new THREE.Vector3(c.x, c.y + .8, c.z) }; } }
+  for (const c of props) if (c.kind !== 'tool' && c !== P.holding && !c.held) { const d = Math.hypot(c.x - m.x, c.z - m.z); if (d < R && d > .4 && d < dd) { dd = d; drop = { t: 'cont', c, p: new THREE.Vector3(c.x, c.y + .8, c.z) }; } }
   return drop;
 }
 function armGrabPoint(m) {
@@ -836,6 +849,7 @@ function drawReach(p, r) { if (reachRing) { ghostRoot.remove(reachRing); reachRi
 function inStand(x, z, r) { const sb = yard.standBox; return x < sb.x1 + r && z > sb.z0 - r && z < sb.z1 + r || Math.hypot(x - yard.basket.x, z - yard.basket.z) < .5 + r || Math.hypot(x - yard.kiosk.x, z - yard.kiosk.z) < .8 + r; }
 function buildClick() {
   if (!BM) return;
+  if (NET.guest) { guestBuildClick(); return; }
   if (BM.dis) { if (BM.target) { const b = BM.target, refund = b.type === 'belt' ? buildCost('belt', b.len) : buildCost(b.type); S.money += refund; removeBuild(b); sfx('place', .6); toast(`🔨 철거 · ${money(refund)} 환불`); } return; }
   if (!BM.ok) { sfx('deny'); return; }
   if (BM.type === 'belt') {
@@ -855,6 +869,7 @@ function reqOK(t) { const parents = t.up ? [t.up] : (t.req || []); return parent
 function buy(id) {
   const t = D.TECH_BY[id]; const c = techCost(t); if (c == null || !reqOK(t)) return false;
   if (S.money < c) { sfx('deny'); return false; }
+  if (NET.guest) { netAct({ t: 'buy', id }); S.money -= c; S.tech[id] = lvl(id) + 1; sfx('buy'); if (t.tool) toast(`📦 ${t.ko} — SUPPLY CO. 배달 팔레트로`, 2500); return true; } // 방장 상태가 곧 덮어씀
   S.money -= c; S.tech[id] = lvl(id) + 1; sfx('buy');
   if (id === 'hand_carry') mission('carry');
   if (t.tool) { if (t.tool === 'bucket') deliver('bucket'); else if (t.tool === 'barrow') deliver('barrow'); else deliver('tool', t.tool); toast(`📦 ${t.ko} — SUPPLY CO. 배달 팔레트에 도착!`, 3500); mission('buy_tool'); if (t.tool === 'bucket') mission('bucket'); }
@@ -915,14 +930,15 @@ function renderRsDetail() {
 // ════════════ 바늘 진열장 ════════════
 let cabOpen = null;
 function openCabinet(b) {
-  if (P.needle != null) { const id = P.needle; needles[id].st = 'cabinet'; S.cabinet.push(id); P.needle = null; setViewNeedle(); sfx('needle'); toast(`🗄 ${D.NEEDLES[id].ko} 진열! (${S.cabinet.length}/${needles.length}) · 건초 값 +5%`, 3500); mission('cabinet'); if (S.cabinet.length >= needles.length) mission('all'); updateCabinetModel(); save(); }
+  if (P.needle != null && NET.guest) { netAct({ t: 'nc', id: P.needle }); toast(`🗄 ${D.NEEDLES[P.needle].ko} 진열!`, 2500); sfx('needle'); P.needle = null; setViewNeedle(); }
+  else if (P.needle != null) { const id = P.needle; needles[id].st = 'cabinet'; S.cabinet.push(id); P.needle = null; setViewNeedle(); sfx('needle'); toast(`🗄 ${D.NEEDLES[id].ko} 진열! (${S.cabinet.length}/${needles.length}) · 건초 값 +5%`, 3500); mission('cabinet'); if (S.cabinet.length >= needles.length) mission('all'); updateCabinetModel(); save(); }
   closeOverlays(); cabOpen = b; unlockPointer(); $('cabinet').classList.remove('hide'); renderCabinet();
 }
 function renderCabinet() {
   const done = S.cabinet.length >= needles.length;
   $('cabGrid').innerHTML = D.NEEDLES.map((n, i) => { const have = S.cabinet.includes(i); return `<div class="cab-slot ${have ? 'have' : ''}"><div class="cab-pin" style="--c:${n.col}">${have ? '' : '?'}</div><div class="cab-tag"><b>${have ? n.en : '???'}</b><small>RESEARCH ${n.tier} · ${n.odds}</small>${have ? `<i>${n.ko}</i>` : ''}</div></div>`; }).join('') + Array.from({ length: 12 }, () => '<div class="cab-slot empty"><div class="cab-pin">—</div><div class="cab-tag"><small>다음 더미</small></div></div>').join('');
   $('cabInfo').innerHTML = done ? '🔴 모든 바늘을 찾았다. 빨간 단추를 누르면…' : `찾은 바늘 ${S.cabinet.length} / ${needles.length} — 바늘을 들고 진열장을 보고 E`;
-  $('cabBtn').classList.toggle('hide', !done);
+  $('cabBtn').classList.toggle('hide', !done || NET.guest);
 }
 function updateCabinetModel() {
   for (const m of builds) if (m.type === 'cabinet') { m.cab.slots.clear(); S.cabinet.forEach(id => { const nm = W.needleModel(D.NEEDLES[id]); const c = id % 6, r = Math.floor(id / 6); nm.position.set(-.57 + c * .228, 1.0 + (3 - r) * .32, 0); nm.scale.setScalar(1.2); m.cab.slots.add(nm); }); m.cab.btn.visible = S.cabinet.length >= needles.length; }
@@ -935,11 +951,11 @@ function finishPile() {
 function nextPile() {
   S.pileNo++; for (const it of [...items]) removeItem(it);
   genPile(S.pileNo); genNeedles(S.pileNo); S.cabinet = []; buildNeedleMeshes(); updatePileMesh(true); updateFuzz(true); updateCabinetModel();
-  $('ending').classList.add('hide'); toast(`🚚 DISPATCH 문이 열리고 새 더미(${S.pileNo}번째)가 쏟아졌다. 바늘 12개가 또 숨어 있다`, 5000); save();
+  if (NET.host) netFull(); $('ending').classList.add('hide'); toast(`🚚 DISPATCH 문이 열리고 새 더미(${S.pileNo}번째)가 쏟아졌다. 바늘 12개가 또 숨어 있다`, 5000); save();
 }
 
 // ════════════ 미션 ════════════
-function mission(id) { if (S.missions[id]) return; S.missions[id] = 1; const m = D.MISSIONS.find(x => x.id === id); if (m) { toast(`✔ ${m.t}`, 2400); renderMission(); } }
+function mission(id) { if (S.missions[id]) return; if (NET.guest) { if (NET.msSent[id]) return; NET.msSent[id] = 1; netAct({ t: 'ms', id }); } S.missions[id] = 1; const m = D.MISSIONS.find(x => x.id === id); if (m) { toast(`✔ ${m.t}`, 2400); renderMission(); } }
 function renderMission() {
   const cur = D.MISSIONS.find(m => !S.missions[m.id]);
   $('mission').innerHTML = cur ? `<h5>할 일 ${D.MISSIONS.indexOf(cur) + 1}/${D.MISSIONS.length}</h5><div class="mt">${esc(cur.t)}</div><div class="mh">${esc(cur.hint)}</div>` : '<h5>할 일</h5><div class="mt">더미를 다 찾아냈다?</div>';
@@ -1009,7 +1025,7 @@ function updateSigns(dt) {
 let ndT = 0;
 function stepNeedles(dt) {
   ndT -= dt;
-  if (ndT <= 0) { ndT = .4; for (const q of needles) if (q.st === 'pile') { const h = hAt(q.x, q.z); if (q.y > h - .005) { q.st = 'prop'; q.y = Math.max(0, h); } } }
+  if (ndT <= 0 && !NET.guest) { ndT = .4; for (const q of needles) if (q.st === 'pile') { const h = hAt(q.x, q.z); if (q.y > h - .005) { q.st = 'prop'; q.y = Math.max(0, h); } } }
   const tt = performance.now() / 1000;
   for (const q of needles) { const m = needleMeshes[q.id]; if (!m) continue; m.visible = q.st === 'prop'; if (m.visible) { m.position.set(q.x, q.y + .02, q.z); m.rotation.set(Math.PI / 2, 0, q.id); m.updateMatrixWorld(true); const gl = m.userData.glint; gl.material.opacity = .45 + Math.sin(tt * 4 + q.id) * .4; gl.scale.setScalar(.3 + Math.sin(tt * 3 + q.id) * .08); } }
 }
@@ -1020,7 +1036,7 @@ function b64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += St
 function unb64(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
 let resetting = false;
 function save() {
-  if (resetting) return;
+  if (resetting || NET.guest) return;
   try {
     const h16 = new Uint16Array(H.length); for (let k = 0; k < H.length; k++) h16[k] = Math.round(clamp(H[k], 0, 65) * 1000);
     const data = {
@@ -1055,6 +1071,323 @@ function load() {
 }
 function resetSave() { resetting = true; try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); }
 
+// ════════════ 같이 하기 (Firebase games/nd_코드) ════════════
+// 방장 = 자기 마당(세이브)을 그대로 여는 사람. 더미·덩이·벨트·기계·돈·연구는 방장만 계산해서 보낸다.
+// 손님은 자기 몸·조준·손에 든 것만 직접 다루고, 퍼기·던지기·구매·건설은 act/ 로 보내 방장이 처리한다
+// (퍼기는 손님 화면에 바로 반영하고, 방장이 보낸 높이가 덮어씀).
+// 경로: players/{k} · pos/{k}(0.12초) · act/{push}(손님→방장) · ev/{k}/{push}(방장→손님 알림)
+//       w/hb(더미 전체, 5초마다 바뀌었으면) · w/hq/{push}(바뀐 칸, 0.2초) · w/it(덩이) · w/m(기계) · w/s(돈·연구) · w/b(건물) · w/pr(소품) · w/nd(바늘)
+const r2 = v => Math.round(v * 100) / 100, r3 = v => Math.round(v * 1000) / 1000;
+const PCOL = ['#e8913a', '#4cc6b4', '#b08af0', '#f0607a', '#8fc46a', '#e8c23a', '#5fa8e8', '#f08ac8'];
+const FB_CFG = { apiKey: 'AIzaSyD8_pSiOVOWmCitHl_nWcgSZobMFI5NgXM', authDomain: 'rolling2-17a8f.firebaseapp.com', databaseURL: 'https://rolling2-17a8f-default-rtdb.asia-southeast1.firebasedatabase.app', projectId: 'rolling2-17a8f', storageBucket: 'rolling2-17a8f.firebasestorage.app', messagingSenderId: '936512265515', appId: '1:936512265515:web:c9cb05f341267af81a796e' };
+let fdb = null;
+function fbDb() { if (fdb) return fdb; if (typeof firebase === 'undefined') return null; try { if (!firebase.apps.length) firebase.initializeApp(FB_CFG); fdb = firebase.database(); } catch (e) { return null; } return fdb; }
+const nref = p => fdb.ref('games/nd_' + NET.code + (p ? '/' + p : ''));
+const offs = []; function listen(p, ev, f) { const r = nref(p), g = s => { if (NET.on) f(s); }; r.on(ev, g); offs.push(() => r.off(ev, g)); }
+const genCode = () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)]; return r; };
+const nickKey = n => n.replace(/[.#$\[\]\/\s]/g, '_').slice(0, 12) + '_' + Math.random().toString(36).slice(2, 6);
+function netAct(a) { if (!NET.guest) return; a.k = NET.me.k; if (a.t === 'tp') NET.gone.set(a.id, performance.now() + 2500); nref('act').push(a); }
+function tell(k, m, snd) { if (NET.host && k !== NET.me.k) nref('ev/' + k).push({ m, sfx: snd || '' }); }
+const netDirty = new Set(), sentH = new Uint16Array(N * N);
+const qH = k => Math.round(clamp(H[k], 0, 65) * 1000);
+let hdSeq = 0, hbSeq = -1, hbDirty = true; const hqKeys = [];
+function getNick() { let n = ($('nkNick').value || '').trim(); if (!n) n = '농부' + Math.floor(Math.random() * 900 + 100); try { localStorage.setItem('needle_nick', n); } catch (e) { } return n.slice(0, 12); }
+
+// ── 방 열기(방장) · 들어가기(손님) · 나가기
+async function hostRoom() {
+  if (NET.on) return; if (!fbDb()) { toast('온라인 연결이 안 된다'); return; }
+  const nick = getNick(); NET.code = genCode(); NET.me = { k: nickKey(nick), nick, col: 0 };
+  await nref('').set({ host: NET.me.k, created: Date.now(), expiresAt: Date.now() + 8 * 3600e3, players: { [NET.me.k]: { nick, col: 0, at: Date.now() } } });
+  nref('').onDisconnect().remove();
+  NET.on = NET.host = true; NET.players = { [NET.me.k]: { nick, col: 0 } };
+  for (let k = 0; k < H.length; k++) sentH[k] = qH(k);
+  hostListen(); netFull(); netUI(); bgTicker();
+  if (!started) startGame(false); else { closeOverlays(); lockPointer(); }
+  toast(`👥 방을 열었다 — 코드 <b>${NET.code}</b> · Esc 메뉴에서 초대 링크 복사`, 6000);
+}
+async function joinRoom(code) {
+  if (NET.on) return; if (!fbDb()) { toast('온라인 연결이 안 된다'); return; }
+  code = (code || '').trim().toUpperCase(); if (code.length !== 6) { toast('방 코드 6자리를 넣자'); return; }
+  const r = (await fdb.ref('games/nd_' + code).once('value')).val();
+  if (!r || !r.players || !r.host || !r.players[r.host]) { toast('그런 방이 없다'); return; }
+  if (Object.keys(r.players).length >= 8) { toast('방이 꽉 찼다 (8명)'); return; }
+  const used = Object.values(r.players).map(p => p.col); let col = 0; while (used.includes(col)) col++;
+  const nick = getNick(); NET.code = code; NET.me = { k: nickKey(nick), nick, col };
+  NET.on = NET.guest = true; guestReset();
+  await nref('players/' + NET.me.k).set({ nick, col, at: Date.now() });
+  for (const p of ['players/', 'pos/', 'ev/']) nref(p + NET.me.k).onDisconnect().remove();
+  guestListen(); netUI();
+  if (!started) startGame(false); else { closeOverlays(); lockPointer(); }
+  toast(`👥 <b>${esc(r.players[r.host].nick)}</b> 님의 마당에 들어왔다 — 돈·연구는 같이 쓴다`, 5000);
+}
+function leaveRoom(msg) {
+  if (!NET.on) return;
+  offs.splice(0).forEach(f => f());
+  if (NET.guest) { try { nref('players/' + NET.me.k).remove(); nref('pos/' + NET.me.k).remove(); } catch (e) { } toast(msg || '방에서 나왔다 — 내 마당으로', 2000); NET.on = false; setTimeout(() => location.href = location.pathname, 900); return; }
+  try { nref('').onDisconnect().cancel(); nref('').remove(); } catch (e) { }
+  for (const k of [...AV.keys()]) dropAvatar(k);
+  for (const k in GP) hostDrop(k);
+  NET.on = NET.host = false; NET.code = null; netUI(); toast('방을 닫았다 — 혼자 계속');
+}
+function guestReset() { // 손님은 내 세이브 대신 방장 마당을 받아서 그린다 (내 세이브는 안 건드림)
+  for (const b of [...builds]) if (!b.fixed) removeBuild(b);
+  for (const p of [...props]) removeProp(p); for (const it of [...items]) removeItem(it);
+  P.holding = null; P.needle = null; P.load = { n: 0, nd: [] }; P.vac = { n: 0, nd: [] }; setViewNeedle();
+  S.hotbar = ['hand', 'detector']; S.slot = 0; S.intro = true; S.cabinet = []; S.missions = {};
+  Object.assign(P, { x: -7 + Math.random() * 2, y: 0, z: 13, yaw: -.6, pitch: -.12 });
+  renderHotbar(); renderMission();
+}
+
+// ── 방장: 손님 요청 처리
+const GP = {}; const gp = k => GP[k] || (GP[k] = { nd: [], tools: [] });
+function hostListen() {
+  listen('act', 'child_added', s => { const a = s.val(); s.ref.remove(); try { if (a && NET.players[a.k]) hostAct(a); } catch (e) { console.warn('손님 요청 처리 실패', a, e); } });
+  listen('players', 'value', s => {
+    const ps = s.val() || {}, before = NET.players; NET.players = ps;
+    if (!ps[NET.me.k]) { nref('players/' + NET.me.k).set({ nick: NET.me.nick, col: 0, at: Date.now() }); }
+    for (const k in ps) if (!before[k] && k !== NET.me.k) { netFull(); toast(`👋 <b>${esc(ps[k].nick)}</b> 님이 들어왔다`, 3000); }
+    for (const k in before) if (!ps[k] && k !== NET.me.k) { hostDrop(k); toast(`${esc(before[k].nick)} 님이 나갔다`, 2500); }
+    netUI();
+  });
+  listen('pos', 'value', s => netPoses(s.val() || {}));
+}
+function hostAct(a) {
+  const g = gp(a.k), nick = esc(NET.players[a.k].nick);
+  switch (a.t) {
+    case 'sc': { const r = scoopPile(a.x, a.z, a.w, a.r); g.nd.push(...r.nd); if (r.nd.length) tell(a.k, '✨ 뭔가 반짝이는 게 딸려 왔다! 바닥에 쏟아 보자', 'needle'); break; }
+    case 'pi': { const it = items.find(i => i.id === a.id); if (!it) break; if (a.n >= it.n) { g.nd.push(...it.nd); removeItem(it); } else it.n -= a.n; break; }
+    case 'th': {
+      let nd = [];
+      if (a.all) { if (a.c != null) { const c = props.find(p => p.id === a.c); if (c) { nd = c.nd; c.nd = []; } } else nd = g.nd.splice(0); }
+      mkItem('hay', clamp(a.n | 0, 1, 5000), a.s[0], a.s[1], a.s[2], a.v[0], a.v[1], a.v[2], nd); break;
+    }
+    case 'sw': sweepAt(a.x, a.z, a.fx, a.fz); break;
+    case 'buy': if (buy(a.id)) toast(`🔬 ${nick} 님이 <b>${D.TECH_BY[a.id].ko}</b> 연구`, 2500); break;
+    case 'bd': hostBuild(a); break;
+    case 'dis': { const b = builds.find(x => x.id === a.id && !x.fixed); if (b) { S.money += b.type === 'belt' ? buildCost('belt', b.len) : buildCost(b.type); removeBuild(b); } break; }
+    case 'tp': { const p = props.find(x => x.id === a.id && x.kind === 'tool' && !x.held); if (p) { g.tools.push(p.tool); removeProp(p); mission('pickup_tool'); } break; }
+    case 'dt': { const i = g.tools.indexOf(a.tool); if (i < 0) break; g.tools.splice(i, 1); addProp({ kind: 'tool', tool: a.tool, x: a.x, y: groundAt(a.x, a.z), z: a.z, ry: a.ry }); break; }
+    case 'hold': { const p = props.find(x => x.id === a.id && x.kind !== 'tool' && !x.held && x !== P.holding); if (p) { p.held = a.k; p.g.visible = false; } break; }
+    case 'put': { const p = props.find(x => x.id === a.id); if (p && p.held === a.k) { p.held = null; p.x = a.x; p.z = a.z; p.y = groundAt(a.x, a.z); p.ry = a.ry; p.n = clamp(a.n | 0, 0, contCap(p.kind)); if (!p.n) p.nd = []; p.g.visible = true; placeProp(p); } break; }
+    case 'np': { const q = needles[a.id]; if (q && q.st === 'prop') { q.st = 'held'; q.by = a.k; toast(`🪡 ${nick} 님이 <b>${D.NEEDLES[a.id].ko}</b> 를 찾았다!`, 3500); sfx('needle'); mission('needle'); } break; }
+    case 'nq': { const q = needles[a.id]; if (q && q.by === a.k) { q.st = 'prop'; q.by = null; q.x = a.x; q.y = a.y; q.z = a.z; } break; }
+    case 'nc': { const q = needles[a.id]; if (q && q.by === a.k && !S.cabinet.includes(a.id)) { q.st = 'cabinet'; q.by = null; S.cabinet.push(a.id); toast(`🗄 ${nick} 님이 ${D.NEEDLES[a.id].ko} 진열! (${S.cabinet.length}/${needles.length})`, 3500); mission('cabinet'); if (S.cabinet.length >= needles.length) mission('all'); updateCabinetModel(); save(); } break; }
+    case 'ms': mission(a.id); break;
+  }
+}
+function hostBuild(a) {
+  if (a.type === 'belt') {
+    if (!has('belt') || !a.a || !a.b) return; const len = Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y, a.b.z - a.a.z), c = buildCost('belt', len);
+    if (S.money < c || len < .4 || len > 15) return; S.money -= c; addBelt(a.a, a.b); relink(); mission('belt'); return;
+  }
+  const def = D.BUILD[a.type]; if (!def) return;
+  if (a.type !== 'cabinet' && !D.TECH.some(t => t.build && t.build.includes(a.type) && has(t.id))) return;
+  if (def.max && machines().filter(m => m.type === a.type).length >= def.max) return;
+  const c = buildCost(a.type); if (S.money < c) return;
+  S.money -= c; addMachine(a.type, a.x, a.z, a.rot); relink(); powerTick(); solidCache = null; if (a.type.startsWith('arm')) mission('arm');
+}
+function hostDrop(k) { // 나간 손님이 갖고 있던 것 돌려놓기
+  const g = GP[k];
+  if (g) { for (const t of g.tools) deliver('tool', t); for (const id of g.nd) { const q = needles[id]; if (q && q.st === 'load') { const p = randomPilePoint(); q.st = 'pile'; q.x = p.x; q.z = p.z; q.y = Math.max(.1, hAt(p.x, p.z) * .5); } } delete GP[k]; }
+  for (const p of props) if (p.held === k) { p.held = null; p.g.visible = true; placeProp(p); }
+  for (const q of needles) if (q.by === k) { q.by = null; if (q.st === 'held') q.st = 'prop'; }
+  dropAvatar(k);
+}
+function guestBuildClick() {
+  if (BM.dis) { if (BM.target && BM.target.hid != null) { netAct({ t: 'dis', id: BM.target.hid }); sfx('place', .6); toast('🔨 철거'); } return; }
+  if (!BM.ok) { sfx('deny'); return; }
+  const rp = p => ({ x: r3(p.x), y: r3(p.y == null ? BH : p.y), z: r3(p.z) });
+  if (BM.type === 'belt') { if (BM.stage === 0) { BM.a = { ...BM.p }; BM.stage = 1; sfx('pick'); return; } netAct({ t: 'bd', type: 'belt', a: rp(BM.a), b: rp(BM.p) }); S.money -= BM.cost; BM.a = { ...BM.p }; sfx('place'); return; }
+  netAct({ t: 'bd', type: BM.type, x: r3(BM.p.x), z: r3(BM.p.z), rot: r3(BM.rot) }); S.money -= BM.cost; sfx('place'); if (D.BUILD[BM.type].max) endBuild();
+}
+
+// ── 방장 → 손님: 상태 보내기
+const KC = { hay: 'h', bale: 'b', wbale: 'w' }, CK = { h: 'hay', b: 'bale', w: 'wbale' }, SC = { ground: 'g', belt: 'b', air: 'a' }, CS = { g: 'ground', b: 'belt', a: 'air' };
+const NST = { pile: 'p', prop: 'o', held: 'h', load: 'l', cabinet: 'c' }, STN = { p: 'pile', o: 'prop', h: 'held', l: 'load', c: 'cabinet' };
+const NT = { pos: 0, hq: 0, hb: 0, it: 0, m: 0, s: 0, b: 0, pr: 0, nd: 0 }; let lastSig = {};
+function pub(k, v) { if (lastSig[k] === v) return; lastSig[k] = v; nref('w/' + k).set(v); }
+function netFull() { lastSig = {}; for (const k in NT) NT[k] = 0; sendHB(true); }
+function sendHB(force) {
+  if (!force && !hbDirty) return; hbDirty = false;
+  const h16 = new Uint16Array(H.length); for (let k = 0; k < H.length; k++) h16[k] = sentH[k] = qH(k);
+  nref('w/hb').set(`${hdSeq}|${K}|${b64(new Uint8Array(h16.buffer))}`);
+}
+function sendHQ() { // 바뀐 칸만: 칸 번호(36진 3자) + 높이 mm(36진 4자)
+  if (!netDirty.size) return; let out = '';
+  for (const k of netDirty) { const q = qH(k); if (Math.abs(q - sentH[k]) < 3) continue; sentH[k] = q; out += k.toString(36).padStart(3, '0') + q.toString(36).padStart(4, '0'); }
+  netDirty.clear(); if (!out) return; hbDirty = true;
+  const r = nref('w/hq').push(`${++hdSeq}|${out}`); hqKeys.push(r.key); while (hqKeys.length > 40) nref('w/hq/' + hqKeys.shift()).remove();
+}
+function encItems() { let s = '', n = 0; for (const it of items) { if (n++ >= 350) break; s += `${it.id.toString(36)},${KC[it.kind] || 'h'}${SC[it.st] || 'a'},${it.n},${r2(it.x)},${r2(it.y)},${r2(it.z)};`; } return s; }
+function encMach() { let s = ''; for (const m of builds) { if (m.type === 'belt') continue; s += `${m.id},${m.fuel | 0},${m.running ? 1 : 0},${m.powered ? 1 : 0},${r2(m.pf || 0)},${m.buf | 0}`; if (m.arm) s += `,${r2(m.tip.x)},${r2(m.tip.y)},${r2(m.tip.z)}`; s += ';'; } return s; }
+const encBuilds = () => JSON.stringify(builds.filter(b => !b.fixed).map(b => b.type === 'belt' ? [b.id, 'belt', r3(b.a.x), r3(b.a.y), r3(b.a.z), r3(b.b.x), r3(b.b.y), r3(b.b.z)] : [b.id, b.type, r3(b.x), r3(b.z), r3(b.rot)]));
+const encProps = () => JSON.stringify(props.map(p => [p.id, p.kind, p.tool || '', r2(p.x), r2(p.y), r2(p.z), r2(p.ry), p.n | 0, P.holding === p ? NET.me.k : p.held || 0]));
+const encNeedles = () => JSON.stringify(needles.map(q => [NST[q.st] || 'p', r2(q.x), r2(q.y), r2(q.z), q.st === 'held' ? q.by || NET.me.k : 0]));
+const sharedS = () => ({ money: S.money, earned: S.earned, sold: S.sold, dug: S.dug, bestSale: S.bestSale, play: Math.floor(S.play), tech: S.tech, missions: S.missions, cabinet: S.cabinet, pileNo: S.pileNo });
+function netTick(dt) {
+  for (const k in NT) NT[k] -= dt;
+  if (NT.pos <= 0) { NT.pos = .12; nref('pos/' + NET.me.k).set(`${r2(P.x)},${r2(P.y)},${r2(P.z)},${r2(P.yaw)},${P.holding ? P.holding.kind : curTool()}${P.needle != null ? ',n' : ''}`); }
+  avatarsStep(dt);
+  if (!NET.host) return;
+  if (NT.hq <= 0) { NT.hq = .2; sendHQ(); }
+  if (NT.hb <= 0) { NT.hb = 5; sendHB(false); }
+  if (NT.it <= 0) { NT.it = .2; pub('it', encItems()); }
+  if (NT.m <= 0) { NT.m = .25; pub('m', encMach()); }
+  if (NT.s <= 0) { NT.s = .5; pub('s', JSON.stringify(sharedS())); }
+  if (NT.b <= 0) { NT.b = .5; pub('b', encBuilds()); }
+  if (NT.pr <= 0) { NT.pr = .25; pub('pr', encProps()); }
+  if (NT.nd <= 0) { NT.nd = .4; pub('nd', encNeedles()); }
+}
+
+// ── 손님: 받은 상태 반영
+function guestListen() {
+  listen('w/hb', 'value', s => { const v = s.val(); if (v) applyHB(v); });
+  listen('w/hq', 'child_added', s => { const v = s.val(); if (v) applyHQ(v); });
+  listen('w/it', 'value', s => applyItems(s.val() || ''));
+  listen('w/m', 'value', s => applyMach(s.val() || ''));
+  listen('w/s', 'value', s => { const v = s.val(); if (v) applyS(JSON.parse(v)); });
+  listen('w/b', 'value', s => { const v = s.val(); if (v) applyBuilds(JSON.parse(v)); });
+  listen('w/pr', 'value', s => { const v = s.val(); if (v) applyProps(JSON.parse(v)); });
+  listen('w/nd', 'value', s => { const v = s.val(); if (v) applyNeedles(JSON.parse(v)); });
+  listen('ev/' + NET.me.k, 'child_added', s => { const v = s.val(); s.ref.remove(); if (v && v.m) toast(v.m, 3500); if (v && v.sfx) sfx(v.sfx); });
+  listen('players', 'value', s => { const ps = s.val(); if (!ps || !ps[NET.me.k]) { leaveRoom('방이 닫혔다 — 내 마당으로'); return; } NET.players = ps; netUI(); });
+  listen('pos', 'value', s => netPoses(s.val() || {}));
+}
+function applyHB(v) {
+  const a = v.indexOf('|'), b = v.indexOf('|', a + 1); hbSeq = +v.slice(0, a); K = +v.slice(a + 1, b);
+  const u = unb64(v.slice(b + 1)), h16 = new Uint16Array(u.buffer, 0, H.length);
+  for (let k = 0; k < H.length; k++) H[k] = h16[k] / 1000;
+  pileSum = sumH(); updatePileMesh(true); updateFuzz(true); NET.ready = true;
+}
+function applyHQ(v) {
+  const i = v.indexOf('|'), seq = +v.slice(0, i); if (seq <= hbSeq) return;
+  for (let p = i + 1; p + 7 <= v.length; p += 7) { const k = parseInt(v.substr(p, 3), 36), h = parseInt(v.substr(p + 3, 4), 36) / 1000; if (!(k >= 0 && k < H.length)) continue; pileSum += h - H[k]; H[k] = h; meshDirty.add(k); }
+}
+function applyItems(str) {
+  const seen = new Set();
+  for (const rec of str.split(';')) {
+    if (!rec) continue; const f = rec.split(','), id = parseInt(f[0], 36), kind = CK[f[1][0]] || 'hay', n = +f[2], x = +f[3], y = +f[4], z = +f[5]; seen.add(id);
+    let it = NIT.get(id); if (!it || !items.includes(it)) { it = mkItem(kind, n, x, y, z); it.id = id; NIT.set(id, it); }
+    it.tx = x; it.ty = y; it.tz = z; it.n = n; it.kind = kind; it.st = CS[f[1][1]] || 'air';
+  }
+  for (const [id, it] of NIT) if (!seen.has(id)) { NIT.delete(id); removeItem(it); }
+}
+const NIT = new Map();
+function applyMach(str) {
+  const by = new Map(builds.filter(b => b.hid != null).map(b => [b.hid, b]));
+  for (const rec of str.split(';')) {
+    if (!rec) continue; const f = rec.split(',').map(Number), m = by.get(f[0]); if (!m) continue;
+    m.fuel = f[1]; m.running = !!f[2]; m.powered = !!f[3]; m.pf = f[4]; m.buf = f[5];
+    if (m.arm && f.length >= 9) m.tipT = new THREE.Vector3(f[6], f[7], f[8]);
+  }
+}
+function applyS(o) {
+  const e0 = S.earned, techSig = JSON.stringify(S.tech), misSig = JSON.stringify(S.missions), cabN = S.cabinet.length;
+  Object.assign(S, o); if (!S.missions) S.missions = {}; if (!S.cabinet) S.cabinet = []; if (!S.tech) S.tech = {};
+  if (NET.ready && S.earned > e0 + 1e-6) { lastSale = S.earned - e0; floatText('+' + money(lastSale), new THREE.Vector3(yard.basket.x, 2.2, yard.basket.z), 'cash'); sfx('sell', .6); }
+  if (JSON.stringify(S.tech) !== techSig) { relink(); if (!$('research').classList.contains('hide')) renderResearch(); }
+  if (JSON.stringify(S.missions) !== misSig) renderMission();
+  if (S.cabinet.length !== cabN) { updateCabinetModel(); if (cabOpen) renderCabinet(); }
+}
+function applyBuilds(list) {
+  const want = new Set(list.map(r => r[0]));
+  for (const b of [...builds]) if (!b.fixed && !want.has(b.hid)) removeBuild(b);
+  const have = new Set(builds.map(b => b.hid));
+  for (const r of list) { if (have.has(r[0])) continue; const b = r[1] === 'belt' ? addBelt({ x: r[2], y: r[3], z: r[4] }, { x: r[5], y: r[6], z: r[7] }) : addMachine(r[1], r[2], r[3], r[4]); b.hid = r[0]; }
+  relink(); solidCache = null;
+}
+function applyProps(list) {
+  const want = new Set(list.map(r => r[0])), now = performance.now();
+  for (const p of [...props]) if (!want.has(p.id) && p !== P.holding) removeProp(p);
+  for (const [id, kind, tool, x, y, z, ry, n, held] of list) {
+    if (P.holding && P.holding.id === id) continue;
+    let p = props.find(q => q.id === id);
+    if (!p) { if ((NET.gone.get(id) || 0) > now) continue; p = addProp({ id, kind, tool: tool || undefined, x, y, z, ry, n }); }
+    else { p.x = x; p.y = y; p.z = z; p.ry = ry; p.n = n; placeProp(p); }
+    p.held = held && held !== NET.me.k ? held : null; p.g.visible = !p.held;
+  }
+}
+function applyNeedles(list) {
+  list.forEach((r, i) => { const q = needles[i]; if (!q || P.needle === i) return; q.st = STN[r[0]] || 'pile'; q.x = r[1]; q.y = r[2]; q.z = r[3]; q.by = r[4] || null; });
+}
+function guestStep(dt) {
+  const f = Math.min(1, dt * 12);
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    if (it.ghost != null) { it.ghost -= dt; it.vy -= 9.8 * dt; it.x += it.vx * dt; it.y += it.vy * dt; it.z += it.vz * dt; const g = Math.max(0, hAt(it.x, it.z)); if (it.y < g) { it.y = g; it.vx = it.vy = it.vz = 0; } if (it.ghost <= 0) items.splice(i, 1); continue; }
+    if (it.tx != null) { it.x += (it.tx - it.x) * f; it.y += (it.ty - it.y) * f; it.z += (it.tz - it.z) * f; }
+  }
+  beltTex.offset.y -= beltSpeed() * dt / .6 * .5;
+  for (const m of builds) {
+    if (m.type === 'generator') { const fi = m.g.getObjectByName('fire'); if (fi) { fi.visible = m.fuel > 0; fi.material.color.setHSL(.07, 1, .45 + Math.random() * .15); } const w = m.g.getObjectByName('wheel'); if (w && m.running) w.rotation.z += dt * 6; }
+    else if (m.type === 'rake') { m.t = (m.t || 0) + dt * (1 + .15 * lvl('rake_speed')); m.r.head.position.z = -.6 - Math.sin(((m.t % 2.4) / 2.4) * Math.PI) * .7; }
+    else if (m.arm) { if (m.tipT) m.tip.lerp(m.tipT, Math.min(1, dt * 8)); armIK(m, m.tip); }
+  }
+}
+
+// ── 다른 사람 모습
+const AV = new Map();
+function makeAvatar(col) {
+  const g = new THREE.Group(), M = c => new THREE.MeshStandardMaterial({ color: c, roughness: .8 });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.25, .62, 4, 10), M(col)); body.position.y = .62; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.2, 16, 12), M('#f2cfa8')); head.position.y = 1.36; g.add(head);
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, .03, 18), M('#dcb85c')); brim.position.y = 1.5; g.add(brim);
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(.16, .19, .16, 14), M('#dcb85c')); crown.position.y = 1.59; g.add(crown);
+  for (const sx of [-.07, .07]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.025, 8, 6), M('#222')); e.position.set(sx, 1.39, -.18); g.add(e); }
+  g.traverse(o => { if (o.isMesh) o.castShadow = !MOBILE; });
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 64; const tex = new THREE.CanvasTexture(cv);
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); spr.scale.set(1.6, .4, 1); spr.position.y = 2.0; spr.renderOrder = 20; g.add(spr);
+  scene.add(g); return { g, cv, tex, label: '' };
+}
+function dropAvatar(k) { const a = AV.get(k); if (!a) return; scene.remove(a.g); a.tex.dispose(); AV.delete(k); }
+function netPoses(all) {
+  NET.poses = all;
+  for (const k in all) {
+    if (k === NET.me.k) continue; const pl = NET.players[k]; if (!pl) continue;
+    const f = String(all[k]).split(','); let a = AV.get(k);
+    if (!a) { a = makeAvatar(PCOL[(pl.col || 0) % 8]); AV.set(k, a); a.g.position.set(+f[0], +f[1], +f[2]); a.g.rotation.y = +f[3]; }
+    a.tx = +f[0]; a.ty = +f[1]; a.tz = +f[2]; a.tyaw = +f[3];
+    const lab = `${pl.nick} ${TOOLS[f[4]] ? TOOLS[f[4]].icon : f[4] === 'bucket' ? '🪣' : f[4] === 'barrow' ? '🛒' : ''}${f[5] === 'n' ? '🪡' : ''}`;
+    if (lab !== a.label) { a.label = lab; const c = a.cv.getContext('2d'); c.clearRect(0, 0, 256, 64); c.font = 'bold 30px "Noto Sans KR", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 6; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(lab, 128, 34); c.fillStyle = PCOL[(pl.col || 0) % 8]; c.fillText(lab, 128, 34); a.tex.needsUpdate = true; }
+  }
+  for (const k of [...AV.keys()]) if (!all[k] || !NET.players[k]) dropAvatar(k);
+}
+function avatarsStep(dt) {
+  const f = Math.min(1, dt * 10);
+  for (const a of AV.values()) { if (a.tx == null) continue; const p = a.g.position; p.x += (a.tx - p.x) * f; p.y += (a.ty - p.y) * f; p.z += (a.tz - p.z) * f; let d = a.tyaw - a.g.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); a.g.rotation.y += d * f; }
+}
+
+// ── 화면: 시작 화면 · 메뉴의 "같이 하기"
+function netUI() {
+  const n = Object.keys(NET.players || {}).length;
+  $('netbox').classList.toggle('hide', !NET.on);
+  if (NET.on) $('netbox').innerHTML = `👥 <b>${NET.code}</b> · ${n}명${NET.guest ? ' · 손님' : ' · 방장'}`;
+  const list = Object.entries(NET.players || {}).sort((a, b) => (a[1].at || 0) - (b[1].at || 0)).map(([k, p]) => `<span class="np" style="--c:${PCOL[(p.col || 0) % 8]}">${esc(p.nick)}${k === NET.me.k ? ' (나)' : ''}</span>`).join('');
+  $('netMenu').innerHTML = NET.on
+    ? `<p>방 코드 <b class="code">${NET.code}</b> <button class="btn" id="nmCopy">초대 링크 복사</button> <button class="btn" id="nmLeave">${NET.guest ? '방 나가기' : '방 닫기'}</button></p><p>${list}</p><p class="dimtxt">${NET.guest ? '방장의 마당이다. 돈·연구·건물은 같이 쓰고, 내 저장은 그대로 남아 있다.' : '내 마당에 친구가 들어와 있다. 돈·연구·건물을 같이 쓴다. 이 창을 닫으면 방이 닫힌다.'}</p>`
+    : `<p>내 마당에 친구를 부르거나, 친구 마당에 들어간다. (최대 8명)</p><p><input id="nmNick" class="nkin" maxlength="12" placeholder="닉네임"> <button class="btn go" id="nmHost">내 마당으로 방 열기</button></p><p><input id="nmCode" class="nkin" maxlength="6" placeholder="방 코드"> <button class="btn" id="nmJoin">들어가기</button></p>`;
+  const nn = $('nmNick'); if (nn) { nn.value = $('nkNick').value; nn.oninput = () => { $('nkNick').value = nn.value; }; }
+  if ($('nmHost')) $('nmHost').onclick = () => hostRoom();
+  if ($('nmJoin')) $('nmJoin').onclick = () => joinRoom($('nmCode').value);
+  if ($('nmCopy')) $('nmCopy').onclick = () => { const u = location.origin + location.pathname + '?room=' + NET.code; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('초대 링크를 복사했다'), () => toast(u, 6000)); };
+  if ($('nmLeave')) $('nmLeave').onclick = () => { if (confirm(NET.guest ? '방에서 나갈까? (내 마당으로 돌아간다)' : '방을 닫을까? 친구들이 나가진다.')) leaveRoom(); };
+  $('menuReset').classList.toggle('hide', NET.guest);
+}
+$('nkNick').value = (() => { try { return localStorage.getItem('needle_nick') || ''; } catch (e) { return ''; } })();
+if (Q.get('room')) $('nkCode').value = Q.get('room').toUpperCase().slice(0, 6);
+$('btnHost').onclick = () => hostRoom();
+$('btnJoin').onclick = () => joinRoom($('nkCode').value);
+
+// 방장 창이 뒤로 가면 rAF 가 멈춰 손님들 세계도 멈춤 → 워커 타이머로 계속 돌림
+let bgW = null;
+function bgTicker() {
+  if (bgW) return;
+  try { bgW = new Worker(URL.createObjectURL(new Blob(['let t=null;onmessage=e=>{clearInterval(t);t=e.data?setInterval(()=>postMessage(0),50):null}'], { type: 'text/javascript' }))); } catch (e) { return; }
+  bgW.onmessage = () => { if (document.hidden && started && NET.host) step(.05); };
+  const sync = () => bgW.postMessage(document.hidden && NET.host ? 1 : 0);
+  document.addEventListener('visibilitychange', sync); sync();
+}
+
 // ════════════ 입력 ════════════
 let locked = false;
 function lockPointer() { if (MOBILE || anyOverlay()) return; try { const pr = canvas.requestPointerLock(); if (pr && pr.catch) pr.catch(() => { }); } catch (e) { } }
@@ -1087,7 +1420,7 @@ addEventListener('keydown', e => {
   if (k.startsWith('Digit')) { const n = +k.slice(5); if (n >= 1) selectSlot(n - 1); }
   if (k === 'KeyE') interact();
   if (k === 'KeyG') dropTool();
-  if (k === 'KeyQ') { if (P.needle != null) { const q = needles[P.needle]; camera.getWorldDirection(_d); q.st = 'prop'; q.x = P.x + _d.x; q.z = P.z + _d.z; q.y = groundAt(q.x, q.z); P.needle = null; setViewNeedle(); } }
+  if (k === 'KeyQ') { if (P.needle != null) { const q = needles[P.needle]; camera.getWorldDirection(_d); q.st = 'prop'; q.x = P.x + _d.x; q.z = P.z + _d.z; q.y = groundAt(q.x, q.z); if (NET.guest) netAct({ t: 'nq', id: q.id, x: r3(q.x), y: r3(q.y), z: r3(q.z) }); P.needle = null; setViewNeedle(); } }
   if (k === 'KeyR' && BM) BM.rot += (e.shiftKey ? -1 : 1) * Math.PI / 4;
   if (k === 'KeyF' && BM) { BM.snap = !BM.snap; toast(BM.snap ? '격자 맞춤 켬' : '격자 맞춤 끔 (No Snap)', 1200); }
   if (k === 'KeyX' && !BM) startBuild('dismantle');
@@ -1119,7 +1452,7 @@ tbtn('tUse', () => { touchUse = true; if (BM) buildClick(); else primary(0, true
 tbtn('tAlt', () => { touchAlt = true; if (BM) buildCancel(); else secondary(0, true); }, () => { touchAlt = false; });
 tbtn('tE', () => interact()); tbtn('tJump', () => { touchJump = true; }, () => { touchJump = false; });
 tbtn('tRes', () => openResearch()); tbtn('tBuild', () => openCatalog()); tbtn('tMenu', () => openMenu());
-tbtn('tRot', () => { if (BM) BM.rot += Math.PI / 4; }); tbtn('tDrop', () => { if (P.needle != null) { const q = needles[P.needle]; q.st = 'prop'; q.x = P.x; q.z = P.z + .5; q.y = groundAt(q.x, q.z); P.needle = null; setViewNeedle(); } else dropTool(); });
+tbtn('tRot', () => { if (BM) BM.rot += Math.PI / 4; }); tbtn('tDrop', () => { if (P.needle != null) { const q = needles[P.needle]; q.st = 'prop'; q.x = P.x; q.z = P.z + .5; q.y = groundAt(q.x, q.z); if (NET.guest) netAct({ t: 'nq', id: q.id, x: r3(q.x), y: r3(q.y), z: r3(q.z) }); P.needle = null; setViewNeedle(); } else dropTool(); });
 
 // ════════════ 오버레이 (건설 목록 · 메뉴) ════════════
 function openCatalog() {
@@ -1165,7 +1498,7 @@ addBelt({ x: -9.5, y: .55, z: 10.3 }, { x: -Y + 3.92, y: 1.3, z: 9.0 }, true, tr
 const hadSave = load();
 if (!hadSave) { genPile(1); genNeedles(1); }
 buildNeedleMeshes(); updatePileMesh(true); updateFuzz(true); relink(); powerTick(); updateCabinetModel(); setViewNeedle();
-renderHotbar(); renderMission(); updateHints();
+renderHotbar(); renderMission(); updateHints(); netUI();
 $('btnPlay').textContent = hadSave ? '이어하기' : '시작'; $('btnNew').classList.toggle('hide', !hadSave);
 if (location.hash === '#new') { history.replaceState(null, '', location.pathname + location.search); startGame(false); }
 if (MOBILE) document.body.classList.add('mobile');
@@ -1200,10 +1533,14 @@ function step(dt) {
     if (mouseR || touchAlt) secondary(dt, false);
   }
   detector(dt);
-  relaxStep(MOBILE ? 2500 : 5000);
-  stepItems(dt); stepBelts(dt); stepMachines(dt); stepParts(dt); stepNeedles(dt);
-  powT -= dt; if (powT <= 0) { powT = .5; powerTick(); }
-  if (meshDirty.size) { updatePileMesh(false); updateFuzz(false); meshDirty = new Set(); }
+  if (NET.guest) { guestStep(dt); stepParts(dt); stepNeedles(dt); } // 손님: 세계는 방장이 계산해 보낸 걸 따라감
+  else {
+    relaxStep(MOBILE ? 2500 : 5000);
+    stepItems(dt); stepBelts(dt); stepMachines(dt); stepParts(dt); stepNeedles(dt);
+    powT -= dt; if (powT <= 0) { powT = .5; powerTick(); }
+  }
+  if (meshDirty.size) { if (NET.host) for (const k of meshDirty) netDirty.add(k); updatePileMesh(false); updateFuzz(false); meshDirty = new Set(); }
+  if (NET.on) netTick(dt);
   if (saleT > 0) { saleT -= dt; if (saleT <= 0 && saleAcc > 0) { lastSale = saleAcc; if (saleAcc > S.bestSale) S.bestSale = saleAcc; floatText('+' + money(saleAcc), new THREE.Vector3(yard.basket.x, 2.2, yard.basket.z), 'cash'); sfx('sell'); saleAcc = 0; } }
   if (S.earned >= 1) mission('earn1'); if (S.earned >= 10) mission('earn10');
   buildUpdate(); updateView(dt, fl > .1 && P.ground); stepLabels(dt); updateHUD(dt); updateSigns(dt); renderItems();
@@ -1230,5 +1567,6 @@ window.needle = {
   tp(x, z, yaw) { P.x = x; P.z = z; P.y = groundAt(x, z); if (yaw != null) P.yaw = yaw; },
   look(yaw, pitch) { P.yaw = yaw; P.pitch = pitch; },
   hold(l, r) { mouseL = !!l; mouseR = !!r; if (!l) pouring = false; },
+  NET, hostRoom, joinRoom, leaveRoom, AV, interactNow: interact, selectSlot, get aimHit() { return aimHit; }, get BMs() { return BM; }, buildClickNow: () => buildClick(),
   give(n) { S.money += n; }, wipe() { resetting = true; try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }, pileStrands, primary, secondary, interact, aim: () => aimHit, get BM() { return BM; }, get started() { return started; }, startGame,
 };
